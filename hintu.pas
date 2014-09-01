@@ -238,8 +238,9 @@ begin
     // text //
 
     try
-      OffsetRectF(rect, font.size div 3 - 1, 1);
-      OffsetRectF(rect, aheight div 4, 0);
+      rect.X := rect.X + font.size div 3 - 1;
+      rect.Y := rect.Y + 1;
+      rect.X := rect.X + aheight div 4;
 
       GdipCreateSolidFill(font.color, hbrush);
       GdipDrawString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, hbrush);

@@ -35,8 +35,7 @@ type
   TGDIPColors = packed array [0..MaxLongint div 4 - 1] of TGDIPColor;
   PGDIPColors = ^TGDIPColors;
 
-  TStretchStyle = (ssNone, ssStretch, ssTile, ssVStretch, ssHStretch,
-    ssVTile, ssHTile, ssVStretchHTile, ssHStretchVTile);
+  TStretchStyle = (ssNone, ssStretch, ssTile);
 
   _SimpleBitmap = record
     topleft: windows.TPoint;
@@ -60,26 +59,20 @@ type
   end;
 
   ppixel = ^pixel;
-  pixel = record
+  pixel = packed record
     b: byte;
     g: byte;
     r: byte;
     a: byte;
   end;
 
-  PBlendFunction = ^TBlendFunction;
   _BLENDFUNCTION = record
     BlendOp: BYTE;
     BlendFlags: BYTE;
     SourceConstantAlpha: BYTE;
     AlphaFormat: BYTE;
   end;
-  {$EXTERNALSYM _BLENDFUNCTION}
-  BLENDFUNCTION = _BLENDFUNCTION;
-  {$EXTERNALSYM BLENDFUNCTION}
   LPBLENDFUNCTION = ^BLENDFUNCTION;
-  {$EXTERNALSYM LPBLENDFUNCTION}
-  TBlendFunction = _BLENDFUNCTION;
 
 function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
     psize: LPSIZE; hdcSrc: HDC; pptSrc: LPPOINT; crKey: COLORREF;
@@ -99,43 +92,23 @@ procedure DeleteGraphics(hgdip: Pointer);
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
   margins: windows.TRect; Style: TStretchStyle = ssStretch;
   color_data: integer = DEFAULT_COLOR_DATA);
-function MeasureString(str: string; hfont: Pointer): TRectF;
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
-procedure UpdateLWindowContent(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
-procedure UpdateLWindowPos(hWnd: THandle; x, y: integer);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 procedure LoadImage(imagefile: string; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
 function DownscaleImage(var image: pointer; MaxSize: integer; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
-procedure LoadGdipImageFromResource(res_name: pchar; var image: Pointer);
-procedure OffsetRectF(var r: TRectF; offx, offy: integer);
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
-function FontDataToString(var fData: _FontData): string;
-procedure StringToFontData(str: string; var font: _FontData);
 function SwapColor(color: uint): uint;
-function FadeColorTo(color, fadeto: uint; fadeby: extended): uint;
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
 function HLStoRGB(h, l, s: integer): uint;
-function StringToStretchStyle(str: string): TStretchStyle;
-function StretchStyleToString(ss: TStretchStyle): string;
 
 var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
 
 implementation
-//------------------------------------------------------------------------------
-function min(a, b: integer): integer;
-begin
-  if a < b then result:= a else result:= b;
-end;
-//------------------------------------------------------------------------------
-function max(a, b: integer): integer;
-begin
-  if a < b then result:= b else result:= a;
-end;
 //--------------------------------------------------------------------------------------------------
 function CreateBitmap(var bmp: _SimpleBitmap): boolean;
 begin
@@ -311,14 +284,6 @@ end;
 procedure DeleteGraphics(hgdip: Pointer);
 begin
   if hgdip <> nil then GdipDeleteGraphics(hgdip);
-end;
-//--------------------------------------------------------------------------------------------------
-procedure OffsetRectF(var r: TRectF; offx, offy: integer);
-begin
-  r.x:= r.x + offx;
-  r.y:= r.y + offy;
-  r.width:= r.width + offx;
-  r.height:= r.height + offy;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure IdentityMatrix(var matrix: ColorMatrix);
@@ -729,24 +694,6 @@ begin
 
   if DEFAULT_COLOR_DATA <> color_data then GdipDisposeImageAttributes(hattr);
 end;
-//------------------------------------------------------------------------------
-function MeasureString(str: string; hfont: Pointer): TRectF;
-var
-  dc: HDC;
-  hgdip: Pointer;
-begin
-  result.x:= 0;
-  result.y:= 0;
-  result.width:= 0;
-  result.height:= 0;
-  dc:= CreateCompatibleDC(0);
-  if dc = 0 then exit;
-  GdipCreateFromHDC(dc, hgdip);
-  GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-  GdipMeasureString(hgdip, PWideChar(WideString(str)), -1, hfont, @result, nil, @result, nil, nil);
-  GdipDeleteGraphics(hgdip);
-  DeleteDC(dc);
-end;
 //--------------------------------------------------------------------------------------------------
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 var
@@ -764,22 +711,6 @@ begin
   UpdateLayeredWindow(hWnd, 0, @bmp.topleft, @Size, bmp.dc, @TopLeft, $1fffffff, @Blend, ULW_ALPHA);
 end;
 //--------------------------------------------------------------------------------------------------
-procedure UpdateLWindowContent(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
-var
-  Blend: TBlendFunction;
-  TopLeft: windows.TPoint;
-  Size: windows.TSize;
-begin
-  TopLeft:= Point(0, 0);
-  size.cx:= bmp.width;
-  size.cy:= bmp.height;
-  Blend.BlendOp:= AC_SRC_OVER;
-  Blend.BlendFlags:= 0;
-  Blend.SourceConstantAlpha:= SrcAlpha;
-  Blend.AlphaFormat:= AC_SRC_ALPHA;
-  UpdateLayeredWindow(hWnd, 0, nil, @Size, bmp.dc, @TopLeft, $1fffffff, @Blend, ULW_ALPHA);
-end;
-//--------------------------------------------------------------------------------------------------
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 var
   Blend: TBlendFunction;
@@ -791,14 +722,6 @@ begin
   Blend.SourceConstantAlpha:= SrcAlpha;
   Blend.AlphaFormat:= AC_SRC_ALPHA;
   UpdateLayeredWindow(hWnd, 0, @topleft, nil, 0, nil, $1fffffff, @Blend, ULW_ALPHA);
-end;
-//--------------------------------------------------------------------------------------------------
-procedure UpdateLWindowPos(hWnd: THandle; x, y: integer);
-var
-  TopLeft: windows.TPoint;
-begin
-  TopLeft:= Point(x, y);
-  UpdateLayeredWindow(hWnd, 0, @topleft, 0, 0, 0, 0, 0, 0);
 end;
 //------------------------------------------------------------------------------
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -1035,18 +958,6 @@ begin
     DeleteObject(ii.hbmColor);
   end;
 end;
-//------------------------------------------------------------------------------
-procedure LoadGdipImageFromResource(res_name: pchar; var image: Pointer);
-var
-  rs: TResourceStream;
-  s: IStream;
-begin
-  image := nil;
-  rs := TResourceStream.Create(hInstance, res_name, RT_RCDATA);
-  s := TStreamAdapter.Create(rs, soReference) as IStream;
-  GdipCreateBitmapFromStream(s, image);
-  rs.free;
-end;
 //--------------------------------------------------------------------------------------------------
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 begin
@@ -1058,49 +969,10 @@ begin
   fTo.italic:=        fFrom.italic;
   fTo.outline:=       fFrom.outline;
 end;
-//--------------------------------------------------------------------------------------------------
-function FontDataToString(var fData: _FontData): string;
-begin
-  result:= 'name=' + pchar(@fData.name) + ';' +
-    'size=' + inttostr(fData.size) + ';' +
-    'color=$' + inttohex(fData.color, 8) + ';' +
-    'color_o=$' + inttohex(fData.color_outline, 8) + ';' +
-    'bold=' + inttostr(integer(fData.bold)) + ';' +
-    'italic=' + inttostr(integer(fData.italic)) + ';' +
-    'outline=' + inttostr(integer(fData.outline)) + ';';
-end;
-//--------------------------------------------------------------------------------------------------
-procedure StringToFontData(str: string; var font: _FontData);
-begin
-  try strcopy(font.name, pchar(FetchValue(str, 'name=', ';')));
-  except end;
-  try font.size:= strtoint(FetchValue(str, 'size=', ';'));
-  except end;
-  try font.color:= StringToColor(FetchValue(str, 'color=', ';'));
-  except end;
-  try font.color_outline:= StringToColor(FetchValue(str, 'color_o=', ';'));
-  except end;
-  try font.bold:= boolean(strtoint(FetchValue(str, 'bold=', ';')));
-  except end;
-  try font.italic:= boolean(strtoint(FetchValue(str, 'italic=', ';')));
-  except end;
-  try font.outline:= boolean(strtoint(FetchValue(str, 'outline=', ';')));
-  except end;
-end;
 //------------------------------------------------------------------------------
 function SwapColor(color: uint): uint;
 begin
   result:= color and $ff000000 + color shr 16 and $ff + color and $ff00 + color and $ff shl 16;
-end;
-//------------------------------------------------------------------------------
-function FadeColorTo(color, fadeto: uint; fadeby: extended): uint;
-var
-  r, g, b: integer;
-begin
-  r:= integer(fadeto shr 16 and $ff) - round((integer(fadeto shr 16 and $ff) - integer(color shr 16 and $ff)) * fadeby);
-  g:= integer(fadeto shr 8 and $ff) - round((integer(fadeto shr 8 and $ff) - integer(color shr 8 and $ff)) * fadeby);
-  b:= integer(fadeto and $ff) - round((integer(fadeto and $ff) - integer(color and $ff)) * fadeby);
-  result:= fadeto and $ff000000 + r shl 16 + g shl 8 + b;
 end;
 //------------------------------------------------------------------------------
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
@@ -1175,18 +1047,6 @@ begin
   if B < 0 then B:= 0;
   if B > RGBMAX then B:= RGBMAX;
   result:= RGB(round(r), round(g), round(b));
-end;
-//------------------------------------------------------------------------------
-function StringToStretchStyle(str: string): TStretchStyle;
-begin
-  result := ssStretch;
-  if AnsiLowerCase(str) = 'tile' then result:= ssTile
-end;
-//------------------------------------------------------------------------------
-function StretchStyleToString(ss: TStretchStyle): string;
-begin
-  result := 'stretch';
-  if ss = ssTile then result:= 'tile';
 end;
 //--------------------------------------------------------------------------------------------------
 initialization
