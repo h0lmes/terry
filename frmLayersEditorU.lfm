@@ -1,0 +1,115 @@
+object frmLayersEditor: TfrmLayersEditor
+  Left = 649
+  Height = 306
+  Top = 338
+  Width = 445
+  Caption = 'Theme parameters'
+  ChildSizing.LeftRightSpacing = 10
+  ChildSizing.TopBottomSpacing = 10
+  ClientHeight = 286
+  ClientWidth = 445
+  Constraints.MinWidth = 300
+  Menu = mmenu
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.0.10.0'
+  object Label1: TLabel
+    Left = 10
+    Height = 16
+    Top = 10
+    Width = 93
+    Caption = 'Items area border'
+    ParentColor = False
+  end
+  object Label16: TLabel
+    Left = 10
+    Height = 16
+    Top = 175
+    Width = 104
+    Caption = 'Icons reflection size'
+    ParentColor = False
+  end
+  object Label15: TLabel
+    Left = 10
+    Height = 16
+    Top = 230
+    Width = 97
+    Caption = 'Separator margins'
+    ParentColor = False
+  end
+  object Label9: TLabel
+    Left = 10
+    Height = 16
+    Top = 65
+    Width = 111
+    Caption = 'Background margins'
+    ParentColor = False
+  end
+  object Label14: TLabel
+    Left = 10
+    Height = 16
+    Top = 120
+    Width = 59
+    Caption = 'Blur region'
+    ParentColor = False
+  end
+  object edBlurRegion: TEdit
+    Left = 10
+    Height = 23
+    Top = 140
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 2
+  end
+  object edmargin: TEdit
+    Left = 10
+    Height = 23
+    Top = 85
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edImageChange
+    TabOrder = 1
+  end
+  object edSeparatorMargins: TEdit
+    Left = 10
+    Height = 23
+    Top = 250
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 3
+  end
+  object edReflectionSize: TEdit
+    Left = 10
+    Height = 23
+    Top = 195
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 4
+  end
+  object edItemsArea: TEdit
+    Left = 10
+    Height = 23
+    Top = 30
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 0
+  end
+  object mmenu: TMainMenu
+    left = 195
+    top = 10
+    object msave: TMenuItem
+      Caption = 'Save theme <F2>'
+      ShortCut = 113
+      OnClick = msaveClick
+    end
+    object mclose: TMenuItem
+      Caption = 'Close editor <Esc>'
+      ShortCut = 27
+      OnClick = mcloseClick
+    end
+  end
+end

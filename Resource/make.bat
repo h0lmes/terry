@@ -1,0 +1,1 @@
+gorc.exe /r res.rc

@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <MainUnit Value="0"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N Value="True"/>
+      <OutDir Value="Locale"/>
+    </i18n>
+    <VersionInfo>
+      <UseVersionInfo Value="True"/>
+      <MajorVersionNr Value="1"/>
+      <RevisionNr Value="1"/>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="9">
+      <Unit0>
+        <Filename Value="Collection.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Collection"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="18" Y="3"/>
+        <UsageCount Value="41"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="unit1.pas"/>
+        <ComponentName Value="Form1"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="toolu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="toolu"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="29"/>
+        <CursorPos X="1" Y="44"/>
+        <UsageCount Value="41"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="frmCollectionU.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmCollection"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmCollectionU"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="710"/>
+        <CursorPos X="25" Y="715"/>
+        <UsageCount Value="41"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="gdip_gfx.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gdip_gfx"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="78"/>
+        <CursorPos X="1" Y="94"/>
+        <UsageCount Value="41"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="DirectXCommon.pas"/>
+        <UnitName Value="DirectXCommon"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="120"/>
+        <CursorPos X="23" Y="136"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="dropsrcu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dropsrcu"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="201"/>
+        <CursorPos X="41" Y="232"/>
+        <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="enumfmt.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="EnumFmt"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="27" Y="15"/>
+        <UsageCount Value="34"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-base\src\activex.pp"/>
+        <UnitName Value="ActiveX"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="3361"/>
+        <CursorPos X="40" Y="3378"/>
+        <UsageCount Value="10"/>
+      </Unit8>
+    </Units>
+    <JumpHistory Count="28" HistoryIndex="27">
+      <Position1>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="60" Column="44" TopLine="47"/>
+      </Position1>
+      <Position2>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="81" Column="1" TopLine="56"/>
+      </Position2>
+      <Position3>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="502" Column="7" TopLine="298"/>
+      </Position3>
+      <Position4>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="61" Column="34" TopLine="55"/>
+      </Position4>
+      <Position5>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="62" Column="34" TopLine="56"/>
+      </Position5>
+      <Position6>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="61" Column="34" TopLine="55"/>
+      </Position6>
+      <Position7>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="62" Column="34" TopLine="56"/>
+      </Position7>
+      <Position8>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="63" Column="34" TopLine="57"/>
+      </Position8>
+      <Position9>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="65" Column="34" TopLine="59"/>
+      </Position9>
+      <Position10>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="71" Column="33" TopLine="59"/>
+      </Position10>
+      <Position11>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="282" Column="1" TopLine="255"/>
+      </Position11>
+      <Position12>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="12" Column="10" TopLine="1"/>
+      </Position12>
+      <Position13>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="62" Column="5" TopLine="28"/>
+      </Position13>
+      <Position14>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="555" Column="17" TopLine="536"/>
+      </Position14>
+      <Position15>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="554" Column="1" TopLine="536"/>
+      </Position15>
+      <Position16>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="310" Column="6" TopLine="283"/>
+      </Position16>
+      <Position17>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="376" Column="56" TopLine="357"/>
+      </Position17>
+      <Position18>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="648" Column="17" TopLine="627"/>
+      </Position18>
+      <Position19>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="86" Column="50" TopLine="77"/>
+      </Position19>
+      <Position20>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="85" Column="50" TopLine="76"/>
+      </Position20>
+      <Position21>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="86" Column="50" TopLine="77"/>
+      </Position21>
+      <Position22>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="82" Column="42" TopLine="77"/>
+      </Position22>
+      <Position23>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="84" Column="42" TopLine="79"/>
+      </Position23>
+      <Position24>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="12" Column="53" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="217" Column="118" TopLine="188"/>
+      </Position25>
+      <Position26>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="625" Column="125" TopLine="596"/>
+      </Position26>
+      <Position27>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="332" Column="32" TopLine="311"/>
+      </Position27>
+      <Position28>
+        <Filename Value="frmCollectionU.pas"/>
+        <Caret Line="316" Column="37" TopLine="311"/>
+      </Position28>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="Collection"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+        <AllowLabel Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <SmartLinkUnit Value="True"/>
+      <TargetProcessor Value="pentium4"/>
+      <TargetOS Value="win32"/>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+        <UseLineInfoUnit Value="False"/>
+      </Debugging>
+      <LinkSmart Value="True"/>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+      <ExecuteAfter>
+        <Command Value="copy.bat"/>
+        <CompileReasons Run="False"/>
+      </ExecuteAfter>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

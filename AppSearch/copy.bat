@@ -1,0 +1,1 @@
+copy .\apps.exe c:\terry\apps.exe

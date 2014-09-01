@@ -1,0 +1,299 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="1">
+      <Item1>
+        <PackageName Value="LCL"/>
+      </Item1>
+    </RequiredPackages>
+    <Units Count="9">
+      <Unit0>
+        <Filename Value="clock.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="10"/>
+        <CursorPos X="24" Y="20"/>
+        <FoldState Value=" T3i0032 pjdk509316p"/>
+        <UsageCount Value="54"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\..\DockH.pas"/>
+        <UnitName Value="DockH"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="3"/>
+        <UsageCount Value="33"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="frmscheduleru.pas"/>
+        <ComponentName Value="frmscheduler"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="frmscheduleru"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="256"/>
+        <CursorPos X="20" Y="278"/>
+        <UsageCount Value="32"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="AlphaGfx.pas"/>
+        <UnitName Value="AlphaGfx"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="32"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="GDIPAPI.pas"/>
+        <UnitName Value="GDIPAPI"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="647"/>
+        <CursorPos X="61" Y="647"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="frmscheduleru.lfm"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="418"/>
+        <CursorPos X="28" Y="78"/>
+        <UsageCount Value="9"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="..\..\gdip_gfx.pas"/>
+        <UnitName Value="gdip_gfx"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="20"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="DockH.pas"/>
+        <UnitName Value="DockH"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="80" Y="8"/>
+        <UsageCount Value="18"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="gdip_gfx.pas"/>
+        <UnitName Value="gdip_gfx"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="905"/>
+        <CursorPos X="13" Y="928"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit8>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="38" Column="1" TopLine="4"/>
+      </Position1>
+      <Position2>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="332" Column="3" TopLine="319"/>
+      </Position2>
+      <Position3>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="8" Column="6" TopLine="1"/>
+      </Position3>
+      <Position4>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="22" Column="1" TopLine="5"/>
+      </Position4>
+      <Position5>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="209" Column="43" TopLine="196"/>
+      </Position5>
+      <Position6>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="277" Column="35" TopLine="234"/>
+      </Position6>
+      <Position7>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="204" Column="1" TopLine="196"/>
+      </Position7>
+      <Position8>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="7" Column="10" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="6" Column="23" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="250" Column="67" TopLine="1"/>
+      </Position10>
+      <Position11>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="262" Column="13" TopLine="230"/>
+      </Position11>
+      <Position12>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="343" Column="12" TopLine="338"/>
+      </Position12>
+      <Position13>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="223" Column="12" TopLine="194"/>
+      </Position13>
+      <Position14>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="124" Column="15" TopLine="102"/>
+      </Position14>
+      <Position15>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="211" Column="1" TopLine="163"/>
+      </Position15>
+      <Position16>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="194" Column="14" TopLine="164"/>
+      </Position16>
+      <Position17>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="397" Column="43" TopLine="352"/>
+      </Position17>
+      <Position18>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="272" Column="1" TopLine="262"/>
+      </Position18>
+      <Position19>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="305" Column="1" TopLine="289"/>
+      </Position19>
+      <Position20>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="130" Column="46" TopLine="121"/>
+      </Position20>
+      <Position21>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="200" Column="1" TopLine="199"/>
+      </Position21>
+      <Position22>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="306" Column="15" TopLine="293"/>
+      </Position22>
+      <Position23>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="316" Column="1" TopLine="292"/>
+      </Position23>
+      <Position24>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="307" Column="35" TopLine="289"/>
+      </Position24>
+      <Position25>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="340" Column="77" TopLine="292"/>
+      </Position25>
+      <Position26>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="21" Column="1" TopLine="13"/>
+      </Position26>
+      <Position27>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="54" Column="1" TopLine="37"/>
+      </Position27>
+      <Position28>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="382" Column="1" TopLine="44"/>
+      </Position28>
+      <Position29>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="9" Column="35" TopLine="1"/>
+      </Position29>
+      <Position30>
+        <Filename Value="clock.lpr"/>
+        <Caret Line="425" Column="21" TopLine="396"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <SearchPaths>
+      <IncludeFiles Value="..\..;$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\.."/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="Delphi"/>
+        <AllowLabel Value="False"/>
+      </SyntaxOptions>
+    </Parsing>
+    <CodeGeneration>
+      <Optimizations>
+        <OptimizationLevel Value="3"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <UseLineInfoUnit Value="False"/>
+      </Debugging>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

@@ -1,0 +1,52 @@
+object frmApps: TfrmApps
+  Left = 329
+  Height = 644
+  Top = 138
+  Width = 1007
+  Caption = 'Application search'
+  ClientHeight = 644
+  ClientWidth = 1007
+  KeyPreview = True
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.0.10.0'
+  object listApps: TListView
+    Left = 0
+    Height = 644
+    Top = 0
+    Width = 1007
+    Align = alClient
+    BorderStyle = bsNone
+    Columns = <    
+      item
+        Width = 10
+      end    
+      item
+        Caption = 'Name'
+        Width = 10
+      end    
+      item
+        Caption = 'Description'
+        Width = 10
+      end>
+    IconOptions.Arrangement = iaLeft
+    LargeImages = images
+    ReadOnly = True
+    RowSelect = True
+    ScrollBars = ssVertical
+    ShowColumnHeaders = False
+    SmallImages = images
+    SortType = stBoth
+    TabOrder = 0
+    ViewStyle = vsIcon
+    OnAdvancedCustomDrawItem = listAppsAdvancedCustomDrawItem
+    OnDblClick = listAppsDblClick
+    OnSelectItem = listAppsSelectItem
+  end
+  object images: TImageList
+    Height = 48
+    Width = 48
+    left = 85
+    top = 120
+  end
+end

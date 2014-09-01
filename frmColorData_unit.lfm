@@ -1,0 +1,129 @@
+object frmColorData: TfrmColorData
+  Left = 526
+  Height = 199
+  Top = 419
+  Width = 471
+  BorderStyle = bsToolWindow
+  Caption = 'Select color'
+  ClientHeight = 199
+  ClientWidth = 471
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  FormStyle = fsStayOnTop
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '0.9.30.4'
+  object Label2: TLabel
+    Left = 10
+    Height = 14
+    Top = 20
+    Width = 20
+    Caption = 'Hue'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 10
+    Height = 14
+    Top = 125
+    Width = 43
+    Caption = 'Contrast'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 10
+    Height = 14
+    Top = 90
+    Width = 51
+    Caption = 'Brightness'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 10
+    Height = 14
+    Top = 55
+    Width = 51
+    Caption = 'Saturation'
+    ParentColor = False
+  end
+  object tbHue: TTrackBar
+    Left = 110
+    Height = 36
+    Top = 10
+    Width = 350
+    Frequency = 16
+    Max = 255
+    OnChange = tbHueChange
+    PageSize = 10
+    Position = 0
+    ShowSelRange = False
+    TickMarks = tmTopLeft
+    TabOrder = 0
+  end
+  object tbSat: TTrackBar
+    Left = 110
+    Height = 36
+    Top = 45
+    Width = 350
+    Frequency = 16
+    Max = 255
+    PageSize = 10
+    Position = 0
+    ShowSelRange = False
+    TickMarks = tmTopLeft
+    TabOrder = 1
+  end
+  object tbBr: TTrackBar
+    Left = 110
+    Height = 36
+    Top = 80
+    Width = 350
+    Frequency = 16
+    Max = 255
+    PageSize = 10
+    Position = 0
+    ShowSelRange = False
+    TickMarks = tmTopLeft
+    TabOrder = 2
+  end
+  object tbCont: TTrackBar
+    Left = 110
+    Height = 36
+    Top = 115
+    Width = 350
+    Frequency = 16
+    Max = 255
+    PageSize = 10
+    Position = 0
+    ShowSelRange = False
+    TickMarks = tmTopLeft
+    TabOrder = 3
+  end
+  object btnDefault: TButton
+    Left = 105
+    Height = 26
+    Top = 165
+    Width = 116
+    Caption = 'Reset color'
+    OnClick = btnDefaultClick
+    TabOrder = 4
+  end
+  object btnOk: TButton
+    Left = 225
+    Height = 26
+    Top = 165
+    Width = 116
+    Caption = 'OK'
+    OnClick = btnOkClick
+    TabOrder = 5
+  end
+  object btnCancel: TButton
+    Left = 345
+    Height = 26
+    Top = 165
+    Width = 116
+    Caption = 'Cancel'
+    OnClick = btnCancelClick
+    TabOrder = 6
+  end
+end

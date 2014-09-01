@@ -1,0 +1,57 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: frmcollectionu.xbrowseimagesfoldertitle
+msgid "Select a folder with images in PNG or ICO format"
+msgstr ""
+
+#: frmcollectionu.xcollection
+msgctxt "frmcollectionu.xcollection"
+msgid "Collection"
+msgstr ""
+
+#: frmcollectionu.xhint
+msgid "Select a folder in the list at the left side. Select an icon and drag&drop it onto any shortcut on the dock."
+msgstr ""
+
+#: frmcollectionu.xloadingprogress
+msgid "Loading. %d%% complete"
+msgstr ""
+
+#: frmcollectionu.xnothingfound
+msgid "Nothing found"
+msgstr ""
+
+#: frmcollectionu.xsearch
+msgid "Search..."
+msgstr ""
+
+#: tfrmcollection.caption
+msgctxt "TFRMCOLLECTION.CAPTION"
+msgid "Collection"
+msgstr ""
+
+#: tfrmcollection.mbrowsefolder.caption
+msgid "Select images folder"
+msgstr ""
+
+#: tfrmcollection.mexit.caption
+msgid "Exit"
+msgstr ""
+
+#: tfrmcollection.mhint.caption
+msgid "Hint"
+msgstr ""
+
+#: tfrmcollection.rbblack.caption
+msgid "Black "
+msgstr ""
+
+#: tfrmcollection.rbgray.caption
+msgid "Gray"
+msgstr ""
+
+#: tfrmcollection.rbwhite.caption
+msgid "White"
+msgstr ""
+

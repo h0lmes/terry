@@ -1,0 +1,74 @@
+object frmAddCommand: TfrmAddCommand
+  Left = 362
+  Height = 554
+  Top = 180
+  Width = 877
+  Caption = 'Add command'
+  ClientHeight = 554
+  ClientWidth = 877
+  FormStyle = fsStayOnTop
+  OnClose = FormClose
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '1.0.10.0'
+  object lv: TListView
+    Left = 10
+    Height = 494
+    Top = 10
+    Width = 857
+    Align = alClient
+    BorderSpacing.Around = 10
+    Columns = <    
+      item
+        Caption = 'Command'
+        Width = 220
+      end    
+      item
+        Caption = 'Descritpion'
+        Width = 600
+      end>
+    ColumnClick = False
+    LargeImages = images
+    ReadOnly = True
+    RowSelect = True
+    ScrollBars = ssAutoBoth
+    SmallImages = images
+    TabOrder = 0
+    ViewStyle = vsReport
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 40
+    Top = 514
+    Width = 877
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 40
+    ClientWidth = 877
+    TabOrder = 1
+    object btnAdd: TButton
+      Left = 10
+      Height = 29
+      Top = 1
+      Width = 200
+      Caption = 'Add command'
+      OnClick = btnAddClick
+      TabOrder = 0
+    end
+    object btnClose: TButton
+      Left = 215
+      Height = 29
+      Top = 1
+      Width = 200
+      Caption = 'Close window'
+      OnClick = btnCloseClick
+      TabOrder = 1
+    end
+  end
+  object images: TImageList
+    Height = 32
+    Width = 32
+    left = 223
+    top = 187
+  end
+end

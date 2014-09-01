@@ -1,0 +1,27 @@
+object frmterry: Tfrmterry
+  Left = 570
+  Height = 50
+  Top = 258
+  Width = 136
+  AllowDropFiles = True
+  BorderIcons = []
+  BorderStyle = bsNone
+  Caption = 'TerryForm'
+  Color = clBtnFace
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  KeyPreview = True
+  OnClose = FormClose
+  OnKeyDown = FormKeyDown
+  OnMouseUp = FormMouseUp
+  OnShow = FormShow
+  LCLVersion = '1.2.2.0'
+  object trayicon: TTrayIcon
+    Hint = 'Terry'
+    Visible = True
+    OnMouseUp = trayiconMouseUp
+    left = 10
+    top = 10
+  end
+end

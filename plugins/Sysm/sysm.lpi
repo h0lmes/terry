@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <PathDelim Value="\"/>
+    <General>
+      <Flags>
+        <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
+    <Units Count="3">
+      <Unit0>
+        <Filename Value="sysm.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="88"/>
+        <CursorPos X="32" Y="108"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="..\..\DockH.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="DockH"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="150"/>
+        <CursorPos X="24" Y="53"/>
+        <UsageCount Value="23"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="adCpuUsage.pas"/>
+        <UnitName Value="adCpuUsage"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="180"/>
+        <CursorPos X="14" Y="199"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit2>
+    </Units>
+    <JumpHistory Count="15" HistoryIndex="14">
+      <Position1>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="40" Column="33" TopLine="28"/>
+      </Position1>
+      <Position2>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="304" Column="12" TopLine="281"/>
+      </Position2>
+      <Position3>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="109" Column="24" TopLine="90"/>
+      </Position3>
+      <Position4>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="295" Column="28" TopLine="272"/>
+      </Position4>
+      <Position5>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="254" Column="36" TopLine="235"/>
+      </Position5>
+      <Position6>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="107" Column="44" TopLine="105"/>
+      </Position6>
+      <Position7>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="97" Column="27" TopLine="91"/>
+      </Position7>
+      <Position8>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="14" Column="3" TopLine="1"/>
+      </Position8>
+      <Position9>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="34" Column="1" TopLine="16"/>
+      </Position9>
+      <Position10>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="255" Column="42" TopLine="236"/>
+      </Position10>
+      <Position11>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="204" Column="3" TopLine="185"/>
+      </Position11>
+      <Position12>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="265" Column="18" TopLine="246"/>
+      </Position12>
+      <Position13>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="244" Column="37" TopLine="225"/>
+      </Position13>
+      <Position14>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="204" Column="3" TopLine="185"/>
+      </Position14>
+      <Position15>
+        <Filename Value="sysm.lpr"/>
+        <Caret Line="107" Column="104" TopLine="85"/>
+      </Position15>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <SearchPaths>
+      <IncludeFiles Value="..\.."/>
+      <OtherUnitFiles Value="..\.."/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <SyntaxMode Value="delphi"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Linking>
+      <Options>
+        <ExecutableType Value="Library"/>
+      </Options>
+    </Linking>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
