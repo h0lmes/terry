@@ -56,7 +56,6 @@ type
     // terry commands //
     tcMin,
     tcRepaintBase,
-    tcRecalcBase,
     tcMenu,
     tcSaveSets,
     tcThemeChanged,

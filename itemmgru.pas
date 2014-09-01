@@ -1,8 +1,9 @@
 unit itemmgru;
 
 interface
-uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math, declu, gdip_gfx, themeu, setsu,
-    customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu, processhlp;
+uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math, GDIPAPI,
+  declu, gdip_gfx, themeu, setsu, processhlp,
+  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
 
 const
   MAX_ITEM_COUNT = 128;
@@ -48,7 +49,6 @@ type
     procedure notify(message: string);
     procedure DoSetForeground;
     procedure DoBaseDraw(flags: integer);
-    procedure DoBaseRecalc;
     procedure DoSaveSets;
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem;
@@ -64,9 +64,11 @@ type
     height: integer;
     widthZoomed: integer;
     heightZoomed: integer;
-    widthOverhead: integer;
+    widthOverhead: integer; // used to stabilize file DragOver
     heightOverhead: integer;
-    ParentRect: windows.TRect; // rect of the base window. updated on every BaseRecalc //
+    MonitorRect: Windows.TRect;
+    BaseWindowRect: GDIPAPI.TRect; // rect of the dock main window. updated on every RecalcDock //
+    BaseImageRect: GDIPAPI.TRect; // rect of the dock image. updated on every RecalcDock //
     ZoomInOutItem: extended; // relative mouse position on last WHMouseMove //
     Zooming: boolean; // true if mouse is over the panel and any items are zoomed //
     DropDistance: integer;
@@ -95,6 +97,7 @@ type
     procedure SetTheme;
     procedure ItemsChanged(FullUpdate: boolean = false);
     procedure SetItems1;
+    procedure RecalcDock;
     procedure SetItems2(force_draw: boolean);
     procedure SetVisible(value: boolean);
 
@@ -337,11 +340,6 @@ begin
   if assigned(BaseCmd) then BaseCmd(tcRepaintBase, flags);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DoBaseRecalc;
-begin
-  if assigned(BaseCmd) then BaseCmd(tcRecalcBase, 0);
-end;
-//------------------------------------------------------------------------------
 procedure _ItemManager.DoSaveSets;
 begin
   if assigned(BaseCmd) then BaseCmd(tcSaveSets, 0);
@@ -358,10 +356,10 @@ end;
 function _ItemManager.GetZoomEdge: integer;
 begin
   case BaseSite of
-    0: result := ParentRect.Left + x + widthZoomed;
-    1: result := ParentRect.Top + y + heightZoomed;
-    2: result := ParentRect.Left + x + width - widthZoomed;
-    3: result := ParentRect.Top + y + height - heightZoomed;
+    0: result := BaseWindowRect.X + x + widthZoomed;
+    1: result := BaseWindowRect.Y + y + heightZoomed;
+    2: result := BaseWindowRect.X + x + width - widthZoomed;
+    3: result := BaseWindowRect.Y + y + height - heightZoomed;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -807,6 +805,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetTheme;
 begin
+  MonitorRect := frmterry.GetMonitorBoundsRect;
   AllItemCmd(tcThemeChanged, 0);
   ItemsChanged(true);
 end;
@@ -816,7 +815,7 @@ begin
   if Enabled then
   try
     SetItems1;
-    DoBaseRecalc;
+    RecalcDock;
     SetItems2(FullUpdate);
     DoBaseDraw(ifthen(FullUpdate, 1, 0));
   except
@@ -862,16 +861,15 @@ begin
     begin
       items[i].y := FItemArea.Top + ItemSize - items[i].s;
       items[i].x := acc;
+      if BaseSite = 1 then
+      begin
+        items[i].y := FItemArea.Top;
+      end
+      else
       if BaseSite = 0 then
       begin
         items[i].x := FItemArea.Left;
         items[i].y := acc;
-      end
-      else
-      if BaseSite = 1 then
-      begin
-        items[i].y := FItemArea.Top;
-        items[i].x := acc;
       end
       else
       if BaseSite = 2 then
@@ -885,20 +883,24 @@ begin
     end;
     dec(acc, ItemSpacing);
 
-    if BaseSite mod 2 = 0 then // vertical orientation
+    // vertical //
+    if BaseSite mod 2 = 0 then
     begin
       width := ItemSize + FItemArea.Left + FItemArea.Right;
       widthZoomed := max(width, ifthen(BaseSite = 0, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
-      widthOverhead := ifthen(Zooming, BigItemSize - ItemSize, 0);
+      widthOverhead := 0;
+      if Zooming and DraggingFile then widthOverhead := BigItemSize - ItemSize;
 
       if acc > height then height := acc;
       inc(height, FItemArea.Bottom);
       if height < ItemSize then height := ItemSize;
       if height mod 2 <> 0 then inc(height);
-    end else begin // horizontal orientation
+    // horizontal //
+    end else begin
       height := ItemSize + FItemArea.Top + FItemArea.Bottom;
       heightZoomed := max(height, ifthen(BaseSite = 1, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
-      heightOverhead := ifthen(Zooming, BigItemSize - ItemSize, 0);
+      heightOverhead := 0;
+      if Zooming and DraggingFile then heightOverhead := BigItemSize - ItemSize;
 
       if acc > width then width := acc;
       inc(width, FItemArea.Right);
@@ -908,6 +910,57 @@ begin
 
   except
     on e: Exception do err('ItemManager.SetItems1', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.RecalcDock;
+var
+  vbo: boolean;
+begin
+  if Enabled and assigned(theme) then
+  try
+    vbo := (BaseSite = 0) or (BaseSite = 2);
+
+    // self XY relative to BaseWindowRect //
+    if BaseSite = 0 then x := 0
+    else
+    if BaseSite = 2 then x := widthOverhead
+    else
+      x := trunc((MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent / 100 + IASize / 2 - Width / 2);
+
+    if BaseSite = 1 then y := 0
+    else
+    if BaseSite = 3 then y := heightOverhead
+    else
+      y := trunc((MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent / 100 + IASize / 2 - Height / 2);
+
+    // background image rect //
+    BaseImageRect.x := x;
+    BaseImageRect.y := y;
+    BaseImageRect.Width := Width;
+    BaseImageRect.Height := Height;
+
+    // main form rect //
+    BaseWindowRect.x := MonitorRect.Left;
+    BaseWindowRect.y := MonitorRect.Top;
+    if BaseSite = 0 then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = 1 then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = 2 then BaseWindowRect.x := MonitorRect.Right - Width - widthOverhead + sets.wndoffset - sets.container.EdgeOffset
+    else if BaseSite = 3 then BaseWindowRect.y := MonitorRect.Bottom - Height - heightOverhead + sets.wndoffset - sets.container.EdgeOffset;
+    if vbo then
+    begin
+      BaseWindowRect.Width := Width + widthOverhead;
+      BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
+    end else begin
+      BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
+      BaseWindowRect.Height := Height + heightOverhead;
+    end;
+
+    // finally //
+    sets.Width := BaseWindowRect.Width;
+    sets.Height := BaseWindowRect.Height;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.RecalcDock'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -929,7 +982,7 @@ begin
     begin
       if items[i].h <> 0 then
         TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA)).Draw(
-          ParentRect.Left + x + items[i].x, ParentRect.Top + y + items[i].y,
+          BaseWindowRect.X + x + items[i].x, BaseWindowRect.Y + y + items[i].y,
           items[i].s, force_draw, wpi, show_items);
       inc(i);
     end;
@@ -1259,31 +1312,31 @@ begin
 
     if BaseSite = 0 then
     begin
-      if (Ax < ParentRect.Left - distance) or
-        (Ax > ParentRect.Left + x + rItemArea.Left + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
+      if (Ax < BaseWindowRect.X - distance) or
+        (Ax > BaseWindowRect.X + x + rItemArea.Left + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
         (Ay < BasePoint - BigItemSize) or
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
     if BaseSite = 2 then
     begin
-      if (Ax < ParentRect.Right - rItemArea.Right - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
-        (Ax > ParentRect.Right + distance) or
+      if (Ax < BaseWindowRect.X + BaseWindowRect.Width - rItemArea.Right - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
+        (Ax > BaseWindowRect.X + BaseWindowRect.Width + distance) or
         (Ay < BasePoint - BigItemSize) or
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
     if BaseSite = 3 then
     begin
-      if (Ay < ParentRect.Bottom - rItemArea.Bottom - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
-        (Ay > ParentRect.Bottom + distance) or
+      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - rItemArea.Bottom - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
+        (Ay > BaseWindowRect.Y + BaseWindowRect.Height + distance) or
         (Ax < BasePoint - BigItemSize) or
         (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;
     end else
     begin
-      if (Ay < ParentRect.Top - distance) or
-        (Ay > ParentRect.Top + y + rItemArea.Top + ItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
+      if (Ay < BaseWindowRect.Y - distance) or
+        (Ay > BaseWindowRect.Y + y + rItemArea.Top + ItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
         (Ax < BasePoint - BigItemSize) or
         (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;
@@ -1334,7 +1387,7 @@ begin
     if not enabled then exit;
 
     item := NOT_AN_ITEM;
-    if Zooming or CheckMouseOn or dragging then
+    if Zooming or CheckMouseOn or Dragging or DraggingFile then
     begin
       item := ItemFromPoint(x, y, ifthen(Dragging or DraggingFile, DropDistance, 0));
       if item <> NOT_AN_ITEM then
@@ -1353,8 +1406,7 @@ begin
     if Zooming then
     begin
       if item = NOT_AN_ITEM then Unzoom
-      else
-      begin
+      else begin
           if ZoomItemSizeDiff = BigItemSize - ItemSize then
           begin
               if ZoomInOutItem <> item then
@@ -1377,8 +1429,7 @@ var
   i, size_add, currWidth: integer;
 begin
   try
-    if not enabled then exit;
-    if ItemCount < 1 then exit;
+    if not enabled or (ItemCount < 1) then exit;
     ZoomInOutItem := item;
     if ZoomItemSizeDiff = 0 then
     begin
@@ -1439,6 +1490,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// 'mouse move' events entry point
 procedure _ItemManager.WHMouseMove(pt: windows.Tpoint; allow_zoom: boolean = true);
 var
   wnd: cardinal;
@@ -1447,6 +1499,7 @@ begin
     if not enabled or not visible then exit;
     if ItemCount < 0 then exit;
 
+    // hint //
     wnd := WindowFromPoint(pt);
     if ItemIndex(wnd) = NOT_AN_ITEM then wnd := 0;
     if (wnd <> HoverItemHWnd) and not Dragging {avoid hint flickering} then
@@ -1460,8 +1513,15 @@ begin
     end;
     HoverItemHWnd := wnd;
 
-    if Dragging then CalcDropPlace(pt);
+    // zoom //
     if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
+
+    // drop place //
+    if Dragging or DraggingFile then
+    begin
+      CalcDropPlace(pt);
+      if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
+    end;
   except
     on e: Exception do err('ItemManager.WHMouseMove', e);
   end;
@@ -1495,11 +1555,7 @@ begin
   if Enabled then
   try
     GetCursorPos(pt);
-    if not LockMouseEffect then
-    begin
-      CalcDropPlace(pt);
-      WHMouseMove(pt);
-    end;
+    if not LockMouseEffect then WHMouseMove(pt);
     wnd := WindowFromPoint(pt);
     wnd := IsItem(wnd);
     if wnd <> SelectedItemHWnd then

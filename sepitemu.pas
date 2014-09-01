@@ -21,7 +21,6 @@ type TSeparatorItem = class(TCustomItem)
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
-    procedure Timer; override;
     function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
@@ -248,15 +247,6 @@ begin
 
   except
     on e: Exception do raise Exception.Create('SeparatorItem.Draw'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TSeparatorItem.Timer;
-begin
-  try
-    inherited;
-  except
-    on e: Exception do raise Exception.Create('SeparatorItem.Timer'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

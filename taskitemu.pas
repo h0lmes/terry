@@ -14,9 +14,6 @@ type
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure Configure;
-    procedure OnDragEnter;
-    procedure OnDragOver;
-    procedure OnDragLeave;
   public
     property AppHWnd: THandle read FAppHWnd;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
@@ -121,11 +118,6 @@ begin
         end;
 
       // commands //
-
-      icUpdateRunning: ;
-      icDragEnter: OnDragEnter;
-      icDragOver: OnDragOver;
-      icDragLeave: OnDragLeave;
       icIsItem: result := 0;
     end;
 
@@ -339,18 +331,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.OpenFolder;
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.OnDragEnter;
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.OnDragOver;
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.OnDragLeave;
 begin
 end;
 //------------------------------------------------------------------------------

@@ -340,10 +340,10 @@ begin
   if assigned(frmterry) and assigned(sets) then
   if assigned(frmterry.ItemMgr) then
   begin
-    result.Left := frmterry.BaseWindowRect.X + frmterry.ItemMgr.X;
-    result.Top := frmterry.BaseWindowRect.Y + frmterry.ItemMgr.Y;
-    result.Right := frmterry.BaseWindowRect.X + frmterry.ItemMgr.X + frmterry.ItemMgr.width;
-    result.Bottom := frmterry.BaseWindowRect.Y + frmterry.ItemMgr.Y + frmterry.ItemMgr.height;
+    result.Left := frmterry.ItemMgr.BaseWindowRect.X + frmterry.ItemMgr.X;
+    result.Top := frmterry.ItemMgr.BaseWindowRect.Y + frmterry.ItemMgr.Y;
+    result.Right := frmterry.ItemMgr.BaseWindowRect.X + frmterry.ItemMgr.X + frmterry.ItemMgr.width;
+    result.Bottom := frmterry.ItemMgr.BaseWindowRect.Y + frmterry.ItemMgr.Y + frmterry.ItemMgr.height;
     case sets.GetParam(gpSite) of
       0: result.Right := max(result.Right, frmterry.ItemMgr.GetZoomEdge);
       1: result.Bottom := max(result.Bottom, frmterry.ItemMgr.GetZoomEdge);

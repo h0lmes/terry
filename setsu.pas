@@ -87,8 +87,6 @@ type
 
     constructor Create(sets_file, _prog_path: string; Handle: THandle; ABaseCmd: TBaseCmd);
     destructor Destroy; override;
-    procedure DoBaseDraw(flags: integer);
-    procedure DoBaseRecalc;
     procedure DoSetBaseVisible(param: boolean);
     function DoGetDragging: boolean;
     //
@@ -155,16 +153,6 @@ begin
   if assigned(PluginsList) then PluginsList.free;
   if assigned(PluginFilesList) then PluginFilesList.free;
   if assigned(AutoRunList) then AutoRunList.free;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.DoBaseDraw(flags: integer);
-begin
-  if assigned(BaseCmd) then BaseCmd(tcRepaintBase, flags);
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.DoBaseRecalc;
-begin
-  if assigned(BaseCmd) then BaseCmd(tcRecalcBase, 0);
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.DoSetBaseVisible(param: boolean);
@@ -639,9 +627,7 @@ begin
         if purposalWndOffset > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
       end
       else wndOffset := purposalWndOffset;
-      DoBaseRecalc;
-      frmterry.ItemMgr.SetItems2(false);
-      DoBaseDraw(1);
+      frmterry.ItemMgr.ItemsChanged;
     end;
 
   KeyPressed:= false;

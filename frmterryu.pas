@@ -57,7 +57,6 @@ type
 
     procedure BaseSaveSettings;
     procedure DoMenu(mit: integer);
-    procedure BaseRecalc;
     procedure BaseDraw(flags: integer);
   public
     ItemMgr: _ItemManager;
@@ -65,9 +64,7 @@ type
     AHint: _Hint;
     Tray: _TrayController;
 
-    BaseWindowRect: GDIPAPI.TRect;
     OldBaseWindowRect: GDIPAPI.TRect;
-    BaseImageRect: GDIPAPI.TRect;
     OldBaseImageRect: GDIPAPI.TRect;
 
     MonitorRect: Windows.TRect;
@@ -393,7 +390,6 @@ begin
 
   case id of
     tcRepaintBase: BaseDraw(param);
-    tcRecalcBase: BaseRecalc;
     tcMenu: DoMenu(param);
     tcSaveSets: BaseSaveSettings;
     tcZOrder: SetForeground;
@@ -519,13 +515,17 @@ begin
     OldMouseOver := MouseOver;
     mon_rect := GetMonitorBoundsRect;
     if sets.container.site = bsBottom then
-      MouseOver := (pt.y >= mon_rect.Bottom - 1) and (pt.x >= BaseWindowRect.X + BaseImageRect.X) and (pt.x <= BaseWindowRect.X + BaseImageRect.X + BaseImageRect.Width)
+      MouseOver := (pt.y >= mon_rect.Bottom - 1) and
+        (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
     else if sets.container.site = bsTop then
-      MouseOver := (pt.y <= mon_rect.Top) and (pt.x >= BaseWindowRect.X + BaseImageRect.X) and (pt.x <= BaseWindowRect.X + BaseImageRect.X + BaseImageRect.Width)
+      MouseOver := (pt.y <= mon_rect.Top) and
+        (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
     else if sets.container.site = bsLeft then
-      MouseOver := (pt.x <= mon_rect.Left) and (pt.y >= BaseWindowRect.Y + BaseImageRect.Y) and (pt.y <= BaseWindowRect.Y + BaseImageRect.Y + BaseImageRect.Height)
+      MouseOver := (pt.x <= mon_rect.Left) and
+        (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height)
     else if sets.container.site = bsRight then
-      MouseOver := (pt.x >= mon_rect.Right - 1) and (pt.y >= BaseWindowRect.Y + BaseImageRect.Y) and (pt.y <= BaseWindowRect.Y + BaseImageRect.Y + BaseImageRect.Height);
+      MouseOver := (pt.x >= mon_rect.Right - 1) and
+        (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height);
     MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.Dragging;
 
     if MouseOver and not OldMouseOver then MouseEnter;
@@ -819,80 +819,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.BaseRecalc;
-var
-  vbo: boolean;
-begin
-  if assigned(ItemMgr) and assigned(theme) then
-  try
-    vbo := sets.GetBaseOrientation = boVertical;
-    MonitorRect := GetMonitorBoundsRect;
-
-    // background image rect //
-
-    if vbo then
-    begin
-      BaseImageRect.Width := ItemMgr.Width;
-      BaseImageRect.Height := ItemMgr.Height;
-    end else begin
-      BaseImageRect.Width := ItemMgr.Width;
-      BaseImageRect.Height := ItemMgr.Height;
-    end;
-
-    if vbo then
-    begin
-      if sets.container.site = bsLeft then BaseImageRect.x := 0
-      else BaseImageRect.x := ItemMgr.widthOverhead;
-      BaseImageRect.y := trunc((MonitorRect.Bottom - MonitorRect.Top - ItemMgr.IASize) * sets.container.CenterOffsetPercent / 100 +
-        ItemMgr.IASize / 2 - BaseImageRect.Height / 2);
-    end else begin
-      if sets.container.site = bsTop then BaseImageRect.y := 0
-      else BaseImageRect.y := ItemMgr.heightOverhead;
-      BaseImageRect.x := trunc((MonitorRect.Right - MonitorRect.Left - ItemMgr.IASize) * sets.container.CenterOffsetPercent / 100 +
-        ItemMgr.IASize / 2 - BaseImageRect.Width / 2);
-    end;
-
-    // main form rect //
-
-    BaseWindowRect.x := MonitorRect.Left;
-    BaseWindowRect.y := MonitorRect.Top;
-    if sets.container.site = bsLeft then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
-    else if sets.container.site = bsTop then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
-    else if sets.container.site = bsRight then BaseWindowRect.x := MonitorRect.Right - BaseImageRect.Width - ItemMgr.widthOverhead + sets.wndoffset - sets.container.EdgeOffset
-    else if sets.container.site = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - BaseImageRect.Height - ItemMgr.heightOverhead + sets.wndoffset - sets.container.EdgeOffset;
-    if vbo then
-    begin
-      BaseWindowRect.Width := BaseImageRect.Width + ItemMgr.widthOverhead;
-      BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
-    end else begin
-      BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
-      BaseWindowRect.Height := BaseImageRect.Height + ItemMgr.heightOverhead;
-    end;
-
-    // ItemMgr XY are relative to BaseWindowRect //
-    // ItemMgr X //
-    if sets.container.site = bsLeft then ItemMgr.x := 0
-    else if sets.container.site = bsRight then ItemMgr.x := BaseWindowRect.Width - ItemMgr.Width
-    else ItemMgr.x := BaseImageRect.X + (BaseImageRect.Width - ItemMgr.Width) div 2;
-    // ItemMgr Y //
-    if sets.container.site = bsTop then ItemMgr.y := 0
-    else if sets.container.site = bsBottom then ItemMgr.y := BaseWindowRect.Height - ItemMgr.Height
-    else ItemMgr.y := BaseImageRect.Y + (BaseImageRect.Height - ItemMgr.Height) div 2;
-
-    // finally //
-
-    sets.Width := BaseWindowRect.Width;
-    sets.Height := BaseWindowRect.Height;
-    ItemMgr.ParentRect.left := BaseWindowRect.X;
-    ItemMgr.ParentRect.top := BaseWindowRect.Y;
-    ItemMgr.ParentRect.right := BaseWindowRect.X + BaseWindowRect.Width;
-    ItemMgr.ParentRect.bottom := BaseWindowRect.Y + BaseWindowRect.Height;
-
-  except
-    on e: Exception do raise Exception.Create('Base.BaseRecalc'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmterry.BaseDraw(flags: integer);
 var
   hgdip, hbrush: Pointer;
@@ -906,29 +832,30 @@ begin
     bmp.dc := 0;
     RepaintBase := flags and 1 = 1;
 
-    if (BaseImageRect.X <> OldBaseImageRect.X) or (BaseImageRect.Y <>
-      OldBaseImageRect.Y) or (BaseImageRect.Width <> OldBaseImageRect.Width) or
-      (BaseImageRect.Height <> OldBaseImageRect.Height) then
+    if (ItemMgr.BaseImageRect.X <> OldBaseImageRect.X) or
+      (ItemMgr.BaseImageRect.Y <> OldBaseImageRect.Y) or
+      (ItemMgr.BaseImageRect.Width <> OldBaseImageRect.Width) or
+      (ItemMgr.BaseImageRect.Height <> OldBaseImageRect.Height) then
     begin
       RepaintBase := True;
-      OldBaseImageRect := BaseImageRect;
+      OldBaseImageRect := ItemMgr.BaseImageRect;
     end;
-    if (BaseWindowRect.X <> OldBaseWindowRect.X) or
-      (BaseWindowRect.Y <> OldBaseWindowRect.Y) or
-      (BaseWindowRect.Width <> OldBaseWindowRect.Width) or
-      (BaseWindowRect.Height <> OldBaseWindowRect.Height) then
+    if (ItemMgr.BaseWindowRect.X <> OldBaseWindowRect.X) or
+      (ItemMgr.BaseWindowRect.Y <> OldBaseWindowRect.Y) or
+      (ItemMgr.BaseWindowRect.Width <> OldBaseWindowRect.Width) or
+      (ItemMgr.BaseWindowRect.Height <> OldBaseWindowRect.Height) then
     begin
       RepaintBase := True;
-      OldBaseWindowRect := BaseWindowRect;
+      OldBaseWindowRect := ItemMgr.BaseWindowRect;
     end;
 
     if not RepaintBase then exit;
 
     try
-      bmp.topleft.x := BaseWindowRect.x;
-      bmp.topleft.y := BaseWindowRect.y;
-      bmp.Width := BaseWindowRect.Width;
-      bmp.Height := BaseWindowRect.Height;
+      bmp.topleft.x := ItemMgr.BaseWindowRect.x;
+      bmp.topleft.y := ItemMgr.BaseWindowRect.y;
+      bmp.Width := ItemMgr.BaseWindowRect.Width;
+      bmp.Height := ItemMgr.BaseWindowRect.Height;
       gdip_gfx.CreateBitmap(bmp);
       hgdip := gdip_gfx.CreateGraphics(bmp.dc);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
@@ -937,12 +864,12 @@ begin
       if ItemMgr.DraggingFile then
       begin
         GdipCreateSolidFill(ITEM_BACKGROUND, hbrush);
-        GdipFillRectangle(hgdip, hbrush, 0, 0, BaseWindowRect.Width, BaseWindowRect.Height);
+        GdipFillRectangle(hgdip, hbrush, 0, 0, ItemMgr.BaseWindowRect.Width, ItemMgr.BaseWindowRect.Height);
         GdipDeleteBrush(hbrush);
       end;
 
       // draw background //
-      Theme.DrawBackground(hgdip, BaseImageRect, DEFAULT_COLOR_DATA);
+      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, DEFAULT_COLOR_DATA);
       // update window //
       UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
 
@@ -950,7 +877,7 @@ begin
       if dwm.CompositingEnabled and sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
-        rgn := Theme.GetBackgroundRgn(BaseImageRect);
+        rgn := Theme.GetBackgroundRgn(ItemMgr.BaseImageRect);
         if rgn <> 0 then DWM.EnableBlurBehindWindow(handle, rgn);
         DeleteObject(rgn);
       end
@@ -1058,6 +985,7 @@ begin
     SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
     ItemMgr.ZOrder(wnd);
     ItemMgr.ZOrder(ZOrderWindow);
+    ItemMgr.UnZoom();
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1201,28 +1129,28 @@ begin
     WorkArea := GetMonitorWorkareaRect;
     Bounds := GetMonitorBoundsRect;
 
-    Position := ifthen(Edge = bsLeft, round(BaseWindowRect.Width * Percent / 100), 0);
+    Position := ifthen(Edge = bsLeft, round(ItemMgr.BaseWindowRect.Width * Percent / 100), 0);
     if WorkArea.Left <> Position then
     begin
       WorkArea.Left := Position;
       Changed := true;
     end;
 
-    Position := ifthen(Edge = bsTop, round(BaseWindowRect.Height * Percent / 100), 0);
+    Position := ifthen(Edge = bsTop, round(ItemMgr.BaseWindowRect.Height * Percent / 100), 0);
     if WorkArea.Top <> Position then
     begin
       WorkArea.Top := Position;
       Changed := true;
     end;
 
-    Position := ifthen(Edge = bsRight, Bounds.Right - round(BaseWindowRect.Width * Percent / 100), Bounds.Right);
+    Position := ifthen(Edge = bsRight, Bounds.Right - round(ItemMgr.BaseWindowRect.Width * Percent / 100), Bounds.Right);
     if WorkArea.Right <> Position then
     begin
       WorkArea.Right := Position;
       Changed := true;
     end;
 
-    Position := ifthen(Edge = bsBottom, Bounds.Bottom - round(BaseWindowRect.Height * Percent / 100), Bounds.Bottom);
+    Position := ifthen(Edge = bsBottom, Bounds.Bottom - round(ItemMgr.BaseWindowRect.Height * Percent / 100), Bounds.Bottom);
     if WorkArea.Bottom <> Position then
     begin
       WorkArea.Bottom := Position;
@@ -1458,18 +1386,8 @@ begin
   case id of
     gpMonitor: BaseCmd(tcThemeChanged, 0);
     gpSite: if assigned(theme) then theme.ReloadGraphics;
-    gpCenterOffsetPercent:
-      begin
-        BaseRecalc;
-        ItemMgr.SetItems2(False);
-        BaseDraw(0);
-      end;
-    gpEdgeOffset:
-      begin
-        BaseRecalc;
-        ItemMgr.SetItems2(False);
-        BaseDraw(0);
-      end;
+    gpCenterOffsetPercent: ItemMgr.ItemsChanged;
+    gpEdgeOffset: ItemMgr.ItemsChanged;
     gpAutoHide: if not boolean(Value) then sets.Rollup;
     gpHideTaskBar: HideTaskbar(boolean(Value));
     gpReserveScreenEdge:

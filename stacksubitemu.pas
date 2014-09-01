@@ -84,7 +84,6 @@ type
     procedure WMCommand(var msg: TMessage); virtual; abstract;
     procedure Configure; virtual; abstract;
     function cmd(id: TGParam; param: integer): integer; virtual;
-    procedure Timer; virtual; abstract;
     function GetItemFilename: string; virtual; abstract;
     function CanOpenFolder: boolean; virtual; abstract;
     procedure OpenFolder; virtual; abstract;
@@ -129,7 +128,6 @@ type
     procedure WMCommand(var msg: TMessage); override;
     procedure Configure; override;
     function cmd(id: TGParam; param: integer): integer; override;
-    procedure Timer; override;
     function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
@@ -558,10 +556,6 @@ begin
     0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.Timer;
-begin
-end;
-//------------------------------------------------------------------------------
 function TStackSubitem.GetItemFilename: string;
 begin
   result := command;
@@ -625,7 +619,7 @@ begin
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
-  AppendMenu(FHMenu, MF_STRING, $f005, PChar(UTF8ToAnsi(XRunAsUser)));
+  //AppendMenu(FHMenu, MF_STRING, $f005, PChar(UTF8ToAnsi(XRunAsUser)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
 

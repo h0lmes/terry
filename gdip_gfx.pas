@@ -988,8 +988,7 @@ begin
           bi.bmiHeader.biYPelsPerMeter := 0;
           bi.bmiHeader.biClrUsed := 0;
           bi.bmiHeader.biClrImportant := 0;
-          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight,
-            bmpData, bi, DIB_RGB_COLORS) then
+          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
           begin
             try
               hMask := nil;

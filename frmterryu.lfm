@@ -16,7 +16,7 @@ object frmterry: Tfrmterry
   OnKeyDown = FormKeyDown
   OnMouseUp = FormMouseUp
   OnShow = FormShow
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.0.10.0'
   object trayicon: TTrayIcon
     Hint = 'Terry'
     Visible = True

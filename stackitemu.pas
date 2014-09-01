@@ -522,15 +522,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Timer;
 begin
-  try
-    inherited;
-    if FFreed or FUpdating then exit;
-
-    // open/close animation progress //
+  inherited;
+  if not FFreed and not FUpdating then
     if (FState = stsOpening) or (FState = stsClosing) then DoStateProgress;
-  except
-    on e: Exception do raise Exception.Create('in StackItem.Timer'#10#13 + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 function TStackItem.GetItemFilename: string;

@@ -5,6 +5,8 @@ interface
 uses Windows, Classes, SysUtils, Forms, Dialogs, StdCtrls, IniFiles,
   ActiveX, GDIPAPI, declu, gdip_gfx;
 
+const MAX_REGION_POINTS = 128;
+
 type
   PLayerBackground = ^TLayerBackground;
   TLayerBackground = record
@@ -36,7 +38,7 @@ type
   private
     BaseCmd: TBaseCmd;
     FBlurRegion: string;
-    FBlurRegionPoints: array [0..1023] of windows.TPoint;
+    FBlurRegionPoints: array [0..MAX_REGION_POINTS - 1] of windows.TPoint;
     FBlurRegionPointsCount: integer;
     FBlurRect: Windows.TRect;
     FBlurR: Windows.TSize;
@@ -522,9 +524,10 @@ end;
 //------------------------------------------------------------------------------
 function _Theme.GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
 var
+  bm: windows.TRect;
   ba: windows.TRect;
   br: windows.TSize;
-  pts: array [0..1023] of windows.TPoint;
+  pts: array [0..MAX_REGION_POINTS - 1] of windows.TPoint;
   i: integer;
 begin
   result := 0;
@@ -536,22 +539,23 @@ begin
     br := CorrectSize(FBlurR);
     result := CreateRoundRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom, br.cx, br.cy);
   end else begin
+    bm := CorrectMargins(Background.Margins);
     i := 0;
     while i < FBlurRegionPointsCount do
     begin
       pts[i] := CorrectCoords(FBlurRegionPoints[i], Background.W, Background.H);
 
-      if pts[i].x <= Background.Margins.Left then pts[i].x := r.x + pts[i].x
-      else if pts[i].x >= Background.W - Background.Margins.Right then pts[i].x := r.x + r.Width - (Background.W - pts[i].x)
-      else pts[i].x := r.x + round((pts[i].x - Background.Margins.Left) *
-        (r.Width - Background.Margins.Left - Background.Margins.Right) /
-        (Background.W - Background.Margins.Left - Background.Margins.Right)) + Background.Margins.Left;
+      if pts[i].x <= bm.Left then pts[i].x := r.x + pts[i].x
+      else
+      if pts[i].x >= Background.W - bm.Right then pts[i].x := r.x + r.Width - (Background.W - pts[i].x)
+      else
+        pts[i].x := r.x + round((pts[i].x - bm.Left) * (r.Width - bm.Left - bm.Right) / (Background.W - bm.Left - bm.Right)) + bm.Left;
 
-      if pts[i].y <= Background.Margins.Top then pts[i].y := r.y + pts[i].y
-      else if pts[i].y >= Background.H - Background.Margins.Bottom then pts[i].y := r.y + r.Height - (Background.H - pts[i].y)
-      else pts[i].y := r.y + round((pts[i].y - Background.Margins.Top) *
-        (r.Height - Background.Margins.Top - Background.Margins.Bottom) /
-        (Background.H - Background.Margins.Top - Background.Margins.Bottom)) + Background.Margins.Top;
+      if pts[i].y <= bm.Top then pts[i].y := r.y + pts[i].y
+      else
+      if pts[i].y >= Background.H - bm.Bottom then pts[i].y := r.y + r.Height - (Background.H - pts[i].y)
+      else
+        pts[i].y := r.y + round((pts[i].y - bm.Top) * (r.Height - bm.Top - bm.Bottom) / (Background.H - bm.Top - bm.Bottom)) + bm.Top;
 
       inc(i);
     end;
