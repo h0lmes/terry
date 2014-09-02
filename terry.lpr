@@ -144,7 +144,7 @@ begin
   if debugPlugins then inf('DockletLoadGDIPlusImage1', strpas(szImage));
   result := nil;
   try
-    if szImage <> nil then gdip_gfx.LoadImage(strpas(szImage), 256, false, result, w, h);
+    if szImage <> nil then LoadImage(strpas(szImage), 256, false, false, result, w, h);
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletLoadGDIPlusImage', e);
   end;

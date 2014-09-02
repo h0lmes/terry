@@ -86,7 +86,7 @@ begin
       begin
         FCaption := '';
       end else begin
-        LoadImageFromHWnd(FAppHWnd, FBigItemSize, false, FImage, FIW, FIH, 3000);
+        LoadImageFromHWnd(FAppHWnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
         Caption := ProcessHelper.GetWindowText(FAppHWnd);
         //dockh.Notify(0, pchar(inttohex(FAppHWnd, 8) + ' ' + FCaption + ' ' + ProcessHelper.GetAppWindowClassName(FAppHWnd)));
       end;
@@ -188,6 +188,11 @@ begin
     GdipCreateSolidFill(ITEM_BACKGROUND, brush);
     GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
     GdipDeleteBrush(brush);
+
+    GdipSetCompositingMode(dst, CompositingModeSourceOver);
+    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+    GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
     GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
     xBitmap := 0;

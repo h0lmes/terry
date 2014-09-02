@@ -188,7 +188,7 @@ begin
     try if AutoDeleteImage then GdipDisposeImage(FImage);
     except end;
     FImage := AImage;
-    AutoDeleteImage := DownscaleImage(FImage, 128, FIW, FIH, AutoDelete) or AutoDelete;
+    AutoDeleteImage := DownscaleImage(FImage, 128, false, FIW, FIH, AutoDelete) or AutoDelete;
     if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   end;
 end;
@@ -200,7 +200,7 @@ begin
     try if AutoDeleteOverlay then GdipDisposeImage(FImage2);
     except end;
     FImage2 := AOverlay;
-    AutoDeleteOverlay := DownscaleImage(FImage2, 128, FIW2, FIH2, AutoDelete) or AutoDelete;
+    AutoDeleteOverlay := DownscaleImage(FImage2, 128, false, FIW2, FIH2, AutoDelete) or AutoDelete;
     if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   end;
 end;
@@ -279,6 +279,11 @@ begin
     GdipCreateSolidFill(ITEM_BACKGROUND, brush);
     GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
     GdipDeleteBrush(brush);
+
+    GdipSetCompositingMode(dst, CompositingModeSourceOver);
+    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+    GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
     GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
     xBitmap := 0;

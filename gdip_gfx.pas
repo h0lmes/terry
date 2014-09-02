@@ -94,11 +94,11 @@ procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
   color_data: integer = DEFAULT_COLOR_DATA);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
-procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
-procedure LoadImage(imagefile: string; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
-function DownscaleImage(var image: pointer; MaxSize: integer; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
+function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 function SwapColor(color: uint): uint;
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
@@ -724,7 +724,7 @@ begin
   UpdateLayeredWindow(hWnd, 0, @topleft, nil, 0, nil, $1fffffff, @Blend, ULW_ALPHA);
 end;
 //------------------------------------------------------------------------------
-procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   sfi: TSHFileInfoA;
   hil: HImageList;
@@ -736,18 +736,14 @@ begin
   if not Assigned(pidl) then exit;
 
   hil := SHGetFileInfoA(pchar(pidl), -1, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
-  if hil > 32 then
-  begin
-    image := IconToGdipBitmap(ImageList_GetIcon(hil, sfi.iIcon, 0));
-  end else begin
-    image := IconToGdipBitmap(sfi.hIcon);
-  end;
+  if hil > 32 then image := IconToGdipBitmap(ImageList_GetIcon(hil, sfi.iIcon, 0))
+  else image := IconToGdipBitmap(sfi.hIcon);
   try DestroyIcon(sfi.hIcon);
   except end;
-  DownscaleImage(image, MaxSize, srcwidth, srcheight, true);
+  DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
 end;
 //------------------------------------------------------------------------------
-procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 const
   ICON_SMALL2 = PtrUInt(2);
 var
@@ -765,11 +761,11 @@ begin
   if hIcon <> THandle(0) then
   begin
     image := IconToGdipBitmap(hIcon);
-    DownscaleImage(image, MaxSize, srcwidth, srcheight, true);
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure LoadImage(imagefile: string; MaxSize: integer; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   idx: word;
   icoIndex: uint;
@@ -794,30 +790,27 @@ begin
 
     if not isFullyQalified or (not fileexists(imagefile) and not directoryexists(imagefile)) then
     begin
-      if default then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
-    end else begin
+      if default then GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
+    end
+    else begin
       ext := AnsiLowerCase(ExtractFileExt(imagefile));
-      try
-        if (ext = '.png') or (ext = '.gif') then
-        begin
-          GdipLoadImageFromFile(PWideChar(WideString(cut(imagefile, ','))), image);
-        end
-        else begin
-          icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(cut(imagefile, ',')), @idx);
-          image := IconToGdipBitmap(icoIndex);
-          DeleteObject(icoIndex);
-        end;
-      except
+      if (ext = '.png') or (ext = '.gif') then
+      begin
+        GdipLoadImageFromFile(PWideChar(WideString(cut(imagefile, ','))), image);
+      end
+      else begin
+        icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(cut(imagefile, ',')), @idx);
+        image := IconToGdipBitmap(icoIndex);
+        DeleteObject(icoIndex);
       end;
     end;
 
-    DownscaleImage(image, MaxSize, srcwidth, srcheight, true);
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-function DownscaleImage(var image: pointer; MaxSize: integer; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
+function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
 var
   imgTemp, g: pointer;
   w, h: uint;
@@ -834,13 +827,35 @@ begin
     srcwidth := w;
     srcheight := h;
     // downscale image //
-    if (w > MaxSize) and (w > 128) and (MaxSize <= 192) then
+    if (w > MaxSize) and (w > 96) and (MaxSize <= 192) then
     begin
+      if exact then
+      begin
+        srcwidth:= MaxSize;
+        srcheight := MaxSize;
+      end else begin
+        if MaxSize <= 96 then srcwidth:= 96
+        else if MaxSize <= 128 then srcwidth:= 128
+        else if MaxSize <= 160 then srcwidth:= 160
+        else if MaxSize <= 192 then srcwidth:= 192;
+        srcheight:= srcwidth;
+      end;
       imgTemp := image;
-      if MaxSize <= 128 then srcwidth:= 128
-      else if MaxSize <= 160 then srcwidth:= 160
-      else if MaxSize <= 192 then srcwidth:= 192;
-      srcheight:= srcwidth;
+      GdipCreateBitmapFromScan0(srcwidth, srcheight, 0, PixelFormat32bppPARGB, nil, image);
+      GdipGetImageGraphicsContext(image, g);
+      GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
+      GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
+      GdipDrawImageRectRectI(g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
+      GdipDeleteGraphics(g);
+      if DeleteSource then GdipDisposeImage(imgTemp);
+      result := true;
+    end else begin
+      if exact then
+      begin
+        srcwidth:= MaxSize;
+        srcheight := MaxSize;
+      end;
+      imgTemp := image;
       GdipCreateBitmapFromScan0(srcwidth, srcheight, 0, PixelFormat32bppPARGB, nil, image);
       GdipGetImageGraphicsContext(image, g);
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);

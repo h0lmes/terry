@@ -264,7 +264,7 @@ begin
     try
       FUpdating := true;
       // load images from files //
-      LoadImage(imagefile, FBigItemSize, false, FImage, FIW, FIH);
+      LoadImage(imagefile, FBigItemSize, false, false, FImage, FIW, FIH);
       // default stack image //
       if FImage = nil then
       begin
@@ -447,6 +447,11 @@ begin
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
+
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       xBitmap := 0;

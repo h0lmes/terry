@@ -1576,6 +1576,9 @@ procedure _ItemManager.WMDeactivateApp;
 var
   i: integer;
 begin
+  Unzoom;
+  AllItemCmd(icHover, 0);
+
   if Enabled then
   try
     i := 0;

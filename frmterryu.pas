@@ -858,6 +858,11 @@ begin
       bmp.Height := ItemMgr.BaseWindowRect.Height;
       gdip_gfx.CreateBitmap(bmp);
       hgdip := gdip_gfx.CreateGraphics(bmp.dc);
+
+      GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
+      GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
       // avoid flickering when dragging a file //

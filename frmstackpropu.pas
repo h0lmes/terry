@@ -379,7 +379,7 @@ begin
     img := nil;
     str := UnzipPath(image1);
 
-    if fileexists(cut(str, ',')) then LoadImage(str, 128, True, img, w, h);
+    if fileexists(cut(str, ',')) then LoadImage(str, 128, false, True, img, w, h);
     DrawFit(img, iPic, color_data);
     if assigned(img) then GdipDisposeImage(img);
   except

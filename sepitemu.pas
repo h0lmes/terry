@@ -181,22 +181,18 @@ begin
           bmp.topleft.y:= yReal;
           bmp.width:= FSize + ItemRect.Left * 2;
           bmp.height:= FSize + ItemRect.Top * 2;
-          if not CreateBitmap(bmp) then
-          begin
-            raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
-            exit;
-          end;
+          if not CreateBitmap(bmp) then raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
           dst:= CreateGraphics(bmp.dc, 0);
-          if not assigned(dst) then
-          begin
-            raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
-            exit;
-          end;
+          if not assigned(dst) then raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
+          GdipSetCompositingMode(dst, CompositingModeSourceOver);
+          GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+          GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+          GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
+          GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
           GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
           GdipDeleteBrush(brush);
-          GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
           DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch);
           UpdateLWindow(FHWnd, bmp, 255);
         finally
@@ -217,23 +213,18 @@ begin
           bmp.topleft.y := yReal;
           bmp.width := FSize + FReflectionSize * 2;
           bmp.height := FSize + FReflectionSize * 2;
-          if not CreateBitmap(bmp) then
-          begin
-            raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
-            exit;
-          end;
+          if not CreateBitmap(bmp) then raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
           dst := CreateGraphics(bmp.dc, 0);
-          if not assigned(dst) then
-          begin
-            raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
-            exit;
-          end;
+          if not assigned(dst) then raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
+          GdipSetCompositingMode(dst, CompositingModeSourceOver);
+          GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+          GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+          GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
+          GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-          GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1,
-            ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
+          GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
           GdipDeleteBrush(brush);
-
           UpdateLWindow(FHWnd, bmp, 255);
         finally
           DeleteGraphics(dst);

@@ -289,11 +289,11 @@ begin
       end;
 
       // load images //
-      if imagefile <> '' then LoadImage(imagefile, FItemSize, true, FImage, FIW, FIH)
+      if imagefile <> '' then LoadImage(imagefile, FItemSize, true, true, FImage, FIW, FIH)
       else
       begin
-        if is_pidl then LoadImageFromPIDL(apidl, FItemSize, true, FImage, FIW, FIH)
-        else LoadImage(command, FItemSize, true, FImage, FIW, FIH);
+        if is_pidl then LoadImageFromPIDL(apidl, FItemSize, true, true, FImage, FIW, FIH)
+        else LoadImage(command, FItemSize, true, true, FImage, FIW, FIH);
       end;
 
       // measure caption and adjust border size //
@@ -401,6 +401,11 @@ begin
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
       GdipDeleteBrush(brush);
+
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       xBitmap := ItemRect.Left;
@@ -420,8 +425,7 @@ begin
 
     // draw icon //
     TCustomItem.CreateColorAttributes(color_data, FSelected, hattr);
-    if assigned(FImage) then
-        GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
+    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if FSelected or (color_data <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
     if FRunning and (AAlpha > 10) then DrawIndicator(dst, xBitmap, yBitmap);
     if AAngle > 0 then GdipResetWorldTransform(dst);

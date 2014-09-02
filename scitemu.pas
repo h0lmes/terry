@@ -182,11 +182,11 @@ begin
       end;
 
       // load image //
-      if imagefile <> '' then LoadImage(imagefile, FBigItemSize, true, FImage, FIW, FIH)
+      if imagefile <> '' then LoadImage(imagefile, FBigItemSize, false, true, FImage, FIW, FIH)
       else
       begin
-        if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, true, FImage, FIW, FIH)
-        else LoadImage(command, FBigItemSize, true, FImage, FIW, FIH);
+        if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
+        else LoadImage(command, FBigItemSize, false, true, FImage, FIW, FIH);
       end;
     finally
       FUpdating:= false;
@@ -337,6 +337,11 @@ begin
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
+
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       xBitmap := 0;
