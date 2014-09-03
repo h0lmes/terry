@@ -216,7 +216,7 @@ begin
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 0);
         end;
   except
-    on e: Exception do raise Exception.Create('in BitmapReflection'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('BitmapReflection'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

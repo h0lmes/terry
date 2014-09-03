@@ -3,7 +3,6 @@ program terry;
 {$MODE Delphi}
 
 uses
-  Heaptrc,
   Windows,
   Messages,
   SysUtils,
@@ -475,8 +474,8 @@ var
   WinHandle: THandle;
   hMutex: uint;
 begin
-  if FileExists('heap.trc') then DeleteFile('heap.trc');
-  SetHeapTraceOutput('heap.trc');
+  //if FileExists('heap.trc') then DeleteFile('heap.trc');
+  //SetHeapTraceOutput('heap.trc');
 
 
   hMutex := CreateMutex(nil, false, 'Global\' + declu.GUID);

@@ -167,9 +167,11 @@ destructor TStackSubitem.Destroy;
 begin
   FFreed := true;
   try GdipDisposeImage(FImage);
-  except end;
+  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.GdipDisposeImage'#10#13 + e.message);
+  end;
   try if is_pidl then PIDL_Free(apidl);
-  except end;
+  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.PIDL_Free'#10#13 + e.message);
+  end;
 
   inherited;
 end;
@@ -247,7 +249,7 @@ begin
     try ActivateRunning := strtoint(FetchValue(AData, 'activate_running="', '";'));
     except end;
   except
-    on e: Exception do raise Exception.Create('in TStackSubitem.UpdateItem.Data'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data'#10#13 + e.message);
   end;
 
   UpdateItemInternal;
@@ -304,12 +306,12 @@ begin
       begin
         CopyFontData(sets.container.StackFont, FFont);
         dc := CreateCompatibleDC(0);
-        if dc = 0 then raise Exception.Create('in StackSubitem.UpdateItemInternal.Measure. Device context is null');
+        if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
         GdipCreateFromHDC(dc, hgdip);
         try
           GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
         except
-          on e: Exception do raise Exception.Create('in StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
+          on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
         end;
         GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
         rect.x := 0;
@@ -318,7 +320,7 @@ begin
         rect.Height := 0;
         try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
         except
-          on e: Exception do raise Exception.Create('in StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
+          on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
         end;
         GdipDeleteGraphics(hgdip);
         DeleteDC(dc);
@@ -330,7 +332,7 @@ begin
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('in StackSubitem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal'#10#13 + e.message);
   end;
 
   Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
@@ -349,7 +351,7 @@ begin
     GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
     if FRunning and IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
   except
-    on e: Exception do raise Exception.Create('in StackSubitem.UpdateIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.UpdateIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -386,7 +388,7 @@ begin
       xReal := Ax - ItemRect.Left - FSize div 2;
       yReal := Ay - ItemRect.Top - FSize div 2;
     except
-      on e: Exception do raise Exception.Create('in SetPosition(' + caption + ')'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition(' + caption + ')'#10#13 + e.message);
     end;
 
     // init drawing //
@@ -420,7 +422,7 @@ begin
       end;
 
     except
-      on e: Exception do raise Exception.Create('in InitDraw'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;
 
     // draw icon //
@@ -470,7 +472,7 @@ begin
       end;
       //
       try GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-      except on e: Exception do raise Exception.Create('in Caption.CreateFontFamily'#10#13 + e.message);
+      except on e: Exception do raise Exception.Create('Caption.CreateFontFamily'#10#13 + e.message);
       end;
       GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
@@ -506,7 +508,7 @@ begin
     DeleteBitmap(bmp);
 
   except
-    on e: Exception do raise Exception.Create('in StackSubitem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -526,7 +528,7 @@ begin
     GdipDrawImageRectRectI(graphics, FImage, Ax, Ay, ASize, ASize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if color_data <> DEFAULT_COLOR_DATA then GdipDisposeImageAttributes(hattr);
   except
-    on e: Exception do raise Exception.Create('in StackSubitem.DrawPreview'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.DrawPreview'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -661,7 +663,7 @@ begin
       else sendmessage(FHWndParent, WM_COMMAND, msg.wParam, msg.lParam);
     end;
   except
-    on e: Exception do raise Exception.Create('in TStackSubitem.WMCommand'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TStackSubitem.WMCommand'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

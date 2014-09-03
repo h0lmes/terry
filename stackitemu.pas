@@ -156,6 +156,8 @@ begin
   try if FPreviewImage <> nil then GdipDisposeImage(FPreviewImage);
   except end;
 
+  DeleteSubitems;
+
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -242,7 +244,7 @@ begin
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('in StackItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdateItem'#10#13 + e.message);
   end;
 
   UpdateItemInternal;
@@ -278,7 +280,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('in StackItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal'#10#13 + e.message);
   end;
 
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
@@ -296,7 +298,7 @@ begin
     GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
     if FRunning then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   except
-    on e: Exception do raise Exception.Create('in StackItem.UpdateIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdateIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -379,7 +381,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('in StackItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.Cmd'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -432,7 +434,7 @@ begin
 
       UpdateHint(xReal, yReal);
     except
-      on e: Exception do raise Exception.Create('in SetPosition(' + caption + ')'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition(' + caption + ')'#10#13 + e.message);
     end;
 
     // init draw //
@@ -459,7 +461,7 @@ begin
       inc(xBitmap, ItemRect.Left);
       inc(yBitmap, ItemRect.Top);
     except
-      on e: Exception do raise Exception.Create('in InitDraw'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;
 
     // draw icons //
@@ -486,7 +488,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('in StackItem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -521,7 +523,7 @@ begin
 
     GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH, 0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
   except
-    on e: Exception do raise Exception.Create('in DrawIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -671,7 +673,7 @@ begin
     KillTimer(FHWnd, ID_TIMER_CLOSE);
     SetTimer(FHWnd, ID_TIMER_OPEN, 1000, nil);
   except
-    on e: Exception do raise Exception.Create('in StackItem.OnDragEnter'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.OnDragEnter'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -688,7 +690,7 @@ begin
     KillTimer(FHWnd, ID_TIMER_OPEN);
     SetTimer(FHWnd, ID_TIMER_CLOSE, 1000, nil);
   except
-    on e: Exception do raise Exception.Create('in StackItem.OnDragLeave'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.OnDragLeave'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -864,7 +866,7 @@ begin
 
     PIDL_Free(pidFolder);
   except
-    on e: Exception do raise Exception.Create('in StackItem.AddControlPanel'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddControlPanel'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -897,7 +899,7 @@ begin
 
     Draw(Fx, Fy, FSize, true, 0, FShowItem);
   except
-    on e: Exception do raise Exception.Create('in StackItem.AddControlPanel'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddControlPanel'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -934,7 +936,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('in StackItem.AddSubitem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddSubitem'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -952,7 +954,7 @@ begin
       if items[i].item.QueryDelete then DeleteSubitem(i) else inc(i);
     end;
   except
-    on e: Exception do raise Exception.Create('in StackItem.CheckDeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -960,7 +962,8 @@ procedure TStackItem.DeleteSubitem(index: integer);
 begin
   if (index >= 0) and (index < FItemCount) then
   try
-    FreeAndNil(items[index].item);
+    items[index].item.Free;
+    items[index].item := nil;
     items[index].hWnd := 0;
     while index < FItemCount - 1 do
     begin
@@ -971,7 +974,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('in StackItem.DeleteSubitem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.DeleteSubitem'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -985,14 +988,15 @@ begin
   try
     for i := 0 to FItemCount - 1 do
     begin
-      FreeAndNil(items[i].item);
+      items[i].item.Free;
+      items[i].item := nil;
       items[i].hWnd := 0;
     end;
     FItemCount := 0;
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('in StackItem.DeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.DeleteSubitems'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1008,7 +1012,7 @@ begin
   try
     result := items[index].item.Caption;
   except
-    on e: Exception do raise Exception.Create('in StackItem.GetSubitemCaption'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.GetSubitemCaption'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1019,7 +1023,7 @@ begin
   try
     result := items[index].item.ToString;
   except
-    on e: Exception do raise Exception.Create('in StackItem.SubitemToString'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemToString'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1033,7 +1037,7 @@ begin
     CopyCSIBucket(@items[index], @items[index - 1]);
     CopyCSIBucket(@csib, @items[index]);
   except
-    on e: Exception do raise Exception.Create('in StackItem.SubitemMoveUp'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemMoveUp'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1047,7 +1051,7 @@ begin
     CopyCSIBucket(@items[index], @items[index + 1]);
     CopyCSIBucket(@csib, @items[index]);
   except
-    on e: Exception do raise Exception.Create('in StackItem.SubitemMoveDown'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemMoveDown'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1057,7 +1061,7 @@ begin
   try
     items[index].item.Configure;
   except
-    on e: Exception do raise Exception.Create('in StackItem.SubitemConfigure'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemConfigure'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1084,7 +1088,7 @@ begin
       end;
     end;
   except
-    on e: Exception do raise Exception.Create('in StackItem.ItemIndex'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.ItemIndex'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1098,7 +1102,7 @@ begin
   try
     for i := 0 to FItemCount - 1 do items[i].item.cmd(id, param);
   except
-    on e: Exception do raise Exception.Create('in StackItem.CheckDeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

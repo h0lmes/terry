@@ -136,7 +136,7 @@ begin
       except end;
     end;
   except
-    on e: Exception do raise Exception.Create('in ShortcutItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItem'#10#13 + e.message);
   end;
 
   UpdateItemInternal;
@@ -192,7 +192,7 @@ begin
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('in ShortcutItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItemInternal'#10#13 + e.message);
   end;
 
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
@@ -210,7 +210,7 @@ begin
     GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
     if FRunning then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   except
-    on e: Exception do raise Exception.Create('in ShortcutItem.UpdateIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.UpdateIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ begin
 
       UpdateHint(xReal, yReal);
     except
-      on e: Exception do raise Exception.Create('in SetPosition(' + caption + ')'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition(' + caption + ')'#10#13 + e.message);
     end;
 
     // init bitmap //
@@ -406,7 +406,7 @@ begin
       inc(xBitmap, ItemRect.Left);
       inc(yBitmap, ItemRect.Top);
     except
-      on e: Exception do raise Exception.Create('in InitBitmap'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('InitBitmap'#10#13 + e.message);
     end;
 
     // draw icons //
@@ -433,7 +433,7 @@ begin
     DeleteBitmap(bmp);
 
   except
-    on e: Exception do raise Exception.Create('in ShortcutItem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -468,7 +468,7 @@ begin
 
     GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH, 0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
   except
-    on e: Exception do raise Exception.Create('in DrawIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -486,7 +486,7 @@ begin
       draw(Fx, Fy, FSize, true, 0, FShowItem);
     end;
   except
-    on e: Exception do raise Exception.Create('in ShortcutItem.Timer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Timer'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

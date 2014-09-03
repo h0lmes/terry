@@ -92,7 +92,7 @@ begin
       PluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
     end;
   except
-    on e: Exception do raise Exception.Create('in TPluginItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TPluginItem.UpdateItem'#10#13 + e.message);
   end;
 
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
@@ -117,7 +117,7 @@ begin
   @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
   @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
 
-  if not assigned(OnCreate) then raise Exception.Create('in PluginItem.LoadLib OnCreate is NULL');
+  if not assigned(OnCreate) then raise Exception.Create('PluginItem.LoadLib OnCreate is NULL');
 end;
 //------------------------------------------------------------------------------
 destructor TPluginItem.Destroy;

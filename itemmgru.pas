@@ -1788,7 +1788,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.DropFile(HWndChild, pt, filename);
   except
-    on e: Exception do err('in ItemManager.ItemDrop', e);
+    on e: Exception do err('ItemManager.ItemDrop', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1927,7 +1927,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Floating;
   except
-    on e: Exception do err('in ItemManager.IsPluginUndocked', e);
+    on e: Exception do err('ItemManager.IsPluginUndocked', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1936,7 +1936,7 @@ begin
   try
     result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TSeparatorItem;
   except
-    on e: Exception do err('in ItemManager.IsSeparator', e);
+    on e: Exception do err('ItemManager.IsSeparator', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1945,7 +1945,7 @@ begin
   try
     result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TTaskItem;
   except
-    on e: Exception do err('in ItemManager.IsSeparator', e);
+    on e: Exception do err('ItemManager.IsSeparator', e);
   end;
 end;
 //------------------------------------------------------------------------------

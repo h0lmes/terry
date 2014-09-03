@@ -77,9 +77,9 @@ begin
     bmp.topleft.y := y;
     bmp.width := w;
     bmp.height := h;
-    if not CreateBitmap(bmp) then raise Exception.Create('in DropIndicator.Draw CreateBitmap error');
+    if not CreateBitmap(bmp) then raise Exception.Create('DropIndicator.Draw CreateBitmap error');
     dst := CreateGraphics(bmp.dc, 0);
-    if not assigned(dst) then raise Exception.Create('in DropIndicator.Draw CreateGraphics error');
+    if not assigned(dst) then raise Exception.Create('DropIndicator.Draw CreateGraphics error');
     GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
     if assigned(theme.DropIndicatorAdd.Image) then
@@ -89,7 +89,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('in DropIndicator.Draw.InitDraw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropIndicator.Draw.InitDraw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

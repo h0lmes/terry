@@ -464,7 +464,7 @@ begin
       dwSize := 0;
       GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
       if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
-        raise Exception.Create('in Base.NativeWndProc. Invalid size of RawInputData');
+        raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
       if (ri.header.dwType = RIM_TYPEMOUSE) then
       begin
         if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);

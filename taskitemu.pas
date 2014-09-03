@@ -88,13 +88,12 @@ begin
       end else begin
         LoadImageFromHWnd(FAppHWnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
         Caption := ProcessHelper.GetWindowText(FAppHWnd);
-        //dockh.Notify(0, pchar(inttohex(FAppHWnd, 8) + ' ' + FCaption + ' ' + ProcessHelper.GetAppWindowClassName(FAppHWnd)));
       end;
     finally
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('in TaskItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
   end;
 
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
@@ -122,7 +121,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Cmd'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -173,7 +172,7 @@ begin
 
     UpdateHint(xReal, yReal);
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.SetPosition(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.SetPosition(' + caption + ')'#10#13 + e.message);
   end;
 
   // init drawing //
@@ -182,9 +181,9 @@ begin
     bmp.topleft.y := yReal;
     bmp.width := FSize + ItemRect.Left * 2;
     bmp.height := FSize + ItemRect.Top * 2;
-    if not CreateBitmap(bmp) then raise Exception.Create('in TaskItem.Draw CreateBitmap error');
+    if not CreateBitmap(bmp) then raise Exception.Create('TaskItem.Draw CreateBitmap error');
     if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
-    if not assigned(dst) then raise Exception.Create('in TaskItem.Draw CreateGraphics error');
+    if not assigned(dst) then raise Exception.Create('TaskItem.Draw CreateGraphics error');
     GdipCreateSolidFill(ITEM_BACKGROUND, brush);
     GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
     GdipDeleteBrush(brush);
@@ -200,7 +199,7 @@ begin
     inc(xBitmap, ItemRect.Left);
     inc(yBitmap, ItemRect.Top);
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.InitDraw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.InitDraw'#10#13 + e.message);
   end;
 
   // color and alpha-blending matrices //
@@ -216,7 +215,7 @@ begin
       GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @l_matrix, nil, ColorMatrixFlagsDefault);
     end;
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.Matrices'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.Matrices'#10#13 + e.message);
   end;
 
   // draw icon //
@@ -225,7 +224,7 @@ begin
       xBitmap, yBitmap, FSize, FSize,
       0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.Icons'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.Icons'#10#13 + e.message);
   end;
 
   // reflection //
@@ -233,14 +232,14 @@ begin
     if FReflection and not FFloating and assigned(FImage) then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.Reflection'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.Reflection'#10#13 + e.message);
   end;
 
   // update window content //
   try
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.UpdateWindow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.UpdateWindow'#10#13 + e.message);
   end;
 
   // cleanup //
@@ -249,7 +248,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('in TaskItem.Draw.Cleanup'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw.Cleanup'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
