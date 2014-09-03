@@ -12,22 +12,25 @@ type
   { TfrmItemProp }
 
   TfrmItemProp = class(TForm)
+    btnBrowseImage1: TButton;
+    btnClearImage: TButton;
     btnDefaultColor: TButton;
     btnDir: TButton;
     btnFile: TButton;
     btnOK: TButton;
     btnApply: TButton;
     btnCancel: TButton;
-    btnBrowseImage1: TButton;
     btnParams: TButton;
-    cbo_activate_running: TComboBox;
-    cbo_showcmd: TComboBox;
-    chb_hide: TCheckBox;
-    ed_caption: TEdit;
-    ed_cmd: TEdit;
-    ed_dir: TEdit;
-    edPic: TEdit;
-    ed_params: TEdit;
+    btnSelectColor: TButton;
+    cboRun: TComboBox;
+    cboWindow: TComboBox;
+    chbHide: TCheckBox;
+    edCaption: TEdit;
+    edCmd: TEdit;
+    edDir: TEdit;
+    edImage: TEdit;
+    edParams: TEdit;
+    iPic: TPaintBox;
     lblTip1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -36,10 +39,6 @@ type
     lblCaption: TLabel;
     lblCommand: TLabel;
     lblDir: TLabel;
-    gbImage: TGroupBox;
-    iPic: TPaintBox;
-    btnClearImage: TButton;
-    btnColorData: TButton;
     lblParams: TLabel;
     lblWorkingDirectory: TLabel;
     lblWindowSize: TLabel;
@@ -54,14 +53,15 @@ type
     tbSat: TTrackBar;
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
-    procedure cbo_activate_runningChange(Sender: TObject);
-    procedure cbo_showcmdChange(Sender: TObject);
-    procedure ed_captionChange(Sender: TObject);
-    procedure ed_dirChange(Sender: TObject);
-    procedure ed_paramsChange(Sender: TObject);
+    procedure cboRunChange(Sender: TObject);
+    procedure cboWindowChange(Sender: TObject);
+    procedure edImageChange(Sender: TObject);
+    procedure edCaptionChange(Sender: TObject);
+    procedure edDirChange(Sender: TObject);
+    procedure edParamsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnClearImageClick(Sender: TObject);
-    procedure btnColorDataClick(Sender: TObject);
+    procedure btnSelectColorClick(Sender: TObject);
     procedure btn_colorClick(Sender: TObject);
     procedure btnDirClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
@@ -70,14 +70,13 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure btnParamsClick(Sender: TObject);
     procedure btnApplyClick(Sender: TObject);
-    procedure ed_cmdChange(Sender: TObject);
+    procedure edCmdChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure tbHueChange(Sender: TObject);
   private
     cancel_data: string;
     UpdateItemProc: _uproc;
     color_: uint;
-    image1: string;
     color_data: integer;
     ItemHWnd: uint;
     FChanged: boolean;
@@ -122,12 +121,12 @@ begin
   constraints.maxheight := Height;
   constraints.minwidth := Width;
 
-  cbo_showcmd.Items.Add(XShowCmdNormal);
-  cbo_showcmd.Items.Add(XShowCmdMinimized);
-  cbo_showcmd.Items.Add(XShowCmdMaximized);
-  cbo_activate_running.Items.Add(XProgramActivationDefault);
-  cbo_activate_running.Items.Add(XProgramActivationActivate);
-  cbo_activate_running.Items.Add(XProgramActivationRun);
+  cboWindow.Items.Add(XShowCmdNormal);
+  cboWindow.Items.Add(XShowCmdMinimized);
+  cboWindow.Items.Add(XShowCmdMaximized);
+  cboRun.Items.Add(XProgramActivationDefault);
+  cboRun.Items.Add(XProgramActivationActivate);
+  cboRun.Items.Add(XProgramActivationRun);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.SetData(AData: string);
@@ -144,14 +143,14 @@ begin
 
   // show parameters //
 
-  ed_caption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
-  ed_cmd.Text := AnsiToUTF8(FetchValue(AData, 'command="', '";'));
-  ed_params.Text := AnsiToUTF8(FetchValue(AData, 'params="', '";'));
-  ed_dir.Text := AnsiToUTF8(FetchValue(AData, 'dir="', '";'));
-  image1 := FetchValue(AData, 'image="', '";');
+  edCaption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
+  edCmd.Text := AnsiToUTF8(FetchValue(AData, 'command="', '";'));
+  edParams.Text := AnsiToUTF8(FetchValue(AData, 'params="', '";'));
+  edDir.Text := AnsiToUTF8(FetchValue(AData, 'dir="', '";'));
+  edImage.text := FetchValue(AData, 'image="', '";');
 
-  chb_hide.Checked := False;
-  try chb_hide.Checked := boolean(StrToInt(FetchValue(AData, 'hide="', '";')));
+  chbHide.Checked := False;
+  try chbHide.Checked := boolean(StrToInt(FetchValue(AData, 'hide="', '";')));
   except
   end;
 
@@ -176,15 +175,15 @@ begin
   try i := StrToInt(FetchValue(AData, 'showcmd="', '";'));
   except
   end;
-  cbo_showcmd.ItemIndex := 0;
-  if i = sw_showminimized then cbo_showcmd.ItemIndex := 1
-  else if i = sw_showmaximized then cbo_showcmd.ItemIndex := 2;
+  cboWindow.ItemIndex := 0;
+  if i = sw_showminimized then cboWindow.ItemIndex := 1
+  else if i = sw_showmaximized then cboWindow.ItemIndex := 2;
 
   i := 0;
   try i := StrToInt(FetchValue(AData, 'activate_running="', '";'));
   except
   end;
-  cbo_activate_running.ItemIndex := i;
+  cboRun.ItemIndex := i;
 
   Draw;
 
@@ -202,14 +201,15 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnCancelClick(Sender: TObject);
 begin
+  if FChanged then
+     if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
   FChanged := false;
-  if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
   Close;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnOKClick(Sender: TObject);
 begin
-  btnApplyClick(nil);
+  btnApply.Click;
   // save settings !!!
   frmterry.BaseCmd(tcSaveSets, 0);
   Close;
@@ -223,14 +223,14 @@ begin
   try
     FChanged := false;
 
-    if cbo_showcmd.ItemIndex = 0 then showcmd := sw_shownormal
-    else if cbo_showcmd.ItemIndex = 1 then showcmd := sw_showminimized
+    if cboWindow.ItemIndex = 0 then showcmd := sw_shownormal
+    else if cboWindow.ItemIndex = 1 then showcmd := sw_showminimized
     else showcmd := sw_showmaximized;
 
-    str := TShortcutItem.Make(ItemHWnd, UTF8ToAnsi(ed_caption.Text),
-      UTF8ToAnsi(ed_cmd.Text), UTF8ToAnsi(ed_params.Text), UTF8ToAnsi(ed_dir.Text),
-      image1, showcmd, color_data, chb_hide.Checked,
-      cbo_activate_running.ItemIndex);
+    str := TShortcutItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text),
+      UTF8ToAnsi(edCmd.Text), UTF8ToAnsi(edParams.Text), UTF8ToAnsi(edDir.Text),
+      UTF8ToAnsi(edImage.Text), showcmd, color_data, chbHide.Checked,
+      cboRun.ItemIndex);
 
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
@@ -261,17 +261,17 @@ procedure TfrmItemProp.btnFileClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    if ed_cmd.Text = '' then
+    if edCmd.Text = '' then
       InitialDir := AnsiToUTF8(sets.progpath)
     else
-      InitialDir := ExtractFilePath(toolu.UnzipPath(ed_cmd.Text));
+      InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
     if Execute then
     begin
-      ed_cmd.Text := toolu.ZipPath(FileName);
+      edCmd.Text := toolu.ZipPath(FileName);
       if fileexists(FileName) then
-        ed_caption.Text := cut(ExtractFileName(FileName), '.')
+        edCaption.Text := cut(ExtractFileName(FileName), '.')
       else
-        ed_caption.Text := ed_cmd.Text;
+        edCaption.Text := edCmd.Text;
     end;
   finally
     Free;
@@ -282,9 +282,9 @@ procedure TfrmItemProp.btnParamsClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    InitialDir := ExtractFilePath(toolu.UnzipPath(ed_params.Text));
+    InitialDir := ExtractFilePath(toolu.UnzipPath(edParams.Text));
     if Execute then
-      ed_params.Text := toolu.ZipPath(FileName);
+      edParams.Text := toolu.ZipPath(FileName);
   finally
     Free;
   end;
@@ -292,59 +292,64 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnDirClick(Sender: TObject);
 begin
-  ed_dir.Text := AnsiToUTF8(toolu.BrowseFolder(handle, XSelectWorkingDirectory, UTF8ToAnsi(ed_dir.Text)));
+  edDir.Text := AnsiToUTF8(toolu.BrowseFolder(handle, XSelectWorkingDirectory, UTF8ToAnsi(edDir.Text)));
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnBrowseImage1Click(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    if image1 = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
-    else InitialDir:= ExtractFilePath(toolu.UnzipPath(image1));
-    if execute then
-    begin
-      FChanged := true;
-      image1 := toolu.ZipPath(FileName);
-      Draw;
-    end;
+    if edImage.text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
+    else InitialDir:= ExtractFilePath(toolu.UnzipPath(edImage.text));
+    if execute then edImage.text := toolu.ZipPath(FileName);
   finally
     free;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.cbo_activate_runningChange(Sender: TObject);
+procedure TfrmItemProp.cboRunChange(Sender: TObject);
 begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.cbo_showcmdChange(Sender: TObject);
+procedure TfrmItemProp.cboWindowChange(Sender: TObject);
 begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.ed_captionChange(Sender: TObject);
+procedure TfrmItemProp.edCaptionChange(Sender: TObject);
 begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.ed_dirChange(Sender: TObject);
+procedure TfrmItemProp.edCmdChange(Sender: TObject);
+begin
+  FChanged := true;
+  if edImage.text = '' then Draw;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.edDirChange(Sender: TObject);
 begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.ed_paramsChange(Sender: TObject);
+procedure TfrmItemProp.edParamsChange(Sender: TObject);
 begin
   FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.edImageChange(Sender: TObject);
+begin
+  FChanged := true;
+  Draw;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnClearImageClick(Sender: TObject);
 begin
-  FChanged := true;
-  image1 := '';
-  draw;
+  edImage.Clear;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.btnColorDataClick(Sender: TObject);
+procedure TfrmItemProp.btnSelectColorClick(Sender: TObject);
 begin
   OpenColor;
 end;
@@ -391,18 +396,17 @@ var
   w, h: uint;
 begin
   try
-    edPic.Text := image1;
     img := nil;
-    if image1 = '' then
-      str := UnzipPath(UTF8ToAnsi(ed_cmd.Text))
+    if edImage.text = '' then
+      str := UnzipPath(UTF8ToAnsi(edCmd.Text))
     else
-      str := UnzipPath(image1);
+      str := UnzipPath(UTF8ToAnsi(edImage.text));
 
     if fileexists(cut(str, ',')) then LoadImage(str, 128, false, true, img, w, h);
     DrawFit(img, iPic, color_data);
     if assigned(img) then GdipDisposeImage(img);
   except
-    on e: Exception do frmterry.notify('TfrmItemProp.Draw'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmItemProp.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -413,7 +417,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.DrawFit(image: Pointer; p: TPaintBox; color_data: integer);
 var
-  hgdip, hbrush, hpen, hattr: Pointer;
+  hgdip, hbrush, hattr: Pointer;
   w, h: uint;
   w_coeff, h_coeff: extended;
   matrix: ColorMatrix;
@@ -440,27 +444,17 @@ begin
     GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
     GdipCreateSolidFill($ffe6e8ea, hbrush);
-    GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width - 1, p.Height - 1);
+    GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width, p.Height);
     GdipDeleteBrush(hbrush);
-    GdipCreatePen1($ff303030, 1, UnitPixel, hpen);
-    GdipDrawRectangleI(hgdip, hpen, 0, 0, p.Width - 1, p.Height - 1);
-    if not assigned(image) then
-    begin
-      GdipDrawLine(hgdip, hpen, 0, 0, p.Width - 1, p.Height - 1);
-      GdipDrawLine(hgdip, hpen, p.Width - 1, 0, 0, p.Height - 1);
-    end;
-    GdipDeletePen(hpen);
 
     if assigned(image) then
     begin
       CreateColorMatrix(color_data, matrix);
       GdipCreateImageAttributes(hattr);
-      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap,
-        True, @matrix, nil, ColorMatrixFlagsDefault);
+      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
 
       GdipDrawImageRectRectI(hgdip, image,
-        (p.Width - trunc(p.Width * w_coeff)) div 2,
-        (p.Height - trunc(p.Height * h_coeff)) div 2,
+        (p.Width - trunc(p.Width * w_coeff)) div 2, (p.Height - trunc(p.Height * h_coeff)) div 2,
         trunc(p.Width * w_coeff), trunc(p.Height * h_coeff),
         0, 0, w, h, UnitPixel, hattr, nil, nil);
 
@@ -469,14 +463,8 @@ begin
 
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmterry.notify('TfrmItemProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmItemProp.DrawFit'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmItemProp.ed_cmdChange(Sender: TObject);
-begin
-  FChanged := true;
-  if image1 = '' then Draw;
 end;
 //------------------------------------------------------------------------------
 end.

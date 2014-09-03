@@ -2,13 +2,13 @@ object frmStackProp: TfrmStackProp
   Left = 292
   Height = 381
   Top = 259
-  Width = 730
+  Width = 735
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
   ClientHeight = 381
-  ClientWidth = 730
+  ClientWidth = 735
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -26,7 +26,7 @@ object frmStackProp: TfrmStackProp
     Width = 91
     Caption = 'OK'
     OnClick = btnOKClick
-    TabOrder = 2
+    TabOrder = 1
   end
   object btnApply: TButton
     Left = 105
@@ -35,7 +35,7 @@ object frmStackProp: TfrmStackProp
     Width = 91
     Caption = 'Apply'
     OnClick = btnApplyClick
-    TabOrder = 3
+    TabOrder = 2
   end
   object btnCancel: TButton
     Left = 200
@@ -44,52 +44,7 @@ object frmStackProp: TfrmStackProp
     Width = 91
     Caption = 'Cancel'
     OnClick = btnCancelClick
-    TabOrder = 4
-  end
-  object gbImage: TGroupBox
-    Left = 563
-    Height = 330
-    Top = 5
-    Width = 156
-    Anchors = [akTop, akRight]
-    Caption = '  Image  '
-    ClientHeight = 312
-    ClientWidth = 152
-    TabOrder = 1
-    object iPic: TPaintBox
-      Tag = 10
-      Left = 13
-      Height = 128
-      Top = 10
-      Width = 128
-    end
-    object btnClearImage: TButton
-      Left = 13
-      Height = 25
-      Top = 185
-      Width = 128
-      Caption = 'Clear image'
-      OnClick = btnClearImageClick
-      TabOrder = 1
-    end
-    object btnColorData: TButton
-      Left = 13
-      Height = 25
-      Top = 215
-      Width = 128
-      Caption = 'Select color'
-      OnClick = btnColorDataClick
-      TabOrder = 2
-    end
-    object btnBrowseImage1: TButton
-      Left = 13
-      Height = 25
-      Top = 155
-      Width = 128
-      Caption = 'Browse image'
-      OnClick = btnBrowseImage1Click
-      TabOrder = 0
-    end
+    TabOrder = 3
   end
   object pages: TPageControl
     Left = 10
@@ -104,14 +59,14 @@ object frmStackProp: TfrmStackProp
       Caption = 'Properties'
       ClientHeight = 300
       ClientWidth = 535
-      object ed_caption: TEdit
+      object edCaption: TEdit
         Tag = 10
         Left = 130
         Height = 21
         Top = 14
         Width = 393
         Anchors = [akTop, akLeft, akRight]
-        OnChange = ed_captionChange
+        OnChange = edCaptionChange
         TabOrder = 0
       end
       object lblCaption: TLabel
@@ -228,21 +183,20 @@ object frmStackProp: TfrmStackProp
         Caption = 'Image'
         ParentColor = False
       end
-      object edPic: TEdit
+      object edImage: TEdit
         Left = 130
         Height = 21
         Top = 45
         Width = 393
         Anchors = [akTop, akLeft, akRight]
-        Color = clBtnFace
-        ReadOnly = True
+        OnChange = edImageChange
         TabOrder = 6
       end
     end
     object tsSubitems: TTabSheet
       Caption = 'Subitems'
       ClientHeight = 300
-      ClientWidth = 462
+      ClientWidth = 535
       object bbAddIcon: TBitBtn
         Left = 16
         Height = 25
@@ -479,10 +433,11 @@ object frmStackProp: TfrmStackProp
         Left = 15
         Height = 235
         Top = 50
-        Width = 430
+        Width = 503
         Anchors = [akTop, akLeft, akRight, akBottom]
         ExtendedSelect = False
         ItemHeight = 0
+        OnDblClick = listDblClick
         TabOrder = 5
       end
     end
@@ -589,5 +544,43 @@ object frmStackProp: TfrmStackProp
         TabOrder = 4
       end
     end
+  end
+  object iPic: TPaintBox
+    Tag = 10
+    Left = 580
+    Height = 128
+    Top = 31
+    Width = 128
+    Anchors = [akTop, akRight]
+  end
+  object btnBrowseImage1: TButton
+    Left = 580
+    Height = 25
+    Top = 175
+    Width = 128
+    Anchors = [akTop, akRight]
+    Caption = 'Browse image'
+    OnClick = btnBrowseImage1Click
+    TabOrder = 4
+  end
+  object btnClearImage: TButton
+    Left = 580
+    Height = 25
+    Top = 205
+    Width = 128
+    Anchors = [akTop, akRight]
+    Caption = 'Clear image'
+    OnClick = btnClearImageClick
+    TabOrder = 5
+  end
+  object btnSelectColor: TButton
+    Left = 580
+    Height = 25
+    Top = 235
+    Width = 128
+    Anchors = [akTop, akRight]
+    Caption = 'Select color'
+    OnClick = btnSelectColorClick
+    TabOrder = 6
   end
 end

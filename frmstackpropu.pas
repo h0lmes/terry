@@ -18,15 +18,18 @@ type
     bbEditIcon: TBitBtn;
     bbIconDown: TBitBtn;
     bbIconUp: TBitBtn;
+    btnBrowseImage1: TButton;
+    btnClearImage: TButton;
     btnDefaultColor: TButton;
     btnOK: TButton;
     btnApply: TButton;
     btnCancel: TButton;
-    btnBrowseImage1: TButton;
+    btnSelectColor: TButton;
     cboMode: TComboBox;
     chbPreview: TCheckBox;
-    edPic: TEdit;
-    ed_caption: TEdit;
+    edImage: TEdit;
+    edCaption: TEdit;
+    iPic: TPaintBox;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -37,10 +40,6 @@ type
     lblAnimationSpeed: TLabel;
     lblStyle: TLabel;
     lblDir: TLabel;
-    gbImage: TGroupBox;
-    iPic: TPaintBox;
-    btnClearImage: TButton;
-    btnColorData: TButton;
     lblOffset: TLabel;
     list: TListBox;
     pages: TPageControl;
@@ -61,22 +60,23 @@ type
     procedure bbIconUpClick(Sender: TObject);
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
-    procedure ed_captionChange(Sender: TObject);
+    procedure edCaptionChange(Sender: TObject);
+    procedure edImageChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnClearImageClick(Sender: TObject);
-    procedure btnColorDataClick(Sender: TObject);
+    procedure btnSelectColorClick(Sender: TObject);
     procedure btn_colorClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure btnApplyClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure listDblClick(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
   private
     cancel_data: string;
     UpdateItemProc: _uproc;
     color_: uint;
-    image1: string;
     color_data: integer;
     SpecialFolder: integer;
     ItemHWnd: uint;
@@ -111,7 +111,7 @@ begin
     frmStackProp.ReadSubitems;
     frmStackProp.Show;
   except
-    on e: Exception do frmterry.notify('TfrmStackProp.Open'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmStackProp.Open'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -143,8 +143,8 @@ begin
 
   // show parameters //
 
-  ed_caption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
-  image1 := FetchValue(AData, 'image="', '";');
+  edCaption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
+  edImage.Text := FetchValue(AData, 'image="', '";');
 
   try
     color_data := DEFAULT_COLOR_DATA;
@@ -244,21 +244,28 @@ begin
   item.SubitemConfigure(list.ItemIndex);
 end;
 //------------------------------------------------------------------------------
+procedure TfrmStackProp.listDblClick(Sender: TObject);
+begin
+  bbEditIcon.Click;
+end;
+//------------------------------------------------------------------------------
 procedure TfrmStackProp.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
 begin
   if (key = 27) and (shift = []) then btnCancel.Click;
+  if (key = 13) and (shift = []) then btnOK.Click;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnCancelClick(Sender: TObject);
 begin
+  if FChanged then
+    if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
   FChanged := false;
-  if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
   Close;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnOKClick(Sender: TObject);
 begin
-  btnApplyClick(nil);
+  btnApply.Click;
   // save settings !!!
   frmterry.BaseCmd(tcSaveSets, 0);
   Close;
@@ -270,11 +277,11 @@ var
 begin
   try
     FChanged := false;
-    str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(ed_caption.Text), image1, color_data,
+    str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), color_data,
       cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, SpecialFolder, chbPreview.Checked);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
-    on e: Exception do frmterry.notify('TfrmStackProp.btnApplyClick'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmStackProp.btnApplyClick'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -301,34 +308,31 @@ procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    if image1 = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
-    else InitialDir:= ExtractFilePath(toolu.UnzipPath(image1));
-    if execute then
-    begin
-      FChanged := true;
-      image1 := toolu.ZipPath(FileName);
-      Draw;
-      //btnApply.Click;
-    end;
+    if edImage.Text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
+    else InitialDir:= ExtractFilePath(toolu.UnzipPath(edImage.Text));
+    if execute then edImage.Text := toolu.ZipPath(FileName);
   finally
     free;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.ed_captionChange(Sender: TObject);
+procedure TfrmStackProp.edCaptionChange(Sender: TObject);
 begin
   FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.edImageChange(Sender: TObject);
+begin
+  FChanged := true;
+  Draw;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnClearImageClick(Sender: TObject);
 begin
-  FChanged := true;
-  image1 := '';
-  draw;
-  //btnApply.Click;
+  edImage.Clear;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.btnColorDataClick(Sender: TObject);
+procedure TfrmStackProp.btnSelectColorClick(Sender: TObject);
 begin
   OpenColor;
 end;
@@ -375,15 +379,14 @@ var
   w, h: uint;
 begin
   try
-    edPic.Text := image1;
     img := nil;
-    str := UnzipPath(image1);
+    str := UnzipPath(edImage.Text);
 
     if fileexists(cut(str, ',')) then LoadImage(str, 128, false, True, img, w, h);
     DrawFit(img, iPic, color_data);
     if assigned(img) then GdipDisposeImage(img);
   except
-    on e: Exception do frmterry.notify('TfrmStackProp.Draw'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmStackProp.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -394,7 +397,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.DrawFit(image: Pointer; p: TPaintBox; color_data: integer);
 var
-  hgdip, hbrush, hpen, hattr: Pointer;
+  hgdip, hbrush, hattr: Pointer;
   w, h: uint;
   w_coeff, h_coeff: extended;
   matrix: ColorMatrix;
@@ -415,10 +418,8 @@ begin
     h_coeff := 1;
 
     try
-      if w / h > (p.Width - 2) / (p.Height - 2) then
-        h_coeff := (p.Width - 2) * h / w / (p.Height - 2);
-      if w / h < (p.Width - 2) / (p.Height - 2) then
-        w_coeff := (p.Height - 2) * w / h / (p.Width - 2);
+      if w / h > (p.Width - 2) / (p.Height - 2) then h_coeff := (p.Width - 2) * h / w / (p.Height - 2);
+      if w / h < (p.Width - 2) / (p.Height - 2) then w_coeff := (p.Height - 2) * w / h / (p.Width - 2);
     except
     end;
 
@@ -426,27 +427,17 @@ begin
     GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
     GdipCreateSolidFill($ffe6e8ea, hbrush);
-    GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width - 1, p.Height - 1);
+    GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width, p.Height);
     GdipDeleteBrush(hbrush);
-    GdipCreatePen1($ff303030, 1, UnitPixel, hpen);
-    GdipDrawRectangleI(hgdip, hpen, 0, 0, p.Width - 1, p.Height - 1);
-    if not assigned(image) then
-    begin
-      GdipDrawLine(hgdip, hpen, 0, 0, p.Width - 1, p.Height - 1);
-      GdipDrawLine(hgdip, hpen, p.Width - 1, 0, 0, p.Height - 1);
-    end;
-    GdipDeletePen(hpen);
 
     if assigned(image) then
     begin
       CreateColorMatrix(color_data, matrix);
       GdipCreateImageAttributes(hattr);
-      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap,
-        True, @matrix, nil, ColorMatrixFlagsDefault);
+      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
 
       GdipDrawImageRectRectI(hgdip, image,
-        (p.Width - trunc(p.Width * w_coeff)) div 2,
-        (p.Height - trunc(p.Height * h_coeff)) div 2,
+        (p.Width - trunc(p.Width * w_coeff)) div 2, (p.Height - trunc(p.Height * h_coeff)) div 2,
         trunc(p.Width * w_coeff), trunc(p.Height * h_coeff),
         0, 0, w, h, UnitPixel, hattr, nil, nil);
 
@@ -455,7 +446,7 @@ begin
 
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmterry.notify('TfrmStackProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmterry.notify('frmStackProp.DrawFit'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

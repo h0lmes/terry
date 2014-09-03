@@ -209,15 +209,8 @@ msgid "Hello. This is the first time to run Terry."
 msgstr "Здравствуйте. Это первый запуск Terry."
 
 #: declu.xmsgnotificationareaicons
-msgid ""
-"After you close this message you will see \"Notification area icons\" "
-"window. To use this function uncheck \"Always show all icons\" at the bottom "
-"of the window and set all behaviors to \"Only show notifications\"."
-msgstr ""
-"После закрытия данного сообщения вы увидете окно \"Значки области уведомлений"
-"\". Для использования данной функции снимите отметку \"Всегда отображать все "
-"значки\" внизу окна и установите для всех значков поведение \"Показать "
-"только уведомления\"."
+msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
+msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
 msgid "Place target file onto dock instead of shortcut?"
@@ -233,12 +226,8 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-msgid ""
-"Icon parameters changed. If you will proceed all changes will be lost. "
-"Proceed?"
-msgstr ""
-"Параметры значка были изменены. Если вы продолжите все изменения будут "
-"утеряны. Продолжить?"
+msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?"
+msgstr "Параметры значка были изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
 
 #: declu.xopenfolderof
 msgctxt "declu.xopenfolderof"
@@ -585,11 +574,6 @@ msgctxt "TFRMITEMPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
 msgstr "Очистить иконку"
 
-#: tfrmitemprop.btncolordata.caption
-msgctxt "TFRMITEMPROP.BTNCOLORDATA.CAPTION"
-msgid "Select color"
-msgstr "Выбрать цвет"
-
 #: tfrmitemprop.btndefaultcolor.caption
 msgctxt "TFRMITEMPROP.BTNDEFAULTCOLOR.CAPTION"
 msgid "Reset color"
@@ -615,21 +599,20 @@ msgctxt "TFRMITEMPROP.BTNPARAMS.CAPTION"
 msgid "..."
 msgstr "..."
 
+#: tfrmitemprop.btnselectcolor.caption
+msgctxt "tfrmitemprop.btnselectcolor.caption"
+msgid "Select color"
+msgstr "Выбрать цвет"
+
 #: tfrmitemprop.caption
 msgctxt "tfrmitemprop.caption"
 msgid "Properties"
 msgstr "Свойства"
 
-#: tfrmitemprop.chb_hide.caption
-#| msgid "Hide panel when application runs"
+#: tfrmitemprop.chbhide.caption
+msgctxt "tfrmitemprop.chbhide.caption"
 msgid "Hide Terry when application runs"
 msgstr "Прятать Терри при запуске приложения"
-
-#: tfrmitemprop.gbimage.caption
-#| msgid "  Image and transition image  "
-msgctxt "TFRMITEMPROP.GBIMAGE.CAPTION"
-msgid "  Image  "
-msgstr "  Иконка  "
 
 #: tfrmitemprop.label2.caption
 msgctxt "TFRMITEMPROP.LABEL2.CAPTION"
@@ -995,12 +978,8 @@ msgid "Zoom width"
 msgstr "Ширина увеличения"
 
 #: tfrmsets.stmovedockhint.caption
-msgid ""
-"Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows "
-"to move dock to another edge or monitor"
-msgstr ""
-"Совет: когда док активирован (например, после клика на нем) используйте <Alt>"
-"+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
+msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
+msgstr "Совет: когда док активирован (например, после клика на нем) используйте <Alt>+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
 
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
@@ -1082,11 +1061,6 @@ msgctxt "TFRMSTACKPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
 msgstr "Очистить иконку"
 
-#: tfrmstackprop.btncolordata.caption
-msgctxt "TFRMSTACKPROP.BTNCOLORDATA.CAPTION"
-msgid "Select color"
-msgstr "Выбрать цвет"
-
 #: tfrmstackprop.btndefaultcolor.caption
 msgctxt "TFRMSTACKPROP.BTNDEFAULTCOLOR.CAPTION"
 msgid "Reset color"
@@ -1097,6 +1071,11 @@ msgctxt "TFRMSTACKPROP.BTNOK.CAPTION"
 msgid "OK"
 msgstr "OK"
 
+#: tfrmstackprop.btnselectcolor.caption
+msgctxt "tfrmstackprop.btnselectcolor.caption"
+msgid "Select color"
+msgstr "Выбрать цвет"
+
 #: tfrmstackprop.caption
 msgctxt "tfrmstackprop.caption"
 msgid "Properties"
@@ -1105,12 +1084,6 @@ msgstr "Свойства"
 #: tfrmstackprop.chbpreview.caption
 msgid "Show subitems overlay"
 msgstr "Показывать подпункты на значке"
-
-#: tfrmstackprop.gbimage.caption
-#| msgid "  Image and transition image  "
-msgctxt "TFRMSTACKPROP.GBIMAGE.CAPTION"
-msgid "  Image  "
-msgstr "  Иконка  "
 
 #: tfrmstackprop.label2.caption
 msgctxt "TFRMSTACKPROP.LABEL2.CAPTION"
@@ -1178,3 +1151,4 @@ msgstr "Подпункты"
 msgctxt "tfrmterry.caption"
 msgid "TerryForm"
 msgstr "TerryForm"
+

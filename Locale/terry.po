@@ -557,11 +557,6 @@ msgctxt "TFRMITEMPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
 msgstr ""
 
-#: tfrmitemprop.btncolordata.caption
-msgctxt "TFRMITEMPROP.BTNCOLORDATA.CAPTION"
-msgid "Select color"
-msgstr ""
-
 #: tfrmitemprop.btndefaultcolor.caption
 msgctxt "TFRMITEMPROP.BTNDEFAULTCOLOR.CAPTION"
 msgid "Reset color"
@@ -587,18 +582,19 @@ msgctxt "TFRMITEMPROP.BTNPARAMS.CAPTION"
 msgid "..."
 msgstr ""
 
+#: tfrmitemprop.btnselectcolor.caption
+msgctxt "TFRMITEMPROP.BTNSELECTCOLOR.CAPTION"
+msgid "Select color"
+msgstr ""
+
 #: tfrmitemprop.caption
 msgctxt "TFRMITEMPROP.CAPTION"
 msgid "Properties"
 msgstr ""
 
-#: tfrmitemprop.chb_hide.caption
+#: tfrmitemprop.chbhide.caption
+msgctxt "TFRMITEMPROP.CHBHIDE.CAPTION"
 msgid "Hide Terry when application runs"
-msgstr ""
-
-#: tfrmitemprop.gbimage.caption
-msgctxt "TFRMITEMPROP.GBIMAGE.CAPTION"
-msgid "  Image  "
 msgstr ""
 
 #: tfrmitemprop.label2.caption
@@ -1036,11 +1032,6 @@ msgctxt "TFRMSTACKPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
 msgstr ""
 
-#: tfrmstackprop.btncolordata.caption
-msgctxt "TFRMSTACKPROP.BTNCOLORDATA.CAPTION"
-msgid "Select color"
-msgstr ""
-
 #: tfrmstackprop.btndefaultcolor.caption
 msgctxt "TFRMSTACKPROP.BTNDEFAULTCOLOR.CAPTION"
 msgid "Reset color"
@@ -1051,6 +1042,11 @@ msgctxt "TFRMSTACKPROP.BTNOK.CAPTION"
 msgid "OK"
 msgstr ""
 
+#: tfrmstackprop.btnselectcolor.caption
+msgctxt "TFRMSTACKPROP.BTNSELECTCOLOR.CAPTION"
+msgid "Select color"
+msgstr ""
+
 #: tfrmstackprop.caption
 msgctxt "TFRMSTACKPROP.CAPTION"
 msgid "Properties"
@@ -1058,11 +1054,6 @@ msgstr ""
 
 #: tfrmstackprop.chbpreview.caption
 msgid "Show subitems overlay"
-msgstr ""
-
-#: tfrmstackprop.gbimage.caption
-msgctxt "TFRMSTACKPROP.GBIMAGE.CAPTION"
-msgid "  Image  "
 msgstr ""
 
 #: tfrmstackprop.label2.caption
