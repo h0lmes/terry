@@ -189,7 +189,7 @@ begin
   DropDistance := 80;
   DropPlace := NOT_AN_ITEM;
   DropPlaceEx := NOT_AN_ITEM;
-  ZoomSpeed := 2;
+  ZoomSpeed := 1;
   MoveSpeed := 1;
   LockDragging := false;
   HoverItemHWnd := 0;
