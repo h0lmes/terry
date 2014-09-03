@@ -85,11 +85,11 @@ var
 begin
   if listApps.ItemIndex >= 0 then
   begin
-    strcopy(pdata.Name, pchar(listApps.Items[listApps.ItemIndex].SubItems[0]));
-    strcopy(pdata.Filename, pchar(listApps.Items[listApps.ItemIndex].SubItems[2]));
-    strcopy(pdata.Params, pchar(listApps.Items[listApps.ItemIndex].SubItems[3]));
-    strcopy(pdata.Dir, pchar(listApps.Items[listApps.ItemIndex].SubItems[4]));
-    strcopy(pdata.Icon, pchar(listApps.Items[listApps.ItemIndex].SubItems[5]));
+    strcopy(pdata.Name, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[0])));
+    strcopy(pdata.Filename, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[2])));
+    strcopy(pdata.Params, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[3])));
+    strcopy(pdata.Dir, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[4])));
+    strcopy(pdata.Icon, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[5])));
     pdata.ShowCmd := strtoint(listApps.Items[listApps.ItemIndex].SubItems[6]);
     cds.cbData := sizeof(pdata);
     cds.dwData := DATA_PROGRAM;

@@ -262,14 +262,14 @@ begin
   with TOpenDialog.Create(self) do
   try
     if ed_cmd.Text = '' then
-      InitialDir := sets.progpath
+      InitialDir := AnsiToUTF8(sets.progpath)
     else
-      InitialDir := ExtractFilePath(toolu.UnzipPath(UTF8ToAnsi(ed_cmd.Text)));
+      InitialDir := ExtractFilePath(toolu.UnzipPath(ed_cmd.Text));
     if Execute then
     begin
-      ed_cmd.Text := AnsiToUTF8(toolu.ZipPath(FileName));
+      ed_cmd.Text := toolu.ZipPath(FileName);
       if fileexists(FileName) then
-        ed_caption.Text := AnsiToUTF8(cut(ExtractFileName(FileName), '.'))
+        ed_caption.Text := cut(ExtractFileName(FileName), '.')
       else
         ed_caption.Text := ed_cmd.Text;
     end;
@@ -282,9 +282,9 @@ procedure TfrmItemProp.btnParamsClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    InitialDir := ExtractFilePath(toolu.UnzipPath(UTF8ToAnsi(ed_params.Text)));
+    InitialDir := ExtractFilePath(toolu.UnzipPath(ed_params.Text));
     if Execute then
-      ed_params.Text := AnsiToUTF8(toolu.ZipPath(FileName));
+      ed_params.Text := toolu.ZipPath(FileName);
   finally
     Free;
   end;

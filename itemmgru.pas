@@ -916,6 +916,8 @@ end;
 procedure _ItemManager.RecalcDock;
 var
   vbo: boolean;
+  zi_int: integer;
+  zi_frac: extended;
 begin
   if Enabled and assigned(theme) then
   try
@@ -926,13 +928,30 @@ begin
     else
     if BaseSite = 2 then x := widthOverhead
     else
-      x := trunc((MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent / 100 + IASize / 2 - Width / 2);
+    begin
+      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+        - FItemArea.Left + (IASize - Width + FItemArea.Left + FItemArea.Right) div 2;
+      {if Zooming then
+      begin
+        zi_int := trunc(ZoomInOutItem);
+        zi_frac := frac(ZoomInOutItem);
+        x := x + trunc(ZoomInOutItem * (ItemSize + ItemSpacing) - zi_frac * (items[zi_int].s + ItemSpacing));
+        while zi_int >= 0 do
+        begin
+          x := x - items[zi_int].s - ItemSpacing;
+          dec(zi_int);
+        end;
+      end;}
+    end;
 
     if BaseSite = 1 then y := 0
     else
     if BaseSite = 3 then y := heightOverhead
     else
-      y := trunc((MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent / 100 + IASize / 2 - Height / 2);
+    begin
+      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
+        - FItemArea.Top + (IASize - Height + FItemArea.Top + FItemArea.Bottom) div 2;
+    end;
 
     // background image rect //
     BaseImageRect.x := x;
