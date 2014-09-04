@@ -100,7 +100,6 @@ type
     showcmd: integer;
     hide: boolean;
     FUseShellContextMenus: boolean;
-    ActivateRunning: integer;
     FIndicator: Pointer;
     FIndicatorW: integer;
     FIndicatorH: integer;
@@ -133,11 +132,9 @@ type
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
     class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-      ActivateRunning: integer = 0): string;
+      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
     class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-      ActivateRunning: integer = 0): string;
+      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
   end;
 
 var window_list: TFPList;
@@ -222,15 +219,6 @@ procedure TStackSubitem.UpdateItem(AData: string);
 begin
   if not FFreed then
   try
-    {if copy(AData, 1, 4) = 'icon' then
-    begin
-      if AData[5] = '1' then imagefile := FetchValue(AData, 'icon1="', '";');
-      if AData[5] = '2' then imagefile2 := FetchValue(AData, 'icon2="', '";');
-      color_data := DEFAULT_COLOR_DATA;
-      UpdateItemInternal;
-      exit;
-    end;}
-
     FCaption := FetchValue(AData, 'caption="', '";');
     command := FetchValue(AData, 'command="', '";');
     params := FetchValue(AData, 'params="', '";');
@@ -239,14 +227,11 @@ begin
     hide := false;
     color_data := DEFAULT_COLOR_DATA;
     showcmd := 1;
-    ActivateRunning := 0;
     try hide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
     except end;
     try color_data := strtoint(FetchValue(AData, 'color_data="', '";'));
     except end;
     try showcmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
-    except end;
-    try ActivateRunning := strtoint(FetchValue(AData, 'activate_running="', '";'));
     except end;
   except
     on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data'#10#13 + e.message);
@@ -569,12 +554,12 @@ end;
 //------------------------------------------------------------------------------
 function TStackSubitem.ToString: string;
 begin
-  result := Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide, ActivateRunning);
+  result := Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
 function TStackSubitem.SaveToString: string;
 begin
-  result := SaveMake(FCaption, command, params, dir, imagefile, showcmd, color_data, hide, ActivateRunning);
+  result := SaveMake(FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
 procedure TStackSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -691,7 +676,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if ((FActivateRunningDefault and (ActivateRunning = 0)) or (ActivateRunning = 1)) and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunningDefault and (GetAsyncKeystate(17) >= 0) then
     begin
       if hide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
@@ -753,8 +738,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 class function TStackSubitem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-  ActivateRunning: integer = 0): string;
+  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -766,12 +750,10 @@ begin
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if hide then result := result + 'hide="1";';
-  if ActivateRunning <> 0 then result := result + 'activate_running="' + inttostr(ActivateRunning) + '";';
 end;
 //------------------------------------------------------------------------------
 class function TStackSubitem.SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-  ActivateRunning: integer = 0): string;
+  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
@@ -782,7 +764,6 @@ begin
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if hide then result := result + 'hide="1";';
-  if ActivateRunning <> 0 then result := result + 'activate_running="' + inttostr(ActivateRunning) + '";';
 end;
 //------------------------------------------------------------------------------
 //

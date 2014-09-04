@@ -1,12 +1,12 @@
 object frmItemProp: TfrmItemProp
-  Left = 352
-  Height = 405
-  Top = 237
+  Left = 398
+  Height = 365
+  Top = 245
   Width = 730
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
-  ClientHeight = 405
+  ClientHeight = 365
   ClientWidth = 730
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
@@ -17,11 +17,11 @@ object frmItemProp: TfrmItemProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.0.10.0'
   object btnOK: TButton
     Left = 10
     Height = 26
-    Top = 370
+    Top = 330
     Width = 91
     Caption = 'OK'
     OnClick = btnOKClick
@@ -30,7 +30,7 @@ object frmItemProp: TfrmItemProp
   object btnApply: TButton
     Left = 105
     Height = 26
-    Top = 370
+    Top = 330
     Width = 91
     Caption = 'Apply'
     OnClick = btnApplyClick
@@ -39,7 +39,7 @@ object frmItemProp: TfrmItemProp
   object btnCancel: TButton
     Left = 200
     Height = 26
-    Top = 370
+    Top = 330
     Width = 91
     Caption = 'Cancel'
     OnClick = btnCancelClick
@@ -47,7 +47,7 @@ object frmItemProp: TfrmItemProp
   end
   object pages: TPageControl
     Left = 10
-    Height = 350
+    Height = 310
     Top = 10
     Width = 539
     ActivePage = tsProperties
@@ -56,7 +56,7 @@ object frmItemProp: TfrmItemProp
     TabOrder = 0
     object tsProperties: TTabSheet
       Caption = 'Properties'
-      ClientHeight = 324
+      ClientHeight = 284
       ClientWidth = 531
       object edCaption: TEdit
         Tag = 10
@@ -143,94 +143,73 @@ object frmItemProp: TfrmItemProp
         Style = csDropDownList
         TabOrder = 7
       end
-      object cboRun: TComboBox
-        Tag = 10
-        Left = 115
-        Height = 21
-        Top = 220
-        Width = 370
-        Anchors = [akTop, akLeft, akRight]
-        ItemHeight = 13
-        OnChange = cboRunChange
-        Style = csDropDownList
-        TabOrder = 8
-      end
       object chbHide: TCheckBox
         Left = 115
         Height = 19
-        Top = 255
+        Top = 223
         Width = 177
         Caption = 'Hide Terry when application runs'
-        TabOrder = 9
+        TabOrder = 8
       end
       object lblTip1: TLabel
         Left = 115
-        Height = 13
-        Top = 295
-        Width = 297
+        Height = 14
+        Top = 258
+        Width = 298
         Caption = 'Use semicolon to separate multiple commands and parameters'
-        ParentColor = False
-      end
-      object lblRun: TLabel
-        Tag = 10
-        Left = 10
-        Height = 13
-        Top = 225
-        Width = 19
-        Caption = 'Run'
         ParentColor = False
       end
       object lblWindowSize: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 190
-        Width = 59
+        Width = 60
         Caption = 'Window size'
         ParentColor = False
       end
       object lblWorkingDirectory: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 122
-        Width = 85
+        Width = 86
         Caption = 'Working directory'
         ParentColor = False
       end
       object lblParams: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 87
-        Width = 55
+        Width = 56
         Caption = 'Parameters'
         ParentColor = False
       end
       object lblCommand: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 52
-        Width = 47
+        Width = 48
         Caption = 'Command'
         ParentColor = False
       end
       object lblCaption: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 17
-        Width = 27
+        Width = 28
         Caption = 'Name'
         ParentColor = False
       end
       object lblImage: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 155
-        Width = 30
+        Width = 31
         Caption = 'Image'
         ParentColor = False
       end
@@ -242,42 +221,42 @@ object frmItemProp: TfrmItemProp
         Width = 370
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
-        TabOrder = 10
+        TabOrder = 9
       end
     end
     object tsColor: TTabSheet
       Caption = 'Color'
-      ClientHeight = 300
-      ClientWidth = 551
+      ClientHeight = 284
+      ClientWidth = 531
       object Label2: TLabel
         Left = 10
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 19
+        Width = 20
         Caption = 'Hue'
         ParentColor = False
       end
       object Label5: TLabel
         Left = 10
-        Height = 13
+        Height = 14
         Top = 125
-        Width = 42
+        Width = 43
         Caption = 'Contrast'
         ParentColor = False
       end
       object Label4: TLabel
         Left = 10
-        Height = 13
+        Height = 14
         Top = 90
-        Width = 50
+        Width = 51
         Caption = 'Brightness'
         ParentColor = False
       end
       object Label3: TLabel
         Left = 10
-        Height = 13
+        Height = 14
         Top = 55
-        Width = 50
+        Width = 51
         Caption = 'Saturation'
         ParentColor = False
       end
@@ -285,7 +264,7 @@ object frmItemProp: TfrmItemProp
         Left = 110
         Height = 36
         Top = 10
-        Width = 429
+        Width = 409
         Frequency = 16
         Max = 255
         OnChange = tbHueChange
@@ -300,7 +279,7 @@ object frmItemProp: TfrmItemProp
         Left = 110
         Height = 36
         Top = 45
-        Width = 429
+        Width = 409
         Frequency = 16
         Max = 255
         PageSize = 10
@@ -314,7 +293,7 @@ object frmItemProp: TfrmItemProp
         Left = 110
         Height = 36
         Top = 80
-        Width = 429
+        Width = 409
         Frequency = 16
         Max = 255
         PageSize = 10
@@ -328,7 +307,7 @@ object frmItemProp: TfrmItemProp
         Left = 110
         Height = 36
         Top = 115
-        Width = 429
+        Width = 409
         Frequency = 16
         Max = 255
         PageSize = 10

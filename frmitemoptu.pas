@@ -22,7 +22,6 @@ type
     btnCancel: TButton;
     btnParams: TButton;
     btnSelectColor: TButton;
-    cboRun: TComboBox;
     cboWindow: TComboBox;
     chbHide: TCheckBox;
     edCaption: TEdit;
@@ -42,7 +41,6 @@ type
     lblParams: TLabel;
     lblWorkingDirectory: TLabel;
     lblWindowSize: TLabel;
-    lblRun: TLabel;
     lblImage: TLabel;
     pages: TPageControl;
     tsProperties: TTabSheet;
@@ -53,7 +51,6 @@ type
     tbSat: TTrackBar;
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
-    procedure cboRunChange(Sender: TObject);
     procedure cboWindowChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
@@ -62,7 +59,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnClearImageClick(Sender: TObject);
     procedure btnSelectColorClick(Sender: TObject);
-    procedure btn_colorClick(Sender: TObject);
     procedure btnDirClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -124,9 +120,6 @@ begin
   cboWindow.Items.Add(XShowCmdNormal);
   cboWindow.Items.Add(XShowCmdMinimized);
   cboWindow.Items.Add(XShowCmdMaximized);
-  cboRun.Items.Add(XProgramActivationDefault);
-  cboRun.Items.Add(XProgramActivationActivate);
-  cboRun.Items.Add(XProgramActivationRun);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.SetData(AData: string);
@@ -179,14 +172,7 @@ begin
   if i = sw_showminimized then cboWindow.ItemIndex := 1
   else if i = sw_showmaximized then cboWindow.ItemIndex := 2;
 
-  i := 0;
-  try i := StrToInt(FetchValue(AData, 'activate_running="', '";'));
-  except
-  end;
-  cboRun.ItemIndex := i;
-
   Draw;
-
   iPic.OnPaint := iPicPaint;
 
   // reset 'changed' state //
@@ -229,8 +215,7 @@ begin
 
     str := TShortcutItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text),
       UTF8ToAnsi(edCmd.Text), UTF8ToAnsi(edParams.Text), UTF8ToAnsi(edDir.Text),
-      UTF8ToAnsi(edImage.Text), showcmd, color_data, chbHide.Checked,
-      cboRun.ItemIndex);
+      UTF8ToAnsi(edImage.Text), showcmd, color_data, chbHide.Checked);
 
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
@@ -241,20 +226,6 @@ end;
 procedure TfrmItemProp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   SetActiveWindow(frmterry.handle);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmItemProp.btn_colorClick(Sender: TObject);
-begin
-  with TColorDialog.Create(self) do
-  begin
-    color := color_ and $ffffff;
-    if Execute then
-    begin
-      FChanged := true;
-      color_ := uint(Color) or $ff000000;
-    end;
-    Free;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnFileClick(Sender: TObject);
@@ -305,11 +276,6 @@ begin
   finally
     free;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmItemProp.cboRunChange(Sender: TObject);
-begin
-  FChanged := true;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.cboWindowChange(Sender: TObject);
@@ -421,6 +387,7 @@ var
   w, h: uint;
   w_coeff, h_coeff: extended;
   matrix: ColorMatrix;
+  background: cardinal;
 begin
   try
     if assigned(image) then
@@ -443,7 +410,9 @@ begin
     GdipCreateFromHDC(p.canvas.handle, hgdip);
     GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
-    GdipCreateSolidFill($ffe6e8ea, hbrush);
+    background := GetRGBColorResolvingParent;
+    background := SwapColor(background) or $ff000000;
+    GdipCreateSolidFill(background, hbrush);
     GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width, p.Height);
     GdipDeleteBrush(hbrush);
 

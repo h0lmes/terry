@@ -194,7 +194,7 @@ begin
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', 'explorer.exe')));
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
-  container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 400), 0, 9999);
+  container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 500), 0, 9999);
   container.ActivateRunning := ini.ReadBool('base', 'ActivateRunning', true);
   container.ShowRunningIndicator := ini.ReadBool('base', 'ShowRunningIndicator', true);
   container.ItemAnimation := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
@@ -202,7 +202,7 @@ begin
   container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 100), container.ItemSize, 256);
   container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 0), 0, 20);
   container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 6, 10);
-  container.ZoomSmoothingLevel := SetRange(ini.ReadInteger('base', 'ZoomSmoothingLevel', 1), 0, 3);
+  container.ZoomSmoothingLevel := SetRange(ini.ReadInteger('base', 'ZoomSmoothingLevel', 0), 0, 3);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
   container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
   container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
@@ -212,7 +212,7 @@ begin
   container.useShell := ini.ReadBool('base', 'UseShell', false);
   container.autohide := ini.ReadBool('base', 'AutoHide', false);
   container.LaunchInThread := ini.ReadBool('base', 'LaunchInThread', true);
-  container.ZoomItems := ini.ReadBool('base', 'ZoomItems', ini.ReadBool('base', 'MagnifyItems', true));
+  container.ZoomItems := ini.ReadBool('base', 'ZoomItems', true);
   container.ActivateOnMouse := ini.ReadBool('base', 'ActivateOnMouse', true);
   container.CloseCmdWindow := ini.ReadBool('base', 'CloseCmdWindow', true);
   container.HideTaskBar := ini.ReadBool('base', 'HideTaskBar', false);

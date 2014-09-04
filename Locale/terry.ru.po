@@ -281,21 +281,6 @@ msgctxt "declu.xprogram"
 msgid "Program"
 msgstr "Программа"
 
-#: declu.xprogramactivationactivate
-msgctxt "declu.xprogramactivationactivate"
-msgid "Activate program if already running"
-msgstr "Активировать программу если уже запущена"
-
-#: declu.xprogramactivationdefault
-#| msgid "Default behaviour (see Program settings)"
-msgid "Default (see Program settings)"
-msgstr "По-умолчанию (см. Настройки программы)"
-
-#: declu.xprogramactivationrun
-#| msgid "Run new program"
-msgid "Run program"
-msgstr "Запустить программу"
-
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
 msgid "Program settings"
@@ -374,19 +359,6 @@ msgstr "Стек (Диски)"
 #: declu.xstartbuttontext
 msgid "Start"
 msgstr "Пуск"
-
-#: declu.xstretchstylenone
-msgctxt "declu.xstretchstylenone"
-msgid "None"
-msgstr "Нет"
-
-#: declu.xstretchstylestretch
-msgid "Stretch"
-msgstr "Расягивать"
-
-#: declu.xstretchstyletile
-msgid "Tile"
-msgstr "Замостить"
 
 #: declu.xtaskmanager
 msgctxt "declu.xtaskmanager"
@@ -653,10 +625,6 @@ msgstr "Иконка"
 msgctxt "TFRMITEMPROP.LBLPARAMS.CAPTION"
 msgid "Parameters"
 msgstr "Параметры"
-
-#: tfrmitemprop.lblrun.caption
-msgid "Run"
-msgstr "Запуск"
 
 #: tfrmitemprop.lbltip1.caption
 msgid "Use semicolon to separate multiple commands and parameters"

@@ -269,19 +269,6 @@ msgctxt "declu.xprogram"
 msgid "Program"
 msgstr ""
 
-#: declu.xprogramactivationactivate
-msgctxt "declu.xprogramactivationactivate"
-msgid "Activate program if already running"
-msgstr ""
-
-#: declu.xprogramactivationdefault
-msgid "Default (see Program settings)"
-msgstr ""
-
-#: declu.xprogramactivationrun
-msgid "Run program"
-msgstr ""
-
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
 msgid "Program settings"
@@ -356,19 +343,6 @@ msgstr ""
 
 #: declu.xstartbuttontext
 msgid "Start"
-msgstr ""
-
-#: declu.xstretchstylenone
-msgctxt "declu.xstretchstylenone"
-msgid "None"
-msgstr ""
-
-#: declu.xstretchstylestretch
-msgid "Stretch"
-msgstr ""
-
-#: declu.xstretchstyletile
-msgid "Tile"
 msgstr ""
 
 #: declu.xtaskmanager
@@ -635,10 +609,6 @@ msgstr ""
 #: tfrmitemprop.lblparams.caption
 msgctxt "TFRMITEMPROP.LBLPARAMS.CAPTION"
 msgid "Parameters"
-msgstr ""
-
-#: tfrmitemprop.lblrun.caption
-msgid "Run"
 msgstr ""
 
 #: tfrmitemprop.lbltip1.caption

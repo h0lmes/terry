@@ -207,14 +207,6 @@ begin
       end
       else
       begin
-        {if copy(AData, 1, 4) = 'icon' then
-        begin
-          if AData[5] = '1' then imagefile := FetchValue(AData, 'icon1="', '";');
-          if AData[5] = '2' then imagefile2 := FetchValue(AData, 'icon2="', '";');
-          color_data := DEFAULT_COLOR_DATA;
-          UpdateItemInternal;
-          exit;
-        end;}
         caption := FetchValue(AData, 'caption="', '";');
         imagefile := FetchValue(AData, 'image="', '";');
         color_data := DEFAULT_COLOR_DATA;
@@ -733,7 +725,7 @@ begin
   // PIDL //
   if copy(filename, 1, 4) = '::::' then
   begin
-    AddSubitem(TStackSubitem.Make(0, '::::', filename, '', '', '', 1, DEFAULT_COLOR_DATA, false, integer(FActivateRunningDefault)));
+    AddSubitem(TStackSubitem.Make(0, '::::', filename, '', '', '', 1, DEFAULT_COLOR_DATA, false));
     exit;
   end;
 
@@ -767,7 +759,7 @@ begin
       if toolu.IsDriveIdent(filename) then ficon := '%sysdir%\shell32.dll,8' else ficon := '%sysdir%\shell32.dll,3';
   end;
 
-  AddSubitem(TStackSubitem.Make(0, fcaption, fname, fparams, fdir, ficon, 1, DEFAULT_COLOR_DATA, false, integer(FActivateRunningDefault)));
+  AddSubitem(TStackSubitem.Make(0, fcaption, fname, fparams, fdir, ficon, 1, DEFAULT_COLOR_DATA, false));
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Save(szIni: pchar; szIniGroup: pchar);

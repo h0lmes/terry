@@ -401,6 +401,7 @@ var
   w, h: uint;
   w_coeff, h_coeff: extended;
   matrix: ColorMatrix;
+  background: cardinal;
 begin
   try
     if assigned(image) then
@@ -426,7 +427,9 @@ begin
     GdipCreateFromHDC(p.canvas.handle, hgdip);
     GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
-    GdipCreateSolidFill($ffe6e8ea, hbrush);
+    background := GetRGBColorResolvingParent;
+    background := SwapColor(background) or $ff000000;
+    GdipCreateSolidFill(background, hbrush);
     GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width, p.Height);
     GdipDeleteBrush(hbrush);
 

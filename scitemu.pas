@@ -15,7 +15,6 @@ type
     showcmd: integer;
     hide: boolean;
     FUseShellContextMenus: boolean;
-    ActivateRunning: integer;
     FRunning: boolean;
     FIndicator: Pointer;
     FIndicatorW: integer;
@@ -51,8 +50,7 @@ type
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     //
     class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-      ActivateRunning: integer = 0): string;
+      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
   end;
 
 var window_list: TFPList;
@@ -112,7 +110,6 @@ begin
       hide := boolean(ini.ReadInteger(IniSection, 'hide', 0));
       color_data := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
       showcmd := ini.ReadInteger(IniSection, 'showcmd', sw_shownormal);
-      ActivateRunning := ini.ReadInteger(IniSection, 'activate_running', 0);
       ini.free;
     end
     else
@@ -125,14 +122,11 @@ begin
       hide := false;
       color_data := DEFAULT_COLOR_DATA;
       showcmd := 1;
-      ActivateRunning := 0;
       try hide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
       except end;
       try color_data := strtoint(FetchValue(AData, 'color_data="', '";'));
       except end;
       try showcmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
-      except end;
-      try ActivateRunning := strtoint(FetchValue(AData, 'activate_running="', '";'));
       except end;
     end;
   except
@@ -497,7 +491,7 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide, ActivateRunning);
+  result:= Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -592,7 +586,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if ((FActivateRunningDefault and (ActivateRunning = 0)) or (ActivateRunning = 1)) and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunningDefault and (GetAsyncKeystate(17) >= 0) then
     begin
       if hide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
@@ -673,12 +667,10 @@ begin
   if showcmd <> sw_shownormal then WritePrivateProfileString(szIniGroup, 'showcmd', pchar(inttostr(showcmd)), szIni);
   if color_data <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(color_data)), szIni);
   if hide then WritePrivateProfileString(szIniGroup, 'hide', '1', szIni);
-  if ActivateRunning <> 0 then WritePrivateProfileString(szIniGroup, 'activate_running', pchar(inttostr(ActivateRunning)), szIni);
 end;
 //------------------------------------------------------------------------------
 class function TShortcutItem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false;
-  ActivateRunning: integer = 0): string;
+  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -690,7 +682,6 @@ begin
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if hide then result := result + 'hide="1";';
-  if ActivateRunning <> 0 then result := result + 'activate_running="' + inttostr(ActivateRunning) + '";';
 end;
 //------------------------------------------------------------------------------
 end.

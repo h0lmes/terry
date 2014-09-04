@@ -14,7 +14,6 @@ type
   Tfrmterry = class(TForm)
     trayicon: TTrayIcon;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-    procedure FormShow(Sender: TObject);
     procedure FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -240,7 +239,6 @@ begin
     // show the panel and items //
     AddLog('Init.ItemMgr.Visible');
     BaseCmd(tcSetVisible, 1);
-    //ItemMgr.SetVisible(true);
     if sets.GetParam(gpStayOnTop) <> 0 then SetParam(gpStayOnTop, 1);
 
     // RawInput (replacement for hook) //
@@ -344,11 +342,6 @@ end;
 procedure Tfrmterry.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   if CloseQuery = 0 then CloseAction := caNone else CloseAction := caFree;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmterry.FormShow(Sender: TObject);
-begin
-  //SetParam(gpLockMouseEffect, 0);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.ApplyParams;
@@ -808,12 +801,15 @@ procedure Tfrmterry.UpdateRunning;
 begin
   try
     ProcessHelper.EnumProc;
-    if sets.container.Taskbar then ProcessHelper.EnumAppWindows;
-    ItemMgr.SetParam(icUpdateRunning, 0);
     if sets.container.Taskbar then
-      ItemMgr.Taskbar
-    else
+    begin
+      ProcessHelper.EnumAppWindows;
+      ItemMgr.Taskbar;
+    end else
+    begin
       if ItemMgr.TaskItemCount > 0 then ItemMgr.ClearTaskbar;
+    end;
+    ItemMgr.SetParam(icUpdateRunning, 0);
   except
     on e: Exception do err('Base.UpdateRunning', e);
   end;

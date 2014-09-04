@@ -262,23 +262,16 @@ resourcestring
   XAnimationSwing = 'Swing';
   XAnimationVibrate = 'Vibrate';
   XAnimationZoom = 'Zoom';
+
+  // frmitemoptu //
   XShowCmdNormal = 'Normal size';
   XShowCmdMinimized = 'Minimized to taskbar';
   XShowCmdMaximized = 'Maximized to fullscreen';
-
-  // frmitemoptu //
   XSelectWorkingDirectory = 'Select working directory';
-  XProgramActivationDefault = 'Default (see Program settings)';
-  XProgramActivationActivate = 'Activate program if already running';
-  XProgramActivationRun = 'Run program';
   XMsgUnsavedIconParams = 'Icon parameters changed. If you will proceed all changes will be lost. Proceed?';
 
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
-
-  XStretchStyleNone = 'None';
-  XStretchStyleStretch = 'Stretch';
-  XStretchStyleTile = 'Tile';
 
   // trayController //
   XMsgNotificationAreaIcons = 'After you close this message you will see "Notification area icons" window. To use this function uncheck "Always show all icons" at the bottom of the window and set all behaviors to "Only show notifications".';
