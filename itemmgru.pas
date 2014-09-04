@@ -857,6 +857,7 @@ begin
     // set items positions //
 
     i := 0;
+    inc(acc, ItemSpacing div 2);
     while i < ItemCount do
     begin
       items[i].y := FItemArea.Top + ItemSize - items[i].s;
@@ -881,7 +882,7 @@ begin
       inc(acc, ItemSpacing);
       inc(i);
     end;
-    dec(acc, ItemSpacing);
+    dec(acc, ItemSpacing div 2);
 
     // vertical //
     if BaseSite mod 2 = 0 then
@@ -930,9 +931,11 @@ begin
     else
     begin
       x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Left + (IASize - Width + FItemArea.Left + FItemArea.Right) div 2;
+        - FItemArea.Left + (IASize - Width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
       {if Zooming then
       begin
+        x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+          - FItemArea.Left - ItemSpacing div 2;
         zi_int := trunc(ZoomInOutItem);
         zi_frac := frac(ZoomInOutItem);
         x := x + trunc(ZoomInOutItem * (ItemSize + ItemSpacing) - zi_frac * (items[zi_int].s + ItemSpacing));
@@ -950,7 +953,7 @@ begin
     else
     begin
       y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Top + (IASize - Height + FItemArea.Top + FItemArea.Bottom) div 2;
+        - FItemArea.Top + (IASize - Height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
     end;
 
     // background image rect //

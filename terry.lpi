@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -251,8 +251,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="919"/>
-        <CursorPos X="1" Y="916"/>
+        <TopLine Value="917"/>
+        <CursorPos X="8" Y="935"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -686,7 +686,7 @@
         <UsageCount Value="10"/>
       </Unit59>
     </Units>
-    <JumpHistory Count="12" HistoryIndex="11">
+    <JumpHistory Count="13" HistoryIndex="12">
       <Position1>
         <Filename Value="frmterryu.pas"/>
         <Caret Line="773" Column="5" TopLine="738"/>
@@ -732,9 +732,13 @@
         <Caret Line="728" Column="96" TopLine="705"/>
       </Position11>
       <Position12>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="132" Column="3" TopLine="227"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="854" Column="28" TopLine="850"/>
       </Position12>
+      <Position13>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="945" Column="41" TopLine="926"/>
+      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -799,4 +803,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>
