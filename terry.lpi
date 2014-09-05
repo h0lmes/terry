@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -89,11 +89,10 @@
         <UnitName Value="frmterryu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="437"/>
-        <CursorPos X="183" Y="457"/>
+        <TopLine Value="229"/>
+        <CursorPos X="1" Y="126"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -251,8 +250,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="917"/>
-        <CursorPos X="8" Y="935"/>
+        <TopLine Value="855"/>
+        <CursorPos X="56" Y="865"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -369,8 +368,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwm_unit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="16" Y="27"/>
+        <TopLine Value="52"/>
+        <CursorPos X="37" Y="88"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit29>
@@ -508,7 +507,7 @@
         <UnitName Value="customitemu"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="503"/>
+        <TopLine Value="502"/>
         <CursorPos X="3" Y="299"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -686,7 +685,7 @@
         <UsageCount Value="10"/>
       </Unit59>
     </Units>
-    <JumpHistory Count="13" HistoryIndex="12">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
         <Filename Value="frmterryu.pas"/>
         <Caret Line="773" Column="5" TopLine="738"/>
@@ -739,6 +738,22 @@
         <Filename Value="itemmgru.pas"/>
         <Caret Line="945" Column="41" TopLine="926"/>
       </Position13>
+      <Position14>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="452" Column="19" TopLine="437"/>
+      </Position14>
+      <Position15>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="935" Column="8" TopLine="869"/>
+      </Position15>
+      <Position16>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="1450" Column="1" TopLine="1443"/>
+      </Position16>
+      <Position17>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="859" Column="49" TopLine="840"/>
+      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -803,5 +818,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

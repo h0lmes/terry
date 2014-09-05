@@ -839,8 +839,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetItems1;
 var
-  i: integer;
-  acc: integer;
+  i, acc, sizeInc: integer;
 begin
   if not Enabled or not assigned(theme) then exit;
 
@@ -852,7 +851,16 @@ begin
     widthOverhead := 0;
     heightOverhead := 0;
     FItemArea := theme.CorrectMargins(theme.ItemsArea);
-    if BaseSite mod 2 = 0 then acc := FItemArea.Top else acc := FItemArea.Left;
+    if BaseSite mod 2 = 0 then
+    begin
+      acc := FItemArea.Top;
+      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
+        - FItemArea.Top - ItemSpacing div 2;
+    end else begin
+      acc := FItemArea.Left;
+      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+        - FItemArea.Left - ItemSpacing div 2;
+    end;
 
     // set items positions //
 
@@ -860,6 +868,13 @@ begin
     inc(acc, ItemSpacing div 2);
     while i < ItemCount do
     begin
+
+      if (i < trunc(ZoomInOutItem) - ZoomWidth / 2) or (i > trunc(ZoomInOutItem) + ZoomWidth / 2) then sizeInc := 0
+      else if i = trunc(ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
+      else if i < trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - ZoomInOutItem + 1) / (ZoomWidth / 2)) + 1) / 2)
+      else if i > trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - ZoomInOutItem) / (ZoomWidth / 2)) + 1) / 2);
+      items[i].s := ItemSize + sizeInc;
+
       items[i].y := FItemArea.Top + ItemSize - items[i].s;
       items[i].x := acc;
       if BaseSite = 1 then
@@ -930,21 +945,14 @@ begin
     if BaseSite = 2 then x := widthOverhead
     else
     begin
+      width := FItemSize + FItemArea.Left + FItemArea.Right;
       x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Left + (IASize - Width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
-      {if Zooming then
+        - FItemArea.Left + (IASize - width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
+      if FItemCount > 0 then
       begin
-        x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
-          - FItemArea.Left - ItemSpacing div 2;
-        zi_int := trunc(ZoomInOutItem);
-        zi_frac := frac(ZoomInOutItem);
-        x := x + trunc(ZoomInOutItem * (ItemSize + ItemSpacing) - zi_frac * (items[zi_int].s + ItemSpacing));
-        while zi_int >= 0 do
-        begin
-          x := x - items[zi_int].s - ItemSpacing;
-          dec(zi_int);
-        end;
-      end;}
+        x := items[0].x - FItemSpacing div 2 - FItemArea.Left;
+        width := items[FItemCount - 1].x + items[FItemCount - 1].s - x + FItemSpacing div 2 + FItemArea.Right;
+      end;
     end;
 
     if BaseSite = 1 then y := 0
@@ -952,8 +960,14 @@ begin
     if BaseSite = 3 then y := heightOverhead
     else
     begin
+      height := FItemSize + FItemArea.Top + FItemArea.Bottom;
       y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Top + (IASize - Height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
+        - FItemArea.Top + (IASize - height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
+      if FItemCount > 0 then
+      begin
+        y := items[0].y - FItemSpacing div 2 - FItemArea.Top;
+        height := items[FItemCount - 1].y + items[FItemCount - 1].s - y + FItemSpacing div 2 + FItemArea.Bottom;
+      end;
     end;
 
     // background image rect //
@@ -1004,7 +1018,7 @@ begin
     begin
       if items[i].h <> 0 then
         TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA)).Draw(
-          BaseWindowRect.X + x + items[i].x, BaseWindowRect.Y + y + items[i].y,
+          BaseWindowRect.X + items[i].x, BaseWindowRect.Y + items[i].y,
           items[i].s, force_draw, wpi, show_items);
       inc(i);
     end;
@@ -1447,8 +1461,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.ZoomInternal(item: extended);
-var
-  i, size_add, currWidth: integer;
 begin
   try
     if not enabled or (ItemCount < 1) then exit;
@@ -1458,22 +1470,6 @@ begin
       ResetItemsSize;
       exit;
     end;
-
-    // cycle thru items and set each item size //
-    currWidth := 0;
-    i := 0;
-    while i < ItemCount do
-    begin
-      if (i < trunc(item) - ZoomWidth / 2) or (i > trunc(item) + ZoomWidth / 2) then size_add := 0
-      else if i = trunc(item) then size_add := ZoomItemSizeDiff
-      else if i < trunc(item) then size_add := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - item + 1) / (ZoomWidth / 2)) + 1) / 2)
-      else if i > trunc(item) then size_add := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - item) / (ZoomWidth / 2)) + 1) / 2);
-
-      currWidth := currWidth + ItemSize + size_add;
-      SetItemSize(i, ItemSize + size_add);
-      inc(i);
-    end;
-
     ItemsChanged;
   except
     on e: Exception do err('ItemManager.ZoomInternal', e);
