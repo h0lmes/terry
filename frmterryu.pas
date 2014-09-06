@@ -312,12 +312,12 @@ var
   fs: TFileStream;
 begin
   AddLog('CloseQuery');
-  BaseCmd(tcSaveSets, 0);
   result := 0;
   if not AllowClose then exit;
 
   AddLog('CloseQuery.Free');
   closing := True;
+  BaseCmd(tcSaveSets, 0);
   try
     KillTimer(handle, ID_TIMER);
     KillTimer(handle, ID_SLOWTIMER);
@@ -421,6 +421,7 @@ begin
   end;
   if assigned(ItemMgr) then
   try
+    crsection.Acquire;
     try
       saving := true;
       sets.SaveEx;
@@ -428,6 +429,7 @@ begin
       sets.SaveEx2;
     finally
       saving := false;
+      crsection.Leave;
     end;
     AddLog('SavedSettings');
   except
@@ -495,34 +497,39 @@ var
   mon_rect: Windows.TRect;
   OldMouseOver: boolean;
 begin
-  if IsLockedMouseEffect or not assigned(ItemMgr) then exit;
+  crsection.Acquire;
+  try
+    if IsLockedMouseEffect or not assigned(ItemMgr) then exit;
 
-  Windows.GetCursorPos(pt);
-  if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
-  begin
-    LastMouseHookPoint.x := pt.x;
-    LastMouseHookPoint.y := pt.y;
-    ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not sets.IsHiddenDown);
+    Windows.GetCursorPos(pt);
+    if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
+    begin
+      LastMouseHookPoint.x := pt.x;
+      LastMouseHookPoint.y := pt.y;
+      ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not sets.IsHiddenDown);
 
-    // detect mouse enter/leave //
-    OldMouseOver := MouseOver;
-    mon_rect := GetMonitorBoundsRect;
-    if sets.container.site = bsBottom then
-      MouseOver := (pt.y >= mon_rect.Bottom - 1) and
-        (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
-    else if sets.container.site = bsTop then
-      MouseOver := (pt.y <= mon_rect.Top) and
-        (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
-    else if sets.container.site = bsLeft then
-      MouseOver := (pt.x <= mon_rect.Left) and
-        (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height)
-    else if sets.container.site = bsRight then
-      MouseOver := (pt.x >= mon_rect.Right - 1) and
-        (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height);
-    MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.Dragging;
+      // detect mouse enter/leave //
+      OldMouseOver := MouseOver;
+      mon_rect := GetMonitorBoundsRect;
+      if sets.container.site = bsBottom then
+        MouseOver := (pt.y >= mon_rect.Bottom - 1) and
+          (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
+      else if sets.container.site = bsTop then
+        MouseOver := (pt.y <= mon_rect.Top) and
+          (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
+      else if sets.container.site = bsLeft then
+        MouseOver := (pt.x <= mon_rect.Left) and
+          (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height)
+      else if sets.container.site = bsRight then
+        MouseOver := (pt.x >= mon_rect.Right - 1) and
+          (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height);
+      MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.Dragging;
 
-    if MouseOver and not OldMouseOver then MouseEnter;
-    if not MouseOver and OldMouseOver then MouseLeave;
+      if MouseOver and not OldMouseOver then MouseEnter;
+      if not MouseOver and OldMouseOver then MouseLeave;
+    end;
+  finally
+    crsection.Leave;
   end;
 end;
 //------------------------------------------------------------------------------

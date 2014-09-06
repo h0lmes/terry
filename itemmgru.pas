@@ -838,90 +838,118 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetItems1;
+function getHalfBubble: integer;
 var
-  i, acc, sizeInc: integer;
+  i: extended;
+begin
+  result := round(ZoomItemSizeDiff / 2);
+  i := 0.5;
+  while i < ZoomWidth / 2 do
+  begin
+    result := result + round((ZoomItemSizeDiff - 1) * (cos(PI * i * 2 / ZoomWidth) + 1) / 2);
+    i := i + 1;
+  end;
+end;
+
+var
+  i, sizeInc, offset, itemPos: integer;
 begin
   if not Enabled or not assigned(theme) then exit;
 
   try
-    width := 0;
-    height := 0;
-    widthZoomed := 0;
-    heightZoomed := 0;
-    widthOverhead := 0;
-    heightOverhead := 0;
     FItemArea := theme.CorrectMargins(theme.ItemsArea);
     if BaseSite mod 2 = 0 then
     begin
-      acc := FItemArea.Top;
-      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Top - ItemSpacing div 2;
+      y := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
     end else begin
-      acc := FItemArea.Left;
-      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Left - ItemSpacing div 2;
+      x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
     end;
 
-    // set items positions //
+    // zoomed bubble additional size //
+    offset := getHalfBubble;
 
+    // calc items' pos and size //
     i := 0;
-    inc(acc, ItemSpacing div 2);
     while i < ItemCount do
     begin
-
-      if (i < trunc(ZoomInOutItem) - ZoomWidth / 2) or (i > trunc(ZoomInOutItem) + ZoomWidth / 2) then sizeInc := 0
-      else if i = trunc(ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
-      else if i < trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - ZoomInOutItem + 1) / (ZoomWidth / 2)) + 1) / 2)
-      else if i > trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * (i - ZoomInOutItem) / (ZoomWidth / 2)) + 1) / 2);
+      // icon size //
+      sizeInc := 0;
+      if ZoomItemSizeDiff > 0 then
+      begin
+        if (i < trunc(ZoomInOutItem) - ZoomWidth / 2) or (i > trunc(ZoomInOutItem) + ZoomWidth / 2) then sizeInc := 0
+        else if i = trunc(ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
+        else if i < trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem + 1) / ZoomWidth) + 1) / 2)
+        else if i > trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem) / ZoomWidth) + 1) / 2);
+      end;
       items[i].s := ItemSize + sizeInc;
 
-      items[i].y := FItemArea.Top + ItemSize - items[i].s;
-      items[i].x := acc;
+      // icon position when not zooming //
+      itemPos := i * (ItemSize + ItemSpacing);
+      if BaseSite = 3 then
+      begin
+        items[i].y := FItemArea.Top + ItemSize - items[i].s;
+        items[i].x := x + itemPos;
+      end
+      else
       if BaseSite = 1 then
       begin
         items[i].y := FItemArea.Top;
+        items[i].x := x + itemPos;
       end
       else
       if BaseSite = 0 then
       begin
         items[i].x := FItemArea.Left;
-        items[i].y := acc;
+        items[i].y := y + itemPos;
       end
       else
       if BaseSite = 2 then
       begin
         items[i].x := FItemArea.Left + ItemSize - items[i].s;
-        items[i].y := acc;
+        items[i].y := y + itemPos;
       end;
-      inc(acc, items[i].s);
-      inc(acc, ItemSpacing);
+
+      // icon position when zooming //
+      if ZoomItemSizeDiff > 0 then
+      begin
+        if (BaseSite = 3) or (BaseSite = 1) then
+        begin
+          if i < trunc(ZoomInOutItem) - ZoomWidth / 2 then items[i].x := x + itemPos - offset
+          else if i > trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := x + itemPos + offset
+          else if i = trunc(ZoomInOutItem) then items[i].x := x + itemPos - round(ZoomItemSizeDiff * frac(ZoomInOutItem));
+        end
+        else
+        begin
+          if i < trunc(ZoomInOutItem) - ZoomWidth / 2 then items[i].y := y + itemPos - offset
+          else if i > trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].y := y + itemPos + offset
+          else if i = trunc(ZoomInOutItem) then items[i].y := y + itemPos - round(ZoomItemSizeDiff * frac(ZoomInOutItem));
+        end;
+      end;
+
       inc(i);
     end;
-    dec(acc, ItemSpacing div 2);
 
-    // vertical //
-    if BaseSite mod 2 = 0 then
+    // icon position when zooming //
+    if ZoomItemSizeDiff > 0 then
     begin
-      width := ItemSize + FItemArea.Left + FItemArea.Right;
-      widthZoomed := max(width, ifthen(BaseSite = 0, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
-      widthOverhead := 0;
-      if Zooming and DraggingFile then widthOverhead := BigItemSize - ItemSize;
-
-      if acc > height then height := acc;
-      inc(height, FItemArea.Bottom);
-      if height < ItemSize then height := ItemSize;
-      if height mod 2 <> 0 then inc(height);
-    // horizontal //
-    end else begin
-      height := ItemSize + FItemArea.Top + FItemArea.Bottom;
-      heightZoomed := max(height, ifthen(BaseSite = 1, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
-      heightOverhead := 0;
-      if Zooming and DraggingFile then heightOverhead := BigItemSize - ItemSize;
-
-      if acc > width then width := acc;
-      inc(width, FItemArea.Right);
-      if width < ItemSize then width := ItemSize;
-      if width mod 2 <> 0 then inc(width);
+      i := trunc(ZoomInOutItem) - 1;
+      while (i >= trunc(ZoomInOutItem) - ZoomWidth / 2) and (i >= 0)  do
+      begin
+        if (BaseSite = 3) or (BaseSite = 1) then
+          items[i].x := items[i + 1].x - items[i].s - ItemSpacing
+        else
+          items[i].y := items[i + 1].y - items[i].s - ItemSpacing;
+        dec(i);
+      end;
+      i := trunc(ZoomInOutItem) + 1;
+      while (i <= trunc(ZoomInOutItem) + ZoomWidth / 2) and (i < ItemCount)  do
+      begin
+        if (BaseSite = 3) or (BaseSite = 1) then
+          items[i].x := items[i - 1].x + items[i - 1].s + ItemSpacing
+        else
+          items[i].y := items[i - 1].y + items[i - 1].s + ItemSpacing;
+        inc(i);
+      end;
     end;
 
   except
@@ -939,19 +967,44 @@ begin
   try
     vbo := (BaseSite = 0) or (BaseSite = 2);
 
+    // width and height //
+    width := 0;
+    height := 0;
+    widthZoomed := 0;
+    heightZoomed := 0;
+    widthOverhead := 0;
+    heightOverhead := 0;
+    // vertical //
+    if vbo then
+    begin
+      width := ItemSize + FItemArea.Left + FItemArea.Right;
+      widthZoomed := max(width, ifthen(BaseSite = 0, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
+      widthOverhead := 0;
+      if Zooming and DraggingFile then widthOverhead := BigItemSize - ItemSize;
+    // horizontal //
+    end else begin
+      height := ItemSize + FItemArea.Top + FItemArea.Bottom;
+      heightZoomed := max(height, ifthen(BaseSite = 1, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
+      heightOverhead := 0;
+      if Zooming and DraggingFile then heightOverhead := BigItemSize - ItemSize;
+    end;
+
     // self XY relative to BaseWindowRect //
     if BaseSite = 0 then x := 0
     else
     if BaseSite = 2 then x := widthOverhead
     else
     begin
-      width := FItemSize + FItemArea.Left + FItemArea.Right;
-      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Left + (IASize - width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
-      if FItemCount > 0 then
+      if ItemCount = 0 then
       begin
-        x := items[0].x - FItemSpacing div 2 - FItemArea.Left;
-        width := items[FItemCount - 1].x + items[FItemCount - 1].s - x + FItemSpacing div 2 + FItemArea.Right;
+        width := ItemSize + FItemArea.Left + FItemArea.Right;
+        x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+          - FItemArea.Left + (IASize - width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
+      end
+      else
+      begin
+        x := items[0].x - ItemSpacing div 2 - FItemArea.Left;
+        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x + ItemSpacing div 2 + FItemArea.Right;
       end;
     end;
 
@@ -960,13 +1013,16 @@ begin
     if BaseSite = 3 then y := heightOverhead
     else
     begin
-      height := FItemSize + FItemArea.Top + FItemArea.Bottom;
-      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
-        - FItemArea.Top + (IASize - height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
-      if FItemCount > 0 then
+      if ItemCount = 0 then
       begin
-        y := items[0].y - FItemSpacing div 2 - FItemArea.Top;
-        height := items[FItemCount - 1].y + items[FItemCount - 1].s - y + FItemSpacing div 2 + FItemArea.Bottom;
+        height := ItemSize + FItemArea.Top + FItemArea.Bottom;
+        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
+          - FItemArea.Top + (IASize - height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
+      end
+      else
+      begin
+        y := items[0].y - ItemSpacing div 2 - FItemArea.Top;
+        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y + ItemSpacing div 2 + FItemArea.Bottom;
       end;
     end;
 
@@ -1335,8 +1391,8 @@ begin
       BasePoint := mbr.Top + (mbr.Bottom - mbr.Top - IASize) * sets.container.CenterOffsetPercent div 100;
       result := (Ay - BasePoint) / (ItemSize + ItemSpacing);
     end;
-    if result < -1 then result := -1;
-    if result > ItemCount then result := ItemCount;
+    if result < 0 then result := NOT_AN_ITEM;
+    if result >= ItemCount + 1 then result := NOT_AN_ITEM;
 
     // check boundaries //
 
@@ -1429,7 +1485,7 @@ begin
       if item <> NOT_AN_ITEM then
       begin
         if item < 0 then item := 0;
-        if item > ItemCount then item := ItemCount;
+        if item >= ItemCount then item := ItemCount - 0.001;
       end;
     end;
 
