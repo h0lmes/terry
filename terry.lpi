@@ -18,7 +18,7 @@
     </i18n>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <MinorVersionNr Value="77"/>
+      <MinorVersionNr Value="80"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1" Active="Default">
@@ -87,13 +87,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmterryu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="304"/>
         <CursorPos X="26" Y="417"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -248,10 +248,11 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1048"/>
-        <CursorPos X="27" Y="970"/>
+        <TopLine Value="1466"/>
+        <CursorPos X="45" Y="1487"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -787,24 +788,24 @@
         <Caret Line="19" Column="52" TopLine="1"/>
       </Position25>
       <Position26>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1016" Column="56" TopLine="1038"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="321" Column="1" TopLine="304"/>
       </Position26>
       <Position27>
         <Filename Value="frmterryu.pas"/>
-        <Caret Line="321" Column="1" TopLine="304"/>
+        <Caret Line="387" Column="29" TopLine="377"/>
       </Position27>
       <Position28>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="387" Column="29" TopLine="377"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="863" Column="77" TopLine="845"/>
       </Position28>
       <Position29>
         <Filename Value="itemmgru.pas"/>
-        <Caret Line="863" Column="77" TopLine="845"/>
+        <Caret Line="1475" Column="32" TopLine="1470"/>
       </Position29>
       <Position30>
         <Filename Value="itemmgru.pas"/>
-        <Caret Line="1475" Column="32" TopLine="1470"/>
+        <Caret Line="1070" Column="30" TopLine="990"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

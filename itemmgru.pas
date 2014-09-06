@@ -1391,7 +1391,7 @@ begin
       BasePoint := mbr.Top + (mbr.Bottom - mbr.Top - IASize) * sets.container.CenterOffsetPercent div 100;
       result := (Ay - BasePoint) / (ItemSize + ItemSpacing);
     end;
-    if result < 0 then result := NOT_AN_ITEM;
+    if result < -1 then result := NOT_AN_ITEM;
     if result >= ItemCount + 1 then result := NOT_AN_ITEM;
 
     // check boundaries //
@@ -1484,8 +1484,8 @@ begin
       item := ItemFromPoint(x, y, ifthen(Dragging or DraggingFile, DropDistance, 0));
       if item <> NOT_AN_ITEM then
       begin
-        if item < 0 then item := 0;
-        if item >= ItemCount then item := ItemCount - 0.001;
+        if item < 0 then item := NOT_AN_ITEM;
+        if item >= ItemCount then item := NOT_AN_ITEM;
       end;
     end;
 
