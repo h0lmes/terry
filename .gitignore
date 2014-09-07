@@ -2,6 +2,7 @@ backup/
 lib/
 
 sets.ini
+*.tmpini
 *.bak
 *.~*
 *.log

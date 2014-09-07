@@ -360,7 +360,6 @@ begin
     ItemMgr.SetParam(gpBigItemSize, sets.container.BigItemSize);
     ItemMgr.SetParam(gpZoomItems, integer(sets.container.ZoomItems));
     ItemMgr.SetParam(gpZoomWidth, sets.container.ZoomWidth);
-    ItemMgr.SetParam(gpZoomSmoothingLevel, sets.container.ZoomSmoothingLevel);
     ItemMgr.SetParam(gpItemSpacing, sets.container.ItemSpacing);
     ItemMgr.SetParam(gpReflection, integer(sets.container.Reflection));
     ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);

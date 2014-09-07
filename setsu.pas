@@ -21,7 +21,6 @@ type
     ZoomWidth: integer;
     ItemSpacing: integer;
     ZoomItems: boolean;
-    ZoomSmoothingLevel: integer;
 
     HideKeys: integer;
     DropDistance: integer;
@@ -202,7 +201,6 @@ begin
   container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 100), container.ItemSize, 256);
   container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 0), 0, 20);
   container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 6, 10);
-  container.ZoomSmoothingLevel := SetRange(ini.ReadInteger('base', 'ZoomSmoothingLevel', 0), 0, 3);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
   container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
   container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
@@ -294,7 +292,6 @@ begin
   ini.WriteInteger('base', 'BigItemSize', container.BigItemSize);
   ini.WriteInteger('base', 'ItemSpacing', container.ItemSpacing);
   ini.WriteInteger('base', 'ZoomWidth', container.ZoomWidth);
-  ini.WriteInteger('base', 'ZoomSmoothingLevel', container.ZoomSmoothingLevel);
   ini.WriteInteger('base', 'CenterOffsetPercent', container.CenterOffsetPercent);
   ini.WriteInteger('base', 'EdgeOffset', container.EdgeOffset);
   ini.WriteInteger('base', 'HideKeys', container.HideKeys);
@@ -414,7 +411,6 @@ begin
       if value mod 2 <> 0 then inc(value);
       container.ZoomWidth := SetRange(value, 4, 10);
     end;
-  gpZoomSmoothingLevel: container.ZoomSmoothingLevel := SetRange(value, 0, 1);
   gpZoomItems: container.ZoomItems := boolean(value);
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpAutoHideTime: container.AutoHideTime := value;
@@ -461,7 +457,6 @@ begin
   gpZoomWidth: result := container.ZoomWidth;
   gpItemSpacing: result := container.ItemSpacing;
   gpZoomItems: result := integer(container.ZoomItems);
-  gpZoomSmoothingLevel: result := integer(container.ZoomSmoothingLevel);
   gpSite: result := integer(container.Site);
   gpAutoHideTime: result := container.AutoHideTime;
   gpAutoShowTime: result := container.AutoShowTime;
@@ -519,7 +514,6 @@ begin
   dst.ItemSize := src.ItemSize;
   dst.BigItemSize := src.BigItemSize;
   dst.ZoomWidth := src.ZoomWidth;
-  dst.ZoomSmoothingLevel := src.ZoomSmoothingLevel;
   dst.ItemSpacing := src.ItemSpacing;
   dst.ZoomItems := src.ZoomItems;
   dst.HideKeys := src.HideKeys;

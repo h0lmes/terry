@@ -17,14 +17,14 @@ type
     btnSelectHintFont: TBitBtn;
     btnSelectStackFont: TBitBtn;
     btn_ok1: TBitBtn;
-    chbReserveScreenEdge: TCheckBox;
+    cbShowHint: TCheckBox;
     chbHintEffects: TCheckBox;
+    chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
     chbTaskbar: TCheckBox;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
     lblIconSpacing: TLabel;
-    lblZoomSmoothingLevel: TLabel;
     lblBackgroundTransparency: TLabel;
     lblAnimateIcons: TLabel;
     Label6: TLabel;
@@ -44,7 +44,6 @@ type
     tbReserveScreenEdgePercent: TTrackBar;
     tbIconSpacing: TTrackBar;
     tbZoomWidth: TTrackBar;
-    tbZoomSmoothingLevel: TTrackBar;
     tbIconSize: TTrackBar;
     tsPosition: TTabSheet;
     tsGeneral: TTabSheet;
@@ -69,7 +68,6 @@ type
     cboBaseSite: TComboBox;
     lblCenterOffsetPercent: TLabel;
     lblEdge: TLabel;
-    cbShowHint: TCheckBox;
     lblTitle: TLabel;
     tsStyle: TTabSheet;
     cbautorun: TCheckBox;
@@ -153,7 +151,6 @@ type
     procedure tbIconSpacingChange(Sender: TObject);
     procedure tbReserveScreenEdgePercentChange(Sender: TObject);
     procedure tbZoomWidthChange(Sender: TObject);
-    procedure tbZoomSmoothingLevelChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
     procedure btnLayersEditorClick(Sender: TObject);
     procedure btn_okClick(Sender: TObject);
@@ -349,9 +346,6 @@ begin
   tbZoomWidth.OnChange := nil;
   tbZoomWidth.Position := sets.container.ZoomWidth div 2;
   tbZoomWidth.OnChange := tbZoomWidthChange;
-  tbZoomSmoothingLevel.OnChange := nil;
-  tbZoomSmoothingLevel.Position := sets.container.ZoomSmoothingLevel;
-  tbZoomSmoothingLevel.OnChange := tbZoomSmoothingLevelChange;
 
   UpdateItemSizeLabels;
 
@@ -620,19 +614,12 @@ begin
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.tbZoomSmoothingLevelChange(Sender: TObject);
-begin
-  frmterry.SetParam(gpZoomSmoothingLevel, tbZoomSmoothingLevel.Position);
-  UpdateItemSizeLabels;
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmsets.UpdateItemSizeLabels;
 begin
   lblIconSize.caption := format(XLabelIconSize, [sets.container.itemsize]);
   lblZoomedIconSize.caption := format(XLabelZoomedIconSize, [sets.container.BigItemSize]);
   lblIconSpacing.caption := format(XLabelIconSpacing, [sets.container.ItemSpacing]);
   lblZoomWideness.caption := format(XLabelZoomWidth, [sets.container.ZoomWidth]);
-  lblZoomSmoothingLevel.caption := format(XLabelZoomSmoothingLevel, [sets.container.ZoomSmoothingLevel]);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbZoomItemsClick(Sender: TObject);

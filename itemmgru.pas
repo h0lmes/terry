@@ -15,6 +15,9 @@ type
     x: integer;
     y: integer;
     s: integer;
+    xe: extended;
+    ye: extended;
+    se: extended;
   end;
 
   { _ItemManager }
@@ -135,7 +138,6 @@ type
     function ItemFromPoint(Ax, Ay, distance: integer): extended;
     function ItemRectFromPoint(Ax, Ay: integer): integer;
     procedure Zoom(x, y: integer);
-    procedure ZoomInternal(item: extended);
     procedure UnZoom(do_now: boolean = false);
     function CheckMouseOn: boolean;
     procedure WHMouseMove(pt: windows.TPoint; allow_zoom: boolean = true);
@@ -249,7 +251,6 @@ begin
           ZoomWidth := value;
           WHMouseMove(classes.point(-100, -100));
         end;
-      gpZoomSmoothingLevel: FZoomSmoothingLevel := value;
       gpItemSpacing:
         begin
           ItemSpacing := value;
@@ -785,7 +786,7 @@ begin
         else if ZoomItemSizeDiff > 0 then dec(ZoomItemSizeDiff, round(xstep));
       end;
 
-      if need_zoom_items then ZoomInternal(ZoomInOutItem);
+      if need_zoom_items then ItemsChanged;
   except
     on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
   end;
@@ -838,21 +839,23 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetItems1;
-function getHalfBubble: integer;
+function getHalfBubble: extended;
 var
   i: extended;
 begin
-  result := round(ZoomItemSizeDiff / 2);
+  result := ZoomItemSizeDiff / 2;
   i := 0.5;
   while i < ZoomWidth / 2 do
   begin
-    result := result + round((ZoomItemSizeDiff - 1) * (cos(PI * i * 2 / ZoomWidth) + 1) / 2);
+    result := result + (ZoomItemSizeDiff - 1) * (cos(PI * i * 2 / ZoomWidth) + 1) / 2;
     i := i + 1;
   end;
 end;
 
 var
-  i, sizeInc, offset, itemPos: integer;
+  i, itemPos: integer;
+  sizeInc: extended;
+  offset: extended;
 begin
   if not Enabled or not assigned(theme) then exit;
 
@@ -881,7 +884,8 @@ begin
         else if i < trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem + 1) / ZoomWidth) + 1) / 2)
         else if i > trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem) / ZoomWidth) + 1) / 2);
       end;
-      items[i].s := ItemSize + sizeInc;
+      items[i].se := ItemSize + sizeInc;
+      items[i].s := round(items[i].se);
 
       // icon position when not zooming //
       itemPos := i * (ItemSize + ItemSpacing);
@@ -909,45 +913,61 @@ begin
         items[i].y := y + itemPos;
       end;
 
-      // icon position when zooming //
+      // icon position when zooming (icons out of bubble and center bubble icon) //
       if ZoomItemSizeDiff > 0 then
       begin
         if (BaseSite = 3) or (BaseSite = 1) then
         begin
-          if i < trunc(ZoomInOutItem) - ZoomWidth / 2 then items[i].x := x + itemPos - offset
-          else if i > trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := x + itemPos + offset
-          else if i = trunc(ZoomInOutItem) then items[i].x := x + itemPos - round(ZoomItemSizeDiff * frac(ZoomInOutItem));
+          if i < trunc(ZoomInOutItem) then items[i].xe := items[i].x - offset
+          else if i > trunc(ZoomInOutItem) then items[i].xe := items[i].x + offset
+          else if i = trunc(ZoomInOutItem) then items[i].xe := items[i].x - ZoomItemSizeDiff * frac(ZoomInOutItem);
+          items[i].x := round(items[i].xe);
         end
         else
         begin
-          if i < trunc(ZoomInOutItem) - ZoomWidth / 2 then items[i].y := y + itemPos - offset
-          else if i > trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].y := y + itemPos + offset
-          else if i = trunc(ZoomInOutItem) then items[i].y := y + itemPos - round(ZoomItemSizeDiff * frac(ZoomInOutItem));
+          if i < trunc(ZoomInOutItem) then items[i].ye := items[i].y - offset
+          else if i > trunc(ZoomInOutItem) then items[i].ye := items[i].y + offset
+          else if i = trunc(ZoomInOutItem) then items[i].ye := items[i].y - ZoomItemSizeDiff * frac(ZoomInOutItem);
+          items[i].y := round(items[i].ye);
         end;
       end;
 
       inc(i);
     end;
 
-    // icon position when zooming //
+    // icon position when zooming (within bubble excluding center bubble icon) //
     if ZoomItemSizeDiff > 0 then
     begin
       i := trunc(ZoomInOutItem) - 1;
-      while (i >= trunc(ZoomInOutItem) - ZoomWidth / 2) and (i >= 0)  do
+      while (i > trunc(ZoomInOutItem) - ZoomWidth / 2) and (i >= 0)  do
       begin
         if (BaseSite = 3) or (BaseSite = 1) then
-          items[i].x := items[i + 1].x - items[i].s - ItemSpacing
+        begin
+          items[i].xe := items[i + 1].xe - items[i].se - ItemSpacing;
+          items[i].x := round(items[i].xe);
+        end
         else
-          items[i].y := items[i + 1].y - items[i].s - ItemSpacing;
+        begin
+          items[i].ye := items[i + 1].ye - items[i].se - ItemSpacing;
+          items[i].y := round(items[i].ye);
+        end;
         dec(i);
       end;
       i := trunc(ZoomInOutItem) + 1;
       while (i <= trunc(ZoomInOutItem) + ZoomWidth / 2) and (i < ItemCount)  do
       begin
         if (BaseSite = 3) or (BaseSite = 1) then
-          items[i].x := items[i - 1].x + items[i - 1].s + ItemSpacing
+        begin
+          items[i].xe := items[i - 1].xe + items[i - 1].se + ItemSpacing;
+          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := items[i].x + ItemSize - items[i].s
+          else items[i].x := round(items[i].xe);
+        end
         else
-          items[i].y := items[i - 1].y + items[i - 1].s + ItemSpacing;
+        begin
+          items[i].ye := items[i - 1].ye + items[i - 1].se + ItemSpacing;
+          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].y := items[i].y + ItemSize - items[i].s
+          else items[i].y := round(items[i].ye);
+        end;
         inc(i);
       end;
     end;
@@ -1503,9 +1523,8 @@ begin
           begin
               if ZoomInOutItem <> item then
               begin
-                saved := ZoomInOutItem - item;
-                if FZoomSmoothingLevel = 1 then ZoomInternal(item + saved / 2); // 1 transitional frame
-                ZoomInternal(item); // original frame
+                ZoomInOutItem := item;
+                ItemsChanged;
               end;
           end
           else ZoomInOutItem := item;
@@ -1513,22 +1532,6 @@ begin
     end;
   except
     on e: Exception do err('ItemManager.Zoom', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.ZoomInternal(item: extended);
-begin
-  try
-    if not enabled or (ItemCount < 1) then exit;
-    ZoomInOutItem := item;
-    if ZoomItemSizeDiff = 0 then
-    begin
-      ResetItemsSize;
-      exit;
-    end;
-    ItemsChanged;
-  except
-    on e: Exception do err('ItemManager.ZoomInternal', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1716,7 +1719,6 @@ begin
   SetDropPlaceEx(NOT_AN_ITEM);
   SetDropPlace(NOT_AN_ITEM);
   ItemsChanged;
-  if zooming then zoominternal(ZoomInOutItem);
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Dock(HWnd: HANDLE);
@@ -1797,7 +1799,6 @@ begin
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
     ItemsChanged;
-    if zooming then zoominternal(ZoomInOutItem);
   except
     on e: Exception do err('ItemManager.DockWindowItem', e);
   end;

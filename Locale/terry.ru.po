@@ -186,10 +186,6 @@ msgctxt "declu.xlabelzoomediconsize"
 msgid "Zoomed icon size: %d px"
 msgstr "Максимальный размер значков: %d px"
 
-#: declu.xlabelzoomsmoothinglevel
-msgid "Zoom smoothing level: %d"
-msgstr "Уровень сглаживания увеличения: %d"
-
 #: declu.xlabelzoomwidth
 msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
@@ -936,10 +932,6 @@ msgstr "Видимая часть (пиксел)"
 #: tfrmsets.lblzoomediconsize.caption
 msgid "Zoomed icon size"
 msgstr "Размер увеличенного значка"
-
-#: tfrmsets.lblzoomsmoothinglevel.caption
-msgid "Zoom smoothing level"
-msgstr "Уровень сглаживания увеличения"
 
 #: tfrmsets.lblzoomwideness.caption
 msgid "Zoom width"

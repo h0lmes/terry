@@ -15,7 +15,6 @@ type
     gpZoomWidth,
     gpItemSpacing,
     gpZoomItems,
-    gpZoomSmoothingLevel,
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
     gpTaskbar,
@@ -240,7 +239,6 @@ resourcestring
   XLabelZoomedIconSize = 'Zoomed icon size: %d px';
   XLabelIconSpacing = 'Icon spacing: %d px';
   XLabelZoomWidth = 'Zoom width: %d';
-  XLabelZoomSmoothingLevel = 'Zoom smoothing level: %d';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';
   XPageGeneral = 'General';
   XPagePosition = 'Position';

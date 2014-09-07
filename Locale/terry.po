@@ -175,10 +175,6 @@ msgctxt "declu.xlabelzoomediconsize"
 msgid "Zoomed icon size: %d px"
 msgstr ""
 
-#: declu.xlabelzoomsmoothinglevel
-msgid "Zoom smoothing level: %d"
-msgstr ""
-
 #: declu.xlabelzoomwidth
 msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
@@ -908,10 +904,6 @@ msgstr ""
 
 #: tfrmsets.lblzoomediconsize.caption
 msgid "Zoomed icon size"
-msgstr ""
-
-#: tfrmsets.lblzoomsmoothinglevel.caption
-msgid "Zoom smoothing level"
 msgstr ""
 
 #: tfrmsets.lblzoomwideness.caption
