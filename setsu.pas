@@ -198,9 +198,9 @@ begin
   container.ShowRunningIndicator := ini.ReadBool('base', 'ShowRunningIndicator', true);
   container.ItemAnimation := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
   container.ItemSize := SetRange(ini.ReadInteger('base', 'ItemSize', 48), 16, 128);
-  container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 100), container.ItemSize, 256);
+  container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 96), container.ItemSize, 256);
   container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 0), 0, 20);
-  container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 6, 10);
+  container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 4, 10);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
   container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
   container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
@@ -359,11 +359,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.SaveEx2;
+const MOVEFILE_WRITE_THROUGH = 8;
+var
+  tmpini: string;
 begin
   try
+    tmpini := SetsPathFile;
     SetsPathFile := ChangeFileExt(SetsPathFile, '.ini');
-    windows.DeleteFile(pchar(SetsPathFile));
-    windows.CopyFile(pchar(ChangeFileExt(SetsPathFile, '.tmpini')), pchar(SetsPathFile), false);
+    windows.MoveFileEx(pchar(tmpini), pchar(SetsPathFile), MOVEFILE_REPLACE_EXISTING + MOVEFILE_WRITE_THROUGH);
   except
     on e: Exception do
       messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.SaveEx2', mb_iconexclamation);
@@ -386,14 +389,23 @@ begin
 end;
 //------------------------------------------------------------------------------
 function _Sets.Restore: boolean;
+var
+  bakfile: string;
 begin
   result := false;
   try
     if FileExists(SetsPathFile) then
-      if not windows.DeleteFile(PChar(SetsPathFile)) then exit;
-    if not windows.CopyFile(pchar(ChangeFileExt(SetsPathFile, '.bak')),
-      pchar(SetsPathFile), false) then exit;
-    result := true;
+      if not windows.DeleteFile(PChar(SetsPathFile)) then raise Exception.Create('Sets.Restore.DeleteSetsFile failed');
+
+    bakfile := ChangeFileExt(SetsPathFile, '.tmpini');
+    if FileExists(bakfile) then
+       if windows.MoveFile(pchar(bakfile), pchar(SetsPathFile)) then result := true;
+
+    if not result then
+    begin
+      bakfile := ChangeFileExt(SetsPathFile, '.bak');
+      if windows.CopyFile(pchar(bakfile), pchar(SetsPathFile), false) then result := true;
+    end;
   except
     on e: Exception do
       messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.Restore', mb_iconexclamation);
@@ -406,11 +418,7 @@ begin
   gpItemSize: container.ItemSize := SetRange(value, 16, 128);
   gpBigItemSize: container.BigItemSize := SetRange(value, container.ItemSize, 256);
   gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 20);
-  gpZoomWidth:
-    begin
-      if value mod 2 <> 0 then inc(value);
-      container.ZoomWidth := SetRange(value, 4, 10);
-    end;
+  gpZoomWidth: container.ZoomWidth := SetRange((value div 2) * 2, 4, 10);
   gpZoomItems: container.ZoomItems := boolean(value);
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpAutoHideTime: container.AutoHideTime := value;

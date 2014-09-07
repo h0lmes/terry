@@ -24,10 +24,10 @@ object frmsets: Tfrmsets
     Height = 528
     Top = 8
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsAbout
     MultiLine = True
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 6
     TabOrder = 1
     Options = [nboMultiLine]
     object tsGeneral: TTabSheet
@@ -437,7 +437,7 @@ object frmsets: Tfrmsets
       object lblZoomWideness: TLabel
         Left = 10
         Height = 13
-        Top = 385
+        Top = 400
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -445,7 +445,7 @@ object frmsets: Tfrmsets
       object lblIconSize: TLabel
         Left = 10
         Height = 13
-        Top = 220
+        Top = 235
         Width = 42
         Caption = 'Icon size'
         ParentColor = False
@@ -453,15 +453,15 @@ object frmsets: Tfrmsets
       object lblZoomedIconSize: TLabel
         Left = 10
         Height = 13
-        Top = 275
+        Top = 290
         Width = 81
         Caption = 'Zoomed icon size'
         ParentColor = False
       end
       object lblActivateRunningProgramTip: TLabel
-        Left = 11
+        Left = 10
         Height = 13
-        Top = 113
+        Top = 115
         Width = 184
         Caption = '<Ctrl + Click> to run program anyway'
         Font.CharSet = RUSSIAN_CHARSET
@@ -511,17 +511,17 @@ object frmsets: Tfrmsets
       object chb_use_shell_context_menus: TCheckBox
         Left = 10
         Height = 19
-        Top = 133
+        Top = 140
         Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnClick = chb_use_shell_context_menusClick
         TabOrder = 4
       end
       object cboItemAnimationType: TComboBox
-        Left = 11
+        Left = 10
         Height = 21
-        Top = 470
-        Width = 435
+        Top = 195
+        Width = 436
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
@@ -531,7 +531,7 @@ object frmsets: Tfrmsets
       object lblAnimateIcons: TLabel
         Left = 10
         Height = 13
-        Top = 450
+        Top = 175
         Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
@@ -539,7 +539,7 @@ object frmsets: Tfrmsets
       object tbIconSize: TTrackBar
         Left = 25
         Height = 30
-        Top = 240
+        Top = 255
         Width = 421
         Frequency = 8
         Max = 128
@@ -552,7 +552,7 @@ object frmsets: Tfrmsets
       object tbBigIconSize: TTrackBar
         Left = 25
         Height = 30
-        Top = 295
+        Top = 310
         Width = 421
         Frequency = 16
         Max = 256
@@ -565,7 +565,7 @@ object frmsets: Tfrmsets
       object tbZoomWidth: TTrackBar
         Left = 25
         Height = 30
-        Top = 402
+        Top = 417
         Width = 106
         Max = 5
         Min = 2
@@ -577,7 +577,7 @@ object frmsets: Tfrmsets
       object lblIconSpacing: TLabel
         Left = 10
         Height = 13
-        Top = 330
+        Top = 345
         Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
@@ -585,7 +585,7 @@ object frmsets: Tfrmsets
       object tbIconSpacing: TTrackBar
         Left = 25
         Height = 30
-        Top = 350
+        Top = 365
         Width = 421
         Max = 20
         OnChange = tbIconSpacingChange

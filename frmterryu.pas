@@ -424,7 +424,7 @@ begin
     try
       saving := true;
       sets.SaveEx;
-      ItemMgr.Save(ChangeFileExt(sets.SetsPathFile, '.tmpini'));
+      ItemMgr.Save(sets.SetsPathFile);
       sets.SaveEx2;
     finally
       saving := false;
@@ -761,22 +761,15 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.OnSlowTimer;
 begin
+  if assigned(ItemMgr) and assigned(sets) then
   try
     WHMouseMove($fffffff);
-    if assigned(ItemMgr) and assigned(sets) then
-      if sets.container.ShowRunningIndicator then UpdateRunning;
-  except
-    on e: Exception do err('Base.OnSlowTimer', e);
-  end;
-
-  if not sets.container.StayOnTop then MaintainNotForeground;
-
-  if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
-
-  try
+    if sets.container.ShowRunningIndicator then UpdateRunning;
+    if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
+    if not sets.container.StayOnTop then MaintainNotForeground;
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
-    on e: Exception do err('Base.OnSlowTimer.HideTaskBar', e);
+    on e: Exception do raise Exception.Create('Base.OnSlowTimer'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -799,7 +792,7 @@ begin
       if not fsa and not Visible and HiddenByFSA then BaseCmd(tcSetVisible, 1);
     end;
   except
-    on e: Exception do err('Base.OnFSATimer', e);
+    on e: Exception do raise Exception.Create('Base.OnFSATimer'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -817,7 +810,7 @@ begin
     end;
     ItemMgr.SetParam(icUpdateRunning, 0);
   except
-    on e: Exception do err('Base.UpdateRunning', e);
+    on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -933,48 +926,47 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.SetNotForeground;
 
-    function IsDockWnd(wnd: uint): boolean;
-    begin
-      result := (wnd = handle) or not (ItemMgr.IsItem(wnd) = 0);
-    end;
+function IsDockWnd(wnd: uint): boolean;
+begin
+  result := (wnd = handle) or not (ItemMgr.IsItem(wnd) = 0);
+end;
 
-    function ZOrderIndex(hWnd: uint): integer;
-    var
-      index: integer;
-      h: THandle;
-    begin
-      result := 0;
-      index := 0;
-	    h := FindWindow('Progman', nil);
-	    while (h <> 0) and (h <> hWnd) do
-	    begin
-		    inc(index);
-		    h := GetWindow(h, GW_HWNDPREV);
-	    end;
-	    result := index;
-    end;
+function ZOrderIndex(hWnd: uint): integer;
+var
+  index: integer;
+  h: THandle;
+begin
+  result := 0;
+  index := 0;
+  h := FindWindow('Progman', nil);
+  while (h <> 0) and (h <> hWnd) do
+  begin
+    inc(index);
+    h := GetWindow(h, GW_HWNDPREV);
+  end;
+  result := index;
+end;
 
-    function DockAboveWnd(wnd: uint): boolean;
-    var
-      rect, dockrect: windows.TRect;
-      buf: array [0..MAX_PATH - 1] of char;
+function DockAboveWnd(wnd: uint): boolean;
+var
+  rect, dockrect: windows.TRect;
+  buf: array [0..MAX_PATH - 1] of char;
+begin
+  result := false;
+  if IsWindowVisible(wnd) and not IsIconic(wnd) then
+  begin
+    GetWindowRect(wnd, @rect);
+    dockrect := dockh.DockGetRect;
+    if IntersectRect(rect, dockrect, rect) then
     begin
-      result := false;
-      if IsWindowVisible(wnd) and not IsIconic(wnd) then
-      begin
-  	    GetWindowRect(wnd, @rect);
-        dockrect := dockh.DockGetRect;
-        if IntersectRect(rect, dockrect, rect) then
-  	    begin
-  		    GetClassName(wnd, buf, MAX_PATH);
-  		    if (strpas(buf) <> 'Progman') and (strpas(buf) <> 'WorkerW') and
-              (strpas(buf) <> 'Shell_TrayWnd') and (ZOrderIndex(wnd) < ZOrderIndex(handle)) then
-  		    begin
-  			    result := true;
-  		    end;
-  	    end;
-      end;
+      GetClassName(wnd, buf, MAX_PATH);
+      if (strpas(buf) <> 'Progman')
+         and (strpas(buf) <> 'WorkerW')
+         and (strpas(buf) <> 'Shell_TrayWnd')
+         and (ZOrderIndex(wnd) < ZOrderIndex(handle)) then result := true;
     end;
+  end;
+end;
 
 var
   pt: windows.TPoint;

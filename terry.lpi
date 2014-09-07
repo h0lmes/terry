@@ -39,7 +39,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="60">
+    <Units Count="61">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -89,8 +89,8 @@
         <UnitName Value="frmterryu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="345"/>
-        <CursorPos X="21" Y="362"/>
+        <TopLine Value="982"/>
+        <CursorPos X="41" Y="999"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -103,10 +103,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="585"/>
-        <CursorPos X="1" Y="623"/>
+        <CursorPos X="18" Y="596"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
@@ -200,10 +203,13 @@
         <Filename Value="setsu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="setsu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="441"/>
-        <CursorPos X="17" Y="449"/>
+        <TopLine Value="384"/>
+        <CursorPos X="63" Y="402"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -248,11 +254,10 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="935"/>
-        <CursorPos X="11" Y="952"/>
+        <TopLine Value="459"/>
+        <CursorPos X="38" Y="470"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -261,7 +266,7 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="393"/>
         <CursorPos X="92" Y="494"/>
@@ -304,7 +309,7 @@
         <Filename Value="plgitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="plgitemu"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="97"/>
         <CursorPos X="58" Y="120"/>
@@ -327,7 +332,7 @@
         <Filename Value="sepitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sepitemu"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="91"/>
         <CursorPos X="36" Y="165"/>
@@ -424,7 +429,7 @@
         <Filename Value="taskitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="taskitemu"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="230"/>
         <CursorPos X="48" Y="251"/>
@@ -506,7 +511,7 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="501"/>
         <CursorPos X="3" Y="299"/>
@@ -575,7 +580,7 @@
         <Filename Value="stackitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackitemu"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="739"/>
         <CursorPos X="103" Y="762"/>
@@ -600,7 +605,7 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="525"/>
         <CursorPos X="90" Y="562"/>
@@ -612,7 +617,7 @@
         <Filename Value="stackmodeu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackmodeu"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="1" Y="3"/>
@@ -685,8 +690,15 @@
         <CursorPos X="8" Y="1033"/>
         <UsageCount Value="10"/>
       </Unit59>
+      <Unit60>
+        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\win\wininc\defines.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="2244"/>
+        <CursorPos X="6" Y="2262"/>
+        <UsageCount Value="10"/>
+      </Unit60>
     </Units>
-    <JumpHistory Count="25" HistoryIndex="24">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="frmterryu.pas"/>
         <Caret Line="334" Column="5" TopLine="308"/>
@@ -787,6 +799,26 @@
         <Filename Value="itemmgru.pas"/>
         <Caret Line="15" Column="5" TopLine="1"/>
       </Position25>
+      <Position26>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="783" Column="23" TopLine="774"/>
+      </Position26>
+      <Position27>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="294" Column="15" TopLine="214"/>
+      </Position27>
+      <Position28>
+        <Filename Value="setsu.pas"/>
+        <Caret Line="398" Column="117" TopLine="382"/>
+      </Position28>
+      <Position29>
+        <Filename Value="setsu.pas"/>
+        <Caret Line="366" Column="73" TopLine="351"/>
+      </Position29>
+      <Position30>
+        <Filename Value="setsu.pas"/>
+        <Caret Line="362" Column="34" TopLine="351"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
