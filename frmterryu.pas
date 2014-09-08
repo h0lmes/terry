@@ -225,8 +225,8 @@ begin
     // timers //
     AddLog('Init.Timers');
     SetTimer(handle, ID_TIMER, 10, nil);
-    SetTimer(handle, ID_SLOWTIMER, 1000, nil);
-    SetTimer(handle, ID_FSATIMER, 2000, nil);
+    SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
+    SetTimer(handle, ID_TIMER_FSA, 2000, nil);
 
     // tray controller //
     AddLog('Init.TrayController');
@@ -315,28 +315,33 @@ begin
   result := 0;
   if not AllowClose then exit;
 
-  AddLog('CloseQuery.Free');
-  closing := True;
-  BaseCmd(tcSaveSets, 0);
   try
-    KillTimer(handle, ID_TIMER);
-    KillTimer(handle, ID_SLOWTIMER);
-    KillTimer(handle, ID_FSATIMER);
-    if assigned(DropMgr) then DropMgr.Destroy;
-    if assigned(ItemMgr) then ItemMgr.Free;
-    if assigned(ahint) then ahint.Free;
-    if assigned(theme) then theme.Free;
-    if assigned(sets) then sets.Free;
-    if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
-    TDropIndicator.DestroyIndicator;
-    HideTaskbar(false);
-    LockList.free;
+    crsection.Acquire;
+    closing := True;
+    AddLog('CloseQuery begin');
+    BaseCmd(tcSaveSets, 0);
+    try
+      KillTimer(handle, ID_TIMER);
+      KillTimer(handle, ID_TIMER_SLOW);
+      KillTimer(handle, ID_TIMER_FSA);
+      if assigned(DropMgr) then DropMgr.Destroy;
+      if assigned(ItemMgr) then ItemMgr.Free;
+      if assigned(ahint) then ahint.Free;
+      if assigned(theme) then theme.Free;
+      if assigned(sets) then sets.Free;
+      if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
+      TDropIndicator.DestroyIndicator;
+      HideTaskbar(false);
+      LockList.free;
+    except
+      on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
+    end;
+    AddLog('CloseQuery done');
+    result := 1;
+  finally
+    crsection.Leave;
     crsection.free;
-  except
-    on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
   end;
-  AddLog('CloseQuery done');
-  result := 1;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -498,7 +503,7 @@ var
 begin
   crsection.Acquire;
   try
-    if IsLockedMouseEffect or not assigned(ItemMgr) then exit;
+    if IsLockedMouseEffect or not assigned(ItemMgr) or not IsWindowVisible(Handle) then exit;
 
     Windows.GetCursorPos(pt);
     if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
@@ -572,7 +577,7 @@ begin
   if ParentMenu = 0 then
   if IsValidItemString(GetClipboard) then
   begin
-    AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
+    //AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
     AppendMenu(hMenu, MF_STRING, $f030, pchar(UTF8ToAnsi(XPaste)));
   end;
 
@@ -680,8 +685,8 @@ procedure Tfrmterry.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftSta
 begin
   if shift = [] then
   begin
-    if key = 112{F1} then Help;
-    if key = 192{tilda} then Tfrmcmd.StartForm;
+    if key = 112 {F1} then Help;
+    if key = 192 {tilda} then Tfrmcmd.StartForm;
   end
   else if shift = [ssAlt] then
   begin
@@ -692,7 +697,7 @@ begin
   end
   else if shift = [ssCtrl] then
   begin
-    if key = 90 then
+    if key = 90 {Ctrl+Z} then
       if assigned(ItemMgr) then ItemMgr.UnDelete;
   end;
 end;
@@ -745,8 +750,8 @@ procedure Tfrmterry.WMTimer(var msg: TMessage);
 begin
   try
     if msg.WParam = ID_TIMER then OnTimer
-    else if msg.WParam = ID_SLOWTIMER then OnSlowTimer
-    else if msg.WParam = ID_FSATIMER then OnFSATimer;
+    else if msg.WParam = ID_TIMER_SLOW then OnSlowTimer
+    else if msg.WParam = ID_TIMER_FSA then OnFSATimer;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
@@ -754,19 +759,25 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.OnTimer;
 begin
-  if assigned(sets) then sets.Timer;
-  if assigned(ItemMgr) then ItemMgr.Timer;
-  if assigned(Tray) then Tray.Timer;
+  if IsWindowVisible(Handle) then
+  begin
+    if assigned(sets) then sets.Timer;
+    if assigned(ItemMgr) then ItemMgr.Timer;
+    if assigned(Tray) then Tray.Timer;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.OnSlowTimer;
 begin
   if assigned(ItemMgr) and assigned(sets) then
   try
-    WHMouseMove($fffffff);
-    if sets.container.ShowRunningIndicator then UpdateRunning;
+    if IsWindowVisible(Handle) then
+    begin
+      WHMouseMove($fffffff);
+      if sets.container.ShowRunningIndicator then UpdateRunning;
+      if not sets.container.StayOnTop then MaintainNotForeground;
+    end;
     if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
-    if not sets.container.StayOnTop then MaintainNotForeground;
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
     on e: Exception do raise Exception.Create('Base.OnSlowTimer'#10#13 + e.message);

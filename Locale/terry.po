@@ -84,7 +84,7 @@ msgid "Contact developer if error is permanent."
 msgstr ""
 
 #: declu.xerrorcritical
-msgid "Critical error occured. Try to run program again."
+msgid "Critical error occured. Try to run the program again."
 msgstr ""
 
 #: declu.xerrorhelpnotfound
@@ -100,11 +100,11 @@ msgid "Invalid program data structure size"
 msgstr ""
 
 #: declu.xerrorloadtheme
-msgid "Theme load error. Try to run program again."
+msgid "Theme load error. Try to run the program again."
 msgstr ""
 
 #: declu.xerrorsetsbackupfailed
-msgid "Failed to backup settings file."
+msgid "Failed to backup settings."
 msgstr ""
 
 #: declu.xerrorsetscorrupted
@@ -112,7 +112,7 @@ msgid "Settings file corrupted."
 msgstr ""
 
 #: declu.xerrorsetsrestorefailed
-msgid "Settings restore failed."
+msgid "Restore operation failed."
 msgstr ""
 
 #: declu.xerrorthemeobjectnotfound
@@ -154,16 +154,16 @@ msgstr ""
 
 #: declu.xlabeledgeoffset
 msgctxt "declu.xlabeledgeoffset"
-msgid "Offset from edge: %d px"
+msgid "Offset from edge: %d pt"
 msgstr ""
 
 #: declu.xlabeliconsize
 msgctxt "declu.xlabeliconsize"
-msgid "Icon size: %d px"
+msgid "Icon size: %d pt"
 msgstr ""
 
 #: declu.xlabeliconspacing
-msgid "Icon spacing: %d px"
+msgid "Icon spacing: %d pt"
 msgstr ""
 
 #: declu.xlabelreservescreenedgepercent
@@ -172,7 +172,7 @@ msgstr ""
 
 #: declu.xlabelzoomediconsize
 msgctxt "declu.xlabelzoomediconsize"
-msgid "Zoomed icon size: %d px"
+msgid "Zoomed icon size: %d pt"
 msgstr ""
 
 #: declu.xlabelzoomwidth
@@ -202,7 +202,7 @@ msgid "Place target file onto dock instead of shortcut?"
 msgstr ""
 
 #: declu.xmsgsetsrestored
-msgid "Settings restored from backup. Run program again"
+msgid "The settings are restored from backup. Run the program again"
 msgstr ""
 
 #: declu.xmsgthemesaved
@@ -210,7 +210,7 @@ msgid "Theme saved"
 msgstr ""
 
 #: declu.xmsgunsavediconparams
-msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?"
+msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr ""
 
 #: declu.xopenfolderof

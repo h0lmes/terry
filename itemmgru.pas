@@ -881,8 +881,8 @@ begin
       begin
         if (i < trunc(ZoomInOutItem) - ZoomWidth / 2) or (i > trunc(ZoomInOutItem) + ZoomWidth / 2) then sizeInc := 0
         else if i = trunc(ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
-        else if i < trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem + 1) / ZoomWidth) + 1) / 2)
-        else if i > trunc(ZoomInOutItem) then sizeInc := round((ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem) / ZoomWidth) + 1) / 2);
+        else if i < trunc(ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem + 1) / ZoomWidth) + 1) / 2
+        else if i > trunc(ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem) / ZoomWidth) + 1) / 2;
       end;
       items[i].se := ItemSize + sizeInc;
       items[i].s := round(items[i].se);
@@ -1141,7 +1141,7 @@ begin
     icp.LaunchInterval := sets.container.LaunchInterval;
     icp.ActivateRunning := sets.container.ActivateRunning;
     icp.UseShellContextMenus := sets.container.UseShellContextMenus;
-    icp.Site := integer(sets.container.Site);
+    icp.Site := self.BaseSite;
     icp.Reflection := sets.container.Reflection;
     icp.ReflectionSize := theme.ReflectionSize;
     icp.ShowHint := sets.container.ShowHint;

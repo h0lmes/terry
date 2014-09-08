@@ -61,7 +61,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TSeparatorItem.UpdateItemInternal;
 begin
-  if not FFreed then
+  if not FFreed and assigned(theme) then
   try
     if FImage <> nil then GdipDisposeImage(FImage);
     FImage := nil;

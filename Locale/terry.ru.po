@@ -93,7 +93,8 @@ msgid "Contact developer if error is permanent."
 msgstr "Сообщите разработчику если ошибка повторяется."
 
 #: declu.xerrorcritical
-msgid "Critical error occured. Try to run program again."
+#| msgid "Critical error occured. Try to run program again."
+msgid "Critical error occured. Try to run the program again."
 msgstr "Критическая ошибка. Попробуйте запустить программу снова."
 
 #: declu.xerrorhelpnotfound
@@ -110,11 +111,13 @@ msgid "Invalid program data structure size"
 msgstr "Неверный размер структуры данных о программе"
 
 #: declu.xerrorloadtheme
-msgid "Theme load error. Try to run program again."
+#| msgid "Theme load error. Try to run program again."
+msgid "Theme load error. Try to run the program again."
 msgstr "Ошибка загрузки темы. Попробуйте запустить программу снова."
 
 #: declu.xerrorsetsbackupfailed
-msgid "Failed to backup settings file."
+#| msgid "Failed to backup settings file."
+msgid "Failed to backup settings."
 msgstr "Не удалось сделать резервную копию файла настроек."
 
 #: declu.xerrorsetscorrupted
@@ -122,7 +125,8 @@ msgid "Settings file corrupted."
 msgstr "Файл настроек поврежден."
 
 #: declu.xerrorsetsrestorefailed
-msgid "Settings restore failed."
+#| msgid "Settings restore failed."
+msgid "Restore operation failed."
 msgstr "Не удалось восстановить резервную копию файла настроек."
 
 #: declu.xerrorthemeobjectnotfound
@@ -164,27 +168,31 @@ msgid "Offset from center: %d %%"
 msgstr "Смещение от центра: %d %%"
 
 #: declu.xlabeledgeoffset
+#| msgid "Offset from edge: %d px"
 msgctxt "declu.xlabeledgeoffset"
-msgid "Offset from edge: %d px"
-msgstr "Смещение от края: %d px"
+msgid "Offset from edge: %d pt"
+msgstr "Смещение от края: %d pt"
 
 #: declu.xlabeliconsize
+#| msgid "Icon size: %d px"
 msgctxt "declu.xlabeliconsize"
-msgid "Icon size: %d px"
-msgstr "Размер значков: %d px"
+msgid "Icon size: %d pt"
+msgstr "Размер значков: %d pt"
 
 #: declu.xlabeliconspacing
-msgid "Icon spacing: %d px"
-msgstr "Расстояние между значками: %d px"
+#| msgid "Icon spacing: %d px"
+msgid "Icon spacing: %d pt"
+msgstr "Расстояние между значками: %d pt"
 
 #: declu.xlabelreservescreenedgepercent
 msgid "Reserve screen edge: %d%%"
 msgstr "Резервировать край экрана: %d%%"
 
 #: declu.xlabelzoomediconsize
+#| msgid "Zoomed icon size: %d px"
 msgctxt "declu.xlabelzoomediconsize"
-msgid "Zoomed icon size: %d px"
-msgstr "Максимальный размер значков: %d px"
+msgid "Zoomed icon size: %d pt"
+msgstr "Максимальный размер значков: %d pt"
 
 #: declu.xlabelzoomwidth
 msgctxt "declu.xlabelzoomwidth"
@@ -213,8 +221,8 @@ msgid "Place target file onto dock instead of shortcut?"
 msgstr "Добавить на панель целевой файл вместо ярлыка?"
 
 #: declu.xmsgsetsrestored
-#| msgid "Settings restored from backup."
-msgid "Settings restored from backup. Run program again"
+#| msgid "Settings restored from backup. Run program again"
+msgid "The settings are restored from backup. Run the program again"
 msgstr "Настройки восстановлены из резервной копии. Запустите программу снова"
 
 #: declu.xmsgthemesaved
@@ -222,7 +230,8 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?"
+#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?"
+msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка были изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
 
 #: declu.xopenfolderof

@@ -119,6 +119,7 @@ type
     procedure chb_reflectionClick(Sender: TObject);
     procedure chb_show_running_indicatorClick(Sender: TObject);
     procedure chb_activate_runningClick(Sender: TObject);
+    procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure tbBaseAlphaChange(Sender: TObject);
     procedure tbEdgeOffsetChange(Sender: TObject);
@@ -413,6 +414,20 @@ procedure Tfrmsets.lvSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 begin
   if lv.ItemIndex > -1 then pages.ActivePageIndex := lv.ItemIndex;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
+var
+  r: windows.TRect;
+begin
+  DefaultDraw := false;
+  r := item.DisplayRect(drIcon);
+  images.Draw(sender.canvas, r.Left + (r.Right - r.Left - images.Width) div 2, r.Top, Item.ImageIndex);
+
+  if Item.Selected then sender.canvas.Font.color := clHighlight;
+  r := item.DisplayRect(drLabel);
+  sender.Canvas.TextOut(r.Left + (r.Right - r.Left - sender.Canvas.TextWidth(Item.Caption)) div 2, r.Top, Item.Caption);
+  sender.canvas.Font.color := sender.Font.color;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnDebugClick(Sender: TObject);

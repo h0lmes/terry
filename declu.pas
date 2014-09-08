@@ -166,31 +166,25 @@ const
 
   // system timer event ID's //
   ID_TIMER                  = 1;
-  ID_SLOWTIMER              = 2;
-  ID_FSATIMER               = 3;
+  ID_TIMER_SLOW             = 2;
+  ID_TIMER_FSA              = 3;
   ID_TIMER_OPEN             = 4;
   ID_TIMER_CLOSE            = 5;
   ID_TIMER_MOUSEHELD        = 6;
-
-  // menu item type IDs //
-  mitProperties     = $1;
-  mitFolder         = $2;
-  mitDelete         = $4;
-  mitTab            = $8;
 
 
 resourcestring
 
   // common //
   XErrorContactDeveloper = 'Contact developer if error is permanent.';
-  XErrorCritical = 'Critical error occured. Try to run program again.';
-  XErrorLoadTheme = 'Theme load error. Try to run program again.';
+  XErrorCritical = 'Critical error occured. Try to run the program again.';
+  XErrorLoadTheme = 'Theme load error. Try to run the program again.';
   XErrorThemeObjectNotFound = 'Theme object not found';
   XMsgThemeSaved = 'Theme saved';
   XErrorSetsCorrupted = 'Settings file corrupted.';
-  XErrorSetsRestoreFailed = 'Settings restore failed.';
-  XMsgSetsRestored = 'Settings restored from backup. Run program again';
-  XErrorSetsBackupFailed = 'Failed to backup settings file.';
+  XErrorSetsRestoreFailed = 'Restore operation failed.';
+  XMsgSetsRestored = 'The settings are restored from backup. Run the program again';
+  XErrorSetsBackupFailed = 'Failed to backup settings.';
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';
   XStartButtonText = 'Start';
@@ -234,10 +228,10 @@ resourcestring
 
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';
-  XLabelEdgeOffset = 'Offset from edge: %d px';
-  XLabelIconSize = 'Icon size: %d px';
-  XLabelZoomedIconSize = 'Zoomed icon size: %d px';
-  XLabelIconSpacing = 'Icon spacing: %d px';
+  XLabelEdgeOffset = 'Offset from edge: %d pt';
+  XLabelIconSize = 'Icon size: %d pt';
+  XLabelZoomedIconSize = 'Zoomed icon size: %d pt';
+  XLabelIconSpacing = 'Icon spacing: %d pt';
   XLabelZoomWidth = 'Zoom width: %d';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';
   XPageGeneral = 'General';
@@ -266,7 +260,7 @@ resourcestring
   XShowCmdMinimized = 'Minimized to taskbar';
   XShowCmdMaximized = 'Maximized to fullscreen';
   XSelectWorkingDirectory = 'Select working directory';
-  XMsgUnsavedIconParams = 'Icon parameters changed. If you will proceed all changes will be lost. Proceed?';
+  XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
 
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
