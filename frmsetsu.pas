@@ -253,6 +253,10 @@ procedure Tfrmsets.FormShow(Sender: TObject);
 var
   maj, min, rel, build, i, mCount: integer;
 begin
+  constraints.MinHeight := Height;
+  constraints.MaxHeight := Height;
+  constraints.MinWidth := Width;
+  constraints.MaxWidth := Width;
   lv.ItemIndex := PageIndex;
 
   toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
@@ -410,8 +414,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.lvSelectItem(Sender: TObject; Item: TListItem;
-  Selected: Boolean);
+procedure Tfrmsets.lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
 begin
   if lv.ItemIndex > -1 then pages.ActivePageIndex := lv.ItemIndex;
 end;
@@ -424,10 +427,16 @@ begin
   r := item.DisplayRect(drIcon);
   images.Draw(sender.canvas, r.Left + (r.Right - r.Left - images.Width) div 2, r.Top, Item.ImageIndex);
 
-  if Item.Selected then sender.canvas.Font.color := clHighlight;
+  if Item.Selected then
+  begin
+    sender.canvas.Font.color := clHighlight;
+    sender.canvas.Font.Underline := true;
+  end;
   r := item.DisplayRect(drLabel);
-  sender.Canvas.TextOut(r.Left + (r.Right - r.Left - sender.Canvas.TextWidth(Item.Caption)) div 2, r.Top, Item.Caption);
+  r.Left := r.Left + (r.Right - r.Left - sender.Canvas.TextWidth(Item.Caption)) div 2;
+  sender.Canvas.TextOut(r.Left, r.Top, Item.Caption);
   sender.canvas.Font.color := sender.Font.color;
+  sender.canvas.Font.Underline := sender.Font.Underline;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnDebugClick(Sender: TObject);

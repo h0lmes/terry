@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -103,10 +103,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="401"/>
-        <CursorPos X="34" Y="420"/>
+        <TopLine Value="240"/>
+        <CursorPos X="36" Y="261"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
@@ -248,11 +252,10 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="930"/>
-        <CursorPos X="142" Y="884"/>
+        <CursorPos X="41" Y="940"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -261,7 +264,7 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="393"/>
         <CursorPos X="92" Y="494"/>
@@ -325,7 +328,7 @@
         <Filename Value="sepitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sepitemu"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="258"/>
         <CursorPos X="60" Y="62"/>
@@ -502,9 +505,9 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="501"/>
+        <TopLine Value="500"/>
         <CursorPos X="3" Y="299"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -694,12 +697,12 @@
         <Filename Value="C:\lazarus\lcl\graphics.pp"/>
         <UnitName Value="Graphics"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="139"/>
-        <CursorPos X="3" Y="162"/>
+        <TopLine Value="104"/>
+        <CursorPos X="3" Y="101"/>
         <UsageCount Value="10"/>
       </Unit62>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
         <Filename Value="frmterryu.pas"/>
         <Caret Line="363" Column="1" TopLine="345"/>
@@ -764,6 +767,10 @@
         <Filename Value="itemmgru.pas"/>
         <Caret Line="21" Column="1" TopLine="20"/>
       </Position16>
+      <Position17>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="430" Column="23" TopLine="401"/>
+      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -828,4 +835,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

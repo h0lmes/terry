@@ -2,12 +2,11 @@ object frmsets: Tfrmsets
   Left = 511
   Height = 576
   Top = 161
-  Width = 579
+  Width = 596
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsSingle
   Caption = 'Settings'
   ClientHeight = 576
-  ClientWidth = 579
+  ClientWidth = 596
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -18,15 +17,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
-    Left = 97
+    Left = 115
     Height = 515
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsAutoStart
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 5
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -34,10 +33,10 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       ImageIndex = 1
       object lblMouseOverTip: TLabel
-        Left = 10
-        Height = 14
-        Top = 208
-        Width = 344
+        Left = 15
+        Height = 13
+        Top = 215
+        Width = 343
         Caption = 'Move mouse pointer to the edge of screen to bring panel to foreground'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -47,30 +46,30 @@ object frmsets: Tfrmsets
         ParentFont = False
       end
       object cbActivateOnMouse: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 188
+        Top = 195
         Width = 160
         Caption = 'Activate panel on mouseover'
         OnClick = cbActivateOnMouseClick
         TabOrder = 3
       end
       object cbautorun: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 13
+        Top = 20
         Width = 116
         Caption = 'Start with Windows '
         OnClick = cbautorunClick
         TabOrder = 0
       end
       object gbHide: TGroupBox
-        Left = 10
+        Left = 15
         Height = 95
-        Top = 263
-        Width = 441
+        Top = 270
+        Width = 431
         ClientHeight = 77
-        ClientWidth = 437
+        ClientWidth = 427
         TabOrder = 4
         object cbCtrl: TCheckBox
           Left = 10
@@ -118,44 +117,44 @@ object frmsets: Tfrmsets
         end
         object Label6: TLabel
           Left = 10
-          Height = 14
+          Height = 13
           Top = 4
-          Width = 158
+          Width = 157
           Caption = 'Hotkey to completely hide panel:'
           ParentColor = False
         end
       end
       object cbHideTaskBar: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 88
+        Top = 95
         Width = 126
         Caption = 'Hide Windows taskbar'
         OnClick = cbHideTaskBarClick
         TabOrder = 1
       end
       object chbReserveScreenEdge: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 113
+        Top = 120
         Width = 122
         Caption = 'Reserve screen edge'
         OnClick = chbReserveScreenEdgeClick
         TabOrder = 2
       end
       object chbTaskbar: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 233
+        Top = 240
         Width = 204
         Caption = 'Show icons for running tasks (taskbar)'
         OnClick = chbTaskbarClick
         TabOrder = 5
       end
       object tbReserveScreenEdgePercent: TTrackBar
-        Left = 16
+        Left = 21
         Height = 31
-        Top = 143
+        Top = 150
         Width = 422
         Frequency = 10
         Max = 200
@@ -166,18 +165,18 @@ object frmsets: Tfrmsets
         TabOrder = 6
       end
       object cbShowHint: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 38
+        Top = 45
         Width = 126
         Caption = 'Show hint (icon name)'
         OnClick = cbShowHintClick
         TabOrder = 7
       end
       object chbHintEffects: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 63
+        Top = 70
         Width = 110
         Caption = 'Enable hint effects'
         OnClick = chbHintEffectsClick
@@ -189,43 +188,43 @@ object frmsets: Tfrmsets
       ClientHeight = 507
       ClientWidth = 462
       object lblCenterOffsetPercent: TLabel
-        Left = 10
-        Height = 14
-        Top = 193
-        Width = 91
+        Left = 15
+        Height = 13
+        Top = 195
+        Width = 90
         Alignment = taCenter
         Caption = 'Offset from center'
         ParentColor = False
       end
       object lblEdge: TLabel
-        Left = 10
-        Height = 14
-        Top = 73
-        Width = 73
+        Left = 15
+        Height = 13
+        Top = 75
+        Width = 72
         Caption = 'Edge of screen'
         ParentColor = False
       end
       object lblMonitor: TLabel
-        Left = 10
-        Height = 14
-        Top = 13
-        Width = 37
+        Left = 15
+        Height = 13
+        Top = 15
+        Width = 36
         Caption = 'Monitor'
         ParentColor = False
       end
       object lblEdgeOffset: TLabel
-        Left = 10
-        Height = 14
-        Top = 253
-        Width = 84
+        Left = 15
+        Height = 13
+        Top = 255
+        Width = 83
         Alignment = taCenter
         Caption = 'Offset from edge'
         ParentColor = False
       end
       object cboBaseSite: TComboBox
-        Left = 25
+        Left = 30
         Height = 21
-        Top = 98
+        Top = 100
         Width = 277
         ItemHeight = 13
         OnChange = cboBaseSiteChange
@@ -233,9 +232,9 @@ object frmsets: Tfrmsets
         TabOrder = 1
       end
       object tbCenterOffsetPercent: TTrackBar
-        Left = 25
+        Left = 30
         Height = 31
-        Top = 213
+        Top = 215
         Width = 362
         Frequency = 5
         Max = 100
@@ -245,9 +244,9 @@ object frmsets: Tfrmsets
         TabOrder = 2
       end
       object cbo_monitor: TComboBox
-        Left = 25
+        Left = 30
         Height = 21
-        Top = 38
+        Top = 40
         Width = 277
         ItemHeight = 13
         OnChange = cbo_monitorChange
@@ -255,9 +254,9 @@ object frmsets: Tfrmsets
         TabOrder = 0
       end
       object tbEdgeOffset: TTrackBar
-        Left = 25
+        Left = 30
         Height = 31
-        Top = 273
+        Top = 275
         Width = 362
         Frequency = 10
         Max = 100
@@ -268,34 +267,34 @@ object frmsets: Tfrmsets
         TabOrder = 3
       end
       object gbAutoSlide: TGroupBox
-        Left = 10
+        Left = 15
         Height = 131
-        Top = 343
-        Width = 440
+        Top = 345
+        Width = 430
         ClientHeight = 113
-        ClientWidth = 436
+        ClientWidth = 426
         TabOrder = 5
         object lblHideDelay: TLabel
           Left = 13
-          Height = 14
+          Height = 13
           Top = 84
-          Width = 192
+          Width = 191
           Caption = 'Delay before hide down (in milliseconds)'
           ParentColor = False
         end
         object lblVisiblePart: TLabel
           Left = 13
-          Height = 14
+          Height = 13
           Top = 34
-          Width = 115
+          Width = 114
           Caption = 'Visible part size in pixels'
           ParentColor = False
         end
         object lblShowDelay: TLabel
           Left = 13
-          Height = 14
+          Height = 13
           Top = 59
-          Width = 183
+          Width = 182
           Caption = 'Delay before show up (in milliseconds)'
           ParentColor = False
         end
@@ -309,7 +308,7 @@ object frmsets: Tfrmsets
           TabOrder = 0
         end
         object edRolledVisiblePixels: TEdit
-          Left = 333
+          Left = 320
           Height = 21
           Top = 29
           Width = 91
@@ -317,7 +316,7 @@ object frmsets: Tfrmsets
           TabOrder = 1
         end
         object edAutoHideTime: TEdit
-          Left = 333
+          Left = 320
           Height = 21
           Top = 79
           Width = 91
@@ -325,7 +324,7 @@ object frmsets: Tfrmsets
           TabOrder = 3
         end
         object edAutoShowTime: TEdit
-          Left = 333
+          Left = 320
           Height = 21
           Top = 54
           Width = 91
@@ -334,18 +333,18 @@ object frmsets: Tfrmsets
         end
       end
       object cbStayOnTop: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 318
+        Top = 320
         Width = 162
         Caption = 'Stay on top of other windows'
         OnClick = cbStayOnTopClick
         TabOrder = 4
       end
       object stMoveDockHint: TStaticText
-        Left = 10
+        Left = 15
         Height = 50
-        Top = 133
+        Top = 135
         Width = 377
         Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
         Color = clDefault
@@ -359,9 +358,9 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       ImageIndex = 8
       object cbThemeName: TComboBox
-        Left = 11
+        Left = 15
         Height = 21
-        Top = 18
+        Top = 20
         Width = 395
         DropDownCount = 30
         ItemHeight = 13
@@ -372,33 +371,33 @@ object frmsets: Tfrmsets
       object btnLayersEditor: TBitBtn
         Left = 415
         Height = 21
-        Top = 18
+        Top = 20
         Width = 31
         Caption = '...'
         OnClick = btnLayersEditorClick
         TabOrder = 1
       end
       object chbBlur: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 53
+        Top = 55
         Width = 106
         Caption = 'Enable Aero Glass'
         OnClick = chbBlurClick
         TabOrder = 2
       end
       object lblBackgroundTransparency: TLabel
-        Left = 10
-        Height = 14
-        Top = 88
-        Width = 99
+        Left = 15
+        Height = 13
+        Top = 95
+        Width = 98
         Caption = 'Background opacity:'
         ParentColor = False
       end
       object tbBaseAlpha: TTrackBar
-        Left = 10
+        Left = 15
         Height = 30
-        Top = 108
+        Top = 115
         Width = 435
         Frequency = 20
         Max = 255
@@ -409,19 +408,19 @@ object frmsets: Tfrmsets
         TabOrder = 3
       end
       object btnSelectHintFont: TBitBtn
-        Left = 10
+        Left = 15
         Height = 30
-        Top = 158
-        Width = 436
+        Top = 160
+        Width = 431
         Caption = 'Select hint font'
         OnClick = btnSelectHintFontClick
         TabOrder = 4
       end
       object btnSelectStackFont: TBitBtn
-        Left = 11
+        Left = 15
         Height = 30
-        Top = 198
-        Width = 436
+        Top = 200
+        Width = 431
         Caption = 'Select stack hint font'
         OnClick = btnSelectStackFontClick
         TabOrder = 5
@@ -433,34 +432,34 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       ImageIndex = 8
       object lblZoomWideness: TLabel
-        Left = 10
-        Height = 14
-        Top = 350
-        Width = 56
+        Left = 15
+        Height = 13
+        Top = 357
+        Width = 55
         Caption = 'Zoom width'
         ParentColor = False
       end
       object lblIconSize: TLabel
-        Left = 10
-        Height = 14
-        Top = 185
-        Width = 43
+        Left = 15
+        Height = 13
+        Top = 192
+        Width = 42
         Caption = 'Icon size'
         ParentColor = False
       end
       object lblZoomedIconSize: TLabel
-        Left = 10
-        Height = 14
-        Top = 240
-        Width = 82
+        Left = 15
+        Height = 13
+        Top = 247
+        Width = 81
         Caption = 'Zoomed icon size'
         ParentColor = False
       end
       object lblActivateRunningProgramTip: TLabel
-        Left = 10
-        Height = 14
-        Top = 90
-        Width = 185
+        Left = 15
+        Height = 13
+        Top = 97
+        Width = 184
         Caption = '<Ctrl + Click> to run program anyway'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -471,54 +470,54 @@ object frmsets: Tfrmsets
         WordWrap = True
       end
       object cbZoomItems: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 153
+        Top = 160
         Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnClick = cbZoomItemsClick
         TabOrder = 0
       end
       object chb_reflection: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 13
+        Top = 20
         Width = 121
         Caption = 'Show icon reflections'
         OnClick = chb_reflectionClick
         TabOrder = 1
       end
       object chb_show_running_indicator: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 38
+        Top = 45
         Width = 194
         Caption = 'Show indicator for running programs'
         OnClick = chb_show_running_indicatorClick
         TabOrder = 2
       end
       object chb_activate_running: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 63
+        Top = 70
         Width = 190
         Caption = 'Activate program if already running'
         OnClick = chb_activate_runningClick
         TabOrder = 3
       end
       object chb_use_shell_context_menus: TCheckBox
-        Left = 10
+        Left = 15
         Height = 19
-        Top = 115
+        Top = 122
         Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnClick = chb_use_shell_context_menusClick
         TabOrder = 4
       end
       object cboItemAnimationType: TComboBox
-        Left = 36
+        Left = 41
         Height = 21
-        Top = 430
+        Top = 437
         Width = 400
         DropDownCount = 10
         ItemHeight = 13
@@ -527,17 +526,17 @@ object frmsets: Tfrmsets
         TabOrder = 8
       end
       object lblAnimateIcons: TLabel
-        Left = 10
-        Height = 14
-        Top = 410
-        Width = 71
+        Left = 15
+        Height = 13
+        Top = 417
+        Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
       end
       object tbIconSize: TTrackBar
-        Left = 25
+        Left = 30
         Height = 30
-        Top = 205
+        Top = 212
         Width = 421
         Frequency = 8
         Max = 128
@@ -548,9 +547,9 @@ object frmsets: Tfrmsets
         TabOrder = 5
       end
       object tbBigIconSize: TTrackBar
-        Left = 25
+        Left = 30
         Height = 30
-        Top = 260
+        Top = 267
         Width = 421
         Frequency = 16
         Max = 256
@@ -561,9 +560,9 @@ object frmsets: Tfrmsets
         TabOrder = 6
       end
       object tbZoomWidth: TTrackBar
-        Left = 25
+        Left = 30
         Height = 30
-        Top = 370
+        Top = 377
         Width = 106
         Max = 5
         Min = 2
@@ -573,17 +572,17 @@ object frmsets: Tfrmsets
         TabOrder = 7
       end
       object lblIconSpacing: TLabel
-        Left = 10
-        Height = 14
-        Top = 295
-        Width = 61
+        Left = 15
+        Height = 13
+        Top = 302
+        Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
       end
       object tbIconSpacing: TTrackBar
-        Left = 25
+        Left = 30
         Height = 30
-        Top = 315
+        Top = 322
         Width = 206
         Max = 20
         OnChange = tbIconSpacingChange
@@ -603,18 +602,18 @@ object frmsets: Tfrmsets
       ImageIndex = 2
       ParentFont = False
       object lblLaunchInterval: TLabel
-        Left = 10
-        Height = 14
-        Top = 13
-        Width = 307
+        Left = 15
+        Height = 13
+        Top = 20
+        Width = 306
         Caption = 'Minimum time before the next run of the program (milliseconds):'
         ParentColor = False
       end
       object lblLaunchIntervalTip: TLabel
-        Left = 10
-        Height = 14
-        Top = 31
-        Width = 255
+        Left = 15
+        Height = 13
+        Top = 38
+        Width = 254
         Caption = 'Prevents accidental run of multiple copies of program'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -625,43 +624,43 @@ object frmsets: Tfrmsets
         WordWrap = True
       end
       object edLaunchInterval: TEdit
-        Left = 11
+        Left = 15
         Height = 21
-        Top = 51
+        Top = 60
         Width = 96
         OnChange = edLaunchIntervalChange
         TabOrder = 0
       end
       object cbUseShell: TCheckBox
-        Left = 11
+        Left = 15
         Height = 19
-        Top = 88
+        Top = 100
         Width = 249
         Caption = 'Use this shell to open local and network folders:'
         OnClick = cbUseShellClick
         TabOrder = 1
       end
       object edShell: TEdit
-        Left = 10
+        Left = 15
         Height = 21
-        Top = 113
-        Width = 412
+        Top = 125
+        Width = 400
         OnChange = edShellChange
         TabOrder = 2
       end
       object btnBrowseShell: TButton
-        Left = 427
+        Left = 420
         Height = 21
-        Top = 113
+        Top = 125
         Width = 26
         Caption = '...'
         OnClick = btnBrowseShellClick
         TabOrder = 3
       end
       object btnDebug: TButton
-        Left = 10
+        Left = 15
         Height = 25
-        Top = 476
+        Top = 470
         Width = 176
         Caption = 'Debug info'
         OnClick = btnDebugClick
@@ -674,10 +673,10 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       ImageIndex = 5
       object btnAutoRunAdd: TSpeedButton
-        Left = 10
+        Left = 15
         Height = 30
         Hint = 'Add'
-        Top = 13
+        Top = 15
         Width = 166
         Caption = 'Add program'
         Glyph.Data = {
@@ -716,14 +715,13 @@ object frmsets: Tfrmsets
           FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
           FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
         }
-        NumGlyphs = 0
         OnClick = btnAutoRunAddClick
       end
       object memAutorun: TMemo
-        Left = 10
-        Height = 442
+        Left = 15
+        Height = 437
         Top = 56
-        Width = 441
+        Width = 431
         OnChange = memAutorunChange
         TabOrder = 0
       end
@@ -826,7 +824,7 @@ object frmsets: Tfrmsets
     end
   end
   object btn_ok: TBitBtn
-    Left = 325
+    Left = 350
     Height = 26
     Top = 540
     Width = 111
@@ -835,7 +833,7 @@ object frmsets: Tfrmsets
     TabOrder = 2
   end
   object btn_cancel: TBitBtn
-    Left = 445
+    Left = 470
     Height = 26
     Top = 540
     Width = 111
@@ -844,10 +842,10 @@ object frmsets: Tfrmsets
     TabOrder = 3
   end
   object lv: TListView
-    Left = 12
+    Left = 20
     Height = 510
     Top = 20
-    Width = 75
+    Width = 80
     BorderStyle = bsNone
     Columns = <    
       item
