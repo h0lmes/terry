@@ -78,7 +78,7 @@ type
     procedure MakeDefaultTheme;
     procedure CheckExtractFileFromResource(ResourceName: PChar; Filename: string);
     procedure ExtractFileFromResource(ResourceName: PChar; Filename: string);
-    procedure SearchThemes(ThemeName: string; cb: TComboBox);
+    procedure SearchThemes(ThemeName: string; lb: TListBox);
   end;
 
 var
@@ -602,7 +602,7 @@ begin
   fs.Free;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SearchThemes(ThemeName: string; cb: TComboBox);
+procedure _Theme.SearchThemes(ThemeName: string; lb: TListBox);
 var
   ThemesDir: string;
   fhandle: HANDLE;
@@ -610,27 +610,27 @@ var
   i: integer;
 begin
   ThemesDir := toolu.UnzipPath('%pp%\themes\');
-  cb.items.BeginUpdate;
-  cb.items.Clear;
+  lb.items.BeginUpdate;
+  lb.items.Clear;
   ThemesDir := IncludeTrailingPathDelimiter(ThemesDir);
 
   fhandle := FindFirstFile(PChar(ThemesDir + '*.*'), f);
   if not (fhandle = HANDLE(-1)) then
-    if ((f.dwFileAttributes and 16) = 16) then cb.items.add(AnsiToUTF8(f.cFileName));
+    if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
   while FindNextFile(fhandle, f) do
-    if ((f.dwFileAttributes and 16) = 16) then cb.items.add(AnsiToUTF8(f.cFileName));
+    if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
   if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
 
   i := 0;
-  while i < cb.items.Count do
-    if (cb.items.strings[i] = '.') or (cb.items.strings[i] = '..') or
-      not FileExists(ThemesDir + UTF8ToAnsi(cb.items.strings[i]) + '\background.ini') then
-      cb.items.Delete(i)
+  while i < lb.items.Count do
+    if (lb.items.strings[i] = '.') or (lb.items.strings[i] = '..') or
+      not FileExists(ThemesDir + UTF8ToAnsi(lb.items.strings[i]) + '\background.ini') then
+      lb.items.Delete(i)
     else
       Inc(i);
 
-  cb.ItemIndex := cb.items.indexof(AnsiToUTF8(ThemeName));
-  cb.items.EndUpdate;
+  lb.ItemIndex := lb.items.indexof(AnsiToUTF8(ThemeName));
+  lb.items.EndUpdate;
 end;
 //------------------------------------------------------------------------------
 destructor _Theme.Destroy;

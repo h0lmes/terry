@@ -22,6 +22,7 @@ type
     btnCancel: TButton;
     btnParams: TButton;
     btnSelectColor: TButton;
+    btnProperties: TButton;
     cboWindow: TComboBox;
     chbHide: TCheckBox;
     edCaption: TEdit;
@@ -51,6 +52,7 @@ type
     tbSat: TTrackBar;
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
+    procedure btnPropertiesClick(Sender: TObject);
     procedure cboWindowChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
@@ -226,6 +228,11 @@ end;
 procedure TfrmItemProp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   SetActiveWindow(frmterry.handle);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.btnPropertiesClick(Sender: TObject);
+begin
+  pages.ActivePageIndex := 0;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnFileClick(Sender: TObject);

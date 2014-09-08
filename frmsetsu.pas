@@ -12,6 +12,7 @@ type
   { Tfrmsets }
 
   Tfrmsets = class(TForm)
+    btnAutoRunAdd: TSpeedButton;
     btnDebug: TButton;
     btnRunNow: TButton;
     btnSelectHintFont: TBitBtn;
@@ -22,6 +23,7 @@ type
     chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
     chbTaskbar: TCheckBox;
+    gbAutostart: TGroupBox;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
     lblIconSpacing: TLabel;
@@ -34,9 +36,9 @@ type
     lblCredits3: TLabel;
     lblCredits4: TLabel;
     lblCredits5: TLabel;
+    lbTheme: TListBox;
     memAutorun: TMemo;
     pages: TPageControl;
-    btnAutoRunAdd: TSpeedButton;
     btnAutoRunDel: TSpeedButton;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
@@ -49,7 +51,6 @@ type
     tsGeneral: TTabSheet;
     tsSystem: TTabSheet;
     tsAbout: TTabSheet;
-    tsAutoStart: TTabSheet;
     lblName: TLabel;
     lblCommand: TLabel;
     lblParams: TLabel;
@@ -81,7 +82,6 @@ type
     chbAutoHideOnFullScreenApp: TCheckBox;
     lblMonitor: TLabel;
     cbo_monitor: TComboBox;
-    cbThemeName: TComboBox;
     btnLayersEditor: TBitBtn;
     lblZoomedIconSize: TLabel;
     lblEdgeOffset: TLabel;
@@ -119,6 +119,7 @@ type
     procedure chb_reflectionClick(Sender: TObject);
     procedure chb_show_running_indicatorClick(Sender: TObject);
     procedure chb_activate_runningClick(Sender: TObject);
+    procedure lbThemeSelectionChange(Sender: TObject; User: boolean);
     procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure tbBaseAlphaChange(Sender: TObject);
@@ -133,7 +134,6 @@ type
     procedure cbUseShellClick(Sender: TObject);
     procedure edShellChange(Sender: TObject);
     procedure btnBrowseShellClick(Sender: TObject);
-    procedure cbThemeNameChange(Sender: TObject);
     procedure cbautorunClick(Sender: TObject);
     procedure cbZoomItemsClick(Sender: TObject);
     procedure edRolledVisiblePixelsChange(Sender: TObject);
@@ -230,8 +230,7 @@ begin
   lv.Items[2].Caption := XPageStyle;
   lv.Items[3].Caption := XPageIcons;
   lv.Items[4].Caption := XPageMisc;
-  lv.Items[5].Caption := XPageAutorun;
-  lv.Items[6].Caption := XPageAbout;
+  lv.Items[5].Caption := XPageAbout;
 
   cboBaseSite.Items.Add(XSiteLeft);
   cboBaseSite.Items.Add(XSiteTop);
@@ -327,9 +326,9 @@ begin
   // тема
   //
 
-  cbThemeName.OnChange := nil;
-  theme.SearchThemes(sets.container.ThemeName, cbThemeName);
-  cbThemeName.OnChange := cbThemeNameChange;
+  lbTheme.OnSelectionChange := nil;
+  theme.SearchThemes(sets.container.ThemeName, lbTheme);
+  lbTheme.OnSelectionChange := lbThemeSelectionChange;
   chbBlur.Enabled := dwm.CompositingEnabled;
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
@@ -582,12 +581,13 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbThemeNameChange(Sender: TObject);
+procedure Tfrmsets.lbThemeSelectionChange(Sender: TObject; User: boolean);
 begin
   try
-    theme.setTheme(UTF8ToAnsi(cbThemeName.Text));
+    if lbTheme.ItemIndex > -1 then
+       theme.setTheme(UTF8ToAnsi(lbTheme.Items[lbTheme.ItemIndex]));
   except
-    on e: Exception do frmterry.err('Sets.ThemeNameChange', e);
+    on e: Exception do frmterry.err('Sets.ThemeSelectionChange', e);
   end;
 end;
 //------------------------------------------------------------------------------

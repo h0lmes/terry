@@ -552,6 +552,10 @@ msgctxt "TFRMITEMPROP.BTNPARAMS.CAPTION"
 msgid "..."
 msgstr ""
 
+#: tfrmitemprop.btnproperties.caption
+msgid "Back to properties"
+msgstr ""
+
 #: tfrmitemprop.btnselectcolor.caption
 msgctxt "TFRMITEMPROP.BTNSELECTCOLOR.CAPTION"
 msgid "Select color"
@@ -791,6 +795,10 @@ msgstr ""
 msgid "Show Windows Explorer context menus for programs"
 msgstr ""
 
+#: tfrmsets.gbautostart.caption
+msgid "  Autostart  "
+msgstr ""
+
 #: tfrmsets.label6.caption
 msgid "Hotkey to completely hide panel:"
 msgstr ""
@@ -917,11 +925,6 @@ msgstr ""
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
 msgid "About"
-msgstr ""
-
-#: tfrmsets.tsautostart.caption
-msgctxt "TFRMSETS.TSAUTOSTART.CAPTION"
-msgid "Autorun"
 msgstr ""
 
 #: tfrmsets.tsgeneral.caption
