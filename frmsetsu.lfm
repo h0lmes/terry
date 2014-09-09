@@ -1,13 +1,13 @@
 object frmsets: Tfrmsets
   Left = 511
-  Height = 560
+  Height = 561
   Top = 161
-  Width = 600
+  Width = 588
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Settings'
-  ClientHeight = 560
-  ClientWidth = 600
+  ClientHeight = 561
+  ClientWidth = 588
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.0.10.0'
   object pages: TPageControl
-    Left = 115
+    Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -34,9 +34,9 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       object lblMouseOverTip: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 210
-        Width = 343
+        Width = 344
         Caption = 'Move mouse pointer to the edge of screen to bring panel to foreground'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -117,9 +117,9 @@ object frmsets: Tfrmsets
         end
         object Label6: TLabel
           Left = 10
-          Height = 13
+          Height = 14
           Top = 4
-          Width = 157
+          Width = 158
           Caption = 'Hotkey to completely hide panel:'
           ParentColor = False
         end
@@ -429,33 +429,33 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       object lblZoomWideness: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 352
-        Width = 55
+        Width = 56
         Caption = 'Zoom width'
         ParentColor = False
       end
       object lblIconSize: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 187
-        Width = 42
+        Width = 43
         Caption = 'Icon size'
         ParentColor = False
       end
       object lblZoomedIconSize: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 242
-        Width = 81
-        Caption = 'Zoomed icon size'
+        Width = 66
+        Caption = 'Icon size max'
         ParentColor = False
       end
       object lblActivateRunningProgramTip: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 92
-        Width = 184
+        Width = 185
         Caption = '<Ctrl + Click> to run program anyway'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -523,9 +523,9 @@ object frmsets: Tfrmsets
       end
       object lblAnimateIcons: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 412
-        Width = 70
+        Width = 71
         Caption = 'Animate icons:'
         ParentColor = False
       end
@@ -569,9 +569,9 @@ object frmsets: Tfrmsets
       end
       object lblIconSpacing: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 297
-        Width = 60
+        Width = 61
         Caption = 'Icon spacing'
         ParentColor = False
       end
@@ -579,7 +579,8 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 317
-        Width = 206
+        Width = 291
+        Frequency = 2
         Max = 20
         OnChange = tbIconSpacingChange
         Position = 0
@@ -713,6 +714,7 @@ object frmsets: Tfrmsets
             FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
             FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
           }
+          NumGlyphs = 0
           OnClick = btnAutoRunAddClick
         end
         object memAutorun: TMemo
@@ -822,7 +824,7 @@ object frmsets: Tfrmsets
     end
   end
   object btn_ok: TBitBtn
-    Left = 350
+    Left = 335
     Height = 26
     Top = 525
     Width = 111
@@ -831,7 +833,7 @@ object frmsets: Tfrmsets
     TabOrder = 2
   end
   object btn_cancel: TBitBtn
-    Left = 470
+    Left = 455
     Height = 26
     Top = 525
     Width = 111
@@ -840,7 +842,7 @@ object frmsets: Tfrmsets
     TabOrder = 3
   end
   object lv: TListView
-    Left = 20
+    Left = 15
     Height = 450
     Top = 25
     Width = 80

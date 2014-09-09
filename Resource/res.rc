@@ -1,6 +1,5 @@
 DEFAULT_ICON RCDATA "default.png"
 DEFAULT_BACKGROUND RCDATA "background.png"
-DEFAULT_SEPARATOR RCDATA "separator.png"
 DEFAULT_INDICATOR RCDATA "indicator.png"
 DEFAULT_DROPINDICATOR_ADD RCDATA "dropindicator_add.png"
 DEFAULT_DROPINDICATOR_RUN RCDATA "dropindicator_run.png"

@@ -293,6 +293,7 @@ begin
       gpMonitor:
         begin
           Monitor := value;
+          MonitorRect := frmterry.GetMonitorBoundsRect;
           ItemsChanged(true);
         end;
       gpLockMouseEffect: LockMouseEffect := value <> 0;

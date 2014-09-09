@@ -95,7 +95,6 @@ begin
 
   CheckExtractFileFromResource('DEFAULT_ICON', UnzipPath('%pp%\default.png'));
   CheckExtractFileFromResource('DEFAULT_BACKGROUND', UnzipPath('%pp%\themes\background.png'));
-  CheckExtractFileFromResource('DEFAULT_SEPARATOR', UnzipPath('%pp%\themes\separator.png'));
   CheckExtractFileFromResource('DEFAULT_INDICATOR', UnzipPath('%pp%\themes\indicator.png'));
   CheckExtractFileFromResource('DEFAULT_DROPINDICATOR_ADD', UnzipPath('%pp%\themes\dropindicator_add.png'));
   CheckExtractFileFromResource('DEFAULT_DROPINDICATOR_RUN', UnzipPath('%pp%\themes\dropindicator_run.png'));
@@ -367,7 +366,6 @@ begin
     try
       if FileExists(Path + Separator.ImageFile) then
         GdipLoadImageFromFile(PWideChar(WideString(Path + Separator.ImageFile)), Separator.Image);
-      { no default image. maybe it should be }
       if Separator.Image <> nil then
       begin
         ImageAdjustRotate(Separator.Image);

@@ -695,37 +695,40 @@ var
   OnGetInformation: _OnGetInformation;
   szName, szAuthor, szNotes: array [0..255] of char;
   lpiVersion: integer;
-  info: string;
+  cdir: string;
 begin
-  if not assigned(PluginsList) then PluginsList:= TStringList.Create;
-  if not assigned(PluginFilesList) then PluginFilesList:= TStringList.Create;
+  try
+    cdir := GetCurrentDir;
+    if not assigned(PluginsList) then PluginsList:= TStringList.Create;
+    if not assigned(PluginFilesList) then PluginFilesList:= TStringList.Create;
 
-  PluginsList.clear;
-  PluginFilesList.clear;
-  AddLog('Sets.ScanPlugins.SearchFilesRecurse');
-  toolu.SearchFilesRecurse(PluginsPath, '*.dll', PluginFilesList);
+    PluginsList.clear;
+    PluginFilesList.clear;
+    AddLog('Sets.ScanPlugins.SearchFilesRecurse');
+    toolu.SearchFilesRecurse(PluginsPath, '*.dll', PluginFilesList);
 
-  AddLog('Sets.ScanPlugins.CycleGetInfo');
-  i:= 0;
-  while i < PluginFilesList.Count do
-  begin
-    SetCurrentDir(ExtractFilePath(PluginFilesList.strings[i]));
-    hLib:= LoadLibrary(pansichar(PluginFilesList.strings[i]));
-    if hLib < 33 then PluginFilesList.Delete(i)
-    else begin
-      @OnGetInformation:= GetProcAddress(hLib, 'OnGetInformation');
-      if not assigned(OnGetInformation) then PluginFilesList.Delete(i)
+    AddLog('Sets.ScanPlugins.CycleGetInfo');
+    i := 0;
+    while i < PluginFilesList.Count do
+    begin
+      SetCurrentDir(ExtractFilePath(PluginFilesList.strings[i]));
+      hLib := LoadLibrary(pansichar(PluginFilesList.strings[i]));
+      if hLib < 33 then PluginFilesList.Delete(i)
       else begin
-        try OnGetInformation(@szName, @szAuthor, @lpiVersion, @szNotes);
-        except end;
-        info := strpas(@szName); //+ ' v' + inttostr(lpiVersion div 100) + '.';
-        //if lpiVersion mod 100 < 10 then info := info + '0';
-        //info := info + inttostr(lpiVersion mod 100);
-        PluginsList.add(info);
-        inc(i);
+        @OnGetInformation := GetProcAddress(hLib, 'OnGetInformation');
+        if not assigned(OnGetInformation) then PluginFilesList.Delete(i)
+        else
+        begin
+          try OnGetInformation(@szName, @szAuthor, @lpiVersion, @szNotes);
+          except end;
+          PluginsList.add(strpas(@szName));
+          inc(i);
+        end;
+        FreeLibrary(hLib);
       end;
-      FreeLibrary(hLib);
     end;
+  finally
+    if cdir <> '' then SetCurrentDir(cdir);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -736,39 +739,45 @@ var
   szName, szAuthor, szNotes: array [0..255] of char;
   lpiVersion: integer;
   ver: string;
+  cdir: string;
 begin
-  mem.clear;
+  try
+    mem.clear;
 
-  SetCurrentDir(ExtractFilePath(PluginFilesList.strings[Index]));
-  hLib:= LoadLibrary(pansichar(PluginFilesList.strings[Index]));
-  if hLib < 33 then
-  begin
-    mem.text:= 'Error loading plugin';
-    exit;
-  end;
-
-  @OnGetInformation:= GetProcAddress(hLib, 'OnGetInformation');
-  if assigned(OnGetInformation) then
-  begin
-    try OnGetInformation(@szName[0], @szAuthor[0], @lpiVersion, @szNotes[0]);
-    except
-      begin
-        FreeLibrary(hLib);
-        messagebox(application.mainform.handle, 'Error trying to get information', 'Terry', mb_iconerror);
-        exit;
-      end;
+    cdir := GetCurrentDir;
+    SetCurrentDir(ExtractFilePath(PluginFilesList.strings[Index]));
+    hLib := LoadLibrary(pansichar(PluginFilesList.strings[Index]));
+    if hLib < 33 then
+    begin
+      mem.text:= 'Error loading plugin';
+      exit;
     end;
-    mem.lines.add(strpas(@szNotes[0]));
-    mem.lines.add('');
-    mem.lines.add('Author: ' + strpas(@szAuthor[0]));
-    mem.lines.add('');
-    ver:= 'v' + inttostr(lpiVersion div 100) + '.';
-    if lpiVersion mod 100 < 10 then ver:= ver + '0';
-    ver:= ver + inttostr(lpiVersion mod 100);
-    mem.lines.add(ver);
-  end else
-    mem.text:= 'Unknown plugin format';
-  FreeLibrary(hLib);
+
+    @OnGetInformation:= GetProcAddress(hLib, 'OnGetInformation');
+    if assigned(OnGetInformation) then
+    begin
+      try OnGetInformation(@szName[0], @szAuthor[0], @lpiVersion, @szNotes[0]);
+      except
+        begin
+          FreeLibrary(hLib);
+          messagebox(application.mainform.handle, 'Error trying to get information', 'Terry', mb_iconerror);
+          exit;
+        end;
+      end;
+      mem.lines.add(strpas(@szNotes[0]));
+      mem.lines.add('');
+      mem.lines.add('Author: ' + strpas(@szAuthor[0]));
+      mem.lines.add('');
+      ver := 'v' + inttostr(lpiVersion div 100) + '.';
+      if lpiVersion mod 100 < 10 then ver:= ver + '0';
+      ver := ver + inttostr(lpiVersion mod 100);
+      mem.lines.add(ver);
+    end else
+      mem.text := 'Unknown plugin format';
+    FreeLibrary(hLib);
+  finally
+    if cdir <> '' then SetCurrentDir(cdir);
+  end;
 end;
 //------------------------------------------------------------------------------
 end.

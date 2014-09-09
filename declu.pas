@@ -230,7 +230,7 @@ resourcestring
   XLabelCenterOffset = 'Offset from center: %d %%';
   XLabelEdgeOffset = 'Offset from edge: %d pt';
   XLabelIconSize = 'Icon size: %d pt';
-  XLabelZoomedIconSize = 'Zoomed icon size: %d pt';
+  XLabelZoomedIconSize = 'Icon size max: %d pt';
   XLabelIconSpacing = 'Icon spacing: %d pt';
   XLabelZoomWidth = 'Zoom width: %d';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';

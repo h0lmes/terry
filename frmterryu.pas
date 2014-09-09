@@ -759,9 +759,9 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.OnTimer;
 begin
+  if assigned(sets) then sets.Timer;
   if IsWindowVisible(Handle) then
   begin
-    if assigned(sets) then sets.Timer;
     if assigned(ItemMgr) then ItemMgr.Timer;
     if assigned(Tray) then Tray.Timer;
   end;
@@ -1394,7 +1394,7 @@ begin
   Value := sets.StoreParam(id, Value);
 
   case id of
-    gpMonitor: BaseCmd(tcThemeChanged, 0);
+    //gpMonitor: BaseCmd(tcThemeChanged, 0);
     gpSite: if assigned(theme) then theme.ReloadGraphics;
     gpCenterOffsetPercent: ItemMgr.ItemsChanged;
     gpEdgeOffset: ItemMgr.ItemsChanged;

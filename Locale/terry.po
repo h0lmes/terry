@@ -172,7 +172,7 @@ msgstr ""
 
 #: declu.xlabelzoomediconsize
 msgctxt "declu.xlabelzoomediconsize"
-msgid "Zoomed icon size: %d pt"
+msgid "Icon size max: %d pt"
 msgstr ""
 
 #: declu.xlabelzoomwidth
@@ -911,7 +911,7 @@ msgid "Visible part size in pixels"
 msgstr ""
 
 #: tfrmsets.lblzoomediconsize.caption
-msgid "Zoomed icon size"
+msgid "Icon size max"
 msgstr ""
 
 #: tfrmsets.lblzoomwideness.caption
