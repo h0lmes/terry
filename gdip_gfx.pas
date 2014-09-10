@@ -21,6 +21,13 @@ const
   ULW_ALPHA    = 2;
   ULW_OPAQUE   = 4;
 
+  SHIL_LARGE      = $00;  //The image size is normally 32x32 pixels. However, if the Use large icons option is selected from the Effects section of the Appearance tab in Display Properties, the image is 48x48 pixels.
+  SHIL_SMALL      = $01;  //These images are the Shell standard small icon size of 16x16, but the size can be customized by the user.
+  SHIL_EXTRALARGE = $02;  //These images are the Shell standard extra-large icon size. This is typically 48x48, but the size can be customized by the user.
+  SHIL_SYSSMALL   = $03;  //These images are the size specified by GetSystemMetrics called with SM_CXSMICON and GetSystemMetrics called with SM_CYSMICON.
+  SHIL_JUMBO      = $04;  //Windows Vista and later. The image is normally 256x256 pixels.
+  IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
+
 type
   TRGBAData = array [0..3] of Byte;
   PRGBAData = ^TRGBAData;
@@ -765,10 +772,22 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
+function GetIconFromFileSH(aFile: string; SHIL_FLAG: cardinal): HICON;
+var
+  aImgList    : HIMAGELIST;
+  SFI         : TSHFileInfo;
+begin
+  result := 0;
+  SHGetFileInfo(PChar(aFile), FILE_ATTRIBUTE_NORMAL, SFI, SizeOf(TSHFileInfo), SHGFI_USEFILEATTRIBUTES or SHGFI_SYSICONINDEX);
+  SHGetImageList(SHIL_FLAG, IID_IImageList, Pointer(aImgList));
+  result := ImageList_GetIcon(aImgList, sfi.iIcon, ILD_TRANSPARENT);
+end;
+//--------------------------------------------------------------------------------------------------
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   idx: word;
   icoIndex: uint;
+  ico: HICON;
   ext: string;
   fstream: TFileStream;
   stream: IStream;
@@ -799,8 +818,9 @@ begin
         GdipLoadImageFromFile(PWideChar(WideString(cut(imagefile, ','))), image);
       end
       else begin
-        icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(cut(imagefile, ',')), @idx);
-        image := IconToGdipBitmap(icoIndex);
+        //icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(cut(imagefile, ',')), @idx);
+        ico := GetIconFromFileSH(imagefile, SHIL_JUMBO);
+        image := IconToGdipBitmap(ico);
         DeleteObject(icoIndex);
       end;
     end;
