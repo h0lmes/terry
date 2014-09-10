@@ -15,6 +15,10 @@ msgctxt "declu.xaddicon"
 msgid "Add ..."
 msgstr "Создать ..."
 
+#: declu.xall
+msgid "All"
+msgstr "Все"
+
 #: declu.xanimationbounce3times
 msgid "Bounce 3 times"
 msgstr "Подпрыгивание 3 раза"
@@ -203,6 +207,11 @@ msgstr "Ширина увеличения: %d"
 msgctxt "declu.xlockdragging"
 msgid "Lock dragging"
 msgstr "Запретить перетаскивание"
+
+#: declu.xmonitor
+msgctxt "declu.xmonitor"
+msgid "Monitor"
+msgstr "Монитор"
 
 #: declu.xmsgaddmoreprograms
 msgid "Would you like to add shortcuts for installed applications now?"

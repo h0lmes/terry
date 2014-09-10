@@ -6,6 +6,10 @@ msgctxt "declu.xaddicon"
 msgid "Add ..."
 msgstr ""
 
+#: declu.xall
+msgid "All"
+msgstr ""
+
 #: declu.xanimationbounce3times
 msgid "Bounce 3 times"
 msgstr ""
@@ -183,6 +187,11 @@ msgstr ""
 #: declu.xlockdragging
 msgctxt "declu.xlockdragging"
 msgid "Lock dragging"
+msgstr ""
+
+#: declu.xmonitor
+msgctxt "declu.xmonitor"
+msgid "Monitor"
 msgstr ""
 
 #: declu.xmsgaddmoreprograms

@@ -39,10 +39,11 @@ type
     MoveSpeed: integer;
     // monitor index //
     Monitor: integer;
+    BaseSite: TBaseSite;
+    BaseSiteVertical: boolean;
     // Wnd Item Vars //
     Visible: boolean;
     Enabled: boolean;
-    BaseSite: integer;
     FItemArea: windows.TRect; // updates in SetItems1
     LockMouseEffect: boolean;
     SetsFilename: string;
@@ -93,7 +94,6 @@ type
     procedure command(cmd, params: string);
     function GetRect: windows.TRect;
     function GetZoomEdge: integer;
-    function GetMonitorBoundsRect: Windows.TRect;
 
     // notify about events //
     procedure Timer;
@@ -121,8 +121,6 @@ type
     procedure UnDelete;
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
-    procedure SetItemSize(index, value: integer);
-    procedure ResetItemsSize(update: boolean = true);
     function ZOrder(InsertAfter: uint): uint;
     procedure InsertItem(AData: string);
     function AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
@@ -242,7 +240,6 @@ begin
       gpItemSize:
         begin
           ItemSize := value;
-          ResetItemsSize(false);
           ItemsChanged(true);
         end;
       gpBigItemSize: BigItemSize := value;
@@ -263,7 +260,8 @@ begin
         end;
       gpSite:
         begin
-          BaseSite := value;
+          BaseSite := TBaseSite(value);
+          BaseSiteVertical := (BaseSite = bsLeft) or (BaseSite = bsRight);
           ItemsChanged(true);
         end;
       gpDropDistance: DropDistance := value;
@@ -358,16 +356,11 @@ end;
 function _ItemManager.GetZoomEdge: integer;
 begin
   case BaseSite of
-    0: result := BaseWindowRect.X + x + widthZoomed;
-    1: result := BaseWindowRect.Y + y + heightZoomed;
-    2: result := BaseWindowRect.X + x + width - widthZoomed;
-    3: result := BaseWindowRect.Y + y + height - heightZoomed;
+    bsLeft: result := BaseWindowRect.X + x + widthZoomed;
+    bsTop: result := BaseWindowRect.Y + y + heightZoomed;
+    bsRight: result := BaseWindowRect.X + x + width - widthZoomed;
+    bsBottom: result := BaseWindowRect.Y + y + height - heightZoomed;
   end;
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.GetMonitorBoundsRect: Windows.TRect;
-begin
-  Result := screen.Monitors[Monitor].BoundsRect;
 end;
 //------------------------------------------------------------------------------
 //
@@ -709,31 +702,6 @@ begin
   if (index >= 0) and (index < ItemCount) then result := items[index].h;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.ResetItemsSize(update: boolean = true);
-var
-  i: integer;
-begin
-  if Enabled then
-  try
-    ZoomItemSizeDiff := 0;
-    i := 0;
-    while i < ItemCount do
-    begin
-      items[i].s := ItemSize;
-      inc(i);
-    end;
-    if update then ItemsChanged;
-  except
-    on e: Exception do err('ItemManager.ResetItemsSize', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.SetItemSize(index, value: integer);
-begin
-  if Enabled then
-    if (index >= 0) and (index < ItemCount) then items[index].s := value;
-end;
-//------------------------------------------------------------------------------
 function _ItemManager.ZOrder(InsertAfter: uint): uint;
 var
   i: integer;
@@ -862,11 +830,11 @@ begin
 
   try
     FItemArea := theme.CorrectMargins(theme.ItemsArea);
-    if BaseSite mod 2 = 0 then
+    if BaseSiteVertical then
     begin
-      y := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
+      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
     end else begin
-      x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
+      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
     end;
 
     // zoomed bubble additional size //
@@ -890,25 +858,25 @@ begin
 
       // icon position when not zooming //
       itemPos := i * (ItemSize + ItemSpacing);
-      if BaseSite = 3 then
+      if BaseSite = bsBottom then
       begin
         items[i].y := FItemArea.Top + ItemSize - items[i].s;
         items[i].x := x + itemPos;
       end
       else
-      if BaseSite = 1 then
+      if BaseSite = bsTop then
       begin
         items[i].y := FItemArea.Top;
         items[i].x := x + itemPos;
       end
       else
-      if BaseSite = 0 then
+      if BaseSite = bsLeft then
       begin
         items[i].x := FItemArea.Left;
         items[i].y := y + itemPos;
       end
       else
-      if BaseSite = 2 then
+      if BaseSite = bsRight then
       begin
         items[i].x := FItemArea.Left + ItemSize - items[i].s;
         items[i].y := y + itemPos;
@@ -917,19 +885,19 @@ begin
       // icon position when zooming (icons out of bubble and center bubble icon) //
       if ZoomItemSizeDiff > 0 then
       begin
-        if (BaseSite = 3) or (BaseSite = 1) then
-        begin
-          if i < trunc(ZoomInOutItem) then items[i].xe := items[i].x - offset
-          else if i > trunc(ZoomInOutItem) then items[i].xe := items[i].x + offset
-          else if i = trunc(ZoomInOutItem) then items[i].xe := items[i].x - ZoomItemSizeDiff * frac(ZoomInOutItem);
-          items[i].x := round(items[i].xe);
-        end
-        else
+        if BaseSiteVertical then
         begin
           if i < trunc(ZoomInOutItem) then items[i].ye := items[i].y - offset
           else if i > trunc(ZoomInOutItem) then items[i].ye := items[i].y + offset
           else if i = trunc(ZoomInOutItem) then items[i].ye := items[i].y - ZoomItemSizeDiff * frac(ZoomInOutItem);
           items[i].y := round(items[i].ye);
+        end
+        else
+        begin
+          if i < trunc(ZoomInOutItem) then items[i].xe := items[i].x - offset
+          else if i > trunc(ZoomInOutItem) then items[i].xe := items[i].x + offset
+          else if i = trunc(ZoomInOutItem) then items[i].xe := items[i].x - ZoomItemSizeDiff * frac(ZoomInOutItem);
+          items[i].x := round(items[i].xe);
         end;
       end;
 
@@ -942,32 +910,32 @@ begin
       i := trunc(ZoomInOutItem) - 1;
       while (i > trunc(ZoomInOutItem) - ZoomWidth / 2) and (i >= 0)  do
       begin
-        if (BaseSite = 3) or (BaseSite = 1) then
-        begin
-          items[i].xe := items[i + 1].xe - items[i].se - ItemSpacing;
-          items[i].x := round(items[i].xe);
-        end
-        else
+        if BaseSiteVertical then
         begin
           items[i].ye := items[i + 1].ye - items[i].se - ItemSpacing;
           items[i].y := round(items[i].ye);
+        end
+        else
+        begin
+          items[i].xe := items[i + 1].xe - items[i].se - ItemSpacing;
+          items[i].x := round(items[i].xe);
         end;
         dec(i);
       end;
       i := trunc(ZoomInOutItem) + 1;
       while (i <= trunc(ZoomInOutItem) + ZoomWidth / 2) and (i < ItemCount)  do
       begin
-        if (BaseSite = 3) or (BaseSite = 1) then
-        begin
-          items[i].xe := items[i - 1].xe + items[i - 1].se + ItemSpacing;
-          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := items[i].x + ItemSize - items[i].s
-          else items[i].x := round(items[i].xe);
-        end
-        else
+        if BaseSiteVertical then
         begin
           items[i].ye := items[i - 1].ye + items[i - 1].se + ItemSpacing;
           if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].y := items[i].y + ItemSize - items[i].s
           else items[i].y := round(items[i].ye);
+        end
+        else
+        begin
+          items[i].xe := items[i - 1].xe + items[i - 1].se + ItemSpacing;
+          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := items[i].x + ItemSize - items[i].s
+          else items[i].x := round(items[i].xe);
         end;
         inc(i);
       end;
@@ -980,14 +948,11 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.RecalcDock;
 var
-  vbo: boolean;
   zi_int: integer;
   zi_frac: extended;
 begin
   if Enabled and assigned(theme) then
   try
-    vbo := (BaseSite = 0) or (BaseSite = 2);
-
     // width and height //
     width := 0;
     height := 0;
@@ -996,30 +961,30 @@ begin
     widthOverhead := 0;
     heightOverhead := 0;
     // vertical //
-    if vbo then
+    if BaseSiteVertical then
     begin
       width := ItemSize + FItemArea.Left + FItemArea.Right;
-      widthZoomed := max(width, ifthen(BaseSite = 0, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
+      widthZoomed := max(width, ifthen(BaseSite = bsLeft, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
       widthOverhead := 0;
       if Zooming and DraggingFile then widthOverhead := BigItemSize - ItemSize;
     // horizontal //
     end else begin
       height := ItemSize + FItemArea.Top + FItemArea.Bottom;
-      heightZoomed := max(height, ifthen(BaseSite = 1, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
+      heightZoomed := max(height, ifthen(BaseSite = bsTop, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
       heightOverhead := 0;
       if Zooming and DraggingFile then heightOverhead := BigItemSize - ItemSize;
     end;
 
     // self XY relative to BaseWindowRect //
-    if BaseSite = 0 then x := 0
+    if BaseSite = bsLeft then x := 0
     else
-    if BaseSite = 2 then x := widthOverhead
+    if BaseSite = bsRight then x := widthOverhead
     else
     begin
       if ItemCount = 0 then
       begin
         width := ItemSize + FItemArea.Left + FItemArea.Right;
-        x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+        x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
           - FItemArea.Left + (IASize - width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
       end
       else
@@ -1029,9 +994,9 @@ begin
       end;
     end;
 
-    if BaseSite = 1 then y := 0
+    if BaseSite = bsTop then y := 0
     else
-    if BaseSite = 3 then y := heightOverhead
+    if BaseSite = bsBottom then y := heightOverhead
     else
     begin
       if ItemCount = 0 then
@@ -1056,11 +1021,11 @@ begin
     // main form rect //
     BaseWindowRect.x := MonitorRect.Left;
     BaseWindowRect.y := MonitorRect.Top;
-    if BaseSite = 0 then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = 1 then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = 2 then BaseWindowRect.x := MonitorRect.Right - Width - widthOverhead + sets.wndoffset - sets.container.EdgeOffset
-    else if BaseSite = 3 then BaseWindowRect.y := MonitorRect.Bottom - Height - heightOverhead + sets.wndoffset - sets.container.EdgeOffset;
-    if vbo then
+    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width - widthOverhead + sets.wndoffset - sets.container.EdgeOffset
+    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height - heightOverhead + sets.wndoffset - sets.container.EdgeOffset;
+    if BaseSiteVertical then
     begin
       BaseWindowRect.Width := Width + widthOverhead;
       BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
@@ -1142,7 +1107,7 @@ begin
     icp.LaunchInterval := sets.container.LaunchInterval;
     icp.ActivateRunning := sets.container.ActivateRunning;
     icp.UseShellContextMenus := sets.container.UseShellContextMenus;
-    icp.Site := self.BaseSite;
+    icp.Site := integer(BaseSite);
     icp.Reflection := sets.container.Reflection;
     icp.ReflectionSize := theme.ReflectionSize;
     icp.ShowHint := sets.container.ShowHint;
@@ -1228,7 +1193,7 @@ begin
   try
     cx := pt.x;
     cy := pt.y;
-    if basesite mod 2 = 0 then dec(cy, ItemSize div 2) else dec(cx, ItemSize div 2);
+    if BaseSiteVertical then dec(cy, ItemSize div 2) else dec(cx, ItemSize div 2);
     tmp := ItemFromPoint(cx, cy, DropDistance);
     if tmp = NOT_AN_ITEM then
     begin
@@ -1386,7 +1351,6 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.ItemFromPoint(Ax, Ay, distance: integer): extended;
 var
-  mbr: windows.TRect; // monitor bounds rect
   BasePoint: integer; // left or top of the first item
   rItemArea: windows.TRect;
 begin
@@ -1403,14 +1367,13 @@ begin
 
     // calc position relative to the beginning of the first item //
 
-    mbr := GetMonitorBoundsRect;
-    if (BaseSite = 1) or (BaseSite = 3) then
+    if BaseSiteVertical then
     begin
-      BasePoint := mbr.Left + (mbr.Right - mbr.Left - IASize) * sets.container.CenterOffsetPercent div 100;
-      result := (Ax - BasePoint) / (ItemSize + ItemSpacing);
-    end else begin
-      BasePoint := mbr.Top + (mbr.Bottom - mbr.Top - IASize) * sets.container.CenterOffsetPercent div 100;
+      BasePoint := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
       result := (Ay - BasePoint) / (ItemSize + ItemSpacing);
+    end else begin
+      BasePoint := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
+      result := (Ax - BasePoint) / (ItemSize + ItemSpacing);
     end;
     if result < -1 then result := NOT_AN_ITEM;
     if result >= ItemCount + 1 then result := NOT_AN_ITEM;
@@ -1418,12 +1381,20 @@ begin
     // check boundaries //
 
     rItemArea := FItemArea;
-    if BaseSite = 0 then rItemArea.Right := 0
-    else if BaseSite = 1 then rItemArea.Bottom := 0
-    else if BaseSite = 2 then rItemArea.Left := 0
-    else if BaseSite = 3 then rItemArea.Top := 0;
+    if BaseSite = bsLeft then rItemArea.Right := 0
+    else if BaseSite = bsTop then rItemArea.Bottom := 0
+    else if BaseSite = bsRight then rItemArea.Left := 0
+    else if BaseSite = bsBottom then rItemArea.Top := 0;
 
-    if BaseSite = 0 then
+    if BaseSite = bsBottom then
+    begin
+      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - rItemArea.Bottom - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
+        (Ay > BaseWindowRect.Y + BaseWindowRect.Height + distance) or
+        (Ax < BasePoint - BigItemSize) or
+        (Ax > BasePoint + width)
+        then result := NOT_AN_ITEM;
+    end else
+    if BaseSite = bsLeft then
     begin
       if (Ax < BaseWindowRect.X - distance) or
         (Ax > BaseWindowRect.X + x + rItemArea.Left + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
@@ -1431,20 +1402,12 @@ begin
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
-    if BaseSite = 2 then
+    if BaseSite = bsRight then
     begin
       if (Ax < BaseWindowRect.X + BaseWindowRect.Width - rItemArea.Right - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
         (Ax > BaseWindowRect.X + BaseWindowRect.Width + distance) or
         (Ay < BasePoint - BigItemSize) or
         (Ay > BasePoint + height)
-        then result := NOT_AN_ITEM;
-    end else
-    if BaseSite = 3 then
-    begin
-      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - rItemArea.Bottom - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
-        (Ay > BaseWindowRect.Y + BaseWindowRect.Height + distance) or
-        (Ax < BasePoint - BigItemSize) or
-        (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;
     end else
     begin
@@ -1541,8 +1504,11 @@ begin
   if enabled and (Zooming or do_now) then
   begin
     Zooming := false;
-    if (ItemCount <= 0) or do_now then ZoomItemSizeDiff := 0;
-    if do_now then ResetItemsSize;
+    if (ItemCount <= 0) or do_now then
+    begin
+      ZoomItemSizeDiff := 0;
+      ItemsChanged;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

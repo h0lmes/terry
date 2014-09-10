@@ -133,8 +133,10 @@ begin
   StrCopy(container.ThemeName, 'Aero');
   visible := true;
   WndOffset := 0;
+  MouseOnEdge := false;
+  MouseOver := false;
   purposalWndOffset := 0;
-  container.AutoHidePixels := 2;
+  container.AutoHidePixels := 0;
   container.CenterOffsetPercent := 50;
   container.EdgeOffset := 0;
   container.ActivateOnMouse := true;
@@ -423,7 +425,7 @@ begin
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpAutoHideTime: container.AutoHideTime := value;
   gpAutoShowTime: container.AutoShowTime := value;
-  gpRolledVisiblePixels: container.AutoHidePixels := SetRange(value, 0, 9999);
+  gpAutoHidePixels: container.AutoHidePixels := SetRange(value, 0, 9999);
   gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
   gpEdgeOffset: container.EdgeOffset := SetRange(value, -100, 100);
   gpHideKeys: container.HideKeys:= value;
@@ -468,7 +470,7 @@ begin
   gpSite: result := integer(container.Site);
   gpAutoHideTime: result := container.AutoHideTime;
   gpAutoShowTime: result := container.AutoShowTime;
-  gpRolledVisiblePixels: result := container.AutoHidePixels;
+  gpAutoHidePixels: result := container.AutoHidePixels;
   gpCenterOffsetPercent: result := container.CenterOffsetPercent;
   gpEdgeOffset: result := container.EdgeOffset;
   gpHideKeys: result := container.HideKeys;
@@ -582,7 +584,7 @@ end;
 //------------------------------------------------------------------------------
 function _Sets.IsHiddenDown: boolean;
 begin
-  result := purposalWndOffset <> 0;
+  result := purposalWndOffset > 0;
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.RollDown;
@@ -590,9 +592,9 @@ begin
   if DoGetDragging then exit;
   if container.AutoHide and not IsHiddenDown then
   begin
-    purposalWndOffset :=
-      integer(getBaseOrientation = boHorizontal) * (height - container.AutoHidePixels) +
-      integer(getBaseOrientation = boVertical) * (width - container.AutoHidePixels);
+    if getBaseOrientation = boVertical then purposalWndOffset := width - container.AutoHidePixels
+    else purposalWndOffset := height - container.AutoHidePixels;
+    if purposalWndOffset < 0 then purposalWndOffset := 0;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -662,8 +664,8 @@ end;
 //------------------------------------------------------------------------------
 function _Sets.GetMonitorName(index: integer): string;
 begin
-  result := 'Monitor ' + inttostr(screen.Monitors[index].MonitorNum + 1);
-  if screen.Monitors[index].Primary then result := 'Primary monitor';
+  if index < 0 then result := XAll
+  else result := XMonitor + ' ' + inttostr(screen.Monitors[index].MonitorNum + 1);
 end;
 //------------------------------------------------------------------------------
 //

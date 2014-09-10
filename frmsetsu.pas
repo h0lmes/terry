@@ -295,14 +295,15 @@ begin
 
   cbo_monitor.OnChange := nil;
   cbo_monitor.clear;
+  cbo_monitor.Items.AddObject(sets.GetMonitorName(-1), TObject(-1));
   i := 0;
   mCount := sets.GetMonitorCount;
   while i < mCount do
   begin
-    cbo_monitor.Items.Add(sets.GetMonitorName(i));
+    cbo_monitor.Items.AddObject(sets.GetMonitorName(i), TObject(i));
     inc(i);
   end;
-  cbo_monitor.ItemIndex := sets.GetParam(gpMonitor);
+  cbo_monitor.ItemIndex := cbo_monitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
   cbo_monitor.OnChange := cbo_monitorChange;
 
 
@@ -493,7 +494,7 @@ begin
   try value:= strtoint(edRolledVisiblePixels.Text);
   except value:= 2;
   end;
-  frmterry.SetParam(gpRolledVisiblePixels, value);
+  frmterry.SetParam(gpAutoHidePixels, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbActivateOnMouseClick(Sender: TObject);
@@ -549,7 +550,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbo_monitorChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpMonitor, cbo_monitor.ItemIndex);
+  frmterry.SetParam(gpMonitor, integer(cbo_monitor.items.Objects[cbo_monitor.ItemIndex]));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbHideTaskBarClick(Sender: TObject);

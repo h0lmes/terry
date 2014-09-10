@@ -357,6 +357,7 @@ begin
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
     SetParam(gpEdgeOffset, sets.container.EdgeOffset);
     SetParam(gpAutoHide, integer(sets.container.AutoHide));
+    SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
     SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
@@ -405,6 +406,7 @@ begin
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.SetVisible(true);
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not sets.Visible));
+    tcToggleTaskbar: frmterry.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
     tcGetVisible: Result := integer(sets.Visible);
     tcGetDragging: if assigned(ItemMgr) then Result := integer(ItemMgr.Dragging);
     tcApplyParams: ApplyParams;
@@ -503,7 +505,7 @@ var
 begin
   crsection.Acquire;
   try
-    if IsLockedMouseEffect or not assigned(ItemMgr) or not IsWindowVisible(Handle) then exit;
+    if IsLockedMouseEffect or not assigned(ItemMgr) or not IsWindowVisible(Handle) or closing then exit;
 
     Windows.GetCursorPos(pt);
     if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
@@ -514,7 +516,7 @@ begin
 
       // detect mouse enter/leave //
       OldMouseOver := MouseOver;
-      mon_rect := GetMonitorBoundsRect;
+      mon_rect := ItemMgr.MonitorRect;
       if sets.container.site = bsBottom then
         MouseOver := (pt.y >= mon_rect.Bottom - 1) and
           (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
@@ -832,7 +834,7 @@ var
   RepaintBase: boolean;
   rgn: HRGN;
 begin
-  if assigned(ItemMgr) and assigned(theme) and Visible then
+  if assigned(ItemMgr) and assigned(theme) and Visible and not closing then
   try
     hgdip := nil;
     bmp.dc := 0;
@@ -1078,11 +1080,8 @@ function Tfrmterry.GetMonitorWorkareaRect: Windows.TRect;
 var
   monitor: integer;
 begin
+  result := screen.DesktopRect;
   monitor := sets.GetParam(gpMonitor);
-  result.Left := 0;
-  result.Top := 0;
-  result.Right := screen.Width;
-  result.Bottom := screen.Height;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
@@ -1091,11 +1090,8 @@ function Tfrmterry.GetMonitorBoundsRect: Windows.TRect;
 var
   monitor: integer;
 begin
+  result := screen.DesktopRect;
   monitor := sets.GetParam(gpMonitor);
-  result.Left := 0;
-  result.Top := 0;
-  result.Right := screen.Width;
-  result.Bottom := screen.Height;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
@@ -1111,7 +1107,7 @@ begin
     begin
       showwindow(hwnd, 0);
       showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), 0);
-      r := GetMonitorBoundsRect;
+      r := ItemMgr.MonitorRect;
       if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
     end
     else
@@ -1119,7 +1115,7 @@ begin
     begin
       showwindow(hwnd, SW_SHOW);
       showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), SW_SHOW);
-      r := GetMonitorBoundsRect;
+      r := ItemMgr.MonitorRect;
       if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
     end;
   except
@@ -1137,7 +1133,7 @@ begin
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
-    Bounds := GetMonitorBoundsRect;
+    Bounds := ItemMgr.MonitorRect;
 
     Position := ifthen(Edge = bsLeft, round(ItemMgr.BaseWindowRect.Width * Percent / 100), 0);
     if WorkArea.Left <> Position then
@@ -1182,7 +1178,7 @@ begin
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
-    Bounds := GetMonitorBoundsRect;
+    Bounds := ItemMgr.MonitorRect;
 
     if Edge = bsLeft then
     begin
@@ -1469,7 +1465,7 @@ var
   cls: array [0..10] of char;
 begin
   result := false;
-  rMonitor := GetMonitorBoundsRect;
+  rMonitor := ItemMgr.MonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
@@ -1497,7 +1493,7 @@ var
   cls: array [0..MAX_PATH - 1] of char;
 begin
   result := '';
-  rMonitor := GetMonitorBoundsRect;
+  rMonitor := ItemMgr.MonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
@@ -1586,6 +1582,7 @@ begin
   else if cmd = 'say' then frmterry.notify(toolu.UnzipPath(params))
   else if cmd = 'alert' then frmterry.alert(toolu.UnzipPath(params))
   else if cmd = 'togglevisible' then frmterry.BaseCmd(tcToggleVisible, 0)
+  else if cmd = 'togglesystaskbar' then frmterry.BaseCmd(tcToggleTaskbar, 0)
   else if cmd = 'sets' then
   begin
     if not trystrtoint(params, i) then i := 0;

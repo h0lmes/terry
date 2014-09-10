@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsPosition
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -189,34 +189,34 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       object lblCenterOffsetPercent: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 195
-        Width = 90
+        Width = 91
         Alignment = taCenter
         Caption = 'Offset from center'
         ParentColor = False
       end
       object lblEdge: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 75
-        Width = 72
+        Width = 73
         Caption = 'Edge of screen'
         ParentColor = False
       end
       object lblMonitor: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 15
-        Width = 36
+        Width = 37
         Caption = 'Monitor'
         ParentColor = False
       end
       object lblEdgeOffset: TLabel
         Left = 15
-        Height = 13
+        Height = 14
         Top = 255
-        Width = 83
+        Width = 84
         Alignment = taCenter
         Caption = 'Offset from edge'
         ParentColor = False
@@ -276,25 +276,25 @@ object frmsets: Tfrmsets
         TabOrder = 5
         object lblHideDelay: TLabel
           Left = 13
-          Height = 13
+          Height = 14
           Top = 84
-          Width = 191
+          Width = 192
           Caption = 'Delay before hide down (in milliseconds)'
           ParentColor = False
         end
         object lblVisiblePart: TLabel
           Left = 13
-          Height = 13
+          Height = 14
           Top = 34
-          Width = 114
+          Width = 115
           Caption = 'Visible part size in pixels'
           ParentColor = False
         end
         object lblShowDelay: TLabel
           Left = 13
-          Height = 13
+          Height = 14
           Top = 59
-          Width = 182
+          Width = 183
           Caption = 'Delay before show up (in milliseconds)'
           ParentColor = False
         end

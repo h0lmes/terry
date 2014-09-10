@@ -36,6 +36,8 @@ Restore settings file from backup.
 Show tray overflow window.
 /autotray
 Switch on/off all icons in system notification area (systray) (should be "off" for /tray command to work).
+/togglesystaskbar
+Hide/show system taskbar.
 /themeeditor
 Open style editor.
 /lockdragging

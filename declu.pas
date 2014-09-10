@@ -19,14 +19,14 @@ type
     gpReserveScreenEdgePercent,
     gpTaskbar,
     gpSite,
+    gpAutoHide,
     gpAutoHideTime,
-    gpRolledVisiblePixels,
+    gpAutoHidePixels,
     gpCenterOffsetPercent,
     gpHideKeys,
     gpDropDistance,
     gpLaunchInterval,
     gpUseShell,
-    gpAutoHide,
     gpLaunchInThread,
     gpActivateOnMouse,
     gpCloseCmdWindow,
@@ -63,6 +63,7 @@ type
     tcGetDragging,
     tcZOrder,
     tcToggleVisible,
+    tcToggleTaskbar,
     tcApplyParams,
     tcQuit,
     tcMax,
@@ -254,6 +255,8 @@ resourcestring
   XAnimationSwing = 'Swing';
   XAnimationVibrate = 'Vibrate';
   XAnimationZoom = 'Zoom';
+  XAll = 'All';
+  XMonitor = 'Monitor';
 
   // frmitemoptu //
   XShowCmdNormal = 'Normal size';
