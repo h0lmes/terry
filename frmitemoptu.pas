@@ -245,6 +245,7 @@ begin
       InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
     if Execute then
     begin
+      frmterry.notify(filename);
       edCmd.Text := toolu.ZipPath(FileName);
       if fileexists(FileName) then
         edCaption.Text := cut(ExtractFileName(FileName), '.')
@@ -270,7 +271,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnDirClick(Sender: TObject);
 begin
-  edDir.Text := AnsiToUTF8(toolu.BrowseFolder(handle, XSelectWorkingDirectory, UTF8ToAnsi(edDir.Text)));
+  edDir.Text := AnsiToUTF8(toolu.BrowseFolder(handle, UTF8ToAnsi(XSelectWorkingDirectory), UTF8ToAnsi(edDir.Text)));
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnBrowseImage1Click(Sender: TObject);

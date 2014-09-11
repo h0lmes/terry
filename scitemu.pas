@@ -169,8 +169,8 @@ begin
           command := strpas(pchar(@path));
           PIDL_Free(apidl);
           is_pidl := false;
-          if not ((GetAsyncKeyState(16) < 0) and (GetAsyncKeyState(17) < 0)) then
-            if SameText(ExtractFileExt(command), '.lnk') then resolveShortcut(FHWnd, command, fparams, fdir, ficon);
+          //if not ((GetAsyncKeyState(16) < 0) and (GetAsyncKeyState(17) < 0)) then
+          //  if SameText(ExtractFileExt(command), '.lnk') then resolveShortcut(FHWnd, command, fparams, fdir, ficon);
           command := ZipPath(command);
         end;
       end;

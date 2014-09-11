@@ -103,8 +103,10 @@ procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 2
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
+function IsJumboIcon(AIcon: HICON): boolean;
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 function SwapColor(color: uint): uint;
@@ -734,7 +736,8 @@ end;
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   sfi: TSHFileInfoA;
-  hil: HImageList;
+  hil: HIMAGELIST;
+  ico: HICON;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
@@ -742,9 +745,16 @@ begin
 
   if not Assigned(pidl) then exit;
 
-  hil := SHGetFileInfoA(pchar(pidl), -1, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
-  if hil > 32 then image := IconToGdipBitmap(ImageList_GetIcon(hil, sfi.iIcon, 0))
-  else image := IconToGdipBitmap(sfi.hIcon);
+  SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
+  if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @hil) then
+      ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
+  if ico > 0 then
+  begin
+    image := IconToGdipBitmap(ico);
+    DestroyIcon(ico);
+  end
+  else
+    image := IconToGdipBitmap(sfi.hIcon);
   try DestroyIcon(sfi.hIcon);
   except end;
   DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
@@ -772,56 +782,56 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-function GetIconFromFileSH(aFile: string; SHIL_FLAG: cardinal): HICON;
+function GetIconFromFileSH(aFile: string): HICON;
 var
-  aImgList    : HIMAGELIST;
-  SFI         : TSHFileInfo;
+  imageList: HIMAGELIST;
+  sfi: TSHFileInfo;
 begin
-  result := 0;
-  SHGetFileInfo(PChar(aFile), FILE_ATTRIBUTE_NORMAL, SFI, SizeOf(TSHFileInfo), SHGFI_USEFILEATTRIBUTES or SHGFI_SYSICONINDEX);
-  SHGetImageList(SHIL_FLAG, IID_IImageList, Pointer(aImgList));
-  result := ImageList_GetIcon(aImgList, sfi.iIcon, ILD_TRANSPARENT);
+    result := 0;
+    SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
+    if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @imageList) then
+       result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
+    if not IsJumboIcon(result) then
+    begin
+      //DeleteObject(result);
+      result := 0;
+    end;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   idx: word;
-  icoIndex: uint;
   ico: HICON;
   ext: string;
-  fstream: TFileStream;
-  stream: IStream;
-  isFullyQalified: boolean;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
   image := nil;
 
   try
-    icoIndex := 0;
+    idx := 0;
     try idx := strtoint(cutafterlast(imagefile, ','));
     except end;
     imagefile := UnzipPath(cut(imagefile, ','));
-    isFullyQalified:= false;
-    if length(imagefile) > 3 then
-      if (imagefile[2] = ':') and (imagefile[3] = '\') then
-        isFullyQalified := true;
 
-    if not isFullyQalified or (not fileexists(imagefile) and not directoryexists(imagefile)) then
+    if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin
       if default then GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
     end
-    else begin
+    else
+    begin
       ext := AnsiLowerCase(ExtractFileExt(imagefile));
       if (ext = '.png') or (ext = '.gif') then
       begin
         GdipLoadImageFromFile(PWideChar(WideString(cut(imagefile, ','))), image);
       end
-      else begin
-        //icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(cut(imagefile, ',')), @idx);
-        ico := GetIconFromFileSH(imagefile, SHIL_JUMBO);
+      else
+      begin
+        ico := 0;
+        ico := GetIconFromFileSH(imagefile);
+        if ico = 0 then ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
         image := IconToGdipBitmap(ico);
-        DeleteObject(icoIndex);
+        DeleteObject(ico);
       end;
     end;
 
@@ -982,6 +992,108 @@ begin
 
             except
               FreeAndNil(Result);
+            end;
+          end;
+          FreeMem(bmpData);
+        end;
+      end;
+      ReleaseDC(0, dc);
+    end;
+    DeleteObject(ii.hbmMask);
+    DeleteObject(ii.hbmColor);
+  end;
+end;
+//--------------------------------------------------------------------------------------------------
+function IsJumboIcon(AIcon: HICON): boolean;
+var
+  ii: ICONINFO;
+  biNew: BITMAPINFO;
+  bi: BITMAPINFO;
+  bmpData: PGDIPColors;
+  dc: HDC;
+  hMask: Pointer;
+  xx, yy: Integer;
+  cColor: cardinal;
+  Alpha: Byte;
+  bAlpha: Boolean;
+
+function HasAlpha: Boolean;
+var
+  x, y: Integer;
+begin
+  Result := false;
+  for x := 0 to biNew.bmiHeader.biHeight - 1 do
+    for y := 0 to biNew.bmiHeader.biWidth - 1 do
+      if bmpData[y * biNew.bmiHeader.biWidth + x].A <> 0 then
+      begin
+        result := true;
+        exit;
+      end;
+end;
+
+begin
+  Result := false;
+  if GetIconInfo(AIcon, ii) then
+  begin
+    dc := GetDC(0);
+    if dc <> 0 then
+    begin
+      // get the bitmap info
+      biNew.bmiHeader.biSize := SizeOf(biNew);
+      biNew.bmiHeader.biBitCount := 0;
+      if 0 <> GetDIBits(dc, ii.hbmColor, 0, 0, nil, biNew, DIB_RGB_COLORS) then
+      begin
+        // Get the memory for the bits
+        try GetMem(bmpData, biNew.bmiHeader.biWidth * biNew.bmiHeader.biHeight * SizeOf(TColor))
+        except bmpData := nil;
+        end;
+        if bmpData <> nil then
+        begin
+          // Get the icon bits (pixels colors)
+          bi.bmiHeader.biSize := SizeOf(bi);
+          bi.bmiHeader.biWidth := biNew.bmiHeader.biWidth;
+          bi.bmiHeader.biHeight := -biNew.bmiHeader.biHeight;
+          bi.bmiHeader.biPlanes := 1;
+          bi.bmiHeader.biBitCount := 32;
+          bi.bmiHeader.biCompression := BI_RGB;
+          bi.bmiHeader.biSizeImage := 0;
+          bi.bmiHeader.biXPelsPerMeter := 0;
+          bi.bmiHeader.biYPelsPerMeter := 0;
+          bi.bmiHeader.biClrUsed := 0;
+          bi.bmiHeader.biClrImportant := 0;
+          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
+          begin
+            try
+              hMask := nil;
+
+              try
+                bAlpha := HasAlpha;
+                if bAlpha then
+                begin
+                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                      with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                        if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
+                end
+                else
+                begin
+                  GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
+                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                  begin
+                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                    begin
+                      GdipBitmapGetPixel(hMask, xx, yy, cColor);
+                      if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
+                      if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
+                    end;
+                  end;
+                  GdipDisposeImage(hMask);
+                end;
+              finally
+
+              end;
+
+            except
             end;
           end;
           FreeMem(bmpData);
