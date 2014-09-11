@@ -23,6 +23,7 @@ type
     btnParams: TButton;
     btnSelectColor: TButton;
     btnProperties: TButton;
+    btnConvertLink: TButton;
     cboWindow: TComboBox;
     chbHide: TCheckBox;
     edCaption: TEdit;
@@ -51,6 +52,7 @@ type
     tbHue: TTrackBar;
     tbSat: TTrackBar;
     procedure btnBrowseImage1Click(Sender: TObject);
+    procedure btnConvertLinkClick(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
     procedure cboWindowChange(Sender: TObject);
@@ -286,6 +288,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TfrmItemProp.btnConvertLinkClick(Sender: TObject);
+var
+  cmd, param, dir, icon: string;
+begin
+  if SameText(ExtractFileExt(edCmd.Text), '.lnk') then
+  begin
+    cmd := UnzipPath(edCmd.Text);
+    resolveShortcut(handle, cmd, param, dir, icon);
+    edCmd.Text := ZipPath(cmd);
+    edParams.Text := ZipPath(param);
+    edDir.Text := ZipPath(dir);
+    edImage.text := ZipPath(icon);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TfrmItemProp.cboWindowChange(Sender: TObject);
 begin
   FChanged := true;
@@ -368,6 +385,7 @@ var
   str: string;
   img: Pointer;
   w, h: uint;
+  apidl: PItemIDList;
 begin
   try
     img := nil;
@@ -376,7 +394,12 @@ begin
     else
       str := UnzipPath(UTF8ToAnsi(edImage.text));
 
-    if fileexists(cut(str, ',')) then LoadImage(str, 128, false, true, img, w, h);
+    if fileexists(cut(str, ',')) then LoadImage(str, 128, false, true, img, w, h)
+    else
+    begin
+      apidl := PIDL_FromString(str);
+      if assigned(apidl) then LoadImageFromPIDL(apidl, 128, false, true, img, w, h);
+    end;
     DrawFit(img, iPic, color_data);
     if assigned(img) then GdipDisposeImage(img);
   except

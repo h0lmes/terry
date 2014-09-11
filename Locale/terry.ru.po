@@ -203,10 +203,9 @@ msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
 msgstr "Ширина увеличения: %d"
 
-#: declu.xlockdragging
-msgctxt "declu.xlockdragging"
-msgid "Lock dragging"
-msgstr "Запретить перетаскивание"
+#: declu.xlockicons
+msgid "Lock icons"
+msgstr "Закрепить значки"
 
 #: declu.xmonitor
 msgctxt "declu.xmonitor"
@@ -559,6 +558,10 @@ msgstr "Отмена"
 msgctxt "TFRMITEMPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
 msgstr "Очистить иконку"
+
+#: tfrmitemprop.btnconvertlink.caption
+msgid "Convert .LNK"
+msgstr "Преобразовать .LNK"
 
 #: tfrmitemprop.btndefaultcolor.caption
 msgctxt "TFRMITEMPROP.BTNDEFAULTCOLOR.CAPTION"

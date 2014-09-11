@@ -614,7 +614,7 @@ begin
   // insert all menu items //
   if ParentMenu <> 0 then AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenu, MF_STRING + MF_POPUP, hMenuCreate, pchar(UTF8ToAnsi(XAddIcon)));
-  AppendMenu(hMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), $f031, pchar(UTF8ToAnsi(XLockDragging)));
+  AppendMenu(hMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), $f031, pchar(UTF8ToAnsi(XLockIcons)));
   AppendMenu(hMenu, MF_STRING, $f032, pchar(UTF8ToAnsi(XIconCollection)));
   AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenu, MF_STRING, $f033, pchar(UTF8ToAnsi(XTaskManager)));

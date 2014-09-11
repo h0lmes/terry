@@ -742,22 +742,24 @@ begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
   image := nil;
-
   if not Assigned(pidl) then exit;
 
-  SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
-  if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @hil) then
-      ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
-  if ico > 0 then
-  begin
-    image := IconToGdipBitmap(ico);
-    DestroyIcon(ico);
-  end
-  else
-    image := IconToGdipBitmap(sfi.hIcon);
-  try DestroyIcon(sfi.hIcon);
-  except end;
-  DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+  try
+    SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
+    if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @hil) then
+        ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
+    if IsJumboIcon(ico) then
+    begin
+      image := IconToGdipBitmap(ico);
+    end else begin
+      image := IconToGdipBitmap(sfi.hIcon);
+    end;
+    try DestroyIcon(sfi.hIcon);
+    except end;
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+  except
+    on e: Exception do raise Exception.Create('LoadImageFromPIDL'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
@@ -770,15 +772,19 @@ begin
   except end;
   image := nil;
 
-  if not IsWindow(h) then exit;
-  SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
-  if hIcon = THandle(0) then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
-  if hIcon = THandle(0) then hIcon := GetClassLongPtr(h, GCL_HICON);
-  if (hIcon = THandle(0)) and default then hIcon := windows.LoadIcon(0, IDI_APPLICATION);
-  if hIcon <> THandle(0) then
-  begin
-    image := IconToGdipBitmap(hIcon);
-    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+  try
+    if not IsWindow(h) then exit;
+    SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
+    if hIcon = THandle(0) then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
+    if hIcon = THandle(0) then hIcon := GetClassLongPtr(h, GCL_HICON);
+    if (hIcon = THandle(0)) and default then hIcon := windows.LoadIcon(0, IDI_APPLICATION);
+    if hIcon <> THandle(0) then
+    begin
+      image := IconToGdipBitmap(hIcon);
+      DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+    end;
+  except
+    on e: Exception do raise Exception.Create('LoadImageFromHWnd'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -787,15 +793,15 @@ var
   imageList: HIMAGELIST;
   sfi: TSHFileInfo;
 begin
+  try
     result := 0;
     SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
     if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @imageList) then
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
-    if not IsJumboIcon(result) then
-    begin
-      //DeleteObject(result);
-      result := 0;
-    end;
+    if not IsJumboIcon(result) then result := 0;
+  except
+    result := 0;
+  end;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -827,16 +833,21 @@ begin
       end
       else
       begin
-        ico := 0;
         ico := GetIconFromFileSH(imagefile);
-        if ico = 0 then ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
-        image := IconToGdipBitmap(ico);
-        DeleteObject(ico);
+        if ico = 0 then
+        begin
+          ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
+          image := IconToGdipBitmap(ico);
+          DeleteObject(ico);
+        end else begin
+          image := IconToGdipBitmap(ico);
+        end;
       end;
     end;
 
     DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
+    on e: Exception do raise Exception.Create('LoadImage'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -896,6 +907,7 @@ begin
       result := true;
     end;
   except
+    on e: Exception do raise Exception.Create('DownscaleImage'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -1032,77 +1044,71 @@ begin
 end;
 
 begin
-  Result := false;
-  if GetIconInfo(AIcon, ii) then
-  begin
-    dc := GetDC(0);
-    if dc <> 0 then
+  try
+    Result := false;
+    if GetIconInfo(AIcon, ii) then
     begin
-      // get the bitmap info
-      biNew.bmiHeader.biSize := SizeOf(biNew);
-      biNew.bmiHeader.biBitCount := 0;
-      if 0 <> GetDIBits(dc, ii.hbmColor, 0, 0, nil, biNew, DIB_RGB_COLORS) then
+      dc := GetDC(0);
+      if dc <> 0 then
       begin
-        // Get the memory for the bits
-        try GetMem(bmpData, biNew.bmiHeader.biWidth * biNew.bmiHeader.biHeight * SizeOf(TColor))
-        except bmpData := nil;
-        end;
-        if bmpData <> nil then
+        // get the bitmap info
+        biNew.bmiHeader.biSize := SizeOf(biNew);
+        biNew.bmiHeader.biBitCount := 0;
+        if 0 <> GetDIBits(dc, ii.hbmColor, 0, 0, nil, biNew, DIB_RGB_COLORS) then
         begin
-          // Get the icon bits (pixels colors)
-          bi.bmiHeader.biSize := SizeOf(bi);
-          bi.bmiHeader.biWidth := biNew.bmiHeader.biWidth;
-          bi.bmiHeader.biHeight := -biNew.bmiHeader.biHeight;
-          bi.bmiHeader.biPlanes := 1;
-          bi.bmiHeader.biBitCount := 32;
-          bi.bmiHeader.biCompression := BI_RGB;
-          bi.bmiHeader.biSizeImage := 0;
-          bi.bmiHeader.biXPelsPerMeter := 0;
-          bi.bmiHeader.biYPelsPerMeter := 0;
-          bi.bmiHeader.biClrUsed := 0;
-          bi.bmiHeader.biClrImportant := 0;
-          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
-          begin
-            try
-              hMask := nil;
-
-              try
-                bAlpha := HasAlpha;
-                if bAlpha then
-                begin
-                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
-                      with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
-                        if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
-                end
-                else
-                begin
-                  GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
-                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                  begin
-                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
-                    begin
-                      GdipBitmapGetPixel(hMask, xx, yy, cColor);
-                      if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
-                      if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
-                    end;
-                  end;
-                  GdipDisposeImage(hMask);
-                end;
-              finally
-
-              end;
-
-            except
-            end;
+          // Get the memory for the bits
+          try GetMem(bmpData, biNew.bmiHeader.biWidth * biNew.bmiHeader.biHeight * SizeOf(TColor))
+          except bmpData := nil;
           end;
-          FreeMem(bmpData);
+          if bmpData <> nil then
+          begin
+            // Get the icon bits (pixels colors)
+            bi.bmiHeader.biSize := SizeOf(bi);
+            bi.bmiHeader.biWidth := biNew.bmiHeader.biWidth;
+            bi.bmiHeader.biHeight := -biNew.bmiHeader.biHeight;
+            bi.bmiHeader.biPlanes := 1;
+            bi.bmiHeader.biBitCount := 32;
+            bi.bmiHeader.biCompression := BI_RGB;
+            bi.bmiHeader.biSizeImage := 0;
+            bi.bmiHeader.biXPelsPerMeter := 0;
+            bi.bmiHeader.biYPelsPerMeter := 0;
+            bi.bmiHeader.biClrUsed := 0;
+            bi.bmiHeader.biClrImportant := 0;
+            if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
+            begin
+                  bAlpha := HasAlpha;
+                  if bAlpha then
+                  begin
+                    for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                      for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                        with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                          if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
+                  end
+                  else
+                  begin
+                    GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
+                    for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                    begin
+                      for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                      begin
+                        GdipBitmapGetPixel(hMask, xx, yy, cColor);
+                        if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
+                        if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
+                      end;
+                    end;
+                    GdipDisposeImage(hMask);
+                  end;
+            end;
+            FreeMem(bmpData);
+          end;
         end;
+        ReleaseDC(0, dc);
       end;
-      ReleaseDC(0, dc);
+      DeleteObject(ii.hbmMask);
+      DeleteObject(ii.hbmColor);
     end;
-    DeleteObject(ii.hbmMask);
-    DeleteObject(ii.hbmColor);
+  except
+    on e: Exception do raise Exception.Create('IsJumboIcon'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------

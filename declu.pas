@@ -214,7 +214,7 @@ resourcestring
   XTray = 'Tray';
   XInstalledApplication = 'Installed application';
   XAddIcon = 'Add ...';
-  XLockDragging = 'Lock dragging';
+  XLockIcons = 'Lock icons';
   XIconsEditor = 'Icons editor';
   XIconCollection = 'Open icon collection';
   XTaskManager = 'Task manager';

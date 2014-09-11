@@ -17,7 +17,7 @@ object frmItemProp: TfrmItemProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.0.10.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -154,63 +154,63 @@ object frmItemProp: TfrmItemProp
       end
       object lblTip1: TLabel
         Left = 115
-        Height = 13
+        Height = 14
         Top = 263
-        Width = 297
+        Width = 298
         Caption = 'Use semicolon to separate multiple commands and parameters'
         ParentColor = False
       end
       object lblWindowSize: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 195
-        Width = 59
+        Width = 60
         Caption = 'Window size'
         ParentColor = False
       end
       object lblWorkingDirectory: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 125
-        Width = 85
+        Width = 86
         Caption = 'Working directory'
         ParentColor = False
       end
       object lblParams: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 90
-        Width = 55
+        Width = 56
         Caption = 'Parameters'
         ParentColor = False
       end
       object lblCommand: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 55
-        Width = 47
+        Width = 48
         Caption = 'Command'
         ParentColor = False
       end
       object lblCaption: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 27
+        Width = 28
         Caption = 'Name'
         ParentColor = False
       end
       object lblImage: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 160
-        Width = 30
+        Width = 31
         Caption = 'Image'
         ParentColor = False
       end
@@ -375,5 +375,14 @@ object frmItemProp: TfrmItemProp
     Caption = 'Select color'
     OnClick = btnSelectColorClick
     TabOrder = 6
+  end
+  object btnConvertLink: TButton
+    Left = 350
+    Height = 26
+    Top = 325
+    Width = 194
+    Caption = 'Convert .LNK'
+    OnClick = btnConvertLinkClick
+    TabOrder = 7
   end
 end

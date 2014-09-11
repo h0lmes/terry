@@ -184,9 +184,8 @@ msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
 msgstr ""
 
-#: declu.xlockdragging
-msgctxt "declu.xlockdragging"
-msgid "Lock dragging"
+#: declu.xlockicons
+msgid "Lock icons"
 msgstr ""
 
 #: declu.xmonitor
@@ -534,6 +533,10 @@ msgstr ""
 #: tfrmitemprop.btnclearimage.caption
 msgctxt "TFRMITEMPROP.BTNCLEARIMAGE.CAPTION"
 msgid "Clear image"
+msgstr ""
+
+#: tfrmitemprop.btnconvertlink.caption
+msgid "Convert .LNK"
 msgstr ""
 
 #: tfrmitemprop.btndefaultcolor.caption
