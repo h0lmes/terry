@@ -56,13 +56,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItem(AData: string);
-var
-  h: THandle;
 begin
-  h := THandle(0);
-  try h := THandle(strtoint(FetchValue(AData, 'app_hwnd="', '";')));
-  except end;
-  UpdateTaskItem(h);
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateTaskItem(h: THandle);

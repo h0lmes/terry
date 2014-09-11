@@ -398,14 +398,14 @@ begin
       end;
     tcSetVisible:
       begin
-        if (param = 0) and assigned(ItemMgr) then ItemMgr.SetVisible(false);
+        if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         sets.Visible := boolean(param);
         Visible := boolean(param);
         { возможно поможет убрать глюк с проваливанием иногда некоторых значков под Терри }
-        if boolean(param) then SetForeground; //SetForegroundWindow(handle);
-        if (param <> 0) and assigned(ItemMgr) then ItemMgr.SetVisible(true);
+        if boolean(param) then SetForeground;
+        if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
-    tcToggleVisible: BaseCmd(tcSetVisible, integer(not sets.Visible));
+    tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
     tcToggleTaskbar: frmterry.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
     tcGetVisible: Result := integer(sets.Visible);
     tcGetDragging: if assigned(ItemMgr) then Result := integer(ItemMgr.Dragging);
@@ -1258,12 +1258,13 @@ begin
         begin
           DropFile(list.strings[i]);
           inc(DropPlace);
-          if i < list.Count - 1 then ItemMgr.SetDropPlace(DropPlace);
+          ItemMgr.SetDropPlace(DropPlace);
+          ItemMgr.SetDropPlaceEx(DropPlace);
         end;
       end;
     end;
 
-    ItemMgr.DragLeave; // maybe this is not necessary //
+    ItemMgr.DragLeave;
     ItemMgr.WHMouseMove(pt);
     SetActiveWindow(handle);
     SetForegroundWindow(handle);

@@ -65,7 +65,7 @@ begin
   try
     if assigned(frmterry) then
       if assigned(frmterry.ItemMgr) then
-        result:= frmterry.ItemMgr.IsPluginVisible(id);
+        result := frmterry.ItemMgr.Visible;
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletIsVisible', e);
   end;
@@ -94,7 +94,7 @@ begin
       if assigned(frmterry.ItemMgr) then
       begin
         r^ := frmterry.ItemMgr.GetPluginRect(id);
-        result := frmterry.ItemMgr.IsPluginVisible(id);
+        result := frmterry.ItemMgr.Visible;
       end;
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletGetRect', e);

@@ -471,30 +471,21 @@ procedure Tfrmsets.edAutoHideTimeChange(Sender: TObject);
 var
   value: integer;
 begin
-  try value:= strtoint(edAutoHideTime.Text);
-  except exit;
-  end;
-  frmterry.SetParam(gpAutoHideTime, value);
+  if trystrtoint(edAutoHideTime.Text, value) then frmterry.SetParam(gpAutoHideTime, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edAutoShowTimeChange(Sender: TObject);
 var
   value: integer;
 begin
-  try value:= strtoint(edAutoShowTime.Text);
-  except exit;
-  end;
-  frmterry.SetParam(gpAutoShowTime, value);
+  if trystrtoint(edAutoShowTime.Text, value) then frmterry.SetParam(gpAutoShowTime, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edRolledVisiblePixelsChange(Sender: TObject);
 var
   value: integer;
 begin
-  try value:= strtoint(edRolledVisiblePixels.Text);
-  except value:= 2;
-  end;
-  frmterry.SetParam(gpAutoHidePixels, value);
+  if trystrtoint(edRolledVisiblePixels.Text, value) then frmterry.SetParam(gpAutoHidePixels, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbActivateOnMouseClick(Sender: TObject);
@@ -672,7 +663,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbUseShellClick(Sender: TObject);
 begin
-  sets.container.UseShell:= cbUseShell.Checked;
+  sets.container.UseShell := cbUseShell.Checked;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edShellChange(Sender: TObject);
@@ -685,9 +676,8 @@ procedure Tfrmsets.btnBrowseShellClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    InitialDir:= ExtractFilePath(sets.container.shell);
-    if execute then
-      edshell.text:= AnsiToUTF8(filename);
+    InitialDir := ExtractFilePath(sets.container.shell);
+    if execute then edshell.text := AnsiToUTF8(filename);
   finally
     Free;
   end;
@@ -697,10 +687,7 @@ procedure Tfrmsets.edLaunchIntervalChange(Sender: TObject);
 var
   value: integer;
 begin
-  try value:= strtoint(edLaunchInterval.text);
-  except value:= 0;
-  end;
-  frmterry.SetParam(gpLaunchInterval, value);
+  if trystrtoint(edLaunchInterval.text, value) then frmterry.SetParam(gpLaunchInterval, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_activate_runningClick(Sender: TObject);

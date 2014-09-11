@@ -42,7 +42,7 @@ type
     BaseSite: TBaseSite;
     BaseSiteVertical: boolean;
     // Wnd Item Vars //
-    Visible: boolean;
+    FVisible: boolean;
     Enabled: boolean;
     FItemArea: windows.TRect; // updates in SetItems1
     LockMouseEffect: boolean;
@@ -54,6 +54,29 @@ type
     procedure DoSetForeground;
     procedure DoBaseDraw(flags: integer);
     procedure DoSaveSets;
+    procedure SetVisible(value: boolean);
+
+    // load/save //
+    procedure AllItemsSave;
+    procedure ItemSave(HWnd: uint);
+
+    function GetTaskItemIndex(h: THandle): integer;
+
+    //
+    procedure SetItems1;
+    procedure RecalcDock;
+    procedure SetItems2(force_draw: boolean);
+
+    //
+    function IASize: integer;
+    function ItemFromPoint(Ax, Ay, distance: integer): extended;
+    function ItemRectFromPoint(Ax, Ay: integer): integer;
+
+    // items //
+    function ItemIndex(HWnd: HANDLE): integer;
+    function ItemHWnd(index: integer): HANDLE;
+    function AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
+    procedure CopyItemDescriptor(pFrom, pTo: PItem);
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem;
     ItemCount: integer;
@@ -86,6 +109,7 @@ type
     BaseCmd: TBaseCmd;
 
     property FirstRun: boolean read FFirstRun;
+    property Visible: boolean read FVisible write SetVisible;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
     destructor Destroy; override;
@@ -95,46 +119,31 @@ type
     function GetRect: windows.TRect;
     function GetZoomEdge: integer;
 
-    // notify about events //
     procedure Timer;
     procedure SetTheme;
     procedure ItemsChanged(FullUpdate: boolean = false);
-    procedure SetItems1;
-    procedure RecalcDock;
-    procedure SetItems2(force_draw: boolean);
-    procedure SetVisible(value: boolean);
 
     // load & save //
     procedure Load(fsets: string);
     procedure Save(fsets: string);
-    procedure AllItemsSave;
-    procedure ItemSave(HWnd: uint);
 
     // task item procs //
     procedure Taskbar;
-    function GetTaskItemIndex(h: THandle): integer;
     procedure ClearTaskbar;
 
     // items //
     procedure Clear;
     procedure ClearDeleted;
     procedure UnDelete;
-    function ItemIndex(HWnd: HANDLE): integer;
-    function ItemHWnd(index: integer): HANDLE;
     function ZOrder(InsertAfter: uint): uint;
     procedure InsertItem(AData: string);
-    function AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
     function CreateItem(data: string): THandle;
     procedure DeleteItem(HWnd: THandle);
-    procedure CopyItemDescriptor(pFrom, pTo: PItem);
 
     // mouse effects //
     procedure CalcDropPlace(pt: windows.TPoint);
     procedure SetDropPlace(index: integer);
     procedure SetDropPlaceEx(index: integer);
-    function IASize: integer;
-    function ItemFromPoint(Ax, Ay, distance: integer): extended;
-    function ItemRectFromPoint(Ax, Ay: integer): integer;
     procedure Zoom(x, y: integer);
     procedure UnZoom(do_now: boolean = false);
     function CheckMouseOn: boolean;
@@ -159,7 +168,6 @@ type
     procedure SetPluginCaption(HWnd: HANDLE; NewCaption: string);
     function GetPluginCaption(HWnd: HANDLE): string;
     function GetPluginRect(HWnd: HANDLE): windows.TRect;
-    function IsPluginVisible(HWnd: HANDLE): boolean;
     function IsPluginUndocked(HWnd: HANDLE): boolean;
     function IsSeparator(HWnd: HANDLE): boolean;
     function IsTask(HWnd: HANDLE): boolean;
@@ -172,7 +180,7 @@ constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; AB
 begin
   inherited Create;
   Enabled := AEnabled;
-  Visible := AVisible;
+  FVisible := AVisible;
   ParentHWnd := Handle;
   BaseCmd := ABaseCmd;
   ItemCount := 0;
@@ -795,7 +803,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetVisible(value: boolean);
 begin
-  if value <> Visible then
+  if FVisible <> value then
   begin
     UnZoom(true);
     AllItemCmd(icHover, 0);
@@ -803,7 +811,7 @@ begin
     HoverItemHWnd := 0;
     SelectedItemHWnd := 0;
   end;
-  Visible := value;
+  FVisible := value;
   ItemsChanged;
 end;
 //------------------------------------------------------------------------------
@@ -1052,7 +1060,7 @@ begin
     i := ItemCount;
     wpi := BeginDeferWindowPos(i);
     show_items := swp_hidewindow;
-    if visible then show_items := swp_showwindow;
+    if FVisible then show_items := swp_showwindow;
 
     // draw items //
     i := 0;
@@ -1540,7 +1548,7 @@ var
   wnd: cardinal;
 begin
   try
-    if not enabled or not visible then exit;
+    if not enabled or not FVisible then exit;
     if ItemCount < 0 then exit;
 
     // hint //
@@ -1567,7 +1575,7 @@ begin
       if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
     end;
   except
-    on e: Exception do err('ItemManager.WHMouseMove', e);
+    on e: Exception do raise Exception.Create('ItemManager.WHMouseMove'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1588,7 +1596,6 @@ begin
   ItemCmd(SelectedItemHWnd, icSelect, 0);
   SelectedItemHWnd := 0;
   AllItemCmd(icHover, 0);
-  if not LockMouseEffect then UnZoom;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DragOver;
@@ -1934,11 +1941,6 @@ begin
   except
     on e: Exception do err('Terry.ItemManager.GetPluginRect', e);
   end;
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.IsPluginVisible(HWnd: HANDLE): boolean;
-begin
-  result := Visible;
 end;
 //------------------------------------------------------------------------------
 function _ItemManager.IsPluginUndocked(HWnd: HANDLE): boolean;
