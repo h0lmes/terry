@@ -1058,7 +1058,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TruncLog(fs: TFileStream);
 const
-  LOG_SIZE_MAX = 1024 * 20;
+  LOG_SIZE_MAX = 1024 * 30; // 30 KB
 var
   buf: char;
   TruncBy: integer;

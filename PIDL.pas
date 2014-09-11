@@ -43,16 +43,16 @@ end;
 // converts CIDA structure to a PIDL
 function PIDL_FromCIDA(index: longint; ida: PCIDA; var size: longint): PItemIDList;
 var
-  buf: array [0..1023] of byte;
+  buf: array [0..4095] of byte;
   pidl: PItemIDList;
   pidl_size, offset: PtrUInt;
 begin
   result := nil;
-  FillChar(buf, 1024, 0);
+  FillChar(buf, 4095, 0);
   offset := 0;
 
   // copy folder //
-  pidl := Pointer( PtrUInt(ida) + ida.aoffset[0] );
+  pidl := Pointer( PtrUInt(ida) + ida.aoffset[index] );
   if ida.aoffset[0] >= size then exit;
   pidl_size := ILGetSize(pidl) - 2;
   if pidl_size > 0 then

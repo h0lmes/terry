@@ -435,10 +435,10 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\apps\gnome-session-hibernate-2.png'));
       end;
       AddItem('class="separator";');
-      AddItem(TShortcutItem.Make(0, 'Computer', '::::14001F50E04FD020EA3A6910A2D808002B30309D0000', '', '', ICON_COMPUTER));
-      AddItem(TShortcutItem.Make(0, 'Documents', '::::14001F4225481E03947BC34DB131E946B44C8DD5200000001A00EEBBFE23000010007DB10D7BD29C934A973346CC89022E7C00000000', '', '', ICON_FOLDER_DOCUMENTS));
-      AddItem(TShortcutItem.Make(0, 'Control panel', '::::14001F706806EE260AA0D7449371BEB064C986830C0001008421DE390000000000000000', '', '', ICON_CONTROL_PANEL));
-      AddItem(TShortcutItem.Make(0, 'Trash bin', '::::14001F7840F05F6481501B109F0800AA002F954E0000', '', '', ICON_TRASH_BIN));
+      AddItem(TShortcutItem.Make(0, 'Computer', '::::14001F50E04FD020EA3A6910A2D808002B30309D0000', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Documents', '::::14001F4225481E03947BC34DB131E946B44C8DD5200000001A00EEBBFE23000010007DB10D7BD29C934A973346CC89022E7C00000000', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Control panel', '::::14001F706806EE260AA0D7449371BEB064C986830C0001008421DE390000000000000000', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Trash bin', '::::14001F7840F05F6481501B109F0800AA002F954E0000', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Program settings', '/sets', '', '', ICON_SETTINGS));
       FFirstRun := true;
     end;

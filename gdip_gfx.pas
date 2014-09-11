@@ -804,6 +804,7 @@ end;
 //--------------------------------------------------------------------------------------------------
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
+  icoIndex: integer;
   idx: word;
   ico: HICON;
   ext: string;
@@ -813,10 +814,10 @@ begin
   image := nil;
 
   try
-    idx := 0;
-    try idx := strtoint(cutafterlast(imagefile, ','));
-    except end;
-    imagefile := UnzipPath(cut(imagefile, ','));
+    imagefile := UnzipPath(imagefile);
+    icoIndex := 0;
+    if trystrtoint(cutafterlast(imagefile, ','), icoIndex) then imagefile := cuttolast(imagefile, ',');
+    idx := icoIndex;
 
     if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin

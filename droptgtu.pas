@@ -122,7 +122,7 @@ end;
 procedure _DropManager.AddToListHDrop(h: HDROP);
 var
   i, size: uint;
-  filename: array [0..MAX_PATH] of char;
+  filename: array [0..MAX_PATH - 1] of char;
 begin
   try
     size := DragQueryFile(h, $ffffffff, nil, 0);
@@ -144,13 +144,14 @@ var
   ist: IStream;
   stat: STATSTG;
   size: longint;
-  data: array [0..1024] of char;
+  data: array [0..MAX_PATH - 1] of char;
   cbRead: dword;
 begin
   try
     ist := IStream(h);
     ist.Stat(stat, 0);
     size := longint(stat.cbSize);
+    if size > MAX_PATH then size := MAX_PATH;
     ist.Read(@data, size, @cbRead);
     FList.Add(strpas(pchar(@data)));
   except
@@ -163,14 +164,33 @@ var
   p: Pointer;
   i, gsize, size, qty: longint;
   pidl: PItemIDList;
-  data: array [0..1024] of char;
+  data: array [0..4095] of char;
   idpath: string;
 begin
   try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListHGlobalPIDL');
+    {$endif}
+
     p := GlobalLock(h);
     gsize := GlobalSize(h);
 
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('Raw data size = ' + inttostr(gsize));
+    i:= 0;
+    while i < gsize do
+    begin
+      idpath := idpath + inttohex(pbyte(cardinal(p) + i)^, 2);
+      inc(i);
+    end;
+    notifier.message('Raw data = ' + idpath);
+    {$endif}
+
     qty := PIDL_CountFromCIDA(p);
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('PIDL count = ' + inttostr(qty));
+    {$endif}
+
     for i := 0 to qty - 1 do
     begin
       size := gsize;
@@ -180,6 +200,9 @@ begin
         idpath := PIDL_ToString(pidl, size);
         PIDL_Free(pidl);
         FList.Add(idpath);
+        {$ifdef DEBUG_DROPTGT}
+        notifier.message('PIDL ToString = ' + idpath);
+        {$endif}
       end;
     end;
     GlobalUnlock(h);
@@ -194,26 +217,37 @@ var
   ist: IStream;
   stat: STATSTG;
   i, size, qty: longint;
-  data: array [0..1024] of char;
+  data: array [0..4095] of char;
   cbRead: dword;
   pidl: PItemIDList;
   idpath: string;
 begin
   try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListIStreamPIDL');
+    {$endif}
+
     ist := IStream(h);
     ist.Stat(stat, 0);
     size := longint(stat.cbSize);
     ist.Read(@data, size, @cbRead);
 
-    {i:= 0;
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('Raw data size = ' + inttostr(cbRead));
+    i:= 0;
     while i < cbRead do
     begin
       idpath := idpath + inttohex(byte(data[i]), 2);
       inc(i);
     end;
-    notifier.message(idpath);}
+    notifier.message('Raw data = ' + idpath);
+    {$endif}
 
     qty := PIDL_CountFromCIDA(@data);
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('PIDL count = ' + inttostr(qty));
+    {$endif}
+
     for i := 0 to qty - 1 do
     begin
       size := cbRead;
@@ -223,6 +257,9 @@ begin
         idpath := PIDL_ToString(pidl, size);
         PIDL_Free(pidl);
         FList.Add(idpath);
+        {$ifdef DEBUG_DROPTGT}
+        notifier.message('PIDL ToString = ' + idpath);
+        {$endif}
       end;
     end;
   except
@@ -239,7 +276,26 @@ var
   StgMedium: TStgMedium;
   ch: array [0..50] of char;
 begin
+  {$ifdef DEBUG_DROPTGT}
+  notifier.message('DropManager.MakeList');
+  {$endif}
+
   if S_OK <> dataObj.EnumFormatEtc(DATADIR_GET, EnumFormatEtc) then exit;
+
+  {$ifdef DEBUG_DROPTGT}
+  EnumFormatEtc.Reset;
+  Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
+  while Rslt = S_OK do
+  begin
+    GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
+    notifier.message('cfFormat = ' + strpas(pchar(@ch)));
+    if FormatEtc.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then notifier.message('TYMED_HGLOBAL');
+    if FormatEtc.tymed and TYMED_ISTREAM = TYMED_ISTREAM then notifier.message('TYMED_ISTREAM');
+    if FormatEtc.tymed and TYMED_FILE = TYMED_FILE then notifier.message('TYMED_FILE');
+    if FormatEtc.tymed and TYMED_ISTORAGE = TYMED_ISTORAGE then notifier.message('TYMED_ISTORAGE');
+    Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
+  end;
+  {$endif}
 
   // handle HDROP //
   EnumFormatEtc.Reset;
@@ -265,11 +321,12 @@ begin
   begin
     GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
     if stricomp(pchar(@ch), 'SHELL IDLIST ARRAY') = 0 then
-      if FormatEtc.tymed and TYMED_HGLOBAL <> 0 then
+      if FormatEtc.tymed and (TYMED_HGLOBAL or TYMED_ISTREAM) <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
           if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHGlobalPIDL(StgMedium.hGlobal)
-          else if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamPIDL(StgMedium.pstm);
+          else
+          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamPIDL(StgMedium.pstm);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
           except end;
         end;
@@ -284,11 +341,12 @@ begin
   begin
     GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
     if stricomp(pchar(@ch), 'FILENAME') = 0 then
-      if FormatEtc.tymed and TYMED_HGLOBAL <> 0 then
+      if FormatEtc.tymed and (TYMED_FILE or TYMED_ISTREAM) <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
           if StgMedium.tymed and TYMED_FILE = TYMED_FILE then FList.Add(pchar(StgMedium.lpszFileName))
-          else if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamFileName(StgMedium.pstm);
+          else
+          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamFileName(StgMedium.pstm);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
           except end;
         end;
@@ -300,8 +358,7 @@ function _DropManager.DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; 
 begin
   dwEffect := DROPEFFECT_COPY;
   result := S_OK;
-  if not assigned(OnDragEnter) then exit;
-  OnDragEnter(nil, WindowFromPoint(pt));
+  if assigned(OnDragEnter) then OnDragEnter(nil, WindowFromPoint(pt));
 end;
 //------------------------------------------------------------------------------
 function _DropManager.DragOver(grfKeyState : DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
@@ -320,11 +377,13 @@ function _DropManager.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: T
 begin
   dwEffect := DROPEFFECT_COPY;
   result := S_OK;
-  if not assigned(OnDrop) then exit;
-  FList.Clear;
-  MakeList(dataObj);
-  OnDrop(FList, WindowFromPoint(pt));
-  FList.Clear;
+  if assigned(OnDrop) then
+  begin
+    FList.Clear;
+    MakeList(dataObj);
+    OnDrop(FList, WindowFromPoint(pt));
+    FList.Clear;
+  end;
 end;
 //------------------------------------------------------------------------------
 //
