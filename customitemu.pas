@@ -633,18 +633,22 @@ var
   lMatrix, aMatrix: ColorMatrix;
   brightness, tmpColorData: integer;
 begin
-  attr := nil;
-  tmpColorData := ColorData;
-  if Selected then
-  begin
-    brightness := max(byte(ColorData shr 16) - $10, 0);
-    tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
-  end;
-  if Selected or (ColorData <> DEFAULT_COLOR_DATA) then
-  begin
-    CreateColorMatrix(tmpColorData, lMatrix);
-    GdipCreateImageAttributes(attr);
-    GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
+  try
+    attr := nil;
+    tmpColorData := ColorData;
+    if Selected then
+    begin
+      brightness := max(byte(ColorData shr 16) - $10, 0);
+      tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
+    end;
+    if Selected or (ColorData <> DEFAULT_COLOR_DATA) then
+    begin
+      CreateColorMatrix(tmpColorData, lMatrix);
+      GdipCreateImageAttributes(attr);
+      GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
+    end;
+  except
+    on e: Exception do raise Exception.Create('CustomItem.CreateColorAttributes'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

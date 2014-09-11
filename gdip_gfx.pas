@@ -345,32 +345,32 @@ begin
   // color //
 
   IdentityMatrix(clMatrix);
-  cl:= byte(color_data);
-  if cl > 239 then cl:= cl - 240;
-  if cl < 0 then cl:= cl + 240;
+  cl := color_data and $ff;
+  if cl > 239 then cl := cl - 240;
+  if cl < 0 then cl := cl + 240;
   if cl <> DEFAULT_COLOR_OFFSET then
   begin
     if (cl >= 0) and (cl < 80) then
     begin
-      r:= 80 - cl;
-      g:= cl;
-      b:= 0;
+      r := 80 - cl;
+      g := cl;
+      b := 0;
     end;
     if (cl >= 80) and (cl < 160) then
     begin
-      r:= 0;
-      g:= 160 - cl;
-      b:= cl - 80;
+      r := 0;
+      g := 160 - cl;
+      b := cl - 80;
     end;
     if (cl >= 160) and (cl < 240) then
     begin
-      r:= cl - 160;
-      g:= 0;
-      b:= 240 - cl;
+      r := cl - 160;
+      g := 0;
+      b := 240 - cl;
     end;
-    r:= r / 80;
-    g:= g / 80;
-    b:= b / 80;
+    r := r / 80;
+    g := g / 80;
+    b := b / 80;
     clMatrix[0, 0]:= r;
     clMatrix[1, 0]:= g;
     clMatrix[2, 0]:= b;
@@ -380,14 +380,28 @@ begin
     clMatrix[0, 2]:= b;
     clMatrix[1, 2]:= r;
     clMatrix[2, 2]:= g;
-    MultiplyMatrix(satMatrix, clMatrix);
   end;
 
   // saturation //
 
   IdentityMatrix(satMatrix);
-  sat := byte(color_data shr 8);
-  if (sat <> DEFAULT_SATURATION) and (sat > 0) then
+  sat := color_data shr 8 and $ff;
+  if sat = 0 then // grayscale //
+  begin
+    sr := 0.3;
+    sg := 0.59;
+    sb := 0.11;
+    clMatrix[0, 0] := sr;
+    clMatrix[0, 1] := sr;
+    clMatrix[0, 2] := sr;
+    clMatrix[1, 0] := sg;
+    clMatrix[1, 1] := sg;
+    clMatrix[1, 2] := sg;
+    clMatrix[2, 0] := sb;
+    clMatrix[2, 1] := sb;
+    clMatrix[2, 2] := sb;
+  end else
+  if sat <> DEFAULT_SATURATION then
   begin
     sat := sat / 60;
     satCompl := 1 - sat;
@@ -404,28 +418,12 @@ begin
     satMatrix[2, 1] := sb;
     satMatrix[2, 2] := sb + sat;
     MultiplyMatrix(clMatrix, satMatrix);
-  end
-  else
-  if sat = 0 then // grayscale //
-  begin
-    sr := 0.3;
-    sg := 0.59;
-    sb := 0.11;
-    clMatrix[0, 0] := sr;
-    clMatrix[0, 1] := sr;
-    clMatrix[0, 2] := sr;
-    clMatrix[1, 0] := sg;
-    clMatrix[1, 1] := sg;
-    clMatrix[1, 2] := sg;
-    clMatrix[2, 0] := sb;
-    clMatrix[2, 1] := sb;
-    clMatrix[2, 2] := sb;
   end;
 
   // lightness //
 
   IdentityMatrix(brMatrix);
-  br:= byte(color_data shr 16);
+  br:= color_data shr 16 and $ff;
   if br <> DEFAULT_BRIGHTNESS then
   begin
     br:= br / 128 - 1;
@@ -438,7 +436,7 @@ begin
   // contrast //
 
   IdentityMatrix(coMatrix);
-  co:= byte(color_data shr 24);
+  co:= color_data shr 24 and $ff;
   if co <> DEFAULT_CONTRAST then
   begin
     co:= co / 60;
@@ -800,7 +798,7 @@ begin
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
     if not IsJumboIcon(result) then result := 0;
   except
-    result := 0;
+    on e: Exception do raise Exception.Create('GetIconFromFileSH'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -829,7 +827,7 @@ begin
       ext := AnsiLowerCase(ExtractFileExt(imagefile));
       if (ext = '.png') or (ext = '.gif') then
       begin
-        GdipLoadImageFromFile(PWideChar(WideString(cut(imagefile, ','))), image);
+        GdipLoadImageFromFile(PWideChar(WideString(imagefile)), image);
       end
       else
       begin
@@ -1079,24 +1077,23 @@ begin
                   bAlpha := HasAlpha;
                   if bAlpha then
                   begin
-                    for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                      for xx := 0 to biNew.bmiHeader.biWidth - 1 do
-                        with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
-                          if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
-                  end
-                  else
+                      for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                        for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                          with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                            if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
+                  end else
                   begin
-                    GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
-                    for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                    begin
-                      for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                      GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
+                      for yy := 0 to biNew.bmiHeader.biHeight - 1 do
                       begin
-                        GdipBitmapGetPixel(hMask, xx, yy, cColor);
-                        if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
-                        if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
+                        for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                        begin
+                          GdipBitmapGetPixel(hMask, xx, yy, cColor);
+                          if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
+                          if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
+                        end;
                       end;
-                    end;
-                    GdipDisposeImage(hMask);
+                      GdipDisposeImage(hMask);
                   end;
             end;
             FreeMem(bmpData);

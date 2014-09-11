@@ -1258,8 +1258,11 @@ begin
         begin
           DropFile(list.strings[i]);
           inc(DropPlace);
-          ItemMgr.SetDropPlace(DropPlace);
-          ItemMgr.SetDropPlaceEx(DropPlace);
+          if i < list.Count - 1 then
+          begin
+            ItemMgr.SetDropPlace(DropPlace);
+            ItemMgr.SetDropPlaceEx(DropPlace);
+          end;
         end;
       end;
     end;

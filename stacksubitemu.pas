@@ -256,26 +256,27 @@ begin
     try
       FUpdating := true;
 
-      // PIDL //
+      // create PIDL from string //
       PIDL_Free(apidl);
       apidl := PIDL_FromString(command);
       is_pidl := assigned(apidl);
       if is_pidl and (FCaption = '::::') then
       begin
-        SHGetFileInfoA(pchar(apidl), DWORD(-1), @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+        SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
         FCaption := sfi.szDisplayName;
+        // try converting PIDL to file system path //
         if SHGetPathFromIDList(apidl, pchar(@path)) then
         begin
-          command := strpas(pchar(@path));
+          command := ZipPath(strpas(pchar(@path)));
           PIDL_Free(apidl);
           is_pidl := false;
-          if not ((GetAsyncKeyState(16) < 0) and (GetAsyncKeyState(17) < 0)) then
-            if SameText(ExtractFileExt(command), '.lnk') then resolveShortcut(FHWnd, command, fparams, fdir, ficon);
-          command := ZipPath(command);
         end;
       end;
 
       // load images //
+      try if FImage <> nil then GdipDisposeImage(FImage);
+      except end;
+      FImage := nil;
       if imagefile <> '' then LoadImage(imagefile, FItemSize, true, true, FImage, FIW, FIH)
       else
       begin
@@ -373,7 +374,7 @@ begin
       xReal := Ax - ItemRect.Left - FSize div 2;
       yReal := Ay - ItemRect.Top - FSize div 2;
     except
-      on e: Exception do raise Exception.Create('SetPosition(' + caption + ')'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
 
     // init drawing //
@@ -413,7 +414,8 @@ begin
     // draw icon //
     TCustomItem.CreateColorAttributes(color_data, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if FSelected or (color_data <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
+    if hattr <> nil then GdipDisposeImageAttributes(hattr);
+
     if FRunning and (AAlpha > 10) then DrawIndicator(dst, xBitmap, yBitmap);
     if AAngle > 0 then GdipResetWorldTransform(dst);
 
@@ -493,7 +495,7 @@ begin
     DeleteBitmap(bmp);
 
   except
-    on e: Exception do raise Exception.Create('StackSubitem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
