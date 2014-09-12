@@ -136,6 +136,7 @@ type
     procedure ClearDeleted;
     procedure UnDelete;
     function ZOrder(InsertAfter: uint): uint;
+    procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
     function CreateItem(data: string): THandle;
     procedure DeleteItem(HWnd: THandle);
@@ -158,7 +159,8 @@ type
     procedure DockAdd(HWnd: THandle);
     procedure Dock(HWnd: HANDLE);
     function IsItem(HWnd: HANDLE): HANDLE;
-    function ItemDrop(HWnd: HANDLE; HWndChild: HANDLE; pt: windows.TPoint; filename: string): boolean;
+    function ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
+    function ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
     function ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
     function AllItemCmd(id: TGParam; param: integer): integer;
     function GetPluginFile(HWnd: HANDLE): string;
@@ -1079,23 +1081,48 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// insert the list of the items at DropPlace position
+// if DropPlace not exists, then insert at the end of the items array
+procedure _ItemManager.InsertItems(list: TStrings);
+var
+  i, dplace: integer;
+begin
+  if not Enabled then exit;
+
+  dplace := DropPlace;
+  for i := 0 to list.Count - 1 do
+  begin
+    InsertItem(list.strings[i]);
+    if dplace <> NOT_AN_ITEM then
+      if i < list.Count - 1 then
+      begin
+        inc(dplace);
+        SetDropPlace(dplace);
+        SetDropPlaceEx(dplace);
+      end;
+  end;
+end;
+//------------------------------------------------------------------------------
+// insert item at current DropPlace
+// or at the end if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
 procedure _ItemManager.InsertItem(AData: string);
 begin
   if Enabled then AddItem(AData, true, true);
 end;
 //------------------------------------------------------------------------------
+// create an item and put it onto dock
 function _ItemManager.AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
 begin
   result := 0;
   if ItemCount > MAX_ITEM_COUNT then exit;
-  AllItemCmd(icHover, 0); // avoid hint hang up //
+  AllItemCmd(icHover, 0); // hide hint //
   AllItemCmd(icSelect, 0);
 
   result := CreateItem(data);
   if not (result = THandle(0)) then DockAdd(result);
   if Update then ItemsChanged(true);
   // save settings //
-  if Save then ItemSave(result);
+  if Save then AllItemsSave;
 end;
 //------------------------------------------------------------------------------
 function _ItemManager.CreateItem(data: string): THandle;
@@ -1189,6 +1216,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
+// calculate and set DropPlace and DropPlaceEx
 procedure _ItemManager.CalcDropPlace(pt: windows.TPoint);
 var
   tmp: extended;
@@ -1202,6 +1230,8 @@ begin
     cx := pt.x;
     cy := pt.y;
     if BaseSiteVertical then dec(cy, ItemSize div 2) else dec(cx, ItemSize div 2);
+
+    // DropPlace //
     tmp := ItemFromPoint(cx, cy, DropDistance);
     if tmp = NOT_AN_ITEM then
     begin
@@ -1241,7 +1271,7 @@ begin
     if DropPlaceEx <> NOT_AN_ITEM then
     begin
       if DropPlaceEx < 0 then DropPlaceEx := 0;
-      if DropPlaceEx > ItemCount - TaskItemCount - 1 then DropPlaceEx := NOT_AN_ITEM;//ItemCount - TaskItemCount - 1;
+      if DropPlaceEx > ItemCount - TaskItemCount - 1 then DropPlaceEx := NOT_AN_ITEM;
     end;
     if prevDropPlaceEx <> DropPlaceEx then SetDropPlaceEx(DropPlaceEx);
   except
@@ -1249,31 +1279,33 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// physically create/move/delete empty item at DropPlace
 procedure _ItemManager.SetDropPlace(index: integer);
 var
-  i, current: integer;
+  i, currentDropPlace: integer;
 begin
   try
     AllItemCmd(icDropIndicator, 0);
 
     DropPlace := index;
-    // seek for current DropPlace in items array //
-    current := NOT_AN_ITEM;
+    // seek for current DropPlace in the items array //
+    // DropPlace item has its Handle = 0 //
+    currentDropPlace := NOT_AN_ITEM;
     if ItemCount > 0 then
       for i := 0 to ItemCount - 1 do
       begin
         if items[i].h = 0 then
         begin
-          current := i;
+          currentDropPlace := i;
           break;
         end;
       end;
 
-    if (current = NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then exit;
-    if current = DropPlace then exit;
+    if (currentDropPlace = NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then exit;
+    if currentDropPlace = DropPlace then exit;
 
-    // add an item //
-    if (current = NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
+    // add empty item //
+    if (currentDropPlace = NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
     begin
       if DropPlace > ItemCount then DropPlace := ItemCount;
       items[ItemCount].h := 0;
@@ -1288,28 +1320,28 @@ begin
       exit;
     end;
 
-    // move an item //
-    if (current <> NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
+    // move empty item //
+    if (currentDropPlace <> NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
     begin
-      if DropPlace < current then
+      if DropPlace < currentDropPlace then
       begin
-        for i := current downto DropPlace + 1 do items[i].h := items[i - 1].h;
+        for i := currentDropPlace downto DropPlace + 1 do items[i].h := items[i - 1].h;
       end;
-      if DropPlace > current then
+      if DropPlace > currentDropPlace then
       begin
-        for i := current to DropPlace - 1 do items[i].h := items[i + 1].h;
+        for i := currentDropPlace to DropPlace - 1 do items[i].h := items[i + 1].h;
       end;
       items[DropPlace].h := 0;
       ItemsChanged;
       exit
     end;
 
-    // delete an item //
-    if (current <> NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then
+    // delete empty item //
+    if (currentDropPlace <> NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then
     begin
-      if current < ItemCount - 1 then
+      if currentDropPlace < ItemCount - 1 then
       begin
-        for i := current to ItemCount - 2 do items[i].h := items[i + 1].h;
+        for i := currentDropPlace to ItemCount - 2 do items[i].h := items[i + 1].h;
       end;
       dec(ItemCount);
       ItemsChanged(true);
@@ -1319,6 +1351,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// set appropriate indicator for an item at DropPlaceEx
 procedure _ItemManager.SetDropPlaceEx(index: integer);
 var
   DragInst, Inst: TCustomItem;
@@ -1352,11 +1385,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.IASize: integer; // items area width or height //
+// items area width or height //
+function _ItemManager.IASize: integer;
 begin
   result := ItemCount * (ItemSize + ItemSpacing);
 end;
 //------------------------------------------------------------------------------
+// calculate item index based on mouse position
+// do not care of the current items positions
 function _ItemManager.ItemFromPoint(Ax, Ay, distance: integer): extended;
 var
   BasePoint: integer; // left or top of the first item
@@ -1431,6 +1467,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// calculate item index based on mouse position and items positions
 function _ItemManager.ItemRectFromPoint(Ax, Ay: integer): integer;
 var
   i: integer;
@@ -1463,6 +1500,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// enter/exit zooming mode, maintain zooming
 procedure _ItemManager.Zoom(x, y: integer);
 var
   item, saved: extended;
@@ -1507,6 +1545,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// exit zooming mode
 procedure _ItemManager.UnZoom(do_now: boolean = false);
 begin
   if enabled and (Zooming or do_now) then
@@ -1542,7 +1581,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// 'mouse move' events entry point
+// entry point for MouseMove events
 procedure _ItemManager.WHMouseMove(pt: windows.Tpoint; allow_zoom: boolean = true);
 var
   wnd: cardinal;
@@ -1627,7 +1666,7 @@ procedure _ItemManager.WMDeactivateApp;
 var
   i: integer;
 begin
-  Unzoom;
+  if not CheckMouseOn then Unzoom;
   AllItemCmd(icHover, 0);
 
   if Enabled then
@@ -1651,6 +1690,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
+// detach the item
 procedure _ItemManager.Undock(HWnd: HANDLE);
 var
   index: integer;
@@ -1675,19 +1715,23 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// add new item to dock
+// if there is a DropPlace, then put item to DropPlace
+// if DropPlace not exists, then put item at the end of the items array
 procedure _ItemManager.DockAdd(HWnd: THandle);
 begin
   if (DropPlace >= 0) and (DropPlace < ItemCount) then
   begin
-    // if DropPlace is defined - then it's not a TaskItem //
+    // if DropPlace exists, then it is not TaskItem //
     if DropPlace > ItemCount - TaskItemCount then DropPlace := ItemCount - TaskItemCount;
     items[DropPlace].h := HWnd;
   end else begin
+    // else check where to dock //
     if IsTask(HWnd) then SetDropPlace(ItemCount) else SetDropPlace(ItemCount - TaskItemCount);
     items[DropPlace].h := HWnd;
     items[DropPlace].s := ItemSize;
   end;
-  ItemCmd(HWnd, icFree, 0); // restore item functioning //
+  ItemCmd(HWnd, icFree, 0); // enable item
   ItemCmd(HWnd, icFloat, 0);
   SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
   SetDropPlaceEx(NOT_AN_ITEM);
@@ -1695,6 +1739,8 @@ begin
   ItemsChanged;
 end;
 //------------------------------------------------------------------------------
+// put the item to dock
+// if necessary create a new stack or put into existing one
 procedure _ItemManager.Dock(HWnd: HANDLE);
 var
   i: integer;
@@ -1702,7 +1748,8 @@ var
   NewItemHWnd: THandle;
   pt: windows.TPoint;
 begin
-  if not enabled or (DragHWnd <> HWnd) then exit;
+  //if not enabled or (DragHWnd <> HWnd) then exit;
+  if Enabled then
   try
     SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     GetCursorPos(pt);
@@ -1778,10 +1825,10 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// searches all items and their subitems for a given HWnd
-// when item with HWnd found - result is HWnd
-// when subitem with HWnd found - result is its parent item HWnd
-// when no match found - result is 0
+// search all items and their subitems for a given HWnd
+// if item is found - result is HWnd
+// if subitem is found - result is its parent item HWnd
+// if no match found result is 0
 function _ItemManager.IsItem(HWnd: HANDLE): HANDLE;
 var
   i: integer;
@@ -1809,14 +1856,42 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemDrop(HWnd: HANDLE; HWndChild: HANDLE; pt: windows.TPoint; filename: string): boolean;
+function _ItemManager.ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
 var
   Inst: TCustomItem;
+  HWndChild: HANDLE;
 begin
   try
     result := false;
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then result := Inst.DropFile(HWndChild, pt, filename);
+    HWndChild := HWndItem;
+    HWndItem := IsItem(HWndItem);
+    if HWndItem <> THandle(0) then
+    begin
+      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      if Inst is TCustomItem then result := Inst.DropFile(HWndChild, pt, filename);
+    end;
+  except
+    on e: Exception do err('ItemManager.ItemDrop', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+function _ItemManager.ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
+var
+  i: integer;
+  Inst: TCustomItem;
+  HWndChild: HANDLE;
+begin
+  try
+    result := false;
+    HWndChild := HWndItem;
+    HWndItem := IsItem(HWndItem);
+    if HWndItem <> THandle(0) then
+    begin
+      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      if Inst is TCustomItem then
+        for i := 0 to files.Count - 1 do
+          result := result or Inst.DropFile(HWndChild, pt, files.strings[i]);
+    end;
   except
     on e: Exception do err('ItemManager.ItemDrop', e);
   end;

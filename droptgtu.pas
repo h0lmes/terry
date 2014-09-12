@@ -71,6 +71,7 @@ type
     function Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; stdcall;
   end;
 
+{$undef DEBUG_DROPTGT}
 implementation
 //------------------------------------------------------------------------------
 //
@@ -125,6 +126,10 @@ var
   filename: array [0..MAX_PATH - 1] of char;
 begin
   try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListHDrop');
+    {$endif}
+
     size := DragQueryFile(h, $ffffffff, nil, 0);
     i := 0;
     while i < size do
@@ -148,6 +153,11 @@ var
   cbRead: dword;
 begin
   try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListIStreamFileName');
+    {$endif}
+
+    FillChar(data, MAX_PATH, 0);
     ist := IStream(h);
     ist.Stat(stat, 0);
     size := longint(stat.cbSize);
@@ -172,6 +182,7 @@ begin
     notifier.message('DropManager.AddToListHGlobalPIDL');
     {$endif}
 
+    FillChar(data, 4096, 0);
     p := GlobalLock(h);
     gsize := GlobalSize(h);
 
@@ -227,6 +238,7 @@ begin
     notifier.message('DropManager.AddToListIStreamPIDL');
     {$endif}
 
+    FillChar(data, 4096, 0);
     ist := IStream(h);
     ist.Stat(stat, 0);
     size := longint(stat.cbSize);

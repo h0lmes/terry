@@ -46,7 +46,6 @@ type
     procedure WMCompositionChanged(var Message: TMessage);
     procedure WHMouseMove(LParam: LParam);
     procedure WHButtonDown(button: integer);
-    procedure WHButtonUp(button: integer);
     procedure MouseEnter;
     procedure MouseLeave;
     procedure UpdateRunning;
@@ -103,8 +102,8 @@ type
     procedure OnDragEnter(list: TStrings; hWnd: uint);
     procedure OnDragOver;
     procedure OnDragLeave;
-    procedure OnDrop(list: TStrings; hWnd: uint);
-    procedure DropFile(filename: string);
+    procedure OnDrop(files: TStrings; hWnd: uint);
+    procedure DropFiles(files: TStrings);
     procedure AddProgram;
     procedure OpenWith(filename: string);
     function FullScreenAppActive(HWnd: HWND): boolean;
@@ -470,7 +469,6 @@ begin
       begin
         if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
         if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
-        if ri.mouse.usButtonData and RI_MOUSE_Left_BUTTON_UP <> 0 then WHButtonUp(1);
         WHMouseMove(0);
       end;
     end;
@@ -490,11 +488,6 @@ end;
 procedure Tfrmterry.WHButtonDown(button: integer);
 begin
   if not IsLockedMouseEffect and not MouseOver and not sets.container.StayOnTop then SetNotForeground;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmterry.WHButtonUp(button: integer);
-begin
-  //if assigned(ItemMgr) then ItemMgr.Dock(ItemMgr.DragHWnd);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.WHMouseMove(LParam: LParam);
@@ -1237,84 +1230,50 @@ begin
   ItemMgr.DragLeave;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnDrop(list: TStrings; hWnd: uint);
+procedure Tfrmterry.OnDrop(files: TStrings; hWnd: uint);
 var
   pt: Windows.TPoint;
-  i, DropPlace: integer;
-  itemWnd: HANDLE;
 begin
   try
     Windows.GetCursorPos(pt);
-    DropPlace := ItemMgr.DropPlace;
-
-    if list.Count > 0 then
-    begin
-      itemWnd := ItemMgr.IsItem(hWnd);
-      if itemWnd <> 0 then
-      begin
-        for i := 0 to list.Count - 1 do ItemMgr.ItemDrop(itemWnd, hWnd, pt, list.strings[i]);
-      end else begin
-        for i := 0 to list.Count - 1 do
-        begin
-          DropFile(list.strings[i]);
-          inc(DropPlace);
-          if i < list.Count - 1 then
-          begin
-            ItemMgr.SetDropPlace(DropPlace);
-            ItemMgr.SetDropPlaceEx(DropPlace);
-          end;
-        end;
-      end;
-    end;
-
+    if files.Count > 0 then
+      if not ItemMgr.ItemDropFiles(hWnd, pt, files) then DropFiles(files);
     ItemMgr.DragLeave;
     ItemMgr.WHMouseMove(pt);
     SetActiveWindow(handle);
-    SetForegroundWindow(handle);
   except
     on e: Exception do err('Base.OnDrop', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.DropFile(filename: string);
+procedure Tfrmterry.DropFiles(files: TStrings);
+    function __getItem(filename: string): string;
+    var
+      fcaption, fparams, fdir, ficon, ext: string;
+    begin
+      result := '';
+      if strlcomp(pchar(filename), '::::', 4) = 0 then
+      begin
+        result := TShortcutItem.Make(0, '::::', filename, '', '', '', 1);
+        exit
+      end;
+
+      fparams := '';
+      fdir := '';
+      ficon := '';
+      ext := ExtractFileExt(filename);
+
+      if DirectoryExists(filename) then fcaption := filename
+      else fcaption := ChangeFileExt(ExtractFilename(filename), '');
+      if SameText(ext, '.exe') then fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(filename));
+
+      result := TShortcutItem.Make(0, fcaption, ZipPath(filename), ZipPath(fparams), ZipPath(fdir), ZipPath(ficon), 1);
+    end;
 var
-  fcaption, fname, fparams, fdir, ficon, ext: string;
+  i: integer;
 begin
-  if strlcomp(pchar(filename), '::::', 4) = 0 then
-  begin
-    ItemMgr.InsertItem(TShortcutItem.Make(0, '::::', filename, '', '', '', 1));
-    exit;
-  end;
-
-  fname := filename;
-  fdir := '';
-  ficon := '';
-
-  ext := ExtractFileExt(filename);
-  if SameText(ext, '.lnk') and not ((GetAsyncKeyState(16) < 0) and (GetAsyncKeyState(17) < 0)) then
-  begin
-    resolveShortcut(handle, fname, fparams, fdir, ficon);
-    fcaption := ChangeFileExt(ExtractFilename(filename), '');
-  end
-  else
-  if SameText(ext, '.exe') then
-  begin
-    fcaption := ChangeFileExt(ExtractFilename(fname), '');
-    fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(fname));
-  end
-  else
-  if DirectoryExists(filename) then
-  begin
-    fcaption := filename;
-    if toolu.IsDriveIdent(filename) then ficon := ICON_DRIVE else ficon := ICON_FOLDER;
-  end
-  else
-  begin
-    fcaption := ChangeFileExt(ExtractFilename(fname), '');
-  end;
-
-  ItemMgr.InsertItem(TShortcutItem.Make(0, fcaption, toolu.ZipPath(fname),
-    toolu.ZipPath(fparams), toolu.ZipPath(fdir), toolu.ZipPath(ficon), 1));
+  for i := 0 to files.Count - 1 do files.strings[i] := __getItem(files.strings[i]);
+  ItemMgr.InsertItems(files);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.WMCopyData(var Message: TMessage);

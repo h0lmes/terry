@@ -52,7 +52,7 @@ begin
   offset := 0;
 
   // copy folder //
-  pidl := Pointer( PtrUInt(ida) + ida.aoffset[index] );
+  pidl := Pointer( PtrUInt(ida) + ida.aoffset[0] );
   if ida.aoffset[0] >= size then exit;
   pidl_size := ILGetSize(pidl) - 2;
   if pidl_size > 0 then
