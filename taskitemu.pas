@@ -18,7 +18,6 @@ type
     property AppHWnd: THandle read FAppHWnd;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); override;
     procedure UpdateTaskItem(h: THandle);
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
@@ -42,7 +41,6 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
-  UpdateItem(AData);
   SetTimer(FHWnd, ID_TIMER, 2000, nil);
 end;
 //------------------------------------------------------------------------------
@@ -53,10 +51,6 @@ begin
   try GdipDisposeImage(FImage);
   except end;
   inherited;
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.UpdateItem(AData: string);
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateTaskItem(h: THandle);

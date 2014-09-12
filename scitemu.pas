@@ -31,11 +31,10 @@ type
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
+    procedure UpdateItem(AData: string);
+    //
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); override;
-    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean); override;
-    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -134,14 +133,6 @@ begin
   end;
 
   UpdateItemInternal;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.UpdateItemInternal;

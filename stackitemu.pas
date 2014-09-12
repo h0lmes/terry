@@ -81,12 +81,11 @@ type
   public
     property ItemCount: integer read FItemCount;
 
+    procedure UpdateItem(AData: string);
+
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
-    procedure UpdateItem(AData: string); override;
-    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean); override;
-    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -100,6 +99,7 @@ type
     procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
+
     class function Make(AHWnd: uint; ACaption, AImage: string;
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
@@ -240,14 +240,6 @@ begin
   end;
 
   UpdateItemInternal;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.UpdateItemInternal;

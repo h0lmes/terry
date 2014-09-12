@@ -736,6 +736,8 @@ var
   sfi: TSHFileInfoA;
   hil: HIMAGELIST;
   ico: HICON;
+  shil: cardinal;
+  vista, jumbo: boolean;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
@@ -743,18 +745,22 @@ begin
   if not Assigned(pidl) then exit;
 
   try
+    vista := IsWindowsVista;
+    shil := SHIL_EXTRALARGE;
+    if vista then shil := SHIL_JUMBO;
+
     SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
-    if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @hil) then
+    if S_OK = SHGetImageList(shil, IID_IImageList, @hil) then
         ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
-    if IsJumboIcon(ico) then
-    begin
-      image := IconToGdipBitmap(ico);
-    end else begin
-      image := IconToGdipBitmap(sfi.hIcon);
-    end;
+
+    jumbo := false;
+    if vista then jumbo := IsJumboIcon(ico);
+    if jumbo or not vista then image := IconToGdipBitmap(ico)
+    else image := IconToGdipBitmap(sfi.hIcon);
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+
     try DestroyIcon(sfi.hIcon);
     except end;
-    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
     on e: Exception do raise Exception.Create('LoadImageFromPIDL'#10#13 + e.message);
   end;
@@ -790,13 +796,21 @@ function GetIconFromFileSH(aFile: string): HICON;
 var
   imageList: HIMAGELIST;
   sfi: TSHFileInfo;
+  shil: cardinal;
+  vista: boolean;
 begin
   try
     result := 0;
+    vista := IsWindowsVista;
+    shil := SHIL_EXTRALARGE;
+    if vista then shil := SHIL_JUMBO;
+
     SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
-    if S_OK = SHGetImageList(SHIL_JUMBO, IID_IImageList, @imageList) then
+    if S_OK = SHGetImageList(shil, IID_IImageList, @imageList) then
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
-    if not IsJumboIcon(result) then result := 0;
+
+    if vista then
+      if not IsJumboIcon(result) then result := 0;
   except
     on e: Exception do raise Exception.Create('GetIconFromFileSH'#10#13 + e.message);
   end;

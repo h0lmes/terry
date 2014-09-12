@@ -493,118 +493,6 @@ end;
 //
 //
 //
-//   Task Item Procs
-//
-//
-//
-//------------------------------------------------------------------------------
-procedure _ItemManager.Taskbar;
-var
-  i: integer;
-  Inst: TCustomItem;
-  index: integer;
-  HWndTask, HWndItem: THandle;
-begin
-  // add items //
-  i := 0;
-  while i < ProcessHelper.GetAppWindowsCount do
-  begin
-    HWndTask := ProcessHelper.GetAppWindowHandle(i);
-    index := GetTaskItemIndex(HWndTask);
-    if index = -1 then
-    begin
-      if TaskItemCount = 0 then
-      begin
-        // add task items separator //
-        AddItem('class="separator";dontsave="1";candrag="0";', true, false);
-        inc(TaskItemCount);
-      end;
-      SetDropPlace(NOT_AN_ITEM); // insert after the last item //
-      HWndItem := AddItem('class="task";', true, false);
-      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
-      if Inst is TTaskItem then
-      begin
-        inc(TaskItemCount);
-        TTaskItem(Inst).UpdateTaskItem(HWndTask);
-      end;
-    end;
-    inc(i);
-  end;
-
-
-  // remove items //
-  i := ItemCount - 1;
-  while i >= 0 do
-  begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-    if Inst is TTaskItem then
-      if TTaskItem(Inst).AppHWnd <> THandle(0) then
-        if ProcessHelper.GetAppWindowIndex(TTaskItem(Inst).AppHWnd) < 0 then
-        begin
-          Inst.Delete;
-          if TaskItemCount > 0 then dec(TaskItemCount);
-        end;
-    dec(i);
-  end;
-
-  // delete task items separator //
-  if TaskItemCount = 1 then
-  begin
-    i := ItemCount - 1;
-    while (i >= 0) and (TaskItemCount > 0) do
-    begin
-      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-      if Inst is TSeparatorItem then
-        if Inst.DontSave then
-        begin
-          Inst.Delete;
-          if TaskItemCount > 0 then dec(TaskItemCount);
-        end;
-      dec(i);
-    end;
-  end;
-
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.GetTaskItemIndex(h: THandle): integer;
-var
-  i: integer;
-  Inst: TCustomItem;
-begin
-  result := -1;
-  i := 0;
-  while i < ItemCount do
-  begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-    if Inst is TTaskItem then
-      if TTaskItem(Inst).AppHWnd = h then
-      begin
-        result := i;
-        break;
-      end;
-    inc(i);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.ClearTaskbar;
-var
-  i: integer;
-  Inst: TCustomItem;
-begin
-  i := ItemCount - 1;
-  while i >= 0 do
-  begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-    if Inst is TTaskItem then Inst.Delete;
-    if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
-    dec(i);
-  end;
-  TaskItemCount := 0;
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
 //   ITEMS
 //
 //
@@ -1780,10 +1668,11 @@ begin
       // stack to stack //
       if (DragInst is TStackItem) and (Inst is TStackItem) then
       begin
-        if TStackItem(DragInst).ItemCount > 0 then
+        i := 0;
+        while i < TStackItem(DragInst).ItemCount do
         begin
-          for i := 0 to TStackItem(DragInst).ItemCount - 1 do
-            TStackItem(Inst).AddSubitem(TStackItem(DragInst).SubitemToString(i));
+          TStackItem(Inst).AddSubitem(TStackItem(DragInst).SubitemToString(i));
+          inc(i);
         end;
         DragInst.Delete;
       end else
@@ -1820,6 +1709,7 @@ begin
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
     ItemsChanged;
+    AllItemsSave;
   except
     on e: Exception do err('ItemManager.DockWindowItem', e);
   end;
@@ -1949,7 +1839,7 @@ var
 begin
   try
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.UpdateImage(lpImageNew, AutoDelete);
+    if Inst is TPluginItem then TPluginItem(Inst).UpdateImage(lpImageNew, AutoDelete);
   except
     on e: Exception do err('Terry.ItemManager.SetPluginImage', e);
   end;
@@ -1961,7 +1851,7 @@ var
 begin
   try
     if HWnd <> 0 then Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.UpdateOverlay(lpOverlayNew, AutoDelete);
+    if Inst is TPluginItem then TPluginItem(Inst).UpdateOverlay(lpOverlayNew, AutoDelete);
   except
     on e: Exception do err('Terry.ItemManager.SetPluginOverlay', e);
   end;
@@ -2047,6 +1937,118 @@ begin
   except
     on e: Exception do err('ItemManager.IsSeparator', e);
   end;
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//   Task Item Procs
+//
+//
+//
+//------------------------------------------------------------------------------
+procedure _ItemManager.Taskbar;
+var
+  i: integer;
+  Inst: TCustomItem;
+  index: integer;
+  HWndTask, HWndItem: THandle;
+begin
+  // add items //
+  i := 0;
+  while i < ProcessHelper.GetAppWindowsCount do
+  begin
+    HWndTask := ProcessHelper.GetAppWindowHandle(i);
+    index := GetTaskItemIndex(HWndTask);
+    if index = -1 then
+    begin
+      if TaskItemCount = 0 then // if there is no task items yet - add separator
+      begin
+        AddItem('class="separator";dontsave="1";candrag="0";', true, false);
+        inc(TaskItemCount);
+      end;
+      // add task item after the last item //
+      SetDropPlace(NOT_AN_ITEM);
+      HWndItem := AddItem('class="task";', true, false);
+      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      if Inst is TTaskItem then
+      begin
+        inc(TaskItemCount);
+        TTaskItem(Inst).UpdateTaskItem(HWndTask);
+      end;
+    end;
+    inc(i);
+  end;
+
+
+  // remove items //
+  i := ItemCount - 1;
+  while i >= 0 do
+  begin
+    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+    if Inst is TTaskItem then
+      if TTaskItem(Inst).AppHWnd <> THandle(0) then
+        if ProcessHelper.GetAppWindowIndex(TTaskItem(Inst).AppHWnd) < 0 then
+        begin
+          Inst.Delete;
+          if TaskItemCount > 0 then dec(TaskItemCount);
+        end;
+    dec(i);
+  end;
+
+  // if not task items left on the dock - delete task items separator //
+  if TaskItemCount = 1 then
+  begin
+    i := ItemCount - 1;
+    while (i >= 0) and (TaskItemCount > 0) do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      if Inst is TSeparatorItem then
+        if Inst.DontSave then
+        begin
+          Inst.Delete;
+          if TaskItemCount > 0 then dec(TaskItemCount);
+        end;
+      dec(i);
+    end;
+  end;
+
+end;
+//------------------------------------------------------------------------------
+function _ItemManager.GetTaskItemIndex(h: THandle): integer;
+var
+  i: integer;
+  Inst: TCustomItem;
+begin
+  result := -1;
+  i := 0;
+  while i < ItemCount do
+  begin
+    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+    if Inst is TTaskItem then
+      if TTaskItem(Inst).AppHWnd = h then
+      begin
+        result := i;
+        break;
+      end;
+    inc(i);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.ClearTaskbar;
+var
+  i: integer;
+  Inst: TCustomItem;
+begin
+  i := ItemCount - 1;
+  while i >= 0 do
+  begin
+    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+    if Inst is TTaskItem then Inst.Delete;
+    if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
+    dec(i);
+  end;
+  TaskItemCount := 0;
 end;
 //------------------------------------------------------------------------------
 end.

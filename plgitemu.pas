@@ -6,6 +6,15 @@ uses Windows, Messages, SysUtils, Controls, Classes, Dialogs,
 
 type TPluginItem = class(TCustomItem)
   private
+    lpData: Pointer;
+    MouseDownPoint: windows.TPoint;
+    AutoDeleteImage: boolean;
+    AutoDeleteOverlay: boolean;
+    FImage2: Pointer;
+    FIW2: cardinal;
+    FIH2: cardinal;
+    hwnd2: uint; // to speed up gdiplus drawing //
+    PluginFile: string;
     // plugin lib vars
     hLib: uint;
     OnCreate: _OnCreate;
@@ -16,26 +25,14 @@ type TPluginItem = class(TCustomItem)
     OnRightButtonClick: _OnRightButtonClick;
     OnConfigure: _OnConfigure;
     OnWndMessage: _OnProcessMessage;
-    //
-    lpData: Pointer;
-    MouseDownPoint: windows.TPoint;
-    AutoDeleteImage: boolean;
-    AutoDeleteOverlay: boolean;
-    FImage2: Pointer;
-    FIW2: cardinal;
-    FIH2: cardinal;
-    hwnd2: uint; // for speed optimization //
-    //
-    PluginFile: string;
-    procedure LoadLib;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CreatePlugin(AData: string);
   public
+    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
+    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
+    //
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); override;
-    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean); override;
-    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -64,60 +61,61 @@ begin
   FImage := nil;
   AutoDeleteOverlay := true;
   FImage2 := nil;
-
-  UpdateItem(AData);
-  LoadLib;
   CreatePlugin(AData);
 end;
 //------------------------------------------------------------------------------
-procedure TPluginItem.UpdateItem(AData: string);
+procedure TPluginItem.CreatePlugin(AData: string);
 var
   IniFile, IniSection: string;
   ini: TIniFile;
+  szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
 begin
-  if FFreed then exit;
-
+  FFreed := false;
   try
+    // window to speed up drawing //
+    hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, WINITEM_CLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
+
+    // get library path //
     IniFile := FetchValue(AData, 'inifile="', '";');
     IniSection := FetchValue(AData, 'inisection="', '";');
-
     if (length(IniFile) > 0) and (length(IniSection) > 0) then
     begin
       ini := TIniFile.Create(IniFile);
       PluginFile := toolu.UnzipPath(ini.ReadString(IniSection, 'file', ''));
       ini.free;
-    end
-    else
-    begin
+    end else begin
       PluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
     end;
+
+    // load library //
+    hLib := LoadLibrary(pchar(PluginFile));
+    if hLib = 0 then raise Exception.Create('LoadLibrary(' + PluginFile + ') failed');
+    @OnCreate := GetProcAddress(hLib, 'OnCreate');
+    @OnSave := GetProcAddress(hLib, 'OnSave');
+    @OnDestroy := GetProcAddress(hLib, 'OnDestroy');
+    @OnLeftButtonClick := GetProcAddress(hLib, 'OnLeftButtonClick');
+    @OnDoubleClick := GetProcAddress(hLib, 'OnDoubleClick');
+    @OnRightButtonClick := GetProcAddress(hLib, 'OnRightButtonClick');
+    @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
+    @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
+    if not assigned(OnCreate) then raise Exception.Create('OnCreate is NULL');
+
+
+    // call Create //
+    lpData := nil;
+    if (IniFile <> '') and (IniSection <> '') then
+    begin
+      strlcopy(szIni, @IniFile[1], length(IniFile));
+      strlcopy(szIniGroup, @IniSection[1], length(IniSection));
+      lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
+    end
+    else lpData := OnCreate(FHWnd, hLib, nil, nil);
+
+    FFreed := not assigned(lpData);
+    if FFreed then raise Exception.Create('OnCreate returned NULL');
   except
-    on e: Exception do raise Exception.Create('TPluginItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.CreatePlugin'#10#13 + e.message);
   end;
-
-  Draw(Fx, Fy, FSize, true, 0, FShowItem);
-end;
-//------------------------------------------------------------------------------
-procedure TPluginItem.LoadLib;
-begin
-  FCaption := '';
-  hLib := GetModuleHandle(pansichar(ExtractFileName(PluginFile)));
-  if hLib < 33 then hLib := LoadLibrary(pchar(PluginFile));
-  if hLib < 33 then
-  begin
-    raise Exception.Create('Error loading plugin DLL ' + PluginFile);
-    exit;
-  end;
-  @OnCreate := GetProcAddress(hLib, 'OnCreate');
-  @OnSave := GetProcAddress(hLib, 'OnSave');
-  @OnDestroy := GetProcAddress(hLib, 'OnDestroy');
-  @OnLeftButtonClick := GetProcAddress(hLib, 'OnLeftButtonClick');
-  @OnDoubleClick := GetProcAddress(hLib, 'OnDoubleClick');
-  @OnRightButtonClick := GetProcAddress(hLib, 'OnRightButtonClick');
-  @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
-  @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
-
-  if not assigned(OnCreate) then raise Exception.Create('PluginItem.LoadLib OnCreate is NULL');
 end;
 //------------------------------------------------------------------------------
 destructor TPluginItem.Destroy;
@@ -135,41 +133,6 @@ begin
   except end;
 
   inherited;
-end;
-//------------------------------------------------------------------------------
-procedure TPluginItem.CreatePlugin(AData: string);
-var
-  IniFile, IniSection: string;
-  szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
-begin
-  FFreed := false;
-
-  // так, а это окошко не трогай мля //
-  // перерисовку надо делать в окошке //
-  // а не на самом пункте, чтоб не моргало //
-  hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, WINITEM_CLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
-
-  lpData := nil;
-  try
-    if assigned(OnCreate) then
-    begin
-      IniFile := FetchValue(AData, 'inifile="', '";');
-      IniSection := FetchValue(AData, 'inisection="', '";');
-      if (IniFile <> '') and (IniSection <> '') then
-      begin
-        strlcopy(szIni, @IniFile[1], length(IniFile));
-        strlcopy(szIniGroup, @IniSection[1], length(IniSection));
-        lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
-        //if lpData = nil then lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
-      end
-      else lpData := OnCreate(FHWnd, hLib, nil, nil);
-
-      FFreed := lpData = nil;
-      if FFreed then raise Exception.Create('Plugin onCreate returned NULL');
-    end;
-  except
-    on e: Exception do raise Exception.Create('PluginItem.CreatePlugin'#10#13 + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 function TPluginItem.cmd(id: TGParam; param: integer): integer;

@@ -73,7 +73,7 @@ type
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); overload; virtual; abstract;
+    procedure UpdateItem(AData: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean); virtual; abstract;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
     function ToString: string; virtual;

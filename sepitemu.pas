@@ -12,9 +12,6 @@ type TSeparatorItem = class(TCustomItem)
   public
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); override;
-    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean); override;
-    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -32,7 +29,9 @@ implementation
 constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
-  UpdateItem(AData);
+  FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
+  FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
+  UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------
 destructor TSeparatorItem.Destroy;
@@ -40,23 +39,6 @@ begin
   try GdipDisposeImage(FImage);
   except end;
   inherited;
-end;
-//------------------------------------------------------------------------------
-procedure TSeparatorItem.UpdateItem(AData: string);
-begin
-  try FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
-  except end;
-  try FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
-  except end;
-  UpdateItemInternal;
-end;
-//------------------------------------------------------------------------------
-procedure TSeparatorItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TSeparatorItem.UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TSeparatorItem.UpdateItemInternal;

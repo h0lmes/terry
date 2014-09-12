@@ -82,9 +82,6 @@ type TCustomItem = class
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); virtual; abstract;
-    procedure UpdateImage(AImage: Pointer; AutoDelete: boolean); virtual;
-    procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
     function ToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
@@ -279,14 +276,6 @@ begin
   except
     on e: Exception do raise Exception.Create('CustomItem.Cmd'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TCustomItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
-begin
-end;
-//------------------------------------------------------------------------------
-procedure TCustomItem.UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.LME(lock: boolean);
@@ -610,12 +599,7 @@ begin
           while i < filecount do
           begin
             windows.dragQueryFile(wParam, i, pchar(filename), MAX_PATH);
-            if strlicomp(pchar(filename), 'icon', 4) = 0 then
-            begin
-              if ScreenHitTest(wpt.x, wpt.y) then UpdateItem(strpas(pchar(filename)));
-            end else begin
-              if ScreenHitTest(wpt.x, wpt.y) then DropFile(FHWnd, wpt, pchar(filename));
-            end;
+            if ScreenHitTest(wpt.x, wpt.y) then DropFile(FHWnd, wpt, pchar(filename));
             inc(i);
           end;
         except
