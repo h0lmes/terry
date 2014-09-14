@@ -1,0 +1,1 @@
+copy .\sysm.dll c:\terry\plugins\sysm\sysm.dll

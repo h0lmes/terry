@@ -88,7 +88,7 @@ begin
   begin
     value := power;
 
-    image := inttostr(min(trunc(byte(value) / 10), 8));
+    image := inttostr(min((value and $ff) div 10, 8));
     if value and $200 <> 0 then image := 'na';
     image := 'power\' + image + '.png';
     overlay := '';
