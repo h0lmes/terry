@@ -1,21 +1,22 @@
 object frmApps: TfrmApps
   Left = 329
-  Height = 644
+  Height = 617
   Top = 138
-  Width = 1007
+  Width = 907
   Caption = 'Application search'
-  ClientHeight = 644
-  ClientWidth = 1007
+  ClientHeight = 617
+  ClientWidth = 907
   KeyPreview = True
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.2.2.0'
   object listApps: TListView
     Left = 0
-    Height = 644
+    Height = 617
     Top = 0
-    Width = 1007
+    Width = 907
     Align = alClient
+    AutoSort = False
     BorderStyle = bsNone
     Columns = <    
       item
@@ -26,17 +27,17 @@ object frmApps: TfrmApps
         Width = 10
       end    
       item
-        Caption = 'Description'
+        Caption = 'Filename'
         Width = 10
       end>
+    GridLines = True
     IconOptions.Arrangement = iaLeft
     LargeImages = images
     ReadOnly = True
     RowSelect = True
-    ScrollBars = ssVertical
+    ScrollBars = ssHorizontal
     ShowColumnHeaders = False
     SmallImages = images
-    SortType = stBoth
     TabOrder = 0
     ViewStyle = vsIcon
     OnAdvancedCustomDrawItem = listAppsAdvancedCustomDrawItem

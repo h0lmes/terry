@@ -2,7 +2,8 @@ unit gdip_gfx;
 
 interface
 
-uses Windows, Classes, SysUtils, Graphics, ActiveX, GDIPAPI;
+uses Windows, Classes, SysUtils, Graphics, ShlObj, ShellAPI, PIDL, ActiveX,
+  CommCtrl, GDIPAPI, toolu;
 
 const
   HLSMAX = 240;
@@ -20,6 +21,13 @@ const
   ULW_ALPHA    = 2;
   ULW_OPAQUE   = 4;
 
+  SHIL_LARGE      = $00;  //The image size is normally 32x32 pixels. However, if the Use large icons option is selected from the Effects section of the Appearance tab in Display Properties, the image is 48x48 pixels.
+  SHIL_SMALL      = $01;  //These images are the Shell standard small icon size of 16x16, but the size can be customized by the user.
+  SHIL_EXTRALARGE = $02;  //These images are the Shell standard extra-large icon size. This is typically 48x48, but the size can be customized by the user.
+  SHIL_SYSSMALL   = $03;  //These images are the size specified by GetSystemMetrics called with SM_CXSMICON and GetSystemMetrics called with SM_CYSMICON.
+  SHIL_JUMBO      = $04;  //Windows Vista and later. The image is normally 256x256 pixels.
+  IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
+
 type
   TRGBAData = array [0..3] of Byte;
   PRGBAData = ^TRGBAData;
@@ -34,8 +42,7 @@ type
   TGDIPColors = packed array [0..MaxLongint div 4 - 1] of TGDIPColor;
   PGDIPColors = ^TGDIPColors;
 
-  TStretchStyle = (ssNone, ssStretch, ssTile, ssVStretch, ssHStretch,
-    ssVTile, ssHTile, ssVStretchHTile, ssHStretchVTile);
+  TStretchStyle = (ssNone, ssStretch, ssTile);
 
   _SimpleBitmap = record
     topleft: windows.TPoint;
@@ -59,26 +66,20 @@ type
   end;
 
   ppixel = ^pixel;
-  pixel = record
+  pixel = packed record
     b: byte;
     g: byte;
     r: byte;
     a: byte;
   end;
 
-  PBlendFunction = ^TBlendFunction;
   _BLENDFUNCTION = record
     BlendOp: BYTE;
     BlendFlags: BYTE;
     SourceConstantAlpha: BYTE;
     AlphaFormat: BYTE;
   end;
-  {$EXTERNALSYM _BLENDFUNCTION}
-  BLENDFUNCTION = _BLENDFUNCTION;
-  {$EXTERNALSYM BLENDFUNCTION}
   LPBLENDFUNCTION = ^BLENDFUNCTION;
-  {$EXTERNALSYM LPBLENDFUNCTION}
-  TBlendFunction = _BLENDFUNCTION;
 
 function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
     psize: LPSIZE; hdcSrc: HDC; pptSrc: LPPOINT; crKey: COLORREF;
@@ -86,8 +87,8 @@ function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
 
 function CreateBitmap(var bmp: _SimpleBitmap): boolean;
 procedure DeleteBitmap(var bmp: _SimpleBitmap);
-procedure BitmapReflection(var bmp: _SimpleBitmap;
-  XOffset, YOffset, size, ReflectionSize, Direction: integer);
+procedure BitmapReflection(var bmp: _SimpleBitmap; XOffset, YOffset, size, ReflectionSize, Direction: integer);
+function CreateRegionFromMask(bmp: _SimpleBitmap): HRGN;
 procedure IdentityMatrix(var matrix: ColorMatrix);
 procedure MultiplyMatrix(var matrix, matrix2: ColorMatrix);
 procedure CreateColorMatrix(color_data: integer; var clMatrix: ColorMatrix);
@@ -95,48 +96,28 @@ procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
-procedure Draw(dst, src: Pointer; dstx, dsty, dstwidth, dstheight: integer);
-procedure DrawIcon(dst: Pointer; src: HICON; dstx, dsty, dstwidth, dstheight: integer);
-procedure DrawEx(dst, src: Pointer; dstrect: windows.TRect;
+procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
   margins: windows.TRect; Style: TStretchStyle = ssStretch;
-  color_data: integer = $3c803c00);
-function MeasureString(str: string; hfont: Pointer): TRectF;
+  color_data: integer = DEFAULT_COLOR_DATA);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
-procedure UpdateLWindowContent(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
-procedure UpdateLWindowPos(hWnd: THandle; x, y: integer);
-procedure UpdateWindowItem(hwnd: uint; AImage, AOverlay: Pointer; w, h: integer;
-  DrawBGRect: boolean);
-procedure LoadImage(imagefile: string; MaxSize: integer; default: boolean;
-  var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+function GetIconFromFileSH(aFile: string): HICON;
+procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
-function DownscaleImage(var image: pointer; MaxSize: integer; var srcwidth, srcheight: uint;
-  DeleteSource: boolean): boolean;
-procedure LoadGdipImageFromResource(res_name: pchar; var image: Pointer);
-procedure OffsetRectF(var r: TRectF; offx, offy: integer);
+function IsJumboIcon(AIcon: HICON): boolean;
+function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 function SwapColor(color: uint): uint;
-function FadeColorTo(color, fadeto: uint; fadeby: extended): uint;
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
 function HLStoRGB(h, l, s: integer): uint;
-function StringToStretchStyle(str: string): TStretchStyle;
-function StretchStyleToString(ss: TStretchStyle): string;
 
 var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
 
 implementation
-//------------------------------------------------------------------------------
-function min(a, b: integer): integer;
-begin
-  if a < b then result:= a else result:= b;
-end;
-//------------------------------------------------------------------------------
-function max(a, b: integer): integer;
-begin
-  if a < b then result:= b else result:= a;
-end;
 //--------------------------------------------------------------------------------------------------
 function CreateBitmap(var bmp: _SimpleBitmap): boolean;
 begin
@@ -174,8 +155,7 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure BitmapReflection(var bmp: _SimpleBitmap;
-  XOffset, YOffset, size, ReflectionSize, Direction: integer);
+procedure BitmapReflection(var bmp: _SimpleBitmap; XOffset, YOffset, size, ReflectionSize, Direction: integer);
 var
   xi, yi: integer;
 begin
@@ -198,12 +178,11 @@ begin
       for yi:= 0 to ReflectionSize - 1 do
         for xi:= XOffset * 4 to (XOffset + size) * 4 - 1 do
         begin
-          pbyte(uint(bmp.BufferBits) + xi + yi * bmp.width * 4)^:=
+          pbyte(uint(bmp.BufferBits) + xi + (YOffset - ReflectionSize + yi) * bmp.width * 4)^:=
             max(
               round(
-                pbyte(uint(bmp.BufferBits) + xi + (ReflectionSize * 2 - yi - 1) * bmp.width * 4)^ -
-                pbyte(uint(bmp.BufferBits) + xi + (ReflectionSize * 2 - yi - 1) * bmp.width * 4)^ *
-                (ReflectionSize - yi) / ReflectionSize
+                pbyte(uint(bmp.BufferBits) + xi + (YOffset + ReflectionSize - yi - 1) * bmp.width * 4)^ -
+                pbyte(uint(bmp.BufferBits) + xi + (YOffset + ReflectionSize - yi - 1) * bmp.width * 4)^ * (ReflectionSize - yi) / ReflectionSize
               ) * 2 div 3,
             1);
         end;
@@ -211,41 +190,96 @@ begin
       for yi:= YOffset to YOffset + size - 1 do
         for xi:= 0 to ReflectionSize - 1 do
         begin
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.a:=
-            max(round(ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.a -
-            ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.a * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 1);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.r:=
-            max(round(ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.r -
-            ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.r * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.g:=
-            max(round(ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.g -
-            ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.g * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.b:=
-            max(round(ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.b -
-            ppixel(uint(bmp.BufferBits) + ((ReflectionSize * 2 - xi - 1) + yi * bmp.width) * 4)^.b * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
+          ppixel(uint(bmp.BufferBits) + ((XOffset - ReflectionSize + xi) + yi * bmp.width) * 4)^.a :=
+            max(round(ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.a -
+            ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.a * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 1);
+          ppixel(uint(bmp.BufferBits) + ((XOffset - ReflectionSize + xi) + yi * bmp.width) * 4)^.r :=
+            max(round(ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.r -
+            ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.r * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
+          ppixel(uint(bmp.BufferBits) + ((XOffset - ReflectionSize + xi) + yi * bmp.width) * 4)^.g :=
+            max(round(ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.g -
+            ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.g * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
+          ppixel(uint(bmp.BufferBits) + ((XOffset - ReflectionSize + xi) + yi * bmp.width) * 4)^.b :=
+            max(round(ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.b -
+            ppixel(uint(bmp.BufferBits) + ((XOffset + ReflectionSize - xi - 1) + yi * bmp.width) * 4)^.b * (ReflectionSize - xi) div ReflectionSize ) * 2 div 3, 0);
         end;
     if Direction = 2 then
       for yi:= YOffset to YOffset + size - 1 do
         for xi:= XOffset + size to XOffset + size + ReflectionSize - 1 do
         begin
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.a:=
+          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.a :=
             max(round(ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.a -
             ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.a *
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 1);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.r:=
+          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.r :=
             max(round(ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.r -
             ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.r *
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 0);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.g:=
+          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.g :=
             max(round(ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.g -
             ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.g *
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 0);
-          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.b:=
+          ppixel(uint(bmp.BufferBits) + (xi + yi * bmp.width) * 4)^.b :=
             max(round(ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.b -
             ppixel(uint(bmp.BufferBits) + (((XOffset + size) * 2 - xi - 1) + yi * bmp.width) * 4)^.b *
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 0);
         end;
   except
+    on e: Exception do raise Exception.Create('BitmapReflection'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function CreateRegionFromMask(bmp: _SimpleBitmap): HRGN;
+var
+  X, Y, StartX: integer;
+  Excl: THandle;
+  TransparentColor: pixel;
+begin
+  result := CreateRectRGN(0, 0, bmp.width, bmp.height);
+
+  for Y := 0 to bmp.height - 1 do
+  begin
+    X := 0;
+    if Y = 0 then
+    begin
+      TransparentColor.r := ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.r;
+      TransparentColor.g := ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.g;
+      TransparentColor.b := ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.b;
+    end;
+    StartX := -1;
+
+    for X := 0 to bmp.width - 1 do
+    begin
+      if (ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.r = TransparentColor.r) and
+        (ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.g = TransparentColor.g) and
+        (ppixel(uint(bmp.BufferBits) + (X + Y * bmp.width) * 4)^.b = TransparentColor.b) then
+      begin
+        if StartX = -1 then StartX := X;
+      end else
+      begin
+        if StartX > -1 then
+        begin
+          Excl := CreateRectRGN(StartX, Y, X, Y + 1);
+          try
+            CombineRGN(Result, Result, Excl, RGN_DIFF);
+            StartX := -1;
+          finally
+            DeleteObject(Excl);
+          end;
+        end;
+      end;
+
+      if StartX > -1 then
+      begin
+        Excl := CreateRectRGN(StartX, Y, X + 1, Y + 1);
+        try
+          CombineRGN(Result, Result, Excl, RGN_DIFF);
+        finally
+          DeleteObject(Excl);
+        end;
+      end;
+      StartX := -1;
+    end;
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -259,14 +293,6 @@ end;
 procedure DeleteGraphics(hgdip: Pointer);
 begin
   if hgdip <> nil then GdipDeleteGraphics(hgdip);
-end;
-//--------------------------------------------------------------------------------------------------
-procedure OffsetRectF(var r: TRectF; offx, offy: integer);
-begin
-  r.x:= r.x + offx;
-  r.y:= r.y + offy;
-  r.width:= r.width + offx;
-  r.height:= r.height + offy;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure IdentityMatrix(var matrix: ColorMatrix);
@@ -319,32 +345,32 @@ begin
   // color //
 
   IdentityMatrix(clMatrix);
-  cl:= byte(color_data);
-  if cl > 239 then cl:= cl - 240;
-  if cl < 0 then cl:= cl + 240;
+  cl := color_data and $ff;
+  if cl > 239 then cl := cl - 240;
+  if cl < 0 then cl := cl + 240;
   if cl <> DEFAULT_COLOR_OFFSET then
   begin
     if (cl >= 0) and (cl < 80) then
     begin
-      r:= 80 - cl;
-      g:= cl;
-      b:= 0;
+      r := 80 - cl;
+      g := cl;
+      b := 0;
     end;
     if (cl >= 80) and (cl < 160) then
     begin
-      r:= 0;
-      g:= 160 - cl;
-      b:= cl - 80;
+      r := 0;
+      g := 160 - cl;
+      b := cl - 80;
     end;
     if (cl >= 160) and (cl < 240) then
     begin
-      r:= cl - 160;
-      g:= 0;
-      b:= 240 - cl;
+      r := cl - 160;
+      g := 0;
+      b := 240 - cl;
     end;
-    r:= r / 80;
-    g:= g / 80;
-    b:= b / 80;
+    r := r / 80;
+    g := g / 80;
+    b := b / 80;
     clMatrix[0, 0]:= r;
     clMatrix[1, 0]:= g;
     clMatrix[2, 0]:= b;
@@ -359,30 +385,45 @@ begin
   // saturation //
 
   IdentityMatrix(satMatrix);
-  sat:= byte(color_data shr 8);
+  sat := color_data shr 8 and $ff;
+  if sat = 0 then // grayscale //
+  begin
+    sr := 0.3;
+    sg := 0.59;
+    sb := 0.11;
+    clMatrix[0, 0] := sr;
+    clMatrix[0, 1] := sr;
+    clMatrix[0, 2] := sr;
+    clMatrix[1, 0] := sg;
+    clMatrix[1, 1] := sg;
+    clMatrix[1, 2] := sg;
+    clMatrix[2, 0] := sb;
+    clMatrix[2, 1] := sb;
+    clMatrix[2, 2] := sb;
+  end else
   if sat <> DEFAULT_SATURATION then
   begin
-    sat:= sat / 60;
-    satCompl:= 1 - sat;
-    sr:= 0.3086 * satCompl;
-    sg:= 0.6094 * satCompl;
-    sb:= 0.0820 * satCompl;
-    satMatrix[0, 0]:= sr + sat;
-    satMatrix[0, 1]:= sr;
-    satMatrix[0, 2]:= sr;
-    satMatrix[1, 0]:= sg;
-    satMatrix[1, 1]:= sg + sat;
-    satMatrix[1, 2]:= sg;
-    satMatrix[2, 0]:= sb;
-    satMatrix[2, 1]:= sb;
-    satMatrix[2, 2]:= sb + sat;
+    sat := sat / 60;
+    satCompl := 1 - sat;
+    sr := 0.3086 * satCompl;
+    sg := 0.6094 * satCompl;
+    sb := 0.0820 * satCompl;
+    satMatrix[0, 0] := sr + sat;
+    satMatrix[0, 1] := sr;
+    satMatrix[0, 2] := sr;
+    satMatrix[1, 0] := sg;
+    satMatrix[1, 1] := sg + sat;
+    satMatrix[1, 2] := sg;
+    satMatrix[2, 0] := sb;
+    satMatrix[2, 1] := sb;
+    satMatrix[2, 2] := sb + sat;
     MultiplyMatrix(clMatrix, satMatrix);
   end;
 
   // lightness //
 
   IdentityMatrix(brMatrix);
-  br:= byte(color_data shr 16);
+  br:= color_data shr 16 and $ff;
   if br <> DEFAULT_BRIGHTNESS then
   begin
     br:= br / 128 - 1;
@@ -395,7 +436,7 @@ begin
   // contrast //
 
   IdentityMatrix(coMatrix);
-  co:= byte(color_data shr 24);
+  co:= color_data shr 24 and $ff;
   if co <> DEFAULT_CONTRAST then
   begin
     co:= co / 60;
@@ -429,30 +470,7 @@ begin
   matrix[3, 3]:= alpha / 255;
 end;
 //------------------------------------------------------------------------------
-procedure Draw(dst, src: Pointer; dstx, dsty, dstwidth, dstheight: integer);
-var
-  srcwidth, srcheight: cardinal;
-begin
-  if (src = nil) or (dst = nil) then exit;
-
-  GdipGetImageWidth(src, srcwidth);
-  GdipGetImageHeight(src, srcheight);
-  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-  GdipDrawImageRectRectI(dst, src, dstx, dsty, dstwidth, dstheight, 0, 0, srcwidth, srcheight, UnitPixel, nil, nil, nil);
-end;
-//------------------------------------------------------------------------------
-procedure DrawIcon(dst: Pointer; src: HICON; dstx, dsty, dstwidth, dstheight: integer);
-var
-  dc: HDC;
-begin
-  if (src < 33) or (dst = nil) then exit;
-
-  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-  GdipGetDC(dst, dc);
-  DrawIconEx(dc, dstx, dsty, src, dstwidth, dstheight, 0, 0, DI_NORMAL);
-end;
-//------------------------------------------------------------------------------
-procedure DrawEx(dst, src: Pointer; dstrect: windows.TRect;
+procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
   margins: windows.TRect; Style: TStretchStyle = ssStretch;
   color_data: integer = DEFAULT_COLOR_DATA);
 var
@@ -473,10 +491,10 @@ begin
       exit;
     end;
 
-    GdipGetImageWidth(src, srcwidth);
-    GdipGetImageHeight(src, srcheight);
-    dstwidth:= dstrect.Right;
-    dstheight:= dstrect.Bottom;
+    srcwidth := W;
+    srcheight := H;
+    dstwidth := dstrect.Right;
+    dstheight := dstrect.Bottom;
 
     // colorization //
 
@@ -486,18 +504,6 @@ begin
       CreateColorMatrix(color_data, matrix);
       GdipCreateImageAttributes(hattr);
       GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
-    end;
-
-    // end colorization //
-
-    // if we do not need to stretch //
-
-    if Style = ssNone then
-    begin
-      GdipDrawImageRectRectI(dst, src, dstrect.left + margins.left,
-      dstrect.top + margins.top, srcwidth, srcheight,
-      0, 0, srcwidth, srcheight, UnitPixel, hattr, nil, nil);
-      exit;
     end;
 
   except exit;
@@ -695,24 +701,6 @@ begin
 
   if DEFAULT_COLOR_DATA <> color_data then GdipDisposeImageAttributes(hattr);
 end;
-//------------------------------------------------------------------------------
-function MeasureString(str: string; hfont: Pointer): TRectF;
-var
-  dc: HDC;
-  hgdip: Pointer;
-begin
-  dc:= CreateCompatibleDC(0);
-  if dc = 0 then exit;
-  GdipCreateFromHDC(dc, hgdip);
-  GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-  result.x:= 0;
-  result.y:= 0;
-  result.width:= 0;
-  result.height:= 0;
-  GdipMeasureString(hgdip, PWideChar(WideString(str)), -1, hfont, @result, nil, @result, nil, nil);
-  GdipDeleteGraphics(hgdip);
-  DeleteDC(dc);
-end;
 //--------------------------------------------------------------------------------------------------
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 var
@@ -730,22 +718,6 @@ begin
   UpdateLayeredWindow(hWnd, 0, @bmp.topleft, @Size, bmp.dc, @TopLeft, $1fffffff, @Blend, ULW_ALPHA);
 end;
 //--------------------------------------------------------------------------------------------------
-procedure UpdateLWindowContent(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
-var
-  Blend: TBlendFunction;
-  TopLeft: windows.TPoint;
-  Size: windows.TSize;
-begin
-  TopLeft:= Point(0, 0);
-  size.cx:= bmp.width;
-  size.cy:= bmp.height;
-  Blend.BlendOp:= AC_SRC_OVER;
-  Blend.BlendFlags:= 0;
-  Blend.SourceConstantAlpha:= SrcAlpha;
-  Blend.AlphaFormat:= AC_SRC_ALPHA;
-  UpdateLayeredWindow(hWnd, 0, nil, @Size, bmp.dc, @TopLeft, $1fffffff, @Blend, ULW_ALPHA);
-end;
-//--------------------------------------------------------------------------------------------------
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 var
   Blend: TBlendFunction;
@@ -758,108 +730,141 @@ begin
   Blend.AlphaFormat:= AC_SRC_ALPHA;
   UpdateLayeredWindow(hWnd, 0, @topleft, nil, 0, nil, $1fffffff, @Blend, ULW_ALPHA);
 end;
-//--------------------------------------------------------------------------------------------------
-procedure UpdateLWindowPos(hWnd: THandle; x, y: integer);
-var
-  TopLeft: windows.TPoint;
-begin
-  TopLeft:= Point(x, y);
-  UpdateLayeredWindow(hWnd, 0, @topleft, 0, 0, 0, 0, 0, 0);
-end;
 //------------------------------------------------------------------------------
-procedure UpdateWindowItem(hwnd: uint; AImage, AOverlay: Pointer; w, h: integer; DrawBGRect: boolean);
+procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
-  dst, hbrush: Pointer;
-  bmp: _SimpleBitmap;
-  srcwidth, srcheight: cardinal;
+  sfi: TSHFileInfoA;
+  hil: HIMAGELIST;
+  ico: HICON;
+  shil: cardinal;
+  vista, jumbo: boolean;
 begin
+  try if image <> nil then GdipDisposeImage(image);
+  except end;
+  image := nil;
+  if not Assigned(pidl) then exit;
+
   try
-    try
-      bmp.width:= w;
-      bmp.height:= h;
-      CreateBitmap(bmp);
-      dst:= CreateGraphics(bmp.dc);
+    vista := IsWindowsVista;
+    shil := SHIL_EXTRALARGE;
+    if vista then shil := SHIL_JUMBO;
 
-      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-      GdipSetInterpolationMode(dst, InterpolationModeBicubic);
+    SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
+    if S_OK = SHGetImageList(shil, IID_IImageList, @hil) then
+        ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
 
-      if DrawBGRect then
-      begin
-        GdipCreateSolidFill($1808080, hbrush);
-        GdipFillEllipseI(dst, hbrush, 0, 0, w, h);
-        GdipDeleteBrush(hbrush);
-      end;
-      if assigned(aimage) then
-      begin
-        GdipGetImageWidth(aimage, srcwidth);
-        GdipGetImageHeight(aimage, srcheight);
-        GdipDrawImageRectRectI(dst, aimage, 0, 0, w, h,
-          0, 0, srcwidth, srcheight, UnitPixel, nil, nil, nil);
-      end;
-      if assigned(aoverlay) then
-      begin
-        GdipGetImageWidth(aoverlay, srcwidth);
-        GdipGetImageHeight(aoverlay, srcheight);
-        GdipDrawImageRectRectI(dst, aoverlay, 0, 0, w, h,
-          0, 0, srcwidth, srcheight, UnitPixel, nil, nil, nil);
-      end;
+    jumbo := false;
+    if vista then jumbo := IsJumboIcon(ico);
+    if jumbo or not vista then image := IconToGdipBitmap(ico)
+    else image := IconToGdipBitmap(sfi.hIcon);
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
 
-      UpdateLWindow(hWnd, bmp, 255);
-    finally
-      DeleteGraphics(dst);
-      DeleteBitmap(bmp);
-    end;
+    try DestroyIcon(sfi.hIcon);
+    except end;
   except
+    on e: Exception do raise Exception.Create('LoadImageFromPIDL'#10#13 + e.message);
   end;
 end;
-//--------------------------------------------------------------------------------------------------
-procedure LoadImage(imagefile: string; MaxSize: integer; default: boolean;
-  var image: pointer; var srcwidth, srcheight: uint);
+//------------------------------------------------------------------------------
+procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+const
+  ICON_SMALL2 = PtrUInt(2);
 var
-  idx: word;
-  icoIndex: uint;
-  ext: string;
-  fstream: TFileStream;
-  stream: IStream;
-  isFullyQalified: boolean;
+  hIcon: THandle;
 begin
-  try GdipDisposeImage(image);
+  try if image <> nil then GdipDisposeImage(image);
   except end;
   image := nil;
 
   try
-    icoIndex := 0;
-    try idx := 0;
-    except end;
-    isFullyQalified:= false;
-    if length(imagefile) > 3 then
-      if (imagefile[2] = ':') and (imagefile[3] = '\') then
-        isFullyQalified := true;
-
-    if isFullyQalified and fileexists(imagefile) then
+    if not IsWindow(h) then exit;
+    SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
+    if hIcon = THandle(0) then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, hIcon);
+    if hIcon = THandle(0) then hIcon := GetClassLongPtr(h, GCL_HICON);
+    if (hIcon = THandle(0)) and default then hIcon := windows.LoadIcon(0, IDI_APPLICATION);
+    if hIcon <> THandle(0) then
     begin
-      ext := AnsiLowerCase(ExtractFileExt(imagefile));
-      try
-        if (ext = '.png') or (ext = '.gif') then
-        begin
-          GdipLoadImageFromFile(PWideChar(WideString(imagefile)), image);
-        end
-        else begin
-          icoIndex := windows.ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
-          image := IconToGdipBitmap(icoIndex);
-          DeleteObject(icoIndex);
-        end;
-      except
-      end;
+      image := IconToGdipBitmap(hIcon);
+      DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
     end;
-
-    DownscaleImage(image, MaxSize, srcwidth, srcheight, true);
   except
+    on e: Exception do raise Exception.Create('LoadImageFromHWnd'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-function DownscaleImage(var image: pointer; MaxSize: integer;
-  var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
+function GetIconFromFileSH(aFile: string): HICON;
+var
+  imageList: HIMAGELIST;
+  sfi: TSHFileInfo;
+  shil: cardinal;
+  vista: boolean;
+begin
+  try
+    result := 0;
+    vista := IsWindowsVista;
+    shil := SHIL_EXTRALARGE;
+    if vista then shil := SHIL_JUMBO;
+
+    SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
+    if S_OK = SHGetImageList(shil, IID_IImageList, @imageList) then
+       result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
+
+    if vista then
+      if not IsJumboIcon(result) then result := 0;
+  except
+    on e: Exception do raise Exception.Create('GetIconFromFileSH'#10#13 + e.message);
+  end;
+end;
+//--------------------------------------------------------------------------------------------------
+procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+var
+  icoIndex: integer;
+  idx: word;
+  ico: HICON;
+  ext: string;
+begin
+  try if image <> nil then GdipDisposeImage(image);
+  except end;
+  image := nil;
+
+  try
+    imagefile := UnzipPath(imagefile);
+    icoIndex := 0;
+    if trystrtoint(cutafterlast(imagefile, ','), icoIndex) then imagefile := cuttolast(imagefile, ',');
+    idx := icoIndex;
+
+    if not fileexists(imagefile) and not directoryexists(imagefile) then
+    begin
+      if default then GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
+    end
+    else
+    begin
+      ext := AnsiLowerCase(ExtractFileExt(imagefile));
+      if (ext = '.png') or (ext = '.gif') then
+      begin
+        GdipLoadImageFromFile(PWideChar(WideString(imagefile)), image);
+      end
+      else
+      begin
+        ico := GetIconFromFileSH(imagefile);
+        if ico = 0 then
+        begin
+          ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
+          image := IconToGdipBitmap(ico);
+          DeleteObject(ico);
+        end else begin
+          image := IconToGdipBitmap(ico);
+        end;
+      end;
+    end;
+
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+  except
+    on e: Exception do raise Exception.Create('LoadImage'#10#13 + e.message);
+  end;
+end;
+//--------------------------------------------------------------------------------------------------
+function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
 var
   imgTemp, g: pointer;
   w, h: uint;
@@ -876,24 +881,46 @@ begin
     srcwidth := w;
     srcheight := h;
     // downscale image //
-    if (w > MaxSize) and (w > 128) and (MaxSize <= 192) then
+    if (w > MaxSize) and (w > 96) and (MaxSize <= 192) then
     begin
+      if exact then
+      begin
+        srcwidth:= MaxSize;
+        srcheight := MaxSize;
+      end else begin
+        if MaxSize <= 96 then srcwidth:= 96
+        else if MaxSize <= 128 then srcwidth:= 128
+        else if MaxSize <= 160 then srcwidth:= 160
+        else if MaxSize <= 192 then srcwidth:= 192;
+        srcheight:= srcwidth;
+      end;
       imgTemp := image;
-      if MaxSize <= 128 then srcwidth:= 128
-      else if MaxSize <= 160 then srcwidth:= 160
-      else if MaxSize <= 192 then srcwidth:= 192;
-      srcheight:= srcwidth;
       GdipCreateBitmapFromScan0(srcwidth, srcheight, 0, PixelFormat32bppPARGB, nil, image);
       GdipGetImageGraphicsContext(image, g);
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
-      GdipDrawImageRectRectI(
-                g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
+      GdipDrawImageRectRectI(g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
+      GdipDeleteGraphics(g);
+      if DeleteSource then GdipDisposeImage(imgTemp);
+      result := true;
+    end else begin
+      if exact then
+      begin
+        srcwidth:= MaxSize;
+        srcheight := MaxSize;
+      end;
+      imgTemp := image;
+      GdipCreateBitmapFromScan0(srcwidth, srcheight, 0, PixelFormat32bppPARGB, nil, image);
+      GdipGetImageGraphicsContext(image, g);
+      GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
+      GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
+      GdipDrawImageRectRectI(g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
       GdipDeleteGraphics(g);
       if DeleteSource then GdipDisposeImage(imgTemp);
       result := true;
     end;
   except
+    on e: Exception do raise Exception.Create('DownscaleImage'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -954,8 +981,7 @@ begin
           bi.bmiHeader.biYPelsPerMeter := 0;
           bi.bmiHeader.biClrUsed := 0;
           bi.bmiHeader.biClrImportant := 0;
-          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight,
-            bmpData, bi, DIB_RGB_COLORS) then
+          if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
           begin
             try
               hMask := nil;
@@ -1002,18 +1028,100 @@ begin
     DeleteObject(ii.hbmColor);
   end;
 end;
-//------------------------------------------------------------------------------
-procedure LoadGdipImageFromResource(res_name: pchar; var image: Pointer);
+//--------------------------------------------------------------------------------------------------
+function IsJumboIcon(AIcon: HICON): boolean;
 var
-  rs: TResourceStream;
-  s: IStream;
+  ii: ICONINFO;
+  biNew: BITMAPINFO;
+  bi: BITMAPINFO;
+  bmpData: PGDIPColors;
+  dc: HDC;
+  hMask: Pointer;
+  xx, yy: Integer;
+  cColor: cardinal;
+  Alpha: Byte;
+  bAlpha: Boolean;
+
+function HasAlpha: Boolean;
+var
+  x, y: Integer;
 begin
-  image := nil;
-  //GdipCreateBitmapFromResource(hInstance, PWideChar(res_name), image);
-  rs := TResourceStream.Create(hInstance, res_name, RT_RCDATA);
-  s := TStreamAdapter.Create(rs, soReference) as IStream;
-  GdipCreateBitmapFromStream(s, image);
-  rs.free;
+  Result := false;
+  for x := 0 to biNew.bmiHeader.biHeight - 1 do
+    for y := 0 to biNew.bmiHeader.biWidth - 1 do
+      if bmpData[y * biNew.bmiHeader.biWidth + x].A <> 0 then
+      begin
+        result := true;
+        exit;
+      end;
+end;
+
+begin
+  try
+    Result := false;
+    if GetIconInfo(AIcon, ii) then
+    begin
+      dc := GetDC(0);
+      if dc <> 0 then
+      begin
+        // get the bitmap info
+        biNew.bmiHeader.biSize := SizeOf(biNew);
+        biNew.bmiHeader.biBitCount := 0;
+        if 0 <> GetDIBits(dc, ii.hbmColor, 0, 0, nil, biNew, DIB_RGB_COLORS) then
+        begin
+          // Get the memory for the bits
+          try GetMem(bmpData, biNew.bmiHeader.biWidth * biNew.bmiHeader.biHeight * SizeOf(TColor))
+          except bmpData := nil;
+          end;
+          if bmpData <> nil then
+          begin
+            // Get the icon bits (pixels colors)
+            bi.bmiHeader.biSize := SizeOf(bi);
+            bi.bmiHeader.biWidth := biNew.bmiHeader.biWidth;
+            bi.bmiHeader.biHeight := -biNew.bmiHeader.biHeight;
+            bi.bmiHeader.biPlanes := 1;
+            bi.bmiHeader.biBitCount := 32;
+            bi.bmiHeader.biCompression := BI_RGB;
+            bi.bmiHeader.biSizeImage := 0;
+            bi.bmiHeader.biXPelsPerMeter := 0;
+            bi.bmiHeader.biYPelsPerMeter := 0;
+            bi.bmiHeader.biClrUsed := 0;
+            bi.bmiHeader.biClrImportant := 0;
+            if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
+            begin
+                  bAlpha := HasAlpha;
+                  if bAlpha then
+                  begin
+                      for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                        for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                          with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                            if ((yy >= 48) or (xx >= 48)) and (A > 0) then result := true;
+                  end else
+                  begin
+                      GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
+                      for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                      begin
+                        for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                        begin
+                          GdipBitmapGetPixel(hMask, xx, yy, cColor);
+                          if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
+                          if ((yy >= 48) or (xx >= 48)) and (Alpha > 0) then result := true;
+                        end;
+                      end;
+                      GdipDisposeImage(hMask);
+                  end;
+            end;
+            FreeMem(bmpData);
+          end;
+        end;
+        ReleaseDC(0, dc);
+      end;
+      DeleteObject(ii.hbmMask);
+      DeleteObject(ii.hbmColor);
+    end;
+  except
+    on e: Exception do raise Exception.Create('IsJumboIcon'#10#13 + e.message);
+  end;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
@@ -1030,16 +1138,6 @@ end;
 function SwapColor(color: uint): uint;
 begin
   result:= color and $ff000000 + color shr 16 and $ff + color and $ff00 + color and $ff shl 16;
-end;
-//------------------------------------------------------------------------------
-function FadeColorTo(color, fadeto: uint; fadeby: extended): uint;
-var
-  r, g, b: integer;
-begin
-  r:= integer(fadeto shr 16 and $ff) - round((integer(fadeto shr 16 and $ff) - integer(color shr 16 and $ff)) * fadeby);
-  g:= integer(fadeto shr 8 and $ff) - round((integer(fadeto shr 8 and $ff) - integer(color shr 8 and $ff)) * fadeby);
-  b:= integer(fadeto and $ff) - round((integer(fadeto and $ff) - integer(color and $ff)) * fadeby);
-  result:= fadeto and $ff000000 + r shl 16 + g shl 8 + b;
 end;
 //------------------------------------------------------------------------------
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
@@ -1114,33 +1212,6 @@ begin
   if B < 0 then B:= 0;
   if B > RGBMAX then B:= RGBMAX;
   result:= RGB(round(r), round(g), round(b));
-end;
-//------------------------------------------------------------------------------
-function StringToStretchStyle(str: string): TStretchStyle;
-begin
-  result:= ssStretch;
-  str:= AnsiLowerCase(str);
-  if str = 'vstretch' then result:= ssVStretch
-  else if str = 'hstretch' then result:= ssHStretch
-  else if str = 'none' then result:= ssNone
-  else if str = 'tile' then result:= ssTile
-  else if str = 'vtile' then result:= ssVTile
-  else if str = 'htile' then result:= ssHTile
-  else if str = 'vstretch_htile' then result:= ssVStretchHTile
-  else if str = 'hstretch_vtile' then result:= ssHStretchVTile;
-end;
-//------------------------------------------------------------------------------
-function StretchStyleToString(ss: TStretchStyle): string;
-begin
-  result:= 'stretch';
-  if ss = ssNone then result:= 'none'
-  else if ss = ssTile then result:= 'tile'
-  else if ss = ssVStretch then result:= 'vstretch'
-  else if ss = ssHStretch then result:= 'hstretch'
-  else if ss = ssVTile then result:= 'vtile'
-  else if ss = ssHTile then result:= 'htile'
-  else if ss = ssVStretchHTile then result:= 'vstretch_htile'
-  else if ss = ssHStretchVTile then result:= 'hstretch_vtile';
 end;
 //--------------------------------------------------------------------------------------------------
 initialization

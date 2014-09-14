@@ -21,24 +21,17 @@ type
     procedure listAppsDblClick(Sender: TObject);
     procedure listAppsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
   private
-    files: TStrings;
-    FNoWindows: boolean;
     procedure AddSelected;
-    procedure UpdateStatus;
     procedure LoadApps;
+    procedure qSortStrings(list: TStrings);
     procedure ResolveShortcut(wnd: HWND; ShortcutPath: string; out description, filename, params, dir, icn: string; out showcmd: integer);
     procedure searchfilesrecurse(path, mask: string; var list: TStrings; level: cardinal = 0; maxlevel: cardinal = 255; maxcount: integer = $7fffffff);
-    function GetFileVersion(filename: string): string;
   public
   end;
 
   TProgramData = record
     Name: array [0..1023] of char;
     Filename: array [0..1023] of char;
-    Params: array [0..1023] of char;
-    Dir: array [0..1023] of char;
-    Icon: array [0..1023] of char;
-    ShowCmd: integer;
   end;
 
 const
@@ -50,26 +43,21 @@ var
 
 implementation
 {$R *.lfm}
-uses gdip_gfx, GDIPAPI;
+uses gdip_gfx, GDIPAPI, toolu;
 //------------------------------------------------------------------------------
 procedure TfrmApps.FormShow(Sender: TObject);
 begin
-  listApps.ViewStyle := vsIcon;
   if listApps.ViewStyle = vsReport then
   begin
     listApps.Columns.Items[0].Width := images.Width + 5;
     listApps.Columns.Items[1].Width := 250;
     listApps.Columns.Items[2].Width := 400;
   end;
-
-  FNoWindows := true;
-
   LoadApps;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmApps.listAppsSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
 begin
-  UpdateStatus;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmApps.listAppsDblClick(Sender: TObject);
@@ -86,11 +74,7 @@ begin
   if listApps.ItemIndex >= 0 then
   begin
     strcopy(pdata.Name, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[0])));
-    strcopy(pdata.Filename, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[2])));
-    strcopy(pdata.Params, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[3])));
-    strcopy(pdata.Dir, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[4])));
-    strcopy(pdata.Icon, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[5])));
-    pdata.ShowCmd := strtoint(listApps.Items[listApps.ItemIndex].SubItems[6]);
+    strcopy(pdata.Filename, pchar(UTF8ToAnsi(listApps.Items[listApps.ItemIndex].SubItems[1])));
     cds.cbData := sizeof(pdata);
     cds.dwData := DATA_PROGRAM;
     cds.lpData := @pdata;
@@ -99,23 +83,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmApps.UpdateStatus;
-begin
-end;
-//------------------------------------------------------------------------------
 procedure TfrmApps.LoadApps;
 var
   path: array [0..1023] of char;
-  i, j: integer;
+  i: integer;
   item: TListItem;
+  files: TStrings;
   xfiles: TStrings;
-  //
-  description: string;
   filename: string;
-  params: string;
-  dir: string;
-  icn: string;
-  showcmd: integer;
+  filenameNoPath: string;
   //
   img: Pointer;
   iw, ih: uint;
@@ -134,59 +110,44 @@ begin
     listApps.Clear;
 
     try
-      // scan Start menu for .LNK //
+      // scan Start Menu for .LNK //
       files := TStringList.Create;
       xfiles := TStringList.Create;
       if SHGetSpecialFolderPath(Handle, path, CSIDL_COMMON_STARTMENU, false) then searchfilesrecurse(path, '*.lnk', files);
+      if SHGetSpecialFolderPath(Handle, path, CSIDL_COMMON_STARTMENU, false) then searchfilesrecurse(path, '*.appref-ms', files, 1);
       if SHGetSpecialFolderPath(Handle, path, CSIDL_STARTMENU, false) then searchfilesrecurse(path, '*.lnk', files, 1);
-
+      if SHGetSpecialFolderPath(Handle, path, CSIDL_STARTMENU, false) then searchfilesrecurse(path, '*.appref-ms', files, 1);
       // sort list //
-      for i := 0 to files.Count - 2 do
-        for j := i + 1 to files.Count - 1 do
-          if AnsiLowerCase(ExtractFileName(files.Strings[i])) > AnsiLowerCase(ExtractFileName(files.Strings[j])) then
-            files.move(i, j);
+      qSortStrings(files);
 
       i := 0;
       while i < files.Count do
       begin
         // get shortcut data //
-        ResolveShortcut(Handle, files.Strings[i], description, filename, params, dir, icn, showcmd);
+        filename := files.Strings[i];
+        filenameNoPath := AnsiLowerCase(ExtractFileName(filename));
 
         // check if we are interested in //
-        if (AnsiLowerCase(ExtractFileExt(filename)) = '.exe') // only executables //
-          and (pos('unins', AnsiLowerCase(filename)) < 1) // get rid of uninstalls //
-          and (not FNoWindows or ((pos('windows', AnsiLowerCase(filename)) < 1) and (pos('microsoft', AnsiLowerCase(filename)) < 1))) // get rid of standard progs //
+        if (pos('unins', filenameNoPath) < 1) and (pos('деинст', filenameNoPath) < 1) // get rid of uninstalls //
           and (xfiles.IndexOf(AnsiLowerCase(ExtractFileName(filename))) < 0) // get rid of duplicates //
         then
         begin
-          xfiles.add(AnsiLowerCase(ExtractFileName(filename)));
+          xfiles.add(filenameNoPath);
 
           // load image as GDIP object //
           img := nil;
-          if FileExists(icn) then gdip_gfx.LoadImage(icn, ICON_SIZE, false, img, iw, ih)
-          else gdip_gfx.LoadImage(filename, ICON_SIZE, false, img, iw, ih);
-          if img = nil then gdip_gfx.LoadImage(files.Strings[i], ICON_SIZE, false, img, iw, ih);
+          LoadImage(filename, ICON_SIZE, true, false, img, iw, ih);
 
           // add list item //
           item := listApps.Items.Add;
-          item.Caption := AnsiToUTF8(ChangeFileExt(ExtractFileName(files.Strings[i]), ''));
+          item.Caption := AnsiToUTF8(ChangeFileExt(ExtractFileName(filename), ''));
           item.Data := img;
-          item.SubItems.Add(AnsiToUTF8(ChangeFileExt(ExtractFileName(files.Strings[i]), ''))); // name
-          item.SubItems.Add(AnsiToUTF8(description)); // description
+          item.SubItems.Add(item.Caption); // name
           item.SubItems.Add(AnsiToUTF8(filename)); // file
-          item.SubItems.Add(AnsiToUTF8(params)); // parameters
-          item.SubItems.Add(AnsiToUTF8(dir)); // working directory
-          item.SubItems.Add(AnsiToUTF8(icn)); // icon file
-          item.SubItems.Add(AnsiToUTF8(inttostr(showcmd))); // show cmd
-          item.SubItems.Add(AnsiToUTF8(GetFileVersion(filename))); // version
-
-          inc(i);
-        end else begin
-          files.Delete(i);
         end;
-      end;
 
-      UpdateStatus;
+        inc(i);
+      end;
     finally
       listApps.EndUpdate;
       files.free;
@@ -195,6 +156,35 @@ begin
   except
     on e: Exception do messagebox(Handle, pchar(e.message), nil, MB_ICONERROR);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmApps.qSortStrings(list: TStrings);
+  procedure sort(list: TStrings; low, high: integer);
+  var
+    i, j: integer;
+    median, temp: string;
+  begin
+    i := low;
+    j := high;
+    median := AnsiUpperCase(ExtractFileName(list.Strings[(i+j) div 2]));
+    repeat
+      while AnsiUpperCase(ExtractFileName(list.Strings[i])) < median do inc(i);
+      while AnsiUpperCase(ExtractFileName(list.Strings[j])) > median do dec(j);
+      if i <= j then
+      begin
+        temp := list.Strings[i];
+        list.Strings[i] := list.Strings[j];
+        list.Strings[j] := temp;
+        inc(i);
+        dec(j);
+      end;
+    until i > j;
+
+    if low < j then sort(list, low, j);
+    if i < high then sort(list, i, high);
+  end;
+begin
+  sort(list, 0, list.Count - 1);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmApps.ResolveShortcut(wnd: HWND; ShortcutPath: string;
@@ -274,32 +264,6 @@ begin
         list.addobject(path + f.cFileName, tobject(0));
   end;
   if not (fhandle = THANDLE(-1)) then Windows.FindClose(fhandle);
-end;
-//----------------------------------------------------------------------
-function TfrmApps.GetFileVersion(filename: string): string;
-var
-  Info: Pointer;
-  InfoSize: DWORD;
-  FileInfo: PVSFixedFileInfo;
-  FileInfoSize: DWORD;
-  dw: DWORD;
-begin
-  result := 'n/a';
-  InfoSize := GetFileVersionInfoSize(PChar(FileName), dw);
-  if InfoSize <> 0 then
-  begin
-    GetMem(Info, InfoSize);
-    try
-      GetFileVersionInfo(PChar(FileName), 0, InfoSize, Info);
-      VerQueryValue(Info, '\', Pointer(FileInfo), FileInfoSize);
-      result := inttostr(integer(FileInfo^.dwFileVersionMS shr 16)) + '.' +
-        inttostr(FileInfo^.dwFileVersionMS and $FFFF) + '.' +
-        inttostr(FileInfo^.dwFileVersionLS shr 16) + '.' +
-        inttostr(FileInfo^.dwFileVersionLS and $FFFF);
-    finally
-      FreeMem(Info, FileInfoSize);
-    end;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmApps.listAppsAdvancedCustomDrawItem(Sender: TCustomListView;
