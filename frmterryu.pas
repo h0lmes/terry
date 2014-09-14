@@ -104,7 +104,8 @@ type
     procedure OnDragLeave;
     procedure OnDrop(files: TStrings; hWnd: uint);
     procedure DropFiles(files: TStrings);
-    procedure AddProgram;
+    procedure AddProgram; overload;
+    procedure AddProgram(Filename: string); overload;
     procedure OpenWith(filename: string);
     function FullScreenAppActive(HWnd: HWND): boolean;
     function ListFullScreenApps: string;
@@ -318,6 +319,7 @@ begin
     crsection.Acquire;
     closing := True;
     AddLog('CloseQuery begin');
+    HideTaskbar(false);
     BaseCmd(tcSaveSets, 0);
     try
       KillTimer(handle, ID_TIMER);
@@ -329,8 +331,7 @@ begin
       if assigned(theme) then theme.Free;
       if assigned(sets) then sets.Free;
       if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
-      TDropIndicator.DestroyIndicator;
-      HideTaskbar(false);
+      //TDropIndicator.DestroyIndicator;
       LockList.free;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
@@ -1293,13 +1294,7 @@ begin
       exit;
     end;
     ppd := PProgramData(pcds^.lpData);
-    ItemMgr.InsertItem(TShortcutItem.Make(0,
-        PAnsiChar(ppd^.Name),
-        toolu.ZipPath(PAnsiChar(ppd^.Filename)),
-        toolu.ZipPath(PAnsiChar(ppd^.Params)),
-        toolu.ZipPath(PAnsiChar(ppd^.Dir)),
-        toolu.ZipPath(PAnsiChar(ppd^.Icon)),
-        ppd^.ShowCmd));
+    ItemMgr.InsertItem(TShortcutItem.Make(0, pchar(ppd^.Name), ZipPath(pchar(ppd^.Filename)), '', '', '', SW_SHOWNORMAL));
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1309,17 +1304,16 @@ begin
   begin
     InitialDir := UnzipPath('%pf%');
     Filter := 'Applications (*.exe)|*.exe';
-    if Execute then
-    begin
-      ItemMgr.InsertItem(TShortcutItem.Make(0,
-        ChangeFileExt(ExtractFilename(Filename), ''),
-        toolu.ZipPath(Filename),
-        '',
-        toolu.ZipPath(ExtractFilePath(Filename)),
-        '', 1));
-    end;
+    if Execute then AddProgram(Filename);
     Free;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmterry.AddProgram(Filename: string);
+begin
+  if assigned(ItemMgr) then
+    ItemMgr.InsertItem(TShortcutItem.Make(0, ChangeFileExt(ExtractFilename(Filename), ''),
+      toolu.ZipPath(Filename), '', toolu.ZipPath(ExtractFilePath(Filename)), '', 1));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.LockMouseEffect(hWnd: HWND; lock: boolean);

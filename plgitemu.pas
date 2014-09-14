@@ -30,6 +30,7 @@ type TPluginItem = class(TCustomItem)
   public
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
+    function GetFilename: string;
     //
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -42,7 +43,6 @@ type TPluginItem = class(TCustomItem)
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
@@ -370,7 +370,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TPluginItem.GetItemFilename: string;
+function TPluginItem.GetFilename: string;
 begin
   result := PluginFile;
 end;

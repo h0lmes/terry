@@ -18,7 +18,6 @@ type TSeparatorItem = class(TCustomItem)
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
@@ -272,11 +271,6 @@ begin
     $f005..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
-end;
-//------------------------------------------------------------------------------
-function TSeparatorItem.GetItemFilename: string;
-begin
-  result := '';
 end;
 //------------------------------------------------------------------------------
 function TSeparatorItem.CanOpenFolder: boolean;

@@ -6,6 +6,10 @@ msgctxt "declu.xaddicon"
 msgid "Add ..."
 msgstr ""
 
+#: declu.xaddprogramtodock
+msgid "Add program to dock"
+msgstr ""
+
 #: declu.xall
 msgid "All"
 msgstr ""

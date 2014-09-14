@@ -3,10 +3,13 @@ unit scitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
+uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
   IniFiles, GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, customitemu, processhlp;
 
 type
+
+  { TShortcutItem }
+
   TShortcutItem = class(TCustomItem)
   private
     command: string;
@@ -24,7 +27,11 @@ type
     imagefile: string;
     color_data: integer;
     LastMouseUp: cardinal;
+    FBitBucket: boolean;
+    FBitBucketFiles: integer;
     procedure UpdateItemInternal;
+    procedure UpdateBitBucket;
+    procedure UpdateBitBucket2;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer);
     procedure Exec;
@@ -42,7 +49,6 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
@@ -79,6 +85,7 @@ end;
 destructor TShortcutItem.Destroy;
 begin
   FFreed := true;
+  KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
   try GdipDisposeImage(FImage);
   except end;
   try if is_pidl then PIDL_Free(apidl);
@@ -164,13 +171,15 @@ begin
         end;
       end;
 
+      // check if it is BITBUCKET //
+      UpdateBitBucket;
+
       // load image //
       try if FImage <> nil then GdipDisposeImage(FImage);
       except end;
       FImage := nil;
       if imagefile <> '' then LoadImage(imagefile, FBigItemSize, false, true, FImage, FIW, FIH)
-      else
-      begin
+      else begin
         if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
         else LoadImage(command, FBigItemSize, false, true, FImage, FIW, FIH);
       end;
@@ -182,6 +191,67 @@ begin
   end;
 
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.UpdateBitBucket;
+var
+  psfDesktop: IShellFolder;
+  psfFolder: IShellFolder;
+  pidFolder, pidChild: PItemIDList;
+  pEnumList: IEnumIDList;
+  celtFetched: ULONG;
+begin
+  FBitBucket := false;
+  if is_pidl then
+  begin
+    OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
+    FBitBucket := PIDL_ToString(pidFolder) = command;
+    if FBitBucket then
+    begin
+      OleCheck(SHGetDesktopFolder(psfDesktop));
+      OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
+      OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
+      FBitBucketFiles := 0;
+      if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
+      begin
+        inc(FBitBucketFiles);
+        PIDL_Free(pidChild);
+      end;
+    end;
+    PIDL_Free(pidFolder);
+  end;
+
+  if FBitBucket then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil)
+  else KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.UpdateBitBucket2;
+var
+  psfDesktop: IShellFolder;
+  psfFolder: IShellFolder;
+  pidFolder, pidChild: PItemIDList;
+  pEnumList: IEnumIDList;
+  celtFetched: ULONG;
+  qty: integer;
+begin
+  OleCheck(SHGetDesktopFolder(psfDesktop));
+  OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
+  OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
+  OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
+  qty := 0;
+  if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
+  begin
+    inc(qty);
+    PIDL_Free(pidChild);
+  end;
+  PIDL_Free(pidFolder);
+
+  if FBitBucketFiles <> qty then
+  begin
+    FBitBucketFiles := qty;
+    LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH);
+    Draw(Fx, Fy, FSize, true, 0, FShowItem);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.UpdateIndicator;
@@ -476,11 +546,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TShortcutItem.GetItemFilename: string;
-begin
-  result := command;
-end;
-//------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
 begin
   result:= Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
@@ -540,6 +605,15 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.WndMessage(var msg: TMessage);
 begin
+  with msg do
+  begin
+      Result := 0;
+
+      if (Msg = WM_TIMER) and (wParam = ID_TIMER_UPDATE_SHORTCUT) then
+      begin
+        if FBitBucket then UpdateBitBucket2;
+      end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);

@@ -95,7 +95,6 @@ type TCustomItem = class
     function cmd(id: TGParam; param: integer): integer; virtual;
     procedure LME(lock: boolean);
     procedure Timer; virtual;
-    function GetItemFilename: string; virtual; abstract;
     function CanOpenFolder: boolean; virtual; abstract;
     procedure OpenFolder; virtual; abstract;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; virtual;
@@ -235,7 +234,7 @@ begin
       icSelect:
         if FSelected <> boolean(param) then
         begin
-          FSelected:= boolean(param);
+          FSelected := boolean(param);
           Draw(Fx, Fy, FSize, true, 0, FShowItem);
         end;
 
@@ -304,23 +303,26 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
 begin
-  if FFreed then exit;
-  if button = mbLeft then
+  if not FFreed then
   begin
-    if not FLockMouseEffect then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
+    if button = mbLeft then
+      if not FLockMouseEffect then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
+    cmd(icSelect, 1);
   end;
-  cmd(icSelect, 1);
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 begin
   result := false;
-  if FFreed then exit;
-  result := true;
   KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-  if FSelected then MouseClick(button, shift, x, y);
-  try cmd(icSelect, 0);
-  except end;
+
+  if not FFreed then
+  begin
+    result := true;
+    if FSelected then MouseClick(button, shift, x, y);
+    try cmd(icSelect, 0);
+    except end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -341,6 +343,7 @@ end;
 procedure TCustomItem.MouseHover(AHover: boolean);
 begin
   FHover := AHover;
+  if not FHover then KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
   UpdateHint;
 end;
 //------------------------------------------------------------------------------
@@ -362,9 +365,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.SetCaption(value: string);
 begin
-  if FCaption = value then exit;
-  FCaption := value;
-  UpdateHint;
+  if not (FCaption = value) then
+  begin
+    FCaption := value;
+    UpdateHint;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.UpdateHint(Ax: integer = -1000; Ay: integer = -1000);

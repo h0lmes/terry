@@ -399,6 +399,16 @@ begin
   if assigned(frmterry) then if assigned(frmterry.ItemMgr) then frmterry.ItemMgr.DeleteItem(id);
 end;
 //------------------------------------------------------------------------------
+function DockAddProgram(data: pchar): uint; stdcall;
+begin
+  try
+    result := 0;
+    if assigned(frmterry) then frmterry.AddProgram(strpas(data));
+  except
+    on e: Exception do if assigned(frmterry) then frmterry.err('DockAddProgram', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 function FullScreenAppActive(id: HWND): bool; stdcall;
 begin
   result := false;
@@ -439,6 +449,7 @@ exports
   Dock,
   DockCreateItem,
   DockDeleteItem,
+  DockAddProgram,
   FullScreenAppActive,
   Notify;
 //------------------------------------------------------------------------------

@@ -84,7 +84,6 @@ type
     procedure WMCommand(var msg: TMessage); virtual; abstract;
     procedure Configure; virtual; abstract;
     function cmd(id: TGParam; param: integer): integer; virtual;
-    function GetItemFilename: string; virtual; abstract;
     function CanOpenFolder: boolean; virtual; abstract;
     procedure OpenFolder; virtual; abstract;
     function DropFile(pt: windows.TPoint; filename: string): boolean; virtual; abstract;
@@ -127,7 +126,6 @@ type
     procedure WMCommand(var msg: TMessage); override;
     procedure Configure; override;
     function cmd(id: TGParam; param: integer): integer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
@@ -547,11 +545,6 @@ begin
   end;
   GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH,
     0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
-end;
-//------------------------------------------------------------------------------
-function TStackSubitem.GetItemFilename: string;
-begin
-  result := command;
 end;
 //------------------------------------------------------------------------------
 function TStackSubitem.ToString: string;

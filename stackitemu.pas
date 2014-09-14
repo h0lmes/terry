@@ -94,7 +94,6 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
@@ -254,9 +253,8 @@ begin
       // default stack image //
       if FImage = nil then
       begin
-        GdipCloneImage(theme.Stack.Image, FImage);
-        FIW := theme.Stack.W;
-        FIH := theme.Stack.H;
+        FImage := theme.Stack.Image;
+        DownscaleImage(Fimage, FBigItemSize, false, FIW, FIH, false);
       end;
     finally
       FUpdating:= false;
@@ -516,11 +514,6 @@ begin
   inherited;
   if not FFreed and not FUpdating then
     if (FState = stsOpening) or (FState = stsClosing) then DoStateProgress;
-end;
-//------------------------------------------------------------------------------
-function TStackItem.GetItemFilename: string;
-begin
-  result := '';
 end;
 //------------------------------------------------------------------------------
 function TStackItem.ToString: string;

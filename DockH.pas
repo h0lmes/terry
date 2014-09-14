@@ -48,6 +48,7 @@ procedure Undock(id: uint);
 procedure Dock(id: uint);
 function DockCreateItem(data: pchar): uint;
 procedure DockDeleteItem(id: uint);
+function DockAddProgram(data: pchar): uint;
 function FullScreenAppActive(id: uint): bool;
 procedure Notify(id: uint; Message: PAnsiChar);
 
@@ -315,6 +316,15 @@ var
 begin
 	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockDeleteItem');
 	if assigned(proc) then proc(id);
+end;
+//------------------------------------------------------------------------------
+function DockAddProgram(data: pchar): uint;
+type dtype = function(data: pchar): uint; stdcall;
+var
+  proc: dtype;
+begin
+	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockAddProgram');
+	if not assigned(proc) then result := 0 else result := proc(data);
 end;
 //------------------------------------------------------------------------------
 function FullScreenAppActive(id: uint): bool;

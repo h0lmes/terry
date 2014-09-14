@@ -4,12 +4,13 @@ unit taskitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ComObj,
-  Math, GDIPAPI, gdip_gfx, declu, customitemu, processhlp;
+  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, processhlp;
 
 type
   TTaskItem = class(TCustomItem)
   private
     FAppHWnd: THandle;
+    FFilename: string;
     procedure UpdateItemInternal;
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -18,7 +19,7 @@ type
     property AppHWnd: THandle read FAppHWnd;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateTaskItem(h: THandle);
+    procedure UpdateTaskItem(h: THandle; filename: string);
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -26,7 +27,6 @@ type
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
-    function GetItemFilename: string; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
@@ -53,10 +53,11 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.UpdateTaskItem(h: THandle);
+procedure TTaskItem.UpdateTaskItem(h: THandle; filename: string);
 begin
   if FFreed then exit;
   FAppHWnd := h;
+  FFilename := filename;
   UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------
@@ -240,11 +241,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TTaskItem.GetItemFilename: string;
-begin
-  result := '';
-end;
-//------------------------------------------------------------------------------
 function TTaskItem.ToString: string;
 begin
   result := '';
@@ -278,6 +274,7 @@ begin
 
   FHMenu := CreatePopupMenu;
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)));
+  AppendMenu(FHMenu, MF_STRING, $f002, pchar(UTF8ToAnsi(XAddProgramToDock)));
   LME(true);
 
   if not result then msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -286,13 +283,19 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
+var
+  item: cardinal;
 begin
   result := 0;
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
     $f001: postmessage(FAppHWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
-    $f002..$f020: ;
+    $f002: begin
+           dockh.DockAddProgram(pchar(FFilename));
+           dockh.Notify(0, pchar(FFilename));
+           end;
+    $f003..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;

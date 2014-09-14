@@ -1827,7 +1827,7 @@ begin
   try
     result := '';
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then result := Inst.GetItemFilename;
+    if Inst is TPluginItem then result := TPluginItem(Inst).GetFilename;
   except
     on e: Exception do err('Terry.ItemManager.GetPluginFile', e);
   end;
@@ -1960,21 +1960,21 @@ begin
   begin
     HWndTask := ProcessHelper.GetAppWindowHandle(i);
     index := GetTaskItemIndex(HWndTask);
-    if index = -1 then
+    if index = -1 then // there is no item for the window
     begin
       if TaskItemCount = 0 then // if there is no task items yet - add separator
       begin
         AddItem('class="separator";dontsave="1";candrag="0";', true, false);
         inc(TaskItemCount);
       end;
-      // add task item after the last item //
+      // add task item at the end of list //
       SetDropPlace(NOT_AN_ITEM);
       HWndItem := AddItem('class="task";', true, false);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then
       begin
         inc(TaskItemCount);
-        TTaskItem(Inst).UpdateTaskItem(HWndTask);
+        TTaskItem(Inst).UpdateTaskItem(HWndTask, ProcessHelper.GetAppWindowProcessFullName(HWndTask));
       end;
     end;
     inc(i);

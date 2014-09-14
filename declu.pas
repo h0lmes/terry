@@ -125,10 +125,6 @@ type
   TProgramData = record
     Name: array [0..1023] of char;
     Filename: array [0..1023] of char;
-    Params: array [0..1023] of char;
-    Dir: array [0..1023] of char;
-    Icon: array [0..1023] of char;
-    ShowCmd: integer;
   end;
 
   MONITORINFO = record
@@ -172,6 +168,7 @@ const
   ID_TIMER_OPEN             = 4;
   ID_TIMER_CLOSE            = 5;
   ID_TIMER_MOUSEHELD        = 6;
+  ID_TIMER_UPDATE_SHORTCUT  = 7;
 
 
 resourcestring
@@ -226,6 +223,7 @@ resourcestring
   XShortcut = 'Shortcut';
   XFile = 'File';
   XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
+  XAddProgramToDock = 'Add program to dock';
 
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';

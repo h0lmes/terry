@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   DefaultTranslator, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, Buttons,
-  GDIPAPI, gdip_gfx, stackitemu;
+  GDIPAPI, gdip_gfx, PIDL, stackitemu, themeu;
 
 type
   _uproc = procedure(AData: string) of object;
@@ -65,7 +65,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnClearImageClick(Sender: TObject);
     procedure btnSelectColorClick(Sender: TObject);
-    procedure btn_colorClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -82,12 +81,15 @@ type
     ItemHWnd: uint;
     FChanged: boolean;
     item: TStackItem;
+    FImage: Pointer;
+    FIW: cardinal;
+    FIH: cardinal;
     procedure SetData(AData: string);
     procedure ReadSubitems;
     procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
     procedure Draw;
-    procedure DrawFit(image: Pointer; p: TPaintBox; color_data: integer);
+    procedure DrawFit;
   public
     class procedure Open(AData: string; uproc: _uproc; AItem: TStackItem);
   end;
@@ -287,21 +289,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  try if assigned(FImage) then GdipDisposeImage(FImage);
+  except end;
+  FImage := nil;
   SetActiveWindow(frmterry.handle);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btn_colorClick(Sender: TObject);
-begin
-  with TColorDialog.Create(self) do
-  begin
-    color := color_ and $ffffff;
-    if Execute then
-    begin
-      FChanged := true;
-      color_ := uint(Color) or $ff000000;
-    end;
-    Free;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
@@ -349,7 +340,7 @@ begin
     byte(tbSat.Position) shl 8 +
     byte(tbBr.Position) shl 16 +
     byte(tbCont.Position) shl 24;
-  Draw;
+  DrawFit;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnDefaultColorClick(Sender: TObject);
@@ -375,16 +366,32 @@ end;
 procedure TfrmStackProp.Draw;
 var
   str: string;
-  img: Pointer;
-  w, h: uint;
+  apidl: PItemIDList;
 begin
   try
-    img := nil;
-    str := UnzipPath(edImage.Text);
+    str := UnzipPath(UTF8ToAnsi(edImage.Text));
 
-    if fileexists(cut(str, ',')) then LoadImage(str, 128, false, True, img, w, h);
-    DrawFit(img, iPic, color_data);
-    if assigned(img) then GdipDisposeImage(img);
+    try if assigned(FImage) then GdipDisposeImage(FImage);
+    except end;
+    FImage := nil;
+
+    apidl := PIDL_FromString(str);
+    if assigned(apidl) then
+    begin
+      LoadImageFromPIDL(apidl, 128, true, false, FImage, FIW, FIH);
+      PIDL_Free(apidl);
+    end else begin
+      LoadImage(str, 128, true, false, FImage, FIW, FIH);
+    end;
+
+    // default stack image //
+    if not assigned(FImage) then
+    begin
+      FImage := theme.Stack.Image;
+      DownscaleImage(Fimage, 128, true, FIW, FIH, false);
+    end;
+
+    DrawFit;
   except
     on e: Exception do frmterry.notify('frmStackProp.Draw'#10#13 + e.message);
   end;
@@ -392,61 +399,45 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.iPicPaint(Sender: TObject);
 begin
-  Draw;
+  DrawFit;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.DrawFit(image: Pointer; p: TPaintBox; color_data: integer);
+procedure TfrmStackProp.DrawFit;
 var
   hgdip, hbrush, hattr: Pointer;
-  w, h: uint;
   w_coeff, h_coeff: extended;
   matrix: ColorMatrix;
   background: cardinal;
 begin
+  if assigned(FImage) then
   try
-    if assigned(image) then
-    begin
-      GdipGetImageWidth(image, w);
-      GdipGetImageHeight(image, h);
-    end
-    else
-    begin
-      w := 128;
-      h := 128;
-    end;
-
     w_coeff := 1;
     h_coeff := 1;
-
     try
-      if w / h > (p.Width - 2) / (p.Height - 2) then h_coeff := (p.Width - 2) * h / w / (p.Height - 2);
-      if w / h < (p.Width - 2) / (p.Height - 2) then w_coeff := (p.Height - 2) * w / h / (p.Width - 2);
+      if FIW / FIH > (iPic.Width - 2) / (iPic.Height - 2) then h_coeff := (iPic.Width - 2) * FIH / FIW / (iPic.Height - 2);
+      if FIW / FIH < (iPic.Width - 2) / (iPic.Height - 2) then w_coeff := (iPic.Height - 2) * FIW / FIH / (iPic.Width - 2);
     except
     end;
 
-    GdipCreateFromHDC(p.canvas.handle, hgdip);
+    GdipCreateFromHDC(iPic.canvas.handle, hgdip);
     GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
 
     background := GetRGBColorResolvingParent;
     background := SwapColor(background) or $ff000000;
     GdipCreateSolidFill(background, hbrush);
-    GdipFillRectangleI(hgdip, hbrush, 0, 0, p.Width, p.Height);
+    GdipFillRectangleI(hgdip, hbrush, 0, 0, iPic.Width, iPic.Height);
     GdipDeleteBrush(hbrush);
 
-    if assigned(image) then
-    begin
-      CreateColorMatrix(color_data, matrix);
-      GdipCreateImageAttributes(hattr);
-      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
+    CreateColorMatrix(color_data, matrix);
+    GdipCreateImageAttributes(hattr);
+    GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
 
-      GdipDrawImageRectRectI(hgdip, image,
-        (p.Width - trunc(p.Width * w_coeff)) div 2, (p.Height - trunc(p.Height * h_coeff)) div 2,
-        trunc(p.Width * w_coeff), trunc(p.Height * h_coeff),
-        0, 0, w, h, UnitPixel, hattr, nil, nil);
+    GdipDrawImageRectRectI(hgdip, FImage,
+      (iPic.Width - trunc(iPic.Width * w_coeff)) div 2, (iPic.Height - trunc(iPic.Height * h_coeff)) div 2,
+      trunc(iPic.Width * w_coeff), trunc(iPic.Height * h_coeff),
+      0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
 
-      GdipDisposeImageAttributes(hattr);
-    end;
-
+    GdipDisposeImageAttributes(hattr);
     GdipDeleteGraphics(hgdip);
   except
     on e: Exception do frmterry.notify('frmStackProp.DrawFit'#10#13 + e.message);
