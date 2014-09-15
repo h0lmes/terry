@@ -56,6 +56,7 @@ type
     //
     class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
+    class function FromFile(filename: string): string;
   end;
 
 var window_list: TFPList;
@@ -146,7 +147,10 @@ procedure TShortcutItem.UpdateItemInternal;
 var
   sfi: TSHFileInfoA;
   path: array [0..MAX_PATH] of char;
-  fparams, fdir, ficon: string;
+  temp: string;
+  pidFolder: PItemIDList;
+  csidl: integer;
+  pszName: array [0..255] of char;
 begin
   if FFreed or FUpdating then exit;
 
@@ -154,10 +158,26 @@ begin
     try
       FUpdating := true;
 
-      // create PIDL from string //
+      // convert CSIDL to path //
+      csidl := CSIDL_ToInt(command);
+      if csidl > -1 then
+      begin
+        OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
+        PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
+        PIDL_Free(pidFolder);
+        command := strpas(pszName);
+        if FileExists(command) or DirectoryExists(command) then
+          command := ZipPath(command)
+        else
+          FCaption := '::::';
+      end;
+
+      // create PIDL from GUID //
       PIDL_Free(apidl);
-      apidl := PIDL_FromString(command);
+      if IsGUID(command) then apidl := PIDL_GetFromPath(pchar(command));
       is_pidl := assigned(apidl);
+
+      // parse PIDL //
       if is_pidl and (FCaption = '::::') then
       begin
         SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
@@ -165,9 +185,13 @@ begin
         // try converting PIDL to file system path //
         if SHGetPathFromIDList(apidl, pchar(@path)) then
         begin
-          command := ZipPath(strpas(pchar(@path)));
-          PIDL_Free(apidl);
-          is_pidl := false;
+          temp := strpas(pchar(@path));
+          if FileExists(temp) or DirectoryExists(temp) then
+          begin
+            command := ZipPath(temp);
+            PIDL_Free(apidl);
+            is_pidl := false;
+          end;
         end;
       end;
 
@@ -200,12 +224,13 @@ var
   pidFolder, pidChild: PItemIDList;
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
+  name: TStrRet;
 begin
   FBitBucket := false;
   if is_pidl then
   begin
     OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
-    FBitBucket := PIDL_ToString(pidFolder) = command;
+    FBitBucket := PIDL_GetDisplayName2(pidFolder) = command;
     if FBitBucket then
     begin
       OleCheck(SHGetDesktopFolder(psfDesktop));
@@ -302,6 +327,7 @@ begin
       // commands //
 
       icUpdateRunning:
+        if length(command) > 0 then
         begin
           b := ProcessHelper.FullNameExists(UnzipPath(command));
           if b and (FIndicator = nil) then UpdateIndicator;
@@ -748,6 +774,29 @@ begin
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if hide then result := result + 'hide="1";';
+end;
+//------------------------------------------------------------------------------
+class function TShortcutItem.FromFile(filename: string): string;
+var
+  fcaption, fparams, fdir, ficon, ext: string;
+begin
+  result := '';
+  if IsGUID(filename) then
+  begin
+    result := TShortcutItem.Make(0, '::::', filename, '', '', '', 1);
+    exit
+  end;
+
+  fparams := '';
+  fdir := '';
+  ficon := '';
+  ext := AnsiLowerCase(ExtractFileExt(filename));
+
+  if DirectoryExists(filename) then fcaption := filename
+  else fcaption := ChangeFileExt(ExtractFilename(filename), '');
+  if ext = '.exe' then fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(filename));
+
+  result := TShortcutItem.Make(0, fcaption, ZipPath(filename), ZipPath(fparams), ZipPath(fdir), ZipPath(ficon), 1);
 end;
 //------------------------------------------------------------------------------
 end.

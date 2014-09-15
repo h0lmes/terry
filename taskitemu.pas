@@ -291,10 +291,7 @@ begin
   LME(false);
   case wParam of // f001 to f020
     $f001: postmessage(FAppHWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
-    $f002: begin
-           dockh.DockAddProgram(pchar(FFilename));
-           dockh.Notify(0, pchar(FFilename));
-           end;
+    $f002: dockh.DockAddProgram(pchar(FFilename));
     $f003..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;

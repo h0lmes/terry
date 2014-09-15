@@ -253,7 +253,6 @@ begin
       InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
     if Execute then
     begin
-      frmterry.notify(filename);
       edCmd.Text := toolu.ZipPath(FileName);
       if fileexists(FileName) then
         edCaption.Text := cut(ExtractFileName(FileName), '.')
@@ -401,7 +400,8 @@ begin
     except end;
     FImage := nil;
 
-    apidl := PIDL_FromString(str);
+    apidl := nil;
+    if IsGUID(str) then apidl := PIDL_GetFromPath(pchar(str));
     if assigned(apidl) then
     begin
       LoadImageFromPIDL(apidl, 128, true, true, FImage, FIW, FIH);

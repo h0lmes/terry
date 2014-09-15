@@ -716,13 +716,13 @@ function UnzipPath(path: string): string;
 var
   pp: string;
 begin
-  if trim(path) = '' then
-    exit;
   Result := path;
+  if trim(path) = '' then exit;
+
   if length(Result) > 3 then
     if (Result[2] = ':') and (Result[3] = '\') then
-      if fileexists(Result) or directoryexists(Result) then
-        exit;
+      if fileexists(Result) or directoryexists(Result) then exit;
+
   pp := ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
   if fileexists(pp + '\' + Result) then
   begin

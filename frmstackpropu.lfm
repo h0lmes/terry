@@ -18,7 +18,7 @@ object frmStackProp: TfrmStackProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.0.10.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -72,18 +72,18 @@ object frmStackProp: TfrmStackProp
       object lblCaption: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 20
-        Width = 27
+        Width = 28
         Caption = 'Name'
         ParentColor = False
       end
       object lblStyle: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 85
-        Width = 26
+        Width = 27
         Caption = 'Mode'
         ParentColor = False
       end
@@ -101,18 +101,18 @@ object frmStackProp: TfrmStackProp
       object lblOffset: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 120
-        Width = 71
+        Width = 72
         Caption = 'Offset of icons'
         ParentColor = False
       end
       object lblAnimationSpeed: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 155
-        Width = 79
+        Width = 80
         Caption = 'Animation speed'
         ParentColor = False
       end
@@ -146,9 +146,9 @@ object frmStackProp: TfrmStackProp
       object lblDistort: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 190
-        Width = 32
+        Width = 33
         Caption = 'Distort'
         ParentColor = False
       end
@@ -177,9 +177,9 @@ object frmStackProp: TfrmStackProp
       object lblImage: TLabel
         Tag = 10
         Left = 10
-        Height = 13
+        Height = 14
         Top = 50
-        Width = 30
+        Width = 31
         Caption = 'Image'
         ParentColor = False
       end

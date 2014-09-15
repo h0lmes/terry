@@ -77,7 +77,7 @@ type
     UpdateItemProc: _uproc;
     color_: uint;
     color_data: integer;
-    SpecialFolder: integer;
+    SpecialFolder: string;
     ItemHWnd: uint;
     FChanged: boolean;
     item: TStackItem;
@@ -182,10 +182,7 @@ begin
   try chbPreview.Checked := not (FetchValue(AData, 'preview="', '";') = '0');
   except end;
 
-  try
-    SpecialFolder := 0;
-    SpecialFolder := strtoint(FetchValue(AData, 'special_folder="', '";'));
-  except end;
+  SpecialFolder := FetchValue(AData, 'special_folder="', '";');
 
   Draw;
 
@@ -369,20 +366,12 @@ var
   apidl: PItemIDList;
 begin
   try
-    str := UnzipPath(UTF8ToAnsi(edImage.Text));
-
     try if assigned(FImage) then GdipDisposeImage(FImage);
     except end;
     FImage := nil;
 
-    apidl := PIDL_FromString(str);
-    if assigned(apidl) then
-    begin
-      LoadImageFromPIDL(apidl, 128, true, false, FImage, FIW, FIH);
-      PIDL_Free(apidl);
-    end else begin
-      LoadImage(str, 128, true, false, FImage, FIW, FIH);
-    end;
+    str := UnzipPath(UTF8ToAnsi(edImage.Text));
+    LoadImage(str, 128, true, false, FImage, FIW, FIH);
 
     // default stack image //
     if not assigned(FImage) then

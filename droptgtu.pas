@@ -208,7 +208,7 @@ begin
       pidl := PIDL_FromCIDA(i, p, size);
       if assigned(pidl) then
       begin
-        idpath := PIDL_ToString(pidl, size);
+        idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         FList.Add(idpath);
         {$ifdef DEBUG_DROPTGT}
@@ -266,7 +266,8 @@ begin
       pidl := PIDL_FromCIDA(i, @data, size);
       if assigned(pidl) then
       begin
-        idpath := PIDL_ToString(pidl, size);
+        //idpath := PIDL_ToString(pidl, size);
+        idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         FList.Add(idpath);
         {$ifdef DEBUG_DROPTGT}

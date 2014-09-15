@@ -3,7 +3,7 @@ unit stacksubitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
+uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
   GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, customitemu, processhlp;
 
 type
@@ -91,7 +91,7 @@ type
     procedure BeginDrag; virtual;
   end;
 
-  TStackSubitem = class(TCustomSubitem)
+  TShortcutSubitem = class(TCustomSubitem)
   private
     command: string;
     params: string;
@@ -133,14 +133,13 @@ type
       AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
     class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
+    class function FromFile(filename: string): string;
   end;
-
-var window_list: TFPList;
 
 implementation
 uses dockh, themeu, setsu, toolu, frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TStackSubItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TShortcutSubitem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -158,7 +157,7 @@ begin
   UpdateIndicator;
 end;
 //------------------------------------------------------------------------------
-destructor TStackSubitem.Destroy;
+destructor TShortcutSubitem.Destroy;
 begin
   FFreed := true;
   try GdipDisposeImage(FImage);
@@ -171,7 +170,7 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.cmd(id: TGParam; param: integer): integer;
+function TShortcutSubitem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
 begin
@@ -213,7 +212,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.UpdateItem(AData: string);
+procedure TShortcutSubitem.UpdateItem(AData: string);
 begin
   if not FFreed then
   try
@@ -238,15 +237,18 @@ begin
   UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.UpdateItemInternal;
+procedure TShortcutSubitem.UpdateItemInternal;
 var
-  // caption measurement vars //
+  sfi: TSHFileInfoA;
+  path: array [0..MAX_PATH] of char;
+  temp: string;
+  pidFolder: PItemIDList;
+  csidl: integer;
+  pszName: array [0..255] of char;
+  // caption extent measurement vars //
   hgdip, hfont, hfontfamily: Pointer;
   rect: TRectF;
   dc: HDC;
-  sfi: TSHFileInfoA;
-  path: array [0..MAX_PATH] of char;
-  fparams, fdir, ficon: string;
 begin
   if FFreed or FUpdating then exit;
 
@@ -254,10 +256,26 @@ begin
     try
       FUpdating := true;
 
-      // create PIDL from string //
+      // convert CSIDL to path //
+      csidl := CSIDL_ToInt(command);
+      if csidl > -1 then
+      begin
+        OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
+        PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
+        PIDL_Free(pidFolder);
+        command := strpas(pszName);
+        if FileExists(command) or DirectoryExists(command) then
+          command := ZipPath(command)
+        else
+          FCaption := '::::';
+      end;
+
+      // create PIDL from GUID //
       PIDL_Free(apidl);
-      apidl := PIDL_FromString(command);
+      if IsGUID(command) then apidl := PIDL_GetFromPath(pchar(command));
       is_pidl := assigned(apidl);
+
+      // parse PIDL //
       if is_pidl and (FCaption = '::::') then
       begin
         SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
@@ -265,9 +283,13 @@ begin
         // try converting PIDL to file system path //
         if SHGetPathFromIDList(apidl, pchar(@path)) then
         begin
-          command := ZipPath(strpas(pchar(@path)));
-          PIDL_Free(apidl);
-          is_pidl := false;
+          temp := strpas(pchar(@path));
+          if FileExists(temp) or DirectoryExists(temp) then
+          begin
+            command := ZipPath(temp);
+            PIDL_Free(apidl);
+            is_pidl := false;
+          end;
         end;
       end;
 
@@ -324,7 +346,7 @@ begin
   sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0);
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.UpdateIndicator;
+procedure TShortcutSubitem.UpdateIndicator;
 begin
   // make a local copy //
   // gdiplus does not like invalid pointers //
@@ -340,7 +362,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // set position, size, repaint window //
-procedure TStackSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean);
+procedure TShortcutSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean);
 var
   bmp: _SimpleBitmap;
   dst: Pointer;
@@ -497,7 +519,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer);
+procedure TShortcutSubitem.DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer);
 var
   matrix: ColorMatrix;
   hattr: Pointer;
@@ -517,7 +539,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
+procedure TShortcutSubitem.DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
 begin
   if FIndicator = nil then exit;
   if FSite = 0 then
@@ -547,23 +569,23 @@ begin
     0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.ToString: string;
+function TShortcutSubitem.ToString: string;
 begin
   result := Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.SaveToString: string;
+function TShortcutSubitem.SaveToString: string;
 begin
   result := SaveMake(FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
+procedure TShortcutSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
 begin
   inherited;
   cmd(icSelect, 1);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
+function TShortcutSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 var
   pt: windows.TPoint;
 begin
@@ -594,7 +616,7 @@ begin
   SetActiveWindow(FHWndParent);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.ContextMenu(pt: Windows.TPoint): boolean;
+function TShortcutSubitem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   filename: string;
   msg: TMessage;
@@ -627,7 +649,7 @@ begin
   Result := True;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.WMCommand(var msg: TMessage);
+procedure TShortcutSubitem.WMCommand(var msg: TMessage);
 begin
   try
     DestroyMenu(FHMenu);
@@ -647,12 +669,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.Configure;
+procedure TShortcutSubitem.Configure;
 begin
   TfrmItemProp.Open(ToString, UpdateItem);
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.Exec;
+procedure TShortcutSubitem.Exec;
 var
   sei: TShellExecuteInfo;
 begin
@@ -686,12 +708,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.ActivateProcessMainWindow: boolean;
+function TShortcutSubitem.ActivateProcessMainWindow: boolean;
 begin
   result := ProcessHelper.ActivateProcessMainWindow(UnzipPath(command), FHWnd, ScreenRect, FSite);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.CanOpenFolder: boolean;
+function TShortcutSubitem.CanOpenFolder: boolean;
 var
   _file: string;
 begin
@@ -700,7 +722,7 @@ begin
   result := fileexists(_file) or directoryexists(_file);
 end;
 //------------------------------------------------------------------------------
-procedure TStackSubitem.OpenFolder;
+procedure TShortcutSubitem.OpenFolder;
 var
   _file: string;
 begin
@@ -711,7 +733,7 @@ begin
   DockExecute(FHWnd, pchar(_file), nil, nil, sw_shownormal);
 end;
 //------------------------------------------------------------------------------
-function TStackSubitem.DropFile(pt: windows.TPoint; filename: string): boolean;
+function TShortcutSubitem.DropFile(pt: windows.TPoint; filename: string): boolean;
 var
   ext: string;
 begin
@@ -732,7 +754,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TStackSubitem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
+class function TShortcutSubitem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
 begin
   result := 'class="shortcut";';
@@ -747,7 +769,7 @@ begin
   if hide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------
-class function TStackSubitem.SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
+class function TShortcutSubitem.SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
 begin
   result := 'class="shortcut";';
@@ -759,6 +781,29 @@ begin
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if hide then result := result + 'hide="1";';
+end;
+//------------------------------------------------------------------------------
+class function TShortcutSubitem.FromFile(filename: string): string;
+var
+  fcaption, fparams, fdir, ficon, ext: string;
+begin
+  result := '';
+  if IsGUID(filename) then
+  begin
+    result := TShortcutSubitem.Make(0, '::::', filename, '', '', '', 1);
+    exit
+  end;
+
+  fparams := '';
+  fdir := '';
+  ficon := '';
+  ext := AnsiLowerCase(ExtractFileExt(filename));
+
+  if DirectoryExists(filename) then fcaption := filename
+  else fcaption := ChangeFileExt(ExtractFilename(filename), '');
+  if ext = '.exe' then fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(filename));
+
+  result := TShortcutSubitem.Make(0, fcaption, ZipPath(filename), ZipPath(fparams), ZipPath(fdir), ZipPath(ficon));
 end;
 //------------------------------------------------------------------------------
 //

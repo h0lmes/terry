@@ -49,7 +49,7 @@ type
     FAnimationSpeed: integer;
     FDistort: integer;
     FDragOver: boolean;
-    FSpecialFolder: integer;
+    FSpecialFolder: string;
     FPreview: boolean;
     FPreviewImage: pointer;
     FPreviewImageW: uint;
@@ -102,7 +102,7 @@ type
     class function Make(AHWnd: uint; ACaption, AImage: string;
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: integer = 0; APreview: boolean = true): string;
+      ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: string = ''; APreview: boolean = true): string;
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
@@ -141,7 +141,7 @@ begin
   FAnimationSpeed := DEFAULT_ANIM_SPEED;
   FDistort := DEFAULT_DISTORT;
   FDragOver := false;
-  FSpecialFolder := 0;
+  FSpecialFolder := '';
   FPreview := true;
   FPreviewImage := nil;
 end;
@@ -190,10 +190,9 @@ begin
         except end;
         try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), 1, 10);
         except end;
-        try FSpecialFolder := SetRange(strtoint(ini.ReadString(IniSection, 'special_folder', '')), 0, $3f);
-        except end;
         try FPreview := not (ini.ReadString(IniSection, 'preview', '') = '0');
         except end;
+        FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
         UpdateSpecialFolder;
 
         i := 1;
@@ -213,7 +212,7 @@ begin
         FOffset := 0;
         FAnimationSpeed := DEFAULT_ANIM_SPEED;
         FDistort := DEFAULT_DISTORT;
-        FSpecialFolder := 0;
+        FSpecialFolder := '';
         try color_data := strtoint(FetchValue(AData, 'color_data="', '";'));
         except end;
         try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
@@ -224,10 +223,9 @@ begin
         except end;
         try FDistort := strtoint(FetchValue(AData, 'distort="', '";'));
         except end;
-        try FSpecialFolder := strtoint(FetchValue(AData, 'special_folder="', '";'));
-        except end;
         try FPreview := not (FetchValue(AData, 'preview="', '";') = '0');
         except end;
+        FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
         UpdateSpecialFolder;
       end;
 
@@ -689,7 +687,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.DropFileI(filename: string);
 var
-  fcaption, fname, fparams, fdir, ficon, ext: string;
+  fcaption, fdir, ext: string;
 begin
   // update icon //
   ext := AnsiLowerCase(ExtractFileExt(filename));
@@ -701,50 +699,13 @@ begin
     exit;
   end;
 
-  if FSpecialFolder > 0 then
+  if FSpecialFolder <> '' then
   begin
     // TODO: IFileOperation. No definition in ShlObj for IFileOperation
     exit;
   end;
 
-  // PIDL //
-  if copy(filename, 1, 4) = '::::' then
-  begin
-    AddSubitem(TStackSubitem.Make(0, '::::', filename, '', '', '', 1, DEFAULT_COLOR_DATA, false));
-    exit;
-  end;
-
-  // any other file //
-  fname := filename;
-  fdir := '';
-  ficon := '';
-  ext := AnsiLowerCase(ExtractFileExt(filename));
-
-  if ext = '.lnk' then
-  begin
-    resolveShortcut(FHWnd, fname, fparams, fdir, ficon);
-    fcaption := ChangeFileExt(ExtractFilename(filename), '');
-  end
-  else
-  if ext = '.exe' then
-  begin
-    fcaption := ChangeFileExt(ExtractFilename(fname), '');
-    fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(fname));
-  end
-  else
-  begin
-    if DirectoryExists(filename) then fcaption := filename
-    else fcaption := ChangeFileExt(ExtractFilename(fname), '');
-  end;
-
-  if DirectoryExists(filename) then
-  begin
-    fcaption := filename;
-    if ficon = '' then
-      if toolu.IsDriveIdent(filename) then ficon := '%sysdir%\shell32.dll,8' else ficon := '%sysdir%\shell32.dll,3';
-  end;
-
-  AddSubitem(TStackSubitem.Make(0, fcaption, fname, fparams, fdir, ficon, 1, DEFAULT_COLOR_DATA, false));
+  AddSubitem(TShortcutSubitem.FromFile(filename));
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Save(szIni: pchar; szIniGroup: pchar);
@@ -762,9 +723,9 @@ begin
   if FOffset <> 0 then WritePrivateProfileString(szIniGroup, 'offset', pchar(inttostr(FOffset)), szIni);
   WritePrivateProfileString(szIniGroup, 'animation_speed', pchar(inttostr(FAnimationSpeed)), szIni);
   WritePrivateProfileString(szIniGroup, 'distort', pchar(inttostr(FDistort)), szIni);
-  WritePrivateProfileString(szIniGroup, 'special_folder', pchar(inttostr(FSpecialFolder)), szIni);
+  WritePrivateProfileString(szIniGroup, 'special_folder', pchar(FSpecialFolder), szIni);
   if not FPreview then WritePrivateProfileString(szIniGroup, 'preview', '0', szIni);
-  if (FItemCount > 0) and (FSpecialFolder = 0) then
+  if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for i := 0 to FItemCount - 1 do
       WritePrivateProfileString(szIniGroup, pchar('subitem' + inttostr(i + 1)), pchar(items[i].item.SaveToString), szIni);
@@ -774,7 +735,7 @@ end;
 class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string;
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-  ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: integer = 0; APreview: boolean = true): string;
+  ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: string = ''; APreview: boolean = true): string;
 begin
   result := 'class="stack";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -785,7 +746,7 @@ begin
   if AOffset <> 0 then result := result + 'offset="' + inttostr(AOffset) + '";';
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
-  if ASpecialFolder <> 0 then result := result + 'special_folder="' + inttostr(ASpecialFolder) + '";';
+  if ASpecialFolder <> '' then result := result + 'special_folder="' + ASpecialFolder + '";';
   if not APreview then result := result + 'preview="0";';
 end;
 //------------------------------------------------------------------------------
@@ -798,14 +759,22 @@ end;
 //
 //------------------------------------------------------------------------------
 procedure TStackItem.UpdateSpecialFolder;
+var
+  csidl: integer;
 begin
-  if FSpecialFolder > 0 then
+  if FSpecialFolder <> '' then
   begin
-    DeleteSubitems;
-    FCaption := '::::';
-    AddSpecialFolder(FSpecialFolder);
-    if FSpecialFolder = CSIDL_DESKTOPDIRECTORY then AddSpecialFolder(CSIDL_COMMON_DESKTOPDIRECTORY);
-    if FSpecialFolder = CSIDL_PERSONAL then AddSpecialFolder(CSIDL_COMMON_DOCUMENTS);
+      csidl := CSIDL_ToInt(FSpecialFolder);
+      if csidl > -1 then
+      begin
+        DeleteSubitems;
+        FCaption := '::::';
+        AddSpecialFolder(csidl);
+        if csidl = CSIDL_DESKTOPDIRECTORY then AddSpecialFolder(CSIDL_COMMON_DESKTOPDIRECTORY);
+        if csidl = CSIDL_PERSONAL then AddSpecialFolder(CSIDL_COMMON_DOCUMENTS);
+      end else begin
+        FSpecialFolder := '';
+      end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -836,8 +805,7 @@ begin
     while pEnumList.Next(1, pidChild, celtFetched) = NOERROR do
     begin
       pidAbsolute := PIDL_GetAbsolute(pidFolder, pidChild);
-      SHGetFileInfoA(pchar(pidAbsolute), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
-      AddSubitem(TStackSubitem.Make(0, sfi.szDisplayName, PIDL_ToString(pidAbsolute), '', '', ''));
+      AddSubitem(TShortcutSubitem.FromFile(PIDL_GetDisplayName2(pidAbsolute)));
       PIDL_Free(pidChild);
     end;
 
@@ -906,7 +874,7 @@ begin
     inc(FItemCount);
     upd := FUpdating;
     FUpdating := true;
-    items[FItemCount - 1].item := TStackSubitem.Create(data, FHWnd, MakeICP);
+    items[FItemCount - 1].item := TShortcutSubitem.Create(data, FHWnd, MakeICP);
     if items[FItemCount - 1].item.Freed then DeleteSubitem(FItemCount - 1)
     else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
     FUpdating := upd;
@@ -979,7 +947,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.AddSubitemDefault;
 begin
-  AddSubitem(TStackSubitem.Make(0, 'New item', '', '', '', ''));
+  AddSubitem(TShortcutSubitem.Make(0, 'New item', '', '', '', ''));
 end;
 //------------------------------------------------------------------------------
 function TStackItem.GetSubitemCaption(index: integer): string;

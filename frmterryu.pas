@@ -652,10 +652,10 @@ begin
         $f025: cmd := '/itemmgr.tray';
         $f026: cmd := '/apps';
         $f027: cmd := '/itemmgr.stack';
-        $f028: cmd := '/itemmgr.stack(' + inttostr(CSIDL_CONTROLS) + ')';
-        $f029: cmd := '/itemmgr.stack(' + inttostr(CSIDL_DRIVES) + ')';
-        $f02a: cmd := '/itemmgr.stack(' + inttostr(CSIDL_DESKTOPDIRECTORY) + ')';
-        $f02b: cmd := '/itemmgr.stack(' + inttostr(CSIDL_PERSONAL) + ')';
+        $f028: cmd := '/itemmgr.stack(CSIDL_CONTROLS)';
+        $f029: cmd := '/itemmgr.stack(CSIDL_DRIVES)';
+        $f02a: cmd := '/itemmgr.stack(CSIDL_DESKTOPDIRECTORY)';
+        $f02b: cmd := '/itemmgr.stack(CSIDL_PERSONAL)';
 
         $f030: cmd := '/itemmgr.paste';
         $f031: cmd := '/lockdragging';
@@ -1248,32 +1248,10 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.DropFiles(files: TStrings);
-    function __getItem(filename: string): string;
-    var
-      fcaption, fparams, fdir, ficon, ext: string;
-    begin
-      result := '';
-      if strlcomp(pchar(filename), '::::', 4) = 0 then
-      begin
-        result := TShortcutItem.Make(0, '::::', filename, '', '', '', 1);
-        exit
-      end;
-
-      fparams := '';
-      fdir := '';
-      ficon := '';
-      ext := ExtractFileExt(filename);
-
-      if DirectoryExists(filename) then fcaption := filename
-      else fcaption := ChangeFileExt(ExtractFilename(filename), '');
-      if SameText(ext, '.exe') then fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(filename));
-
-      result := TShortcutItem.Make(0, fcaption, ZipPath(filename), ZipPath(fparams), ZipPath(fdir), ZipPath(ficon), 1);
-    end;
 var
   i: integer;
 begin
-  for i := 0 to files.Count - 1 do files.strings[i] := __getItem(files.strings[i]);
+  for i := 0 to files.Count - 1 do files.strings[i] := TShortcutItem.FromFile(files.strings[i]);
   ItemMgr.InsertItems(files);
 end;
 //------------------------------------------------------------------------------

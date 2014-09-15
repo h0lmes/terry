@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -40,13 +40,13 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="71">
+    <Units Count="72">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
         <WindowIndex Value="0"/>
         <TopLine Value="430"/>
-        <CursorPos X="17" Y="452"/>
+        <CursorPos X="3" Y="454"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
@@ -90,8 +90,8 @@
         <UnitName Value="frmterryu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="316"/>
-        <CursorPos X="7" Y="335"/>
+        <TopLine Value="150"/>
+        <CursorPos X="7" Y="173"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -117,10 +117,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmitemoptu"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="397"/>
-        <CursorPos X="25" Y="409"/>
+        <TopLine Value="233"/>
+        <CursorPos X="7" Y="256"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
@@ -130,10 +132,12 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmcmdu"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="46" Y="18"/>
+        <TopLine Value="30"/>
+        <CursorPos X="33" Y="53"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -231,8 +235,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="58"/>
-        <CursorPos X="33" Y="1"/>
+        <TopLine Value="714"/>
+        <CursorPos X="3" Y="725"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
@@ -251,8 +255,8 @@
         <UnitName Value="itemmgru"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1953"/>
-        <CursorPos X="101" Y="1977"/>
+        <TopLine Value="311"/>
+        <CursorPos X="3" Y="318"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -261,11 +265,10 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="185"/>
-        <CursorPos X="47" Y="202"/>
+        <TopLine Value="213"/>
+        <CursorPos X="41" Y="245"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -296,8 +299,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DropTgtU"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="60"/>
-        <CursorPos X="66" Y="127"/>
+        <TopLine Value="242"/>
+        <CursorPos X="11" Y="269"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
@@ -350,10 +353,13 @@
         <Filename Value="PIDL.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="PIDL"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="34"/>
-        <CursorPos X="11" Y="64"/>
+        <TopLine Value="215"/>
+        <CursorPos X="28" Y="252"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
       <Unit28>
@@ -428,7 +434,7 @@
         <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="281"/>
-        <CursorPos X="12" Y="284"/>
+        <CursorPos X="51" Y="294"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -507,7 +513,7 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="298"/>
         <CursorPos X="68" Y="305"/>
@@ -578,8 +584,8 @@
         <UnitName Value="stackitemu"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="817"/>
-        <CursorPos X="17" Y="837"/>
+        <TopLine Value="750"/>
+        <CursorPos X="33" Y="762"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -592,8 +598,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmstackpropu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="67"/>
-        <CursorPos X="46" Y="8"/>
+        <TopLine Value="263"/>
+        <CursorPos X="16" Y="185"/>
         <UsageCount Value="202"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit49>
@@ -601,10 +607,10 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="522"/>
-        <CursorPos X="46" Y="539"/>
+        <TopLine Value="259"/>
+        <CursorPos X="1" Y="139"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -623,9 +629,9 @@
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-base\src\shlobj.pp"/>
         <UnitName Value="shlobj"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="606"/>
-        <CursorPos X="3" Y="630"/>
-        <UsageCount Value="3"/>
+        <TopLine Value="333"/>
+        <CursorPos X="14" Y="329"/>
+        <UsageCount Value="10"/>
       </Unit52>
       <Unit53>
         <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-base\src\comobj.pp"/>
@@ -639,12 +645,10 @@
         <Filename Value="processhlp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="processhlp"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="239"/>
-        <CursorPos X="44" Y="235"/>
+        <TopLine Value="159"/>
+        <CursorPos X="3" Y="163"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit54>
       <Unit55>
@@ -769,128 +773,120 @@
         <CursorPos X="10" Y="88"/>
         <UsageCount Value="10"/>
       </Unit70>
+      <Unit71>
+        <Filename Value="C:\lazarus\fpc\2.6.2\source\packages\winunits-base\src\shellapi.pp"/>
+        <UnitName Value="ShellApi"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1743"/>
+        <CursorPos X="8" Y="1765"/>
+        <UsageCount Value="10"/>
+      </Unit71>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="26" HistoryIndex="25">
       <Position1>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="1296" Column="95" TopLine="1276"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="157" Column="22" TopLine="140"/>
       </Position1>
       <Position2>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1826" Column="28" TopLine="1475"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="247" Column="35" TopLine="239"/>
       </Position2>
       <Position3>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1830" Column="33" TopLine="1812"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="161" Column="8" TopLine="147"/>
       </Position3>
       <Position4>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="152" Column="35" TopLine="145"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="245" Column="3" TopLine="239"/>
       </Position4>
       <Position5>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="45" Column="1" TopLine="28"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="256" Column="43" TopLine="238"/>
       </Position5>
       <Position6>
-        <Filename Value="sepitemu.pas"/>
-        <Caret Line="21" Column="5" TopLine="4"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="261" Column="54" TopLine="238"/>
       </Position6>
       <Position7>
-        <Filename Value="plgitemu.pas"/>
-        <Caret Line="33" Column="22" TopLine="20"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="771" Column="24" TopLine="750"/>
       </Position7>
       <Position8>
-        <Filename Value="stackitemu.pas"/>
-        <Caret Line="254" Column="36" TopLine="244"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="794" Column="28" TopLine="767"/>
       </Position8>
       <Position9>
-        <Filename Value="stackitemu.pas"/>
-        <Caret Line="519" Column="1" TopLine="491"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="94" Column="8" TopLine="76"/>
       </Position9>
       <Position10>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="29" Column="5" TopLine="23"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="156" Column="44" TopLine="309"/>
       </Position10>
       <Position11>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="8" Column="44" TopLine="1"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="705" Column="36" TopLine="666"/>
       </Position11>
       <Position12>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="87" Column="1" TopLine="60"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="1254" Column="78" TopLine="1240"/>
       </Position12>
       <Position13>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="129" Column="1" TopLine="101"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="640" Column="3" TopLine="634"/>
       </Position13>
       <Position14>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1864" Column="29" TopLine="1770"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="1481" Column="3" TopLine="1492"/>
       </Position14>
       <Position15>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1978" Column="51" TopLine="1945"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="188" Column="49" TopLine="168"/>
       </Position15>
       <Position16>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="1977" Column="101" TopLine="1953"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="792" Column="3" TopLine="778"/>
       </Position16>
       <Position17>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="22" Column="58" TopLine="4"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="1501" Column="24" TopLine="1492"/>
       </Position17>
       <Position18>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="1306" Column="42" TopLine="1298"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="796" Column="48" TopLine="776"/>
       </Position18>
       <Position19>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="105" Column="32" TopLine="91"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="805" Column="7" TopLine="784"/>
       </Position19>
       <Position20>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="1312" Column="21" TopLine="1295"/>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="167" Column="4" TopLine="181"/>
       </Position20>
       <Position21>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="296" Column="44" TopLine="268"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="170" Column="20" TopLine="174"/>
       </Position21>
       <Position22>
-        <Filename Value="processhlp.pas"/>
-        <Caret Line="209" Column="53" TopLine="209"/>
+        <Filename Value="taskitemu.pas"/>
+        <Caret Line="287" Column="31" TopLine="281"/>
       </Position22>
       <Position23>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="168" Column="63" TopLine="153"/>
+        <Filename Value="frmcmdu.pas"/>
+        <Caret Line="18" Column="46" TopLine="1"/>
       </Position23>
       <Position24>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="202" Column="3" TopLine="181"/>
+        <Filename Value="frmitemoptu.pas"/>
+        <Caret Line="404" Column="18" TopLine="378"/>
       </Position24>
       <Position25>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="220" Column="41" TopLine="211"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="1236" Column="39" TopLine="1229"/>
       </Position25>
       <Position26>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="212" Column="24" TopLine="195"/>
+        <Filename Value="frmterryu.pas"/>
+        <Caret Line="84" Column="15" TopLine="63"/>
       </Position26>
-      <Position27>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="216" Column="38" TopLine="205"/>
-      </Position27>
-      <Position28>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="218" Column="42" TopLine="206"/>
-      </Position28>
-      <Position29>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="238" Column="13" TopLine="217"/>
-      </Position29>
-      <Position30>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="219" Column="34" TopLine="219"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -955,5 +951,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
