@@ -122,6 +122,7 @@ begin
   else Result := nil;
 end;
 //------------------------------------------------------------------------------
+// retrieves string representation of a PIDL
 function PIDL_GetDisplayName(folder: IShellFolder; pidl: PItemIDList;
   dwFlags: DWORD; pszName: PChar; cchMax: UINT): boolean;
 var
@@ -145,6 +146,7 @@ begin
   else Result := False;
 end;
 //------------------------------------------------------------------------------
+// retrieves string representation of a PIDL
 function PIDL_GetDisplayName2(pidl: PItemIDList): string;
 var
   pszName: array [0..MAX_PATH - 1] of char;
@@ -197,7 +199,7 @@ begin
   if result = nil then result := pidlRoot;
 end;
 //------------------------------------------------------------------------------
-// converts filesystem path to PIDL //
+// converts filesystem path or GUID to PIDL //
 function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 var
   desk: IShellFolder;
@@ -231,24 +233,26 @@ begin
   pidl := nil;
 end;
 //------------------------------------------------------------------------------
+// GUID starts with "::{"
 function IsGUID(str: string): boolean;
 begin
   result := strlcomp(pchar(str), '::{', 3) = 0;
 end;
 //------------------------------------------------------------------------------
+// convert CSIDL_ constant name to its value
 function CSIDL_ToInt(csidl: string): integer;
 begin
   result := -1;
   if strlcomp(pchar(csidl), 'CSIDL_', 6) = 0 then
   begin
-    if csidl = 'CSIDL_CONTROLS' then result := CSIDL_CONTROLS;
-    if csidl = 'CSIDL_PRINTERS' then result := CSIDL_PRINTERS;
-    if csidl = 'CSIDL_BITBUCKET' then result := CSIDL_BITBUCKET;
-    if csidl = 'CSIDL_DESKTOPDIRECTORY' then result := CSIDL_DESKTOPDIRECTORY;
-    if csidl = 'CSIDL_MYMUSIC' then result := CSIDL_MYMUSIC;
-    if csidl = 'CSIDL_MYVIDEO' then result := CSIDL_MYVIDEO;
-    if csidl = 'CSIDL_DRIVES' then result := CSIDL_DRIVES;
-    if csidl = 'CSIDL_NETWORK' then result := CSIDL_NETWORK;
+    if csidl = 'CSIDL_CONTROLS' then result := CSIDL_CONTROLS
+    else if csidl = 'CSIDL_DRIVES' then result := CSIDL_DRIVES
+    else if csidl = 'CSIDL_BITBUCKET' then result := CSIDL_BITBUCKET
+    else if csidl = 'CSIDL_NETWORK' then result := CSIDL_NETWORK
+    else if csidl = 'CSIDL_DESKTOPDIRECTORY' then result := CSIDL_DESKTOPDIRECTORY
+    else if csidl = 'CSIDL_PRINTERS' then result := CSIDL_PRINTERS
+    else if csidl = 'CSIDL_MYMUSIC' then result := CSIDL_MYMUSIC
+    else if csidl = 'CSIDL_MYVIDEO' then result := CSIDL_MYVIDEO;
     // not working properly
     //if csidl = 'CSIDL_PERSONAL' then result := CSIDL_PERSONAL;
     //if csidl = 'CSIDL_MYDOCUMENTS' then result := CSIDL_MYDOCUMENTS;

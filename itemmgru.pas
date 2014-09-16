@@ -1974,7 +1974,7 @@ begin
       if Inst is TTaskItem then
       begin
         inc(TaskItemCount);
-        TTaskItem(Inst).UpdateTaskItem(HWndTask, ProcessHelper.GetAppWindowProcessFullName(HWndTask));
+        TTaskItem(Inst).UpdateTaskItem(HWndTask);
       end;
     end;
     inc(i);
@@ -2040,15 +2040,18 @@ var
   i: integer;
   Inst: TCustomItem;
 begin
-  i := ItemCount - 1;
-  while i >= 0 do
+  if TaskItemCount > 0 then
   begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-    if Inst is TTaskItem then Inst.Delete;
-    if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
-    dec(i);
+      i := ItemCount - 1;
+      while i >= 0 do
+      begin
+        Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+        if Inst is TTaskItem then Inst.Delete;
+        if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
+        dec(i);
+      end;
+      TaskItemCount := 0;
   end;
-  TaskItemCount := 0;
 end;
 //------------------------------------------------------------------------------
 end.

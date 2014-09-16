@@ -10,7 +10,6 @@ type
   TTaskItem = class(TCustomItem)
   private
     FAppHWnd: THandle;
-    FFilename: string;
     procedure UpdateItemInternal;
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -19,7 +18,7 @@ type
     property AppHWnd: THandle read FAppHWnd;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateTaskItem(h: THandle; filename: string);
+    procedure UpdateTaskItem(h: THandle);
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -53,11 +52,10 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.UpdateTaskItem(h: THandle; filename: string);
+procedure TTaskItem.UpdateTaskItem(h: THandle);
 begin
   if FFreed then exit;
   FAppHWnd := h;
-  FFilename := filename;
   UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------
@@ -285,13 +283,19 @@ end;
 procedure TTaskItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 var
   item: cardinal;
+  str: string;
 begin
   result := 0;
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
     $f001: postmessage(FAppHWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
-    $f002: dockh.DockAddProgram(pchar(FFilename));
+    $f002:
+      begin
+        ProcessHelper.EnumProc;
+        str := ProcessHelper.GetAppWindowProcessFullName(FAppHWnd);
+        if str <> '' then dockh.DockAddProgram(pchar(str));
+      end;
     $f003..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;

@@ -770,7 +770,7 @@ begin
     if IsWindowVisible(Handle) then
     begin
       WHMouseMove($fffffff);
-      if sets.container.ShowRunningIndicator then UpdateRunning;
+      if sets.container.ShowRunningIndicator or sets.container.Taskbar then UpdateRunning;
       if not sets.container.StayOnTop then MaintainNotForeground;
     end;
     if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
@@ -806,100 +806,18 @@ end;
 procedure Tfrmterry.UpdateRunning;
 begin
   try
-    ProcessHelper.EnumProc;
+    if sets.container.ShowRunningIndicator then
+    begin
+      ProcessHelper.EnumProc;
+      ItemMgr.SetParam(icUpdateRunning, 0);
+    end;
     if sets.container.Taskbar then
     begin
       ProcessHelper.EnumAppWindows;
       ItemMgr.Taskbar;
-    end else
-    begin
-      if ItemMgr.TaskItemCount > 0 then ItemMgr.ClearTaskbar;
     end;
-    ItemMgr.SetParam(icUpdateRunning, 0);
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmterry.BaseDraw(flags: integer);
-var
-  hgdip, hbrush: Pointer;
-  bmp: gdip_gfx._SimpleBitmap;
-  RepaintBase: boolean;
-  rgn: HRGN;
-begin
-  if assigned(ItemMgr) and assigned(theme) and Visible and not closing then
-  try
-    hgdip := nil;
-    bmp.dc := 0;
-    RepaintBase := flags and 1 = 1;
-
-    if (ItemMgr.BaseImageRect.X <> OldBaseImageRect.X) or
-      (ItemMgr.BaseImageRect.Y <> OldBaseImageRect.Y) or
-      (ItemMgr.BaseImageRect.Width <> OldBaseImageRect.Width) or
-      (ItemMgr.BaseImageRect.Height <> OldBaseImageRect.Height) then
-    begin
-      RepaintBase := True;
-      OldBaseImageRect := ItemMgr.BaseImageRect;
-    end;
-    if (ItemMgr.BaseWindowRect.X <> OldBaseWindowRect.X) or
-      (ItemMgr.BaseWindowRect.Y <> OldBaseWindowRect.Y) or
-      (ItemMgr.BaseWindowRect.Width <> OldBaseWindowRect.Width) or
-      (ItemMgr.BaseWindowRect.Height <> OldBaseWindowRect.Height) then
-    begin
-      RepaintBase := True;
-      OldBaseWindowRect := ItemMgr.BaseWindowRect;
-    end;
-
-    if not RepaintBase then exit;
-
-    try
-      bmp.topleft.x := ItemMgr.BaseWindowRect.x;
-      bmp.topleft.y := ItemMgr.BaseWindowRect.y;
-      bmp.Width := ItemMgr.BaseWindowRect.Width;
-      bmp.Height := ItemMgr.BaseWindowRect.Height;
-      gdip_gfx.CreateBitmap(bmp);
-      hgdip := gdip_gfx.CreateGraphics(bmp.dc);
-
-      GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
-      GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
-
-      // avoid flickering when dragging a file //
-      if ItemMgr.DraggingFile then
-      begin
-        GdipCreateSolidFill(ITEM_BACKGROUND, hbrush);
-        GdipFillRectangle(hgdip, hbrush, 0, 0, ItemMgr.BaseWindowRect.Width, ItemMgr.BaseWindowRect.Height);
-        GdipDeleteBrush(hbrush);
-      end;
-
-      // draw background //
-      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, DEFAULT_COLOR_DATA);
-      // update window //
-      UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
-
-      // blur //
-      if dwm.CompositingEnabled and sets.container.Blur and Theme.BlurEnabled then
-      begin
-        PrevBlur := true;
-        rgn := Theme.GetBackgroundRgn(ItemMgr.BaseImageRect);
-        if rgn <> 0 then DWM.EnableBlurBehindWindow(handle, rgn);
-        DeleteObject(rgn);
-      end
-      else if PrevBlur then
-      begin
-        PrevBlur := false;
-        DWM.DisableBlurBehindWindow(handle);
-      end;
-
-    finally
-      gdip_gfx.DeleteGraphics(hgdip);
-      gdip_gfx.DeleteBitmap(bmp);
-    end;
-  except
-    on e: Exception do raise Exception.Create('Base.BaseDraw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -995,6 +913,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// keep all items on top of the dock window
 procedure Tfrmterry.MaintainNotForeground;
 var
   h: THandle;
@@ -1012,6 +931,88 @@ begin
     end;
     h := GetWindow(h, GW_HWNDPREV);
 	end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmterry.BaseDraw(flags: integer);
+var
+  hgdip, hbrush: Pointer;
+  bmp: gdip_gfx._SimpleBitmap;
+  RepaintBase: boolean;
+  rgn: HRGN;
+begin
+  if assigned(ItemMgr) and assigned(theme) and Visible and not closing then
+  try
+    hgdip := nil;
+    bmp.dc := 0;
+    RepaintBase := flags and 1 = 1;
+
+    if (ItemMgr.BaseImageRect.X <> OldBaseImageRect.X) or
+      (ItemMgr.BaseImageRect.Y <> OldBaseImageRect.Y) or
+      (ItemMgr.BaseImageRect.Width <> OldBaseImageRect.Width) or
+      (ItemMgr.BaseImageRect.Height <> OldBaseImageRect.Height) then
+    begin
+      RepaintBase := True;
+      OldBaseImageRect := ItemMgr.BaseImageRect;
+    end;
+    if (ItemMgr.BaseWindowRect.X <> OldBaseWindowRect.X) or
+      (ItemMgr.BaseWindowRect.Y <> OldBaseWindowRect.Y) or
+      (ItemMgr.BaseWindowRect.Width <> OldBaseWindowRect.Width) or
+      (ItemMgr.BaseWindowRect.Height <> OldBaseWindowRect.Height) then
+    begin
+      RepaintBase := True;
+      OldBaseWindowRect := ItemMgr.BaseWindowRect;
+    end;
+
+    if not RepaintBase then exit;
+
+    try
+      bmp.topleft.x := ItemMgr.BaseWindowRect.x;
+      bmp.topleft.y := ItemMgr.BaseWindowRect.y;
+      bmp.Width := ItemMgr.BaseWindowRect.Width;
+      bmp.Height := ItemMgr.BaseWindowRect.Height;
+      gdip_gfx.CreateBitmap(bmp);
+      hgdip := gdip_gfx.CreateGraphics(bmp.dc);
+
+      GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
+      GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
+      GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
+
+      // avoid flickering when dragging a file //
+      if ItemMgr.DraggingFile then
+      begin
+        GdipCreateSolidFill(ITEM_BACKGROUND, hbrush);
+        GdipFillRectangle(hgdip, hbrush, 0, 0, ItemMgr.BaseWindowRect.Width, ItemMgr.BaseWindowRect.Height);
+        GdipDeleteBrush(hbrush);
+      end;
+
+      // draw background //
+      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, DEFAULT_COLOR_DATA);
+      // update window //
+      UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
+
+      // blur //
+      if dwm.CompositingEnabled and sets.container.Blur and Theme.BlurEnabled then
+      begin
+        PrevBlur := true;
+        rgn := Theme.GetBackgroundRgn(ItemMgr.BaseImageRect);
+        if rgn <> 0 then DWM.EnableBlurBehindWindow(handle, rgn);
+        DeleteObject(rgn);
+      end
+      else if PrevBlur then
+      begin
+        PrevBlur := false;
+        DWM.DisableBlurBehindWindow(handle);
+      end;
+
+    finally
+      gdip_gfx.DeleteGraphics(hgdip);
+      gdip_gfx.DeleteBitmap(bmp);
+    end;
+  except
+    on e: Exception do raise Exception.Create('Base.BaseDraw'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1325,18 +1326,20 @@ begin
   Value := sets.StoreParam(id, Value);
 
   case id of
-    //gpMonitor: BaseCmd(tcThemeChanged, 0);
     gpSite: if assigned(theme) then theme.ReloadGraphics;
     gpCenterOffsetPercent: ItemMgr.ItemsChanged;
     gpEdgeOffset: ItemMgr.ItemsChanged;
     gpAutoHide: if not boolean(Value) then sets.Rollup;
     gpHideTaskBar: HideTaskbar(boolean(Value));
     gpReserveScreenEdge:
+      begin
       if boolean(value) then ReserveScreenEdge(true, sets.container.ReserveScreenEdgePercent, sets.container.Site)
       else UnreserveScreenEdge(sets.container.Site);
+      end;
     gpStayOnTop: if boolean(Value) then SetForeground else SetNotForeground;
     gpBaseAlpha: BaseDraw(1);
     gpBlur: BaseDraw(1);
+    gpTaskbar: if value = 0 then ItemMgr.ClearTaskbar;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, Value);
