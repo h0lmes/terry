@@ -293,7 +293,9 @@ begin
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   FImage := nil;
-  SetActiveWindow(frmterry.handle);
+  action := cafree;
+  frmStackProp := nil;
+  //SetActiveWindow(frmterry.handle);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);

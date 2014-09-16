@@ -629,39 +629,47 @@ msgid "Properties"
 msgstr "Свойства"
 
 #: tfrmlayerseditor.caption
+msgctxt "tfrmlayerseditor.caption"
 msgid "Theme parameters"
 msgstr "Параметры темы"
 
 #: tfrmlayerseditor.label1.caption
 #| msgid "Items area border *"
+msgctxt "tfrmlayerseditor.label1.caption"
 msgid "Items area border"
 msgstr "Отступ области значков"
 
 #: tfrmlayerseditor.label14.caption
 #| msgid "Blur region ***"
+msgctxt "tfrmlayerseditor.label14.caption"
 msgid "Blur region"
 msgstr "Регион размытия"
 
 #: tfrmlayerseditor.label15.caption
 #| msgid "Indicator for running apps"
+msgctxt "tfrmlayerseditor.label15.caption"
 msgid "Separator margins"
 msgstr "Границы разделителя (нерастягиваемые)"
 
 #: tfrmlayerseditor.label16.caption
 #| msgid "Icons reflection size (pixel)"
+msgctxt "tfrmlayerseditor.label16.caption"
 msgid "Icons reflection size"
 msgstr "Размер отражения значков"
 
 #: tfrmlayerseditor.label9.caption
 #| msgid "Background margins *"
+msgctxt "tfrmlayerseditor.label9.caption"
 msgid "Background margins"
 msgstr "Нерастягиваемые границы фона"
 
 #: tfrmlayerseditor.mclose.caption
+msgctxt "tfrmlayerseditor.mclose.caption"
 msgid "Close editor <Esc>"
 msgstr "Закрыть редактор <Esc>"
 
 #: tfrmlayerseditor.msave.caption
+msgctxt "tfrmlayerseditor.msave.caption"
 msgid "Save theme <F2>"
 msgstr "Сохранить тему <F2>"
 
@@ -1094,4 +1102,44 @@ msgstr "Подпункты"
 msgctxt "tfrmterry.caption"
 msgid "TerryForm"
 msgstr "TerryForm"
+
+#: tfrmthemeeditor.caption
+msgctxt "tfrmthemeeditor.caption"
+msgid "Theme parameters"
+msgstr "Параметры темы"
+
+#: tfrmthemeeditor.label1.caption
+msgctxt "tfrmthemeeditor.label1.caption"
+msgid "Items area border"
+msgstr "Отступ области значков"
+
+#: tfrmthemeeditor.label14.caption
+msgctxt "tfrmthemeeditor.label14.caption"
+msgid "Blur region"
+msgstr "Регион размытия"
+
+#: tfrmthemeeditor.label15.caption
+msgctxt "tfrmthemeeditor.label15.caption"
+msgid "Separator margins"
+msgstr "Границы разделителя (нерастягиваемые)"
+
+#: tfrmthemeeditor.label16.caption
+msgctxt "tfrmthemeeditor.label16.caption"
+msgid "Icons reflection size"
+msgstr "Размер отражения значков"
+
+#: tfrmthemeeditor.label9.caption
+msgctxt "tfrmthemeeditor.label9.caption"
+msgid "Background margins"
+msgstr "Нерастягиваемые границы фона"
+
+#: tfrmthemeeditor.mclose.caption
+msgctxt "tfrmthemeeditor.mclose.caption"
+msgid "Close editor <Esc>"
+msgstr "Закрыть редактор <Esc>"
+
+#: tfrmthemeeditor.msave.caption
+msgctxt "tfrmthemeeditor.msave.caption"
+msgid "Save theme <F2>"
+msgstr "Сохранить тему <F2>"
 

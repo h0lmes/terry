@@ -176,7 +176,7 @@ var
   frmsets: Tfrmsets;
 
 implementation
-uses setsu, themeu, frmterryu, toolu, frmFontU, frmLayersEditorU, frmDebugU;
+uses setsu, themeu, frmterryu, toolu, frmFontU, frmthemeeditoru, frmDebugU;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 procedure err(s: string);
@@ -393,7 +393,8 @@ end;
 procedure Tfrmsets.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   SetActiveWindow(frmterry.handle);
-  action := cahide;
+  action := cafree;
+  frmsets := nil;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btn_okClick(Sender: TObject);
@@ -585,7 +586,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnLayersEditorClick(Sender: TObject);
 begin
-  TfrmLayersEditor.StartForm;
+  TfrmThemeEditor.Open;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbBlurClick(Sender: TObject);

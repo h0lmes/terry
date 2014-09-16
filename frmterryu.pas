@@ -49,6 +49,7 @@ type
     procedure MouseEnter;
     procedure MouseLeave;
     procedure UpdateRunning;
+    procedure UpdateRunningI;
     procedure HideTaskbar(Hide: boolean);
     procedure ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
@@ -86,13 +87,13 @@ type
     procedure ActivateHint(hwnd: uint; caption_: string; x, y, direction: integer);
     procedure DeactivateHint(hwnd: uint);
     function BaseCmd(id: TGParam; param: integer): integer;
+    procedure SetParam(id: TGParam; Value: integer);
     function GetHMenu(ParentMenu: uint): uint;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure SetFont(var Value: _FontData);
     procedure SetStackFont(var Value: _FontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
     function IsLockedMouseEffect: boolean;
-    procedure SetParam(id: TGParam; Value: integer);
     function GetMonitorWorkareaRect: Windows.TRect;
     function GetMonitorBoundsRect: Windows.TRect;
     procedure MoveDock(iDirection: integer);
@@ -119,7 +120,7 @@ var frmterry: Tfrmterry;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmLayersEditorU, dropindicatoru, processhlp;
+  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
@@ -156,9 +157,8 @@ begin
     i := 1;
     while i <= ParamCount do
     begin
-      if (ParamStr(i)[1] = '-') and (ParamStr(i)[2] = 's') then
-        sets_file := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
-      Inc(i);
+      if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then sets_file := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
+      inc(i);
     end;
     AddLog('Init.Sets.Create');
     sets := _Sets.Create(sets_file, UnzipPath('%pp%'), Handle, BaseCmd);
@@ -207,16 +207,16 @@ begin
         ItemMgr.Clear;
         ItemMgr.Load(sets.SetsPathFile);
       end else begin
+        AddLog('Init.RestoreFailed');
         messagebox(handle,
           pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)),
           'Terry', MB_ICONERROR);
-        AddLog('Init.RestoreFailed');
       end;
     end else begin
       if not sets.Backup then
       begin
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), 'Terry', MB_ICONERROR);
         AddLog('Init.BackupFailed');
+        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), 'Terry', MB_ICONERROR);
       end;
     end;
     // loaded, so enable ItemMgr //
@@ -234,7 +234,7 @@ begin
 
     // if needed make it 'RolledDown' on startup
     sets.RollDown;
-    sets.wndOffset := sets.purposalWndOffset;
+    sets.wndOffset := sets.wndOffsetTarget;
 
     // show the panel and items //
     AddLog('Init.ItemMgr.Visible');
@@ -260,8 +260,8 @@ begin
     if ItemMgr.FirstRun then
       if idYes = MessageBox(Handle, pchar(UTF8ToAnsi(XMsgFirstRun + ' ' + XMsgAddMorePrograms)), 'Terry', mb_yesno) then
       begin
-        frmterry.execute_cmdline('/itemmgr.separator');
-        frmterry.execute_cmdline('/apps');
+        execute_cmdline('/itemmgr.separator');
+        execute_cmdline('/apps');
       end;
 
     InitDone := True;
@@ -322,6 +322,7 @@ begin
       KillTimer(handle, ID_TIMER);
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
+      // assuming these are singletons - leave it to the system
       //if assigned(DropMgr) then DropMgr.Destroy;
       //if assigned(ItemMgr) then ItemMgr.Free;
       ///if assigned(ahint) then ahint.Free;
@@ -379,6 +380,31 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmterry.BaseSaveSettings;
+begin
+  if saving then
+  begin
+    AddLog('SaveSettings.exit_save');
+    exit;
+  end;
+  if assigned(ItemMgr) then
+  try
+    crsection.Acquire;
+    try
+      saving := true;
+      sets.SaveEx;
+      ItemMgr.Save(sets.SetsPathFile);
+      sets.SaveEx2;
+    finally
+      saving := false;
+      crsection.Leave;
+    end;
+    AddLog('SavedSettings');
+  except
+    on e: Exception do err('Base.BaseSaveSettings', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 function Tfrmterry.BaseCmd(id: TGParam; param: integer): integer;
 begin
   Result := 0;
@@ -415,29 +441,34 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.BaseSaveSettings;
+// stores given parameter value and propagates it to subsequent objects       //
+// e.g. ItemManager and all items                                             //
+procedure Tfrmterry.SetParam(id: TGParam; value: integer);
 begin
-  if saving then
-  begin
-    AddLog('SaveSettings.exit_save');
-    exit;
+  value := sets.StoreParam(id, value);
+
+  case id of
+    gpSite:                   if assigned(theme) then theme.ReloadGraphics;
+    gpCenterOffsetPercent:    ItemMgr.ItemsChanged;
+    gpEdgeOffset:             ItemMgr.ItemsChanged;
+    gpAutoHide:               if value = 0 then sets.Rollup;
+    gpHideTaskBar:            HideTaskbar(value <> 0);
+    gpReserveScreenEdge:
+      begin
+        if value = 0 then UnreserveScreenEdge(sets.container.Site)
+        else ReserveScreenEdge(true, sets.container.ReserveScreenEdgePercent, sets.container.Site);
+      end;
+    gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
+    gpBaseAlpha:              BaseDraw(1);
+    gpBlur:                   BaseDraw(1);
+    gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
+    gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
   end;
-  if assigned(ItemMgr) then
-  try
-    crsection.Acquire;
-    try
-      saving := true;
-      sets.SaveEx;
-      ItemMgr.Save(sets.SetsPathFile);
-      sets.SaveEx2;
-    finally
-      saving := false;
-      crsection.Leave;
-    end;
-    AddLog('SavedSettings');
-  except
-    on e: Exception do err('Base.BaseSaveSettings', e);
-  end;
+
+  if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
+
+  // placed after ItemMgr because WHMouseMove locked while mouse is locked //
+  if id = gpLockMouseEffect then WHMouseMove(0);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.RegisterRawInput;
@@ -792,14 +823,16 @@ begin
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
     if sets.container.Taskbar then ItemMgr.Taskbar;
-    if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then
-    begin
-      ProcessHelper.EnumProc;
-      ItemMgr.SetParam(icUpdateRunning, 0);
-    end;
+    if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmterry.UpdateRunningI;
+begin
+  ProcessHelper.EnumProc;
+  ItemMgr.SetParam(icUpdateRunning, 0);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.SetForeground;
@@ -822,10 +855,10 @@ begin
     SetWindowPos(frmSets.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   except
   end;
-  if assigned(frmLayersEditor) then
+  if assigned(frmThemeEditor) then
   try
-    SetWindowPos(frmLayersEditor.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(frmLayersEditor.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(frmThemeEditor.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(frmThemeEditor.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   except
   end;
 end;
@@ -1298,35 +1331,6 @@ begin
   result := LockList.Count > 0;
 end;
 //------------------------------------------------------------------------------
-// stores given parameter value and propagates it to subsequent objects       //
-// e.g. ItemManager and all items                                             //
-procedure Tfrmterry.SetParam(id: TGParam; Value: integer);
-begin
-  Value := sets.StoreParam(id, Value);
-
-  case id of
-    gpSite: if assigned(theme) then theme.ReloadGraphics;
-    gpCenterOffsetPercent: ItemMgr.ItemsChanged;
-    gpEdgeOffset: ItemMgr.ItemsChanged;
-    gpAutoHide: if not boolean(Value) then sets.Rollup;
-    gpHideTaskBar: HideTaskbar(boolean(Value));
-    gpReserveScreenEdge:
-      begin
-      if boolean(value) then ReserveScreenEdge(true, sets.container.ReserveScreenEdgePercent, sets.container.Site)
-      else UnreserveScreenEdge(sets.container.Site);
-      end;
-    gpStayOnTop: if boolean(Value) then SetForeground else SetNotForeground;
-    gpBaseAlpha: BaseDraw(1);
-    gpBlur: BaseDraw(1);
-    gpTaskbar: if value = 0 then ItemMgr.ClearTaskbar;
-  end;
-
-  if assigned(ItemMgr) then ItemMgr.SetParam(id, Value);
-
-  // because WHMouseMove locked while mouse is locked //
-  if id = gpLockMouseEffect then WHMouseMove(0);
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmterry.SetFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.Font);
@@ -1515,7 +1519,7 @@ begin
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'tray' then frmterry.Tray.Show(sets.container.Site, hwnd)
   else if cmd = 'autotray' then frmterry.Tray.SwitchAutoTray
-  else if cmd = 'themeeditor' then TfrmLayersEditor.StartForm
+  else if cmd = 'themeeditor' then TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then frmterry.SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
   else if cmd = 'site' then frmterry.SetParam(gpSite, integer(sets.StringToSite(params)))
   else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))

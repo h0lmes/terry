@@ -881,7 +881,7 @@ begin
     srcwidth := w;
     srcheight := h;
     // downscale image //
-    if (w > MaxSize) and (w > 96) and (MaxSize <= 192) then
+    if (w > MaxSize) and (w > 96) and (MaxSize <= 256) then
     begin
       if exact then
       begin
@@ -891,7 +891,8 @@ begin
         if MaxSize <= 96 then srcwidth:= 96
         else if MaxSize <= 128 then srcwidth:= 128
         else if MaxSize <= 160 then srcwidth:= 160
-        else if MaxSize <= 192 then srcwidth:= 192;
+        else if MaxSize <= 192 then srcwidth:= 192
+        else if MaxSize <= 256 then srcwidth:= 256;
         srcheight:= srcwidth;
       end;
       imgTemp := image;

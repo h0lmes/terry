@@ -70,8 +70,8 @@ type
     width: integer;
     height: integer;
     visible: boolean;
-    wndoffset: integer;
-    purposalWndOffset: integer;
+    wndOffset: integer;
+    wndOffsetTarget: integer;
     LastMouseEnterTime: integer;
     LastMouseLeaveTime: integer;
     MouseOnEdge: boolean;
@@ -132,10 +132,10 @@ begin
   BaseCmd := ABaseCmd;
   StrCopy(container.ThemeName, 'Aero');
   visible := true;
-  WndOffset := 0;
+  wndOffset := 0;
   MouseOnEdge := false;
   MouseOver := false;
-  purposalWndOffset := 0;
+  wndOffsetTarget := 0;
   container.AutoHidePixels := 0;
   container.CenterOffsetPercent := 50;
   container.EdgeOffset := 0;
@@ -355,13 +355,13 @@ begin
     SetsPathFile := ChangeFileExt(SetsPathFile, '.tmpini');
     Save;
   except
-    on e: Exception do
-      messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.SaveEx', mb_iconexclamation);
+    on e: Exception do raise Exception.Create('Terry.Sets.SaveEx'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.SaveEx2;
-const MOVEFILE_WRITE_THROUGH = 8;
+const
+  MOVEFILE_WRITE_THROUGH = 8;
 var
   tmpini: string;
 begin
@@ -370,23 +370,20 @@ begin
     SetsPathFile := ChangeFileExt(SetsPathFile, '.ini');
     windows.MoveFileEx(pchar(tmpini), pchar(SetsPathFile), MOVEFILE_REPLACE_EXISTING + MOVEFILE_WRITE_THROUGH);
   except
-    on e: Exception do
-      messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.SaveEx2', mb_iconexclamation);
+    on e: Exception do raise Exception.Create('Terry.Sets.SaveEx2'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 function _Sets.Backup: boolean;
 begin
-  result := false;
+  result := true;
   try
     if FileExists(ChangeFileExt(SetsPathFile, '.bak')) then
-      result := windows.DeleteFile(PChar(ChangeFileExt(SetsPathFile, '.bak')))
-    else result := true;
+      result := windows.DeleteFile(PChar(ChangeFileExt(SetsPathFile, '.bak')));
     if result then
       result := windows.CopyFile(pchar(SetsPathFile), pchar(ChangeFileExt(SetsPathFile, '.bak')), false);
   except
-    on e: Exception do
-      messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.Backup', mb_iconexclamation);
+    on e: Exception do raise Exception.Create('Terry.Sets.Backup'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -409,8 +406,7 @@ begin
       if windows.CopyFile(pchar(bakfile), pchar(SetsPathFile), false) then result := true;
     end;
   except
-    on e: Exception do
-      messagebox(ParentHWnd, pchar(e.message), 'Terry.Sets.Restore', mb_iconexclamation);
+    on e: Exception do raise Exception.Create('Terry.Sets.Restore'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -422,12 +418,13 @@ begin
   gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 20);
   gpZoomWidth: container.ZoomWidth := SetRange((value div 2) * 2, 4, 10);
   gpZoomItems: container.ZoomItems := boolean(value);
+  gpMonitor: container.Monitor := value;
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
+  gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
+  gpEdgeOffset: container.EdgeOffset := SetRange(value, -100, 100);
   gpAutoHideTime: container.AutoHideTime := value;
   gpAutoShowTime: container.AutoShowTime := value;
   gpAutoHidePixels: container.AutoHidePixels := SetRange(value, 0, 9999);
-  gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
-  gpEdgeOffset: container.EdgeOffset := SetRange(value, -100, 100);
   gpHideKeys: container.HideKeys:= value;
   gpDropDistance: container.DropDistance := SetRange(value, 50, 500);
   gpLaunchInterval: container.LaunchInterval := SetRange(value, 0, 9999);
@@ -452,7 +449,6 @@ begin
   gpUseShellContextMenus: container.UseShellContextMenus := boolean(value);
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpBlur: container.Blur := boolean(value);
-  gpMonitor: container.Monitor := value;
   end;
 
   result := value;
@@ -467,12 +463,13 @@ begin
   gpZoomWidth: result := container.ZoomWidth;
   gpItemSpacing: result := container.ItemSpacing;
   gpZoomItems: result := integer(container.ZoomItems);
+  gpMonitor: result := container.Monitor;
   gpSite: result := integer(container.Site);
+  gpCenterOffsetPercent: result := container.CenterOffsetPercent;
+  gpEdgeOffset: result := container.EdgeOffset;
   gpAutoHideTime: result := container.AutoHideTime;
   gpAutoShowTime: result := container.AutoShowTime;
   gpAutoHidePixels: result := container.AutoHidePixels;
-  gpCenterOffsetPercent: result := container.CenterOffsetPercent;
-  gpEdgeOffset: result := container.EdgeOffset;
   gpHideKeys: result := container.HideKeys;
   gpDropDistance: result := container.DropDistance;
   gpLaunchInterval: result := container.LaunchInterval;
@@ -497,7 +494,6 @@ begin
   gpUseShellContextMenus: result := integer(container.UseShellContextMenus);
   gpBaseAlpha: result := container.BaseAlpha;
   gpBlur: result := integer(container.Blur);
-  gpMonitor: result := container.Monitor;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -584,7 +580,7 @@ end;
 //------------------------------------------------------------------------------
 function _Sets.IsHiddenDown: boolean;
 begin
-  result := purposalWndOffset > 0;
+  result := wndOffsetTarget > 0;
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.RollDown;
@@ -592,9 +588,9 @@ begin
   if DoGetDragging then exit;
   if container.AutoHide and not IsHiddenDown then
   begin
-    if getBaseOrientation = boVertical then purposalWndOffset := width - container.AutoHidePixels
-    else purposalWndOffset := height - container.AutoHidePixels;
-    if purposalWndOffset < 0 then purposalWndOffset := 0;
+    if getBaseOrientation = boVertical then wndOffsetTarget := width - container.AutoHidePixels
+    else wndOffsetTarget := height - container.AutoHidePixels;
+    if wndOffsetTarget < 0 then wndOffsetTarget := 0;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -602,7 +598,7 @@ procedure _Sets.RollUp;
 begin
   if IsWindowVisible(ParentHWnd) and IsHiddenDown then
   begin
-    purposalWndOffset := 0;
+    wndOffsetTarget := 0;
     frmterry.ItemMgr.ItemsChanged;
   end;
 end;
@@ -624,13 +620,13 @@ begin
     if GetTickCount - LastMouseEnterTime > container.AutoShowTime then RollUp;
 
   if container.AutoHide then
-    if wndoffset <> purposalWndOffset then
+    if wndoffset <> wndOffsetTarget then
     begin
-      if abs(purposalWndOffset - WndOffset) > RollStep then
+      if abs(wndOffsetTarget - WndOffset) > RollStep then
       begin
-        if purposalWndOffset > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
+        if wndOffsetTarget > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
       end
-      else wndOffset := purposalWndOffset;
+      else wndOffset := wndOffsetTarget;
       frmterry.ItemMgr.ItemsChanged;
     end;
 

@@ -606,34 +606,42 @@ msgid "Properties"
 msgstr ""
 
 #: tfrmlayerseditor.caption
+msgctxt "tfrmlayerseditor.caption"
 msgid "Theme parameters"
 msgstr ""
 
 #: tfrmlayerseditor.label1.caption
+msgctxt "tfrmlayerseditor.label1.caption"
 msgid "Items area border"
 msgstr ""
 
 #: tfrmlayerseditor.label14.caption
+msgctxt "tfrmlayerseditor.label14.caption"
 msgid "Blur region"
 msgstr ""
 
 #: tfrmlayerseditor.label15.caption
+msgctxt "tfrmlayerseditor.label15.caption"
 msgid "Separator margins"
 msgstr ""
 
 #: tfrmlayerseditor.label16.caption
+msgctxt "tfrmlayerseditor.label16.caption"
 msgid "Icons reflection size"
 msgstr ""
 
 #: tfrmlayerseditor.label9.caption
+msgctxt "tfrmlayerseditor.label9.caption"
 msgid "Background margins"
 msgstr ""
 
 #: tfrmlayerseditor.mclose.caption
+msgctxt "tfrmlayerseditor.mclose.caption"
 msgid "Close editor <Esc>"
 msgstr ""
 
 #: tfrmlayerseditor.msave.caption
+msgctxt "tfrmlayerseditor.msave.caption"
 msgid "Save theme <F2>"
 msgstr ""
 
@@ -1056,5 +1064,45 @@ msgstr ""
 #: tfrmterry.caption
 msgctxt "TFRMTERRY.CAPTION"
 msgid "TerryForm"
+msgstr ""
+
+#: tfrmthemeeditor.caption
+msgctxt "TFRMTHEMEEDITOR.CAPTION"
+msgid "Theme parameters"
+msgstr ""
+
+#: tfrmthemeeditor.label1.caption
+msgctxt "TFRMTHEMEEDITOR.LABEL1.CAPTION"
+msgid "Items area border"
+msgstr ""
+
+#: tfrmthemeeditor.label14.caption
+msgctxt "TFRMTHEMEEDITOR.LABEL14.CAPTION"
+msgid "Blur region"
+msgstr ""
+
+#: tfrmthemeeditor.label15.caption
+msgctxt "TFRMTHEMEEDITOR.LABEL15.CAPTION"
+msgid "Separator margins"
+msgstr ""
+
+#: tfrmthemeeditor.label16.caption
+msgctxt "TFRMTHEMEEDITOR.LABEL16.CAPTION"
+msgid "Icons reflection size"
+msgstr ""
+
+#: tfrmthemeeditor.label9.caption
+msgctxt "TFRMTHEMEEDITOR.LABEL9.CAPTION"
+msgid "Background margins"
+msgstr ""
+
+#: tfrmthemeeditor.mclose.caption
+msgctxt "TFRMTHEMEEDITOR.MCLOSE.CAPTION"
+msgid "Close editor <Esc>"
+msgstr ""
+
+#: tfrmthemeeditor.msave.caption
+msgctxt "TFRMTHEMEEDITOR.MSAVE.CAPTION"
+msgid "Save theme <F2>"
 msgstr ""
 

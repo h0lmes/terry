@@ -1,4 +1,4 @@
-unit frmLayersEditorU;
+unit frmthemeeditoru;
 
 interface
 
@@ -8,9 +8,9 @@ uses
 
 type
 
-  { TfrmLayersEditor }
+  { TfrmThemeEditor }
 
-  TfrmLayersEditor = class(TForm)
+  TfrmThemeEditor = class(TForm)
     edBlurRegion: TEdit;
     edItemsArea: TEdit;
     edmargin: TEdit;
@@ -26,33 +26,34 @@ type
     mmenu: TMainMenu;
     procedure edItemsAreaChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormShow(Sender: TObject);
     procedure mcloseClick(Sender: TObject);
     procedure msaveClick(Sender: TObject);
   private
   public
-    class procedure StartForm;
+    class procedure Open;
   end;
 
 var
-  frmLayersEditor: TfrmLayersEditor;
+  frmThemeEditor: TfrmThemeEditor;
 
 implementation
 uses declu, frmterryu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure TfrmLayersEditor.StartForm;
+class procedure TfrmThemeEditor.Open;
 begin
   if not assigned(theme) then
   begin
     raise Exception.Create(UTF8ToAnsi(XErrorThemeObjectNotFound));
     exit;
   end;
-  if not assigned(frmLayersEditor) then Application.CreateForm(self, frmLayersEditor);
-  frmLayersEditor.show;
+  if not assigned(frmThemeEditor) then Application.CreateForm(self, frmThemeEditor);
+  frmThemeEditor.show;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmLayersEditor.FormShow(Sender: TObject);
+procedure TfrmThemeEditor.FormShow(Sender: TObject);
 begin
   font.name:= GetFont;
   font.size:= GetFontSize;
@@ -81,13 +82,13 @@ begin
   edMargin.OnChange:= edImageChange;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmLayersEditor.edItemsAreaChange(Sender: TObject);
+procedure TfrmThemeEditor.edItemsAreaChange(Sender: TObject);
 begin
   if assigned(theme) then
   begin
     theme.ItemsArea := StringToRect(edItemsArea.text);
     theme.Separator.Margins := StringToRect(edSeparatorMargins.text);
-    theme.BlurRegion:= edBlurRegion.Text;
+    theme.BlurRegion := edBlurRegion.Text;
     try theme.ReflectionSize := StrToInt(edReflectionSize.text);
     except theme.ReflectionSize := 0;
     end;
@@ -95,7 +96,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmLayersEditor.edImageChange(Sender: TObject);
+procedure TfrmThemeEditor.edImageChange(Sender: TObject);
 begin
   if assigned(theme) then
   begin
@@ -105,12 +106,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmLayersEditor.mcloseClick(Sender: TObject);
+procedure TfrmThemeEditor.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  CloseAction := cafree;
+  frmThemeEditor := nil;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmThemeEditor.mcloseClick(Sender: TObject);
 begin
   close;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmLayersEditor.msaveClick(Sender: TObject);
+procedure TfrmThemeEditor.msaveClick(Sender: TObject);
 begin
   if assigned(theme) then
   try

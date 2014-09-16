@@ -239,6 +239,8 @@ begin
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   FImage := nil;
+  action := cafree;
+  frmItemProp := nil;
   //SetActiveWindow(frmterry.handle);
 end;
 //------------------------------------------------------------------------------

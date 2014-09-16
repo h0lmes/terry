@@ -1,4 +1,4 @@
-object frmLayersEditor: TfrmLayersEditor
+object frmThemeEditor: TfrmThemeEditor
   Left = 649
   Height = 306
   Top = 338
@@ -10,46 +10,47 @@ object frmLayersEditor: TfrmLayersEditor
   ClientWidth = 445
   Constraints.MinWidth = 300
   Menu = mmenu
+  OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.2.2.0'
   object Label1: TLabel
     Left = 10
-    Height = 16
+    Height = 15
     Top = 10
-    Width = 93
+    Width = 92
     Caption = 'Items area border'
     ParentColor = False
   end
   object Label16: TLabel
     Left = 10
-    Height = 16
+    Height = 15
     Top = 175
-    Width = 104
+    Width = 103
     Caption = 'Icons reflection size'
     ParentColor = False
   end
   object Label15: TLabel
     Left = 10
-    Height = 16
+    Height = 15
     Top = 230
-    Width = 97
+    Width = 96
     Caption = 'Separator margins'
     ParentColor = False
   end
   object Label9: TLabel
     Left = 10
-    Height = 16
+    Height = 15
     Top = 65
-    Width = 111
+    Width = 110
     Caption = 'Background margins'
     ParentColor = False
   end
   object Label14: TLabel
     Left = 10
-    Height = 16
+    Height = 15
     Top = 120
-    Width = 59
+    Width = 58
     Caption = 'Blur region'
     ParentColor = False
   end

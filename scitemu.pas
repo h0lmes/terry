@@ -224,7 +224,6 @@ var
   pidFolder, pidChild: PItemIDList;
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
-  name: TStrRet;
 begin
   FBitBucket := false;
   if is_pidl then
