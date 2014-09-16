@@ -55,11 +55,6 @@ msgctxt "declu.xclosewindow"
 msgid "Close window"
 msgstr ""
 
-#: declu.xcommand
-msgctxt "declu.xcommand"
-msgid "Command"
-msgstr ""
-
 #: declu.xconfigureicon
 msgctxt "declu.xconfigureicon"
 msgid "Configure icon"
@@ -139,15 +134,6 @@ msgstr ""
 #: declu.xiconcollection
 msgctxt "declu.xiconcollection"
 msgid "Open icon collection"
-msgstr ""
-
-#: declu.xiconseditor
-msgctxt "declu.xiconseditor"
-msgid "Icons editor"
-msgstr ""
-
-#: declu.xinputusername
-msgid "Input user name (format domain\\user)"
 msgstr ""
 
 #: declu.xinstalledapplication
@@ -268,15 +254,6 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
-#: declu.xplugins
-msgid "Plugins"
-msgstr ""
-
-#: declu.xprogram
-msgctxt "declu.xprogram"
-msgid "Program"
-msgstr ""
-
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
 msgid "Program settings"
@@ -328,25 +305,8 @@ msgstr ""
 msgid "Top"
 msgstr ""
 
-#: declu.xstack
-msgid "Stack"
-msgstr ""
-
-#: declu.xstackcontrols
-msgid "Stack (Control panel)"
-msgstr ""
-
-#: declu.xstackdesktop
-msgid "Stack (Desktop)"
-msgstr ""
-
-#: declu.xstackdocuments
-msgctxt "declu.xstackdocuments"
-msgid "Stack (Documents)"
-msgstr ""
-
-#: declu.xstackdrives
-msgid "Stack (Drives)"
+#: declu.xspecificicons
+msgid "Specific icons"
 msgstr ""
 
 #: declu.xstartbuttontext
@@ -356,11 +316,6 @@ msgstr ""
 #: declu.xtaskmanager
 msgctxt "declu.xtaskmanager"
 msgid "Task manager"
-msgstr ""
-
-#: declu.xtray
-msgctxt "declu.xtray"
-msgid "Tray"
 msgstr ""
 
 #: tfrmaddcommand.btnadd.caption

@@ -3,9 +3,19 @@ CSIDL_DRIVES
 CSIDL_MYDOCUMENTS
 "Documents" folder icon.
 CSIDL_CONTROLS
-"Control panel" icon
+"Control panel" icon.
 CSIDL_BITBUCKET
-"Trash bin" icon
+"Trash bin" icon.
+/itemmgr.stack(CSIDL_CONTROLS)
+Control panel stack.
+/itemmgr.stack(CSIDL_DRIVES)
+Computer folder stack.
+/itemmgr.stack(CSIDL_DESKTOPDIRECTORY)
+Desktop stack.
+/itemmgr.stack(CSIDL_PERSONAL)
+Documents stack.
+/tray
+Show tray overflow window.
 /quit
 Quit program.
 /hide
@@ -32,8 +42,6 @@ Open this dialog ("Add command" window).
 Backup settings file.
 /restore
 Restore settings file from backup.
-/tray
-Show tray overflow window.
 /autotray
 Switch on/off all icons in system notification area (systray) (should be "off" for /tray command to work).
 /togglesystaskbar

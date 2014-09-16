@@ -83,7 +83,7 @@ type
     FImage: Pointer;
     FIW: cardinal;
     FIH: cardinal;
-    procedure SetData(AData: string);
+    function SetData(AData: string): boolean;
     procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
     procedure Draw;
@@ -105,9 +105,11 @@ begin
   if AData <> '' then
   try
     if not assigned(frmItemProp) then Application.CreateForm(self, frmItemProp);
-    frmItemProp.UpdateItemProc := uproc;
-    frmItemProp.SetData(AData);
-    frmItemProp.Show;
+    if frmItemProp.SetData(AData) then
+    begin
+      frmItemProp.UpdateItemProc := uproc;
+      frmItemProp.Show;
+    end;
   except
     on e: Exception do frmterry.notify('TfrmItemProp.Open'#10#13 + e.message);
   end;
@@ -129,12 +131,14 @@ begin
   cboWindow.Items.Add(XShowCmdMaximized);
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.SetData(AData: string);
+function TfrmItemProp.SetData(AData: string): boolean;
 var
   i: integer;
 begin
+  result := false;
   if FChanged then
     if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
+  result := true;
 
   cancel_data := AData;
   try ItemHWnd := strtoint(FetchValue(AData, 'hwnd="', '";'));

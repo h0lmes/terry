@@ -6,6 +6,16 @@ CSIDL_CONTROLS
 Значок "Панель управления".
 CSIDL_BITBUCKET
 Значок "Корзина".
+/itemmgr.stack(CSIDL_CONTROLS)
+Стек Панель управления.
+/itemmgr.stack(CSIDL_DRIVES)
+Стек Компьютер.
+/itemmgr.stack(CSIDL_DESKTOPDIRECTORY)
+Стек Рабочий стол.
+/itemmgr.stack(CSIDL_PERSONAL)
+Стек Докуметы.
+/tray
+Показать окно области уведомлений.
 /quit
 Выйти из программы.
 /hide
@@ -32,8 +42,6 @@ CSIDL_BITBUCKET
 Сделать резервную копию файла настроек.
 /restore
 Восстановить файл настроек из резервной копии.
-/tray
-Показать окно области уведомлений.
 /autotray
 Включить/отключить отображение всех значков и уведомлений на панели задач (необходимо отключить для работы команды /tray).
 /togglesystaskbar

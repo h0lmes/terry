@@ -326,12 +326,11 @@ begin
     if cmd = 'paste' then InsertItem(GetClipboard);
 
     if cmd = 'shortcut' then AddItem('class="shortcut";', true);
-    if cmd = 'tray' then AddItem('class="shortcut";caption="tray";command="/tray";image="Images\default\tray.png";', true);
     if cmd = 'separator' then AddItem('class="separator";', true);
     if cmd = 'plugin' then AddItem('class="plugin";file="' + params + '";', true);
     if cmd = 'stack' then
     begin
-      if length(params) = 0 then data := 'class="stack";caption="' + UTF8ToAnsi(XStack) + '";'
+      if length(params) = 0 then data := 'class="stack";'
       else data := 'class="stack";caption="::::";special_folder="' + params + '";';
       AddItem(data, true);
     end;
@@ -1681,7 +1680,7 @@ begin
       begin
         if (DropPlace >= 0) and (DropPlace < ItemCount) then
         begin
-          NewItemHWnd := CreateItem(TStackItem.Make(0, UTF8ToAnsi(XStack), ''));
+          NewItemHWnd := CreateItem(TStackItem.Make(0, '', ''));
           if NewItemHWnd <> THandle(0) then
           begin
             items[DropPlace].h := NewItemHWnd;

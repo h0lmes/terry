@@ -64,11 +64,6 @@ msgctxt "declu.xclosewindow"
 msgid "Close window"
 msgstr "Закрыть окно"
 
-#: declu.xcommand
-msgctxt "declu.xcommand"
-msgid "Command"
-msgstr "Команда"
-
 #: declu.xconfigureicon
 msgctxt "declu.xconfigureicon"
 msgid "Configure icon"
@@ -155,16 +150,6 @@ msgctxt "declu.xiconcollection"
 msgid "Open icon collection"
 msgstr "Коллекция иконок"
 
-#: declu.xiconseditor
-msgctxt "declu.xiconseditor"
-msgid "Icons editor"
-msgstr "Редактор значков"
-
-#: declu.xinputusername
-#| msgid "Input user name"
-msgid "Input user name (format domain\\user)"
-msgstr "Введите имя пользователя (формат domain\\user)"
-
 #: declu.xinstalledapplication
 msgctxt "declu.xinstalledapplication"
 msgid "Installed application"
@@ -225,15 +210,8 @@ msgid "Hello. This is the first time to run Terry."
 msgstr "Здравствуйте. Это первый запуск Terry."
 
 #: declu.xmsgnotificationareaicons
-msgid ""
-"After you close this message you will see \"Notification area icons\" "
-"window. To use this function uncheck \"Always show all icons\" at the bottom "
-"of the window and set all behaviors to \"Only show notifications\"."
-msgstr ""
-"После закрытия данного сообщения вы увидете окно \"Значки области уведомлений"
-"\". Для использования данной функции снимите отметку \"Всегда отображать все "
-"значки\" внизу окна и установите для всех значков поведение \"Показать "
-"только уведомления\"."
+msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
+msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
 msgid "Place target file onto dock instead of shortcut?"
@@ -249,17 +227,9 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#| msgid ""
-#| "Icon parameters changed. If you will proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?"
-msgid ""
-"Icon parameters changed. If you choose to proceed all changes will be lost. "
-"Proceed?"
-msgstr ""
-"Параметры значка были изменены. Если вы продолжите все изменения будут "
-"утеряны. Продолжить?"
+#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
+msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
+msgstr "Параметры значка были изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
 
 #: declu.xopenfolderof
 msgctxt "declu.xopenfolderof"
@@ -303,15 +273,6 @@ msgstr "Стиль"
 #: declu.xpaste
 msgid "Paste"
 msgstr "Вставить"
-
-#: declu.xplugins
-msgid "Plugins"
-msgstr "Плагины"
-
-#: declu.xprogram
-msgctxt "declu.xprogram"
-msgid "Program"
-msgstr "Программа"
 
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
@@ -367,26 +328,9 @@ msgstr "Справа"
 msgid "Top"
 msgstr "Сверху"
 
-#: declu.xstack
-msgid "Stack"
-msgstr "Стек"
-
-#: declu.xstackcontrols
-msgid "Stack (Control panel)"
-msgstr "Стек (Панель управления)"
-
-#: declu.xstackdesktop
-msgid "Stack (Desktop)"
-msgstr "Стек (Рабочий стол)"
-
-#: declu.xstackdocuments
-msgctxt "declu.xstackdocuments"
-msgid "Stack (Documents)"
-msgstr "Стек (Документы)"
-
-#: declu.xstackdrives
-msgid "Stack (Drives)"
-msgstr "Стек (Диски)"
+#: declu.xspecificicons
+msgid "Specific icons"
+msgstr "Настроенные значки"
 
 #: declu.xstartbuttontext
 msgid "Start"
@@ -396,11 +340,6 @@ msgstr "Пуск"
 msgctxt "declu.xtaskmanager"
 msgid "Task manager"
 msgstr "Диспетчер задач"
-
-#: declu.xtray
-msgctxt "declu.xtray"
-msgid "Tray"
-msgstr "Область уведомлений"
 
 #: tfrmaddcommand.btnadd.caption
 msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"
@@ -987,12 +926,8 @@ msgid "Zoom width"
 msgstr "Ширина увеличения"
 
 #: tfrmsets.stmovedockhint.caption
-msgid ""
-"Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows "
-"to move dock to another edge or monitor"
-msgstr ""
-"Совет: когда док активирован (например, после клика на нем) используйте <Alt>"
-"+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
+msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
+msgstr "Совет: когда док активирован (например, после клика на нем) используйте <Alt>+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
 
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
@@ -1159,3 +1094,4 @@ msgstr "Подпункты"
 msgctxt "tfrmterry.caption"
 msgid "TerryForm"
 msgstr "TerryForm"
+

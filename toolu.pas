@@ -75,7 +75,6 @@ procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
 
 implementation
 
-uses setsu;
 //------------------------------------------------------------------------------
 function IsWindowsVista: boolean;
 var
@@ -732,11 +731,6 @@ begin
 
   // path vars //
   Result := ReplaceEx(Result, '%pp%', pp);
-  if assigned(sets) then
-    if sets.container.useShell then
-      Result := ReplaceEx(Result, '%shell%', sets.container.Shell)
-    else
-      Result := ReplaceEx(Result, '%shell%', 'explorer.exe');
   Result := ReplaceEx(Result, '%windir%', GetWinDir);
   Result := ReplaceEx(Result, '%systemroot%', getwindir);
   Result := ReplaceEx(Result, '%sysdir%', getsystemdir);
@@ -744,6 +738,7 @@ begin
   Result := ReplaceEx(Result, '%desktop%', getsystempath('desktop'));
   Result := ReplaceEx(Result, '%startmenu%', getsystempath('start menu'));
   Result := ReplaceEx(Result, '%commonstartmenu%', getsystempath('common start menu'));
+  Result := ReplaceEx(Result, '%pfx86%', getwindir[1] + ':\Program Files (x86)');
   Result := ReplaceEx(Result, '%pf%', getwindir[1] + ':\Program Files');
   Result := ReplaceEx(Result, '%programfiles%', getwindir[1] + ':\Program Files');
 
@@ -753,7 +748,6 @@ begin
   Result := ReplaceEx(Result, '%time%', formatdatetime('tt', now));
   Result := ReplaceEx(Result, '%win_version%', GetWinVersion);
   Result := ReplaceEx(Result, '%user%', GetUser);
-  Result := ReplaceEx(Result, '%uptime%', formatdatetime('hh hour nn min ss sec', gettickcount / MSecsPerDay));
   Result := ReplaceEx(Result, '%crlf%', #10#13);
 end;
 //------------------------------------------------------------------------------
@@ -769,6 +763,7 @@ begin
   path := ReplaceEx(path, getsystempath('desktop'), '%desktop%');
   path := ReplaceEx(path, getsystempath('start menu'), '%startmenu%');
   path := ReplaceEx(path, getsystempath('common start menu'), '%commonstartmenu%');
+  path := ReplaceEx(path, windir[1] + ':\program files (x86)', '%pfx86%');
   path := ReplaceEx(path, windir[1] + ':\program files', '%pf%');
   Result := path;
 end;

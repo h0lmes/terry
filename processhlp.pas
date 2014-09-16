@@ -10,6 +10,14 @@ uses Windows, jwaWindows, SysUtils, Classes, Forms, Dialogs, Syncobjs,
 type
   PFPList = ^TFPList;
 
+  TWinEnumData = record
+    wincount: integer;
+    pList: PFPList;
+  end;
+  PWinEnumData = ^TWinEnumData;
+
+  __QueryFullProcessImageName = function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
+
   {TRunThread}
 
   TRunThread = class(TThread)
@@ -21,7 +29,6 @@ type
   protected
     procedure Execute; override;
   public
-    //msg: string;
     constructor Create;
     procedure exec(Aexename, Aparams, Adir: string; Ashowcmd: integer);
   end;
@@ -35,17 +42,22 @@ type
     proc_list: TStrings; // process + PID
     proc_full_list: TStrings; // process full module name + PID
     win_list: TFPList; // app windows
+    FWindowsCount: integer;
+    FWindowsCountChanged: boolean;
+    hKernel32: HMODULE;
+    queryFullProcessImageName: __QueryFullProcessImageName;
     // processes //
     RunThread: TRunThread;
     function IndexOf(Name: string): integer;
-    function FullNameIndexOf(Name: string): integer;
+    function IndexOfFullName(Name: string): integer;
     function IndexOfPID(pid: dword): integer;
-    function FullNameIndexOfPID(pid: dword): integer;
+    function IndexOfPIDFullName(pid: dword): integer;
     function GetName(index: integer): string;
     function GetFullName(index: integer): string;
     function GetFullNameByPID(pid: uint): string;
   public
     property Ready: boolean read FReady;
+    property WindowsCountChanged: boolean read FWindowsCountChanged;
     // //
     constructor Create;
     destructor Destroy; override;
@@ -83,12 +95,23 @@ begin
   proc_list := TStringList.Create;
   proc_full_list := TStringList.Create;
   win_list := TFPList.Create;
+  FWindowsCount := 0;
+  FWindowsCountChanged := false;
   RunThread := TRunThread.Create;
+
+  @QueryFullProcessImageName := nil;
+  if IsWindowsVista then
+  begin
+    hKernel32 := LoadLibrary('kernel32.dll');
+    if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
+  end;
+
   FReady := assigned(crsection) and assigned(proc_list) and assigned(win_list);
 end;
 //------------------------------------------------------------------------------
 destructor TProcessHelper.Destroy;
 begin
+  FreeLibrary(hKernel32);
   RunThread.terminate;
   proc_list.free;
   proc_full_list.free;
@@ -117,8 +140,8 @@ begin
     if not FReady then exit;
     proc_list.Clear;
     snap := CreateToolhelp32Snapshot(2, GetCurrentProcessId);
-    lp.dwSize := sizeof(lp);
     if snap < 32 then exit;
+    lp.dwSize := sizeof(lp);
     f := Process32First(snap, lp);
     while longint(f) <> 0 do
     begin
@@ -160,7 +183,7 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.FullNameExists(Name: string): boolean;
 begin
-  result := FullNameIndexOf(AnsiLowerCase(Name)) >= 0;
+  result := IndexOfFullName(AnsiLowerCase(Name)) >= 0;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IndexOf(Name: string): integer;
@@ -168,7 +191,7 @@ begin
   result := proc_list.IndexOf(AnsiLowerCase(Name));
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.FullNameIndexOf(Name: string): integer;
+function TProcessHelper.IndexOfFullName(Name: string): integer;
 begin
   result := proc_full_list.IndexOf(AnsiLowerCase(Name));
 end;
@@ -178,7 +201,7 @@ begin
   result := proc_list.IndexOfObject(TObject(pid));
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.FullNameIndexOfPID(pid: dword): integer;
+function TProcessHelper.IndexOfPIDFullName(pid: dword): integer;
 begin
   result := proc_full_list.IndexOfObject(TObject(pid));
 end;
@@ -196,15 +219,10 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetFullNameByPID(pid: uint): string;
-type
-  __QueryFullProcessImageName = function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
 var
   hProcess: HANDLE;
   size: dword;
   buff: array [0..MAX_PATH - 1] of AnsiChar;
-  osi: OSVERSIONINFO;
-  h: HMODULE;
-  _QueryFullProcessImageName: __QueryFullProcessImageName;
 begin
   result := '';
   hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, pid);
@@ -212,32 +230,21 @@ begin
   begin
       size := MAX_PATH;
       ZeroMemory(@buff, MAX_PATH);
-      ZeroMemory(@osi, sizeof(osi));
-      osi.dwOSVersionInfoSize := sizeof(OSVERSIONINFO);
-      GetVersionEx(@osi);
 
-      if osi.dwMajorVersion >= 6 then
+      if assigned(QueryFullProcessImageName) then
       begin
-          h := LoadLibrary('kernel32.dll');
-          if h > 32 then
-          begin
-              @_QueryFullProcessImageName := GetProcAddress(h, 'QueryFullProcessImageNameA');
-              if assigned(_QueryFullProcessImageName) then
-              begin
-                  _QueryFullProcessImageName(hProcess, 0, buff, size);
-                  GetLongPathName(buff, buff, MAX_PATH);
-                  FreeLibrary(h);
-                  CloseHandle(hProcess);
-                  result := strpas(pchar(@buff));
-                  if result <> '' then exit;
-              end;
-              FreeLibrary(h);
-          end;
+          QueryFullProcessImageName(hProcess, 0, buff, size);
+          GetLongPathName(buff, buff, MAX_PATH);
+          result := strpas(pchar(@buff));
       end;
 
-      GetModuleFileNameEx(hProcess, 0, buff, MAX_PATH);
+      if result = '' then
+      begin
+        GetModuleFileNameEx(hProcess, 0, buff, MAX_PATH);
+        result := strpas(pchar(@buff));
+      end;
+
       CloseHandle(hProcess);
-      result := strpas(pchar(@buff));
   end;
 end;
 //------------------------------------------------------------------------------
@@ -251,18 +258,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.RunAsUser(exename, params, dir: string; showcmd: integer);
 var
-  user, cmdline: string;
+  params_, dir_: pchar;
 begin
-  if InputQuery('RunAs', XInputUserName, user) then
-  begin
-    if params <> '' then
-    begin
-      cmdline := '/user:' + UTF8ToAnsi(user) + ' "' + UnzipPath(exename) + ' ' + UnzipPath(params) + '"';
-    end else begin
-      cmdline := '/user:' + UTF8ToAnsi(user) + ' "' + UnzipPath(exename) + '"';
-    end;
-    Run('runas', cmdline, '', showcmd);
-  end;
+  params_ := nil;
+  dir_ := nil;
+  if params <> '' then params_ := PChar(UnzipPath(params));
+  if dir <> '' then dir_ := PChar(UnzipPath(dir));
+  shellexecute(0, 'runas', pchar(UnzipPath(exename)), params_, dir_, showcmd);
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.Run(exename, params, dir: string; showcmd: integer);
@@ -304,16 +306,6 @@ begin
     if params <> '' then params_ := PChar(params);
     if dir <> '' then dir_ := PChar(dir);
     err := shellexecute(application.mainform.handle, nil, pchar(exename), params_, dir_, showcmd);
-    {if err <= 32 then
-    begin
-      case err of
-        ERROR_FILE_NOT_FOUND: msg := 'ERROR_FILE_NOT_FOUND';
-        ERROR_PATH_NOT_FOUND: msg := 'ERROR_PATH_NOT_FOUND';
-        ERROR_ACCESS_DENIED: msg := 'ERROR_ACCESS_DENIED';
-        ERROR_NOT_ENOUGH_MEMORY: msg := 'ERROR_NOT_ENOUGH_MEMORY';
-        else msg := 'Code ' + inttostr(err);
-      end;
-    end;}
     Suspend;
   end;
 end;
@@ -348,27 +340,39 @@ var
   ch: array [0..10] of char;
 begin
   result := true;
-  if not IsWindowVisible(h) then exit;
+  inc(PWinEnumData(l)^.wincount);
 
-  exstyle := GetWindowLongPtr(h, GWL_EXSTYLE);
-  if exstyle and WS_EX_APPWINDOW = 0 then
+  if IsWindowVisible(h) then
   begin
-    if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
-    if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
-    if windows.GetWindowText(h, ch, 10) < 1 then exit;
-  end;
+    exstyle := GetWindowLongPtr(h, GWL_EXSTYLE);
+    if exstyle and WS_EX_APPWINDOW = 0 then
+    begin
+      if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
+      if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
+      if windows.GetWindowText(h, ch, 10) < 1 then exit;
+    end;
 
-  PFPList(l)^.Add(pointer(h));
+    PWinEnumData(l)^.pList^.Add(pointer(h));
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumAppWindows;
+var
+  data: TWinEnumData;
 begin
   crsection.Acquire;
   try
+    self.FWindowsCountChanged := false;
     if not FReady then exit;
+
     win_list.Clear;
-    EnumWindows(@EnumWProc, LPARAM(@win_list));
+    data.wincount := 0;
+    data.pList := @win_list;
+    EnumWindows(@EnumWProc, LPARAM(@data));
     win_list.Sort(CmpWindows);
+
+    FWindowsCountChanged := data.wincount <> FWindowsCount;
+    FWindowsCount := data.wincount;
   finally
     crsection.Leave;
   end;
@@ -439,6 +443,10 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// ProcessName - path and file name
+// h - item window handle
+// ItemRect - screen rect of item to calc the position of a popup menu
+// Edge - edge of screen the item is docked at
 function TProcessHelper.ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
 var
   i: integer;
@@ -461,7 +469,7 @@ begin
     begin
       wnd := THandle(win_list.items[i]);
       GetWindowThreadProcessId(wnd, @wtpid);
-      if GetFullName(FullNameIndexOfPID(wtpid)) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
+      if GetFullName(IndexOfPIDFullName(wtpid)) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
       inc(i);
     end;
     result := wlist.Count > 0;
@@ -530,7 +538,7 @@ var
   wtpid: dword;
 begin
   GetWindowThreadProcessId(h, @wtpid);
-  result := GetFullName(FullNameIndexOfPID(wtpid));
+  result := GetFullName(IndexOfPIDFullName(wtpid));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowClassName(h: THandle): string;

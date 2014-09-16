@@ -84,7 +84,7 @@ type
     FImage: Pointer;
     FIW: cardinal;
     FIH: cardinal;
-    procedure SetData(AData: string);
+    function SetData(AData: string): boolean;
     procedure ReadSubitems;
     procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
@@ -107,11 +107,13 @@ begin
   if AData <> '' then
   try
     if not assigned(frmStackProp) then Application.CreateForm(self, frmStackProp);
-    frmStackProp.UpdateItemProc := uproc;
-    frmStackProp.item := AItem;
-    frmStackProp.SetData(AData);
-    frmStackProp.ReadSubitems;
-    frmStackProp.Show;
+    if frmStackProp.SetData(AData) then
+    begin
+      frmStackProp.UpdateItemProc := uproc;
+      frmStackProp.item := AItem;
+      frmStackProp.ReadSubitems;
+      frmStackProp.Show;
+    end;
   except
     on e: Exception do frmterry.notify('frmStackProp.Open'#10#13 + e.message);
   end;
@@ -133,10 +135,12 @@ begin
   for i := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(i));
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.SetData(AData: string);
+function TfrmStackProp.SetData(AData: string): boolean;
 begin
+  result := false;
   if FChanged then
     if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
+  result := true;
 
   cancel_data := AData;
   try ItemHWnd := strtoint(FetchValue(AData, 'hwnd="', '";'));

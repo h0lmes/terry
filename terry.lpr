@@ -403,7 +403,7 @@ function DockAddProgram(data: pchar): uint; stdcall;
 begin
   try
     result := 0;
-    if assigned(frmterry) then frmterry.AddProgram(strpas(data));
+    if assigned(frmterry) then frmterry.AddFile(strpas(data));
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockAddProgram', e);
   end;

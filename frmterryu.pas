@@ -96,16 +96,16 @@ type
     function GetMonitorWorkareaRect: Windows.TRect;
     function GetMonitorBoundsRect: Windows.TRect;
     procedure MoveDock(iDirection: integer);
-    procedure onTimer;
-    procedure onSlowTimer;
-    procedure onFSATimer;
+    procedure TimerMain;
+    procedure TimerSlow;
+    procedure TimerFSA;
     procedure OnDragEnter(list: TStrings; hWnd: uint);
     procedure OnDragOver;
     procedure OnDragLeave;
     procedure OnDrop(files: TStrings; hWnd: uint);
     procedure DropFiles(files: TStrings);
-    procedure AddProgram; overload;
-    procedure AddProgram(Filename: string); overload;
+    procedure AddFile; overload;
+    procedure AddFile(Filename: string); overload;
     procedure OpenWith(filename: string);
     function FullScreenAppActive(HWnd: HWND): boolean;
     function ListFullScreenApps: string;
@@ -308,13 +308,10 @@ begin
 end;
 //------------------------------------------------------------------------------
 function Tfrmterry.CloseQuery: integer;
-var
-  fs: TFileStream;
 begin
-  AddLog('CloseQuery');
   result := 0;
-  if not AllowClose then exit;
 
+  if AllowClose then
   try
     crsection.Acquire;
     closing := True;
@@ -325,14 +322,14 @@ begin
       KillTimer(handle, ID_TIMER);
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
-      if assigned(DropMgr) then DropMgr.Destroy;
-      if assigned(ItemMgr) then ItemMgr.Free;
-      if assigned(ahint) then ahint.Free;
-      if assigned(theme) then theme.Free;
-      if assigned(sets) then sets.Free;
-      if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
-      //TDropIndicator.DestroyIndicator;
-      LockList.free;
+      //if assigned(DropMgr) then DropMgr.Destroy;
+      //if assigned(ItemMgr) then ItemMgr.Free;
+      ///if assigned(ahint) then ahint.Free;
+      //if assigned(theme) then theme.Free;
+      //if assigned(sets) then sets.Free;
+      //if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
+      //////TDropIndicator.DestroyIndicator;
+      //LockList.free;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
     end;
@@ -579,24 +576,16 @@ begin
 
   // create submenu 'Add...' //
 
+  AppendMenu(hMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
   AppendMenu(hMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
-  AppendMenu(hMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XProgram)));
-  AppendMenu(hMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XCommand)));
-  AppendMenu(hMenuCreate, MF_STRING, $f025, pchar(UTF8ToAnsi(XTray)));
+  AppendMenu(hMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XFile)));
   AppendMenu(hMenuCreate, MF_STRING, $f026, pchar(UTF8ToAnsi(XInstalledApplication)));
   AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
-  AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
-  AppendMenu(hMenuCreate, MF_STRING, $f027, pchar(UTF8ToAnsi(XStack)));
-  AppendMenu(hMenuCreate, MF_STRING, $f028, pchar(UTF8ToAnsi(XStackControls)));
-  AppendMenu(hMenuCreate, MF_STRING, $f029, pchar(UTF8ToAnsi(XStackDrives)));
-  AppendMenu(hMenuCreate, MF_STRING, $f02a, pchar(UTF8ToAnsi(XStackDesktop)));
-  AppendMenu(hMenuCreate, MF_STRING, $f02b, pchar(UTF8ToAnsi(XStackDocuments)));
   if sets.GetPluginCount = -1 then sets.ScanPlugins;
   if sets.GetPluginCount > 0 then
   begin
     AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
-    AppendMenu(hMenuCreate, MF_STRING + MF_DISABLED, 0, pchar(UTF8ToAnsi(XPlugins + ':')));
     i := 0;
     while i < sets.GetPluginCount do
     begin
@@ -649,13 +638,7 @@ begin
         $f022: cmd := '/program';
         $f023: cmd := '/command';
         $f024: cmd := '/itemmgr.separator';
-        $f025: cmd := '/itemmgr.tray';
         $f026: cmd := '/apps';
-        $f027: cmd := '/itemmgr.stack';
-        $f028: cmd := '/itemmgr.stack(CSIDL_CONTROLS)';
-        $f029: cmd := '/itemmgr.stack(CSIDL_DRIVES)';
-        $f02a: cmd := '/itemmgr.stack(CSIDL_DESKTOPDIRECTORY)';
-        $f02b: cmd := '/itemmgr.stack(CSIDL_PERSONAL)';
 
         $f030: cmd := '/itemmgr.paste';
         $f031: cmd := '/lockdragging';
@@ -745,15 +728,15 @@ end;
 procedure Tfrmterry.WMTimer(var msg: TMessage);
 begin
   try
-    if msg.WParam = ID_TIMER then OnTimer
-    else if msg.WParam = ID_TIMER_SLOW then OnSlowTimer
-    else if msg.WParam = ID_TIMER_FSA then OnFSATimer;
+    if msg.WParam = ID_TIMER then TimerMain
+    else if msg.WParam = ID_TIMER_SLOW then TimerSlow
+    else if msg.WParam = ID_TIMER_FSA then TimerFSA;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnTimer;
+procedure Tfrmterry.TimerMain;
 begin
   if assigned(sets) then sets.Timer;
   if IsWindowVisible(Handle) then
@@ -763,16 +746,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnSlowTimer;
+procedure Tfrmterry.TimerSlow;
 begin
   if assigned(ItemMgr) and assigned(sets) then
   try
     if IsWindowVisible(Handle) then
     begin
       WHMouseMove($fffffff);
-      if sets.container.ShowRunningIndicator or sets.container.Taskbar then UpdateRunning;
+      UpdateRunning;
       if not sets.container.StayOnTop then MaintainNotForeground;
     end;
+
     if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
@@ -780,7 +764,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnFSATimer;
+procedure Tfrmterry.TimerFSA;
 var
   fsa: boolean;
 begin
@@ -806,15 +790,12 @@ end;
 procedure Tfrmterry.UpdateRunning;
 begin
   try
-    if sets.container.ShowRunningIndicator then
+    if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
+    if sets.container.Taskbar then ItemMgr.Taskbar;
+    if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then
     begin
       ProcessHelper.EnumProc;
       ItemMgr.SetParam(icUpdateRunning, 0);
-    end;
-    if sets.container.Taskbar then
-    begin
-      ProcessHelper.EnumAppWindows;
-      ItemMgr.Taskbar;
     end;
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
@@ -1277,18 +1258,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AddProgram;
+procedure Tfrmterry.AddFile;
 begin
   with TOpenDialog.Create(self) do
   begin
-    InitialDir := UnzipPath('%pf%');
-    Filter := 'Applications (*.exe)|*.exe';
-    if Execute then AddProgram(Filename);
+    if Execute then AddFile(Filename);
     Free;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AddProgram(Filename: string);
+procedure Tfrmterry.AddFile(Filename: string);
 begin
   if assigned(ItemMgr) then
     ItemMgr.InsertItem(TShortcutItem.Make(0, ChangeFileExt(ExtractFilename(Filename), ''),
@@ -1530,7 +1509,7 @@ begin
   else if cmd = 'collection' then frmterry.Run('%pp%\collection.exe')
   else if cmd = 'apps' then frmterry.Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then frmterry.Run('%sysdir%\taskmgr.exe')
-  else if cmd = 'program' then frmterry.AddProgram
+  else if cmd = 'program' then frmterry.AddFile
   else if cmd = 'command' then TfrmAddCommand.Open
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
