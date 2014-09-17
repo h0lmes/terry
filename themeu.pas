@@ -71,7 +71,7 @@ type
     function CorrectMargins(margins: Windows.TRect): Windows.TRect;
     function CorrectSize(size: Windows.TSize): Windows.TSize;
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
-    procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; color_data: integer);
+    procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect);
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -506,13 +506,13 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; color_data: integer);
+procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect);
 var
   marg: Windows.TRect;
 begin
   marg := CorrectMargins(Background.Margins);
   gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
-    rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, color_data);
+    rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle);
 end;
 //------------------------------------------------------------------------------
 function _Theme.BlurEnabled: boolean;

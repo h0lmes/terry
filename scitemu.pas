@@ -505,7 +505,8 @@ begin
 
     ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
-    if FReflection and not FFloating then BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+    if FReflection and (FReflectionSize > 0) and not FFloating then
+      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
     if FRunning then DrawIndicator(dst);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 

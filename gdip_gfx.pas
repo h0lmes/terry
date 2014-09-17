@@ -97,8 +97,7 @@ procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
-  margins: windows.TRect; Style: TStretchStyle = ssStretch;
-  color_data: integer = DEFAULT_COLOR_DATA);
+  margins: windows.TRect; Style: TStretchStyle = ssStretch);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -471,43 +470,24 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
-  margins: windows.TRect; Style: TStretchStyle = ssStretch;
-  color_data: integer = DEFAULT_COLOR_DATA);
+  margins: windows.TRect; Style: TStretchStyle = ssStretch);
 var
   x, y: integer;
   srcwidth, srcheight: uint;
   dstwidth, dstheight: uint;
   part_w, part_h: uint;
-  //
-  hattr: Pointer;
-  matrix: ColorMatrix;
 begin
   if dst = nil then exit;
-
-  try
-    if src = nil then
-    begin
-      GdipGraphicsClear(dst, 0);
-      exit;
-    end;
-
-    srcwidth := W;
-    srcheight := H;
-    dstwidth := dstrect.Right;
-    dstheight := dstrect.Bottom;
-
-    // colorization //
-
-    hattr:= nil;
-    if DEFAULT_COLOR_DATA <> color_data then
-    begin
-      CreateColorMatrix(color_data, matrix);
-      GdipCreateImageAttributes(hattr);
-      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
-    end;
-
-  except exit;
+  if src = nil then
+  begin
+    GdipGraphicsClear(dst, 0);
+    exit;
   end;
+
+  srcwidth := W;
+  srcheight := H;
+  dstwidth := dstrect.Right;
+  dstheight := dstrect.Bottom;
 
   if Margins.Left > srcwidth then margins.left:= srcwidth;
   if Margins.Right > srcwidth - Margins.Left then Margins.Right:= srcwidth - Margins.Left;
@@ -528,7 +508,7 @@ begin
     GdipDrawImageRectRectI(dst, src, margins.left + dstrect.left, margins.top + dstrect.top,
       dstwidth - margins.left - margins.right, dstheight - margins.top - margins.bottom,
       margins.left, margins.top, srcwidth - margins.left - margins.right,
-      srcheight - margins.top - margins.bottom, UnitPixel, hattr, nil, nil);
+      srcheight - margins.top - margins.bottom, UnitPixel, nil, nil, nil);
 
     // left line //
     if margins.left > 0 then
@@ -536,7 +516,7 @@ begin
         dstrect.left, margins.top + dstrect.top,
         margins.left, dstheight - margins.top - margins.bottom,
         0, margins.top, margins.left, srcheight - margins.top - margins.bottom,
-        UnitPixel, hattr, nil, nil);
+        UnitPixel, nil, nil, nil);
 
     // right line //
     if margins.right > 0 then
@@ -545,7 +525,7 @@ begin
         margins.right, dstheight - margins.top - margins.bottom,
         srcwidth - margins.right,
         margins.top, margins.right, srcheight - margins.top - margins.bottom,
-        UnitPixel, hattr, nil, nil);
+        UnitPixel, nil, nil, nil);
 
     // top line //
     if margins.top > 0 then
@@ -553,7 +533,7 @@ begin
         margins.left + dstrect.left, dstrect.top,
         dstwidth - margins.left - margins.right, margins.top,
         margins.left, 0, srcwidth - margins.left - margins.right, margins.top,
-        UnitPixel, hattr, nil, nil);
+        UnitPixel, nil, nil, nil);
 
     // bottom line //
     if margins.bottom > 0 then
@@ -562,7 +542,7 @@ begin
         dstwidth - margins.left - margins.right, margins.bottom,
         margins.left, srcheight - margins.bottom,
         srcwidth - margins.left - margins.right, margins.bottom,
-        UnitPixel, hattr, nil, nil);
+        UnitPixel, nil, nil, nil);
 
   // tile //
   end else if style = ssTile then
@@ -588,7 +568,7 @@ begin
         GdipDrawImageRectRectI(dst, src,
           x, y, part_w, part_h,
           margins.left, margins.top, part_w, part_h,
-          UnitPixel, hattr, nil, nil);
+          UnitPixel, nil, nil, nil);
 
         inc(y, srcHeight - Margins.Top - Margins.Bottom);
       end;
@@ -610,13 +590,13 @@ begin
         GdipDrawImageRectRectI(dst, src,
           dstrect.left, y, margins.left, part_h,
           0, margins.top, margins.left, part_h,
-          UnitPixel, hattr, nil, nil);
+          UnitPixel, nil, nil, nil);
 
         if margins.right > 0 then
         GdipDrawImageRectRectI(dst, src,
           dstwidth - margins.right + dstrect.left, y, margins.right, part_h,
           srcwidth - margins.right, margins.top, margins.right, part_h,
-          UnitPixel, hattr, nil, nil);
+          UnitPixel, nil, nil, nil);
 
         inc(y, srcHeight - Margins.Top - Margins.Bottom);
       end;
@@ -636,13 +616,13 @@ begin
         GdipDrawImageRectRectI(dst, src,
           x, dstrect.top, part_w, margins.top,
           margins.left, 0, part_w, margins.top,
-          UnitPixel, hattr, nil, nil);
+          UnitPixel, nil, nil, nil);
 
         if margins.bottom > 0 then
         GdipDrawImageRectRectI(dst, src,
           x, dstheight - margins.bottom + dstrect.top, part_w, margins.bottom,
           margins.left, srcheight - margins.bottom, part_w, margins.bottom,
-          UnitPixel, hattr, nil, nil);
+          UnitPixel, nil, nil, nil);
 
         inc(x, srcWidth - Margins.left - Margins.right);
       end;
@@ -660,7 +640,7 @@ begin
     if (margins.top > 0) and (margins.left > 0) then
       GdipDrawImageRectRectI(dst, src,
       dstrect.left, dstrect.top, margins.left, margins.top,
-      0, 0, margins.left, margins.top, UnitPixel, hattr, nil, nil);
+      0, 0, margins.left, margins.top, UnitPixel, nil, nil, nil);
   except
   end;
 
@@ -671,7 +651,7 @@ begin
       dstwidth - margins.right + dstrect.left, dstrect.top,
       margins.right, margins.top,
       srcwidth - margins.right, 0, margins.right, margins.top,
-      UnitPixel, hattr, nil, nil);
+      UnitPixel, nil, nil, nil);
   except
   end;
 
@@ -682,7 +662,7 @@ begin
       dstrect.left, dstheight - margins.bottom + dstrect.top,
       margins.left, margins.bottom,
       0, srcheight - margins.bottom, margins.left, margins.bottom,
-      UnitPixel, hattr, nil, nil);
+      UnitPixel, nil, nil, nil);
   except
   end;
 
@@ -695,11 +675,9 @@ begin
       margins.right, margins.bottom,
       srcwidth - margins.right, srcheight - margins.bottom,
       margins.right, margins.bottom,
-      UnitPixel, hattr, nil, nil);
+      UnitPixel, nil, nil, nil);
   except
   end;
-
-  if DEFAULT_COLOR_DATA <> color_data then GdipDisposeImageAttributes(hattr);
 end;
 //--------------------------------------------------------------------------------------------------
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
@@ -835,14 +813,14 @@ begin
 
     if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin
-      if default then GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
+      if default then GdipCreateBitmapFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
     end
     else
     begin
       ext := AnsiLowerCase(ExtractFileExt(imagefile));
       if (ext = '.png') or (ext = '.gif') then
       begin
-        GdipLoadImageFromFile(PWideChar(WideString(imagefile)), image);
+        GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), image);
       end
       else
       begin

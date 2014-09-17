@@ -390,6 +390,7 @@ end;
 procedure _Notifier.Close;
 begin
   try
+    Message_Internal('', '', self.monitor, false);
     DWM.DisableBlurBehindWindow(hWnd);
     KillTimer(hWnd, ID_TIMER);
     ShowWindow(hWnd, 0);

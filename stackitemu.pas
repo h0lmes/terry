@@ -460,7 +460,8 @@ begin
         GdipDrawImageRectRectI(dst, theme.DropIndicatorRun.Image, xBitmap, yBitmap, FSize, FSize, 0, 0, theme.DropIndicatorRun.W, theme.DropIndicatorRun.H, UnitPixel, nil, nil, nil);
 
     ////
-    if FReflection and not FFloating then BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+    if FReflection and (FReflectionSize > 0) and not FFloating then
+      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
     if FRunning then DrawIndicator(dst);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 

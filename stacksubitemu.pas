@@ -440,7 +440,7 @@ begin
     if AAngle > 0 then GdipResetWorldTransform(dst);
 
     // hint (caption) //
-    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 0) then
+    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 24) then
     begin
       if AHintAlign = 4 then
       begin

@@ -1002,7 +1002,7 @@ begin
       end;
 
       // draw background //
-      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, DEFAULT_COLOR_DATA);
+      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect);
       // update window //
       UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
 
