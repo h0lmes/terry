@@ -320,12 +320,7 @@ msgstr ""
 
 #: tfrmaddcommand.btnadd.caption
 msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"
-msgid "Add command"
-msgstr ""
-
-#: tfrmaddcommand.btnclose.caption
-msgctxt "tfrmaddcommand.btnclose.caption"
-msgid "Close window"
+msgid "Add icon"
 msgstr ""
 
 #: tfrmaddcommand.caption

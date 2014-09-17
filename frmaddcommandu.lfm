@@ -1,11 +1,11 @@
 object frmAddCommand: TfrmAddCommand
-  Left = 464
-  Height = 554
-  Top = 228
-  Width = 617
+  Left = 495
+  Height = 474
+  Top = 246
+  Width = 423
   Caption = 'Add command'
-  ClientHeight = 554
-  ClientWidth = 617
+  ClientHeight = 474
+  ClientWidth = 423
   FormStyle = fsStayOnTop
   OnClose = FormClose
   OnCreate = FormCreate
@@ -14,43 +14,45 @@ object frmAddCommand: TfrmAddCommand
   LCLVersion = '1.0.10.0'
   object tree: TTreeView
     Left = 15
-    Height = 524
+    Height = 384
     Top = 15
-    Width = 372
-    Align = alLeft
-    BorderSpacing.Around = 15
+    Width = 393
+    Align = alClient
+    BorderSpacing.Left = 15
+    BorderSpacing.Top = 15
+    BorderSpacing.Right = 15
+    BorderSpacing.Bottom = 10
     DefaultItemHeight = 18
     ReadOnly = True
     RightClickSelect = True
     ScrollBars = ssAutoBoth
     TabOrder = 0
+    OnDblClick = treeDblClick
     OnSelectionChanged = treeSelectionChanged
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object btnAdd: TButton
-    Left = 400
-    Height = 29
-    Top = 470
-    Width = 200
-    Caption = 'Add command'
+    Left = 250
+    Height = 25
+    Top = 25
+    Width = 130
+    Caption = 'Add icon'
     OnClick = btnAddClick
     TabOrder = 1
-  end
-  object btnClose: TButton
-    Left = 400
-    Height = 29
-    Top = 510
-    Width = 200
-    Caption = 'Close window'
-    OnClick = btnCloseClick
-    TabOrder = 2
+    Visible = False
   end
   object memo: TMemo
-    Left = 400
-    Height = 440
-    Top = 15
-    Width = 200
-    TabOrder = 3
+    Left = 15
+    Height = 50
+    Top = 409
+    Width = 393
+    Align = alBottom
+    BorderSpacing.Left = 15
+    BorderSpacing.Right = 15
+    BorderSpacing.Bottom = 15
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    TabOrder = 2
   end
   object images: TImageList
     Height = 32

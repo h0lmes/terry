@@ -23,15 +23,14 @@ type
 
   TfrmAddCommand = class(TForm)
     btnAdd: TButton;
-    btnClose: TButton;
     images: TImageList;
     memo: TMemo;
     tree: TTreeView;
     procedure btnAddClick(Sender: TObject);
-    procedure btnCloseClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure treeDblClick(Sender: TObject);
     procedure treeSelectionChanged(Sender: TObject);
   private
     function AddGroup(name: string): TTreeNode;
@@ -164,12 +163,19 @@ procedure TfrmAddCommand.treeSelectionChanged(Sender: TObject);
 var
   item: PItem;
 begin
+  item := nil;
   if assigned(tree.Selected) then
     if assigned(tree.Selected.Parent) then
-    begin
       item := tree.Selected.Data;
-      memo.Text := pchar(item.description);
-    end;
+
+  if assigned(item) then
+  begin
+    btnAdd.Show;
+    memo.Text := pchar(item.description);
+  end else begin
+    btnAdd.Hide;
+    memo.Clear;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.btnAddClick(Sender: TObject);
@@ -195,9 +201,9 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmAddCommand.btnCloseClick(Sender: TObject);
+procedure TfrmAddCommand.treeDblClick(Sender: TObject);
 begin
-  Close;
+  btnAdd.Click;
 end;
 //------------------------------------------------------------------------------
 end.
