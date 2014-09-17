@@ -513,7 +513,7 @@ begin
     end;
     ItemCount := 0;
     TaskItemCount := 0;
-    ItemsChanged;
+    //ItemsChanged;
   except
     on e: Exception do err('ItemManager.Clear', e);
   end;
@@ -532,7 +532,6 @@ begin
       FreeAndNil(Inst);
     end;
     itemsDeleted.Clear;
-    ItemsChanged;
   except
     on e: Exception do err('ItemManager.ClearDeleted', e);
   end;

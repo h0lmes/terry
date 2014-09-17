@@ -4,18 +4,9 @@ unit processhlp;
 
 interface
 
-uses Windows, jwaWindows, SysUtils, Classes, Forms, Dialogs, Syncobjs,
-  toolu, declu;
+uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, toolu, declu;
 
 type
-  PFPList = ^TFPList;
-
-  TWinEnumData = record
-    wincount: integer;
-    pList: PFPList;
-  end;
-  PWinEnumData = ^TWinEnumData;
-
   __QueryFullProcessImageName = function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
 
   {TRunThread}
@@ -39,9 +30,9 @@ type
   private
     FReady: boolean;
     crsection: TCriticalSection;
-    proc_list: TStrings; // process + PID
-    proc_full_list: TStrings; // process full module name + PID
-    win_list: TFPList; // app windows
+    listProcess: TStrings; // process + PID
+    listProcessFullName: TStrings; // process full module name + PID
+    listAppWindows: TFPList; // app windows
     FWindowsCount: integer;
     FWindowsCountChanged: boolean;
     hKernel32: HMODULE;
@@ -92,9 +83,9 @@ begin
   FReady := false;
   inherited Create;
   crsection := TCriticalSection.Create;
-  proc_list := TStringList.Create;
-  proc_full_list := TStringList.Create;
-  win_list := TFPList.Create;
+  listProcess := TStringList.Create;
+  listProcessFullName := TStringList.Create;
+  listAppWindows := TFPList.Create;
   FWindowsCount := 0;
   FWindowsCountChanged := false;
   RunThread := TRunThread.Create;
@@ -106,16 +97,16 @@ begin
     if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
   end;
 
-  FReady := assigned(crsection) and assigned(proc_list) and assigned(win_list);
+  FReady := assigned(crsection) and assigned(listProcess) and assigned(listAppWindows);
 end;
 //------------------------------------------------------------------------------
 destructor TProcessHelper.Destroy;
 begin
   FreeLibrary(hKernel32);
   RunThread.terminate;
-  proc_list.free;
-  proc_full_list.free;
-  win_list.free;
+  listProcess.free;
+  listProcessFullName.free;
+  listAppWindows.free;
   crsection.free;
   inherited;
 end;
@@ -138,25 +129,25 @@ begin
   crsection.Acquire;
   try
     if not FReady then exit;
-    proc_list.Clear;
+    listProcess.Clear;
     snap := CreateToolhelp32Snapshot(2, GetCurrentProcessId);
     if snap < 32 then exit;
     lp.dwSize := sizeof(lp);
     f := Process32First(snap, lp);
     while longint(f) <> 0 do
     begin
-      proc_list.AddObject(AnsiLowerCase(lp.szExeFile), TObject(lp.th32ProcessID));
-      if proc_full_list.IndexOfObject(tobject(lp.th32ProcessID)) < 0 then
-        proc_full_list.AddObject(AnsiLowerCase(GetFullNameByPID(lp.th32ProcessID)), TObject(lp.th32ProcessID));
+      listProcess.AddObject(AnsiLowerCase(lp.szExeFile), TObject(lp.th32ProcessID));
+      if listProcessFullName.IndexOfObject(tobject(lp.th32ProcessID)) < 0 then
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID(lp.th32ProcessID)), TObject(lp.th32ProcessID));
       f := Process32Next(snap, lp);
     end;
     CloseHandle(snap);
 
     // delete non-existing //
-    i := proc_full_list.Count - 1;
+    i := listProcessFullName.Count - 1;
     while i >= 0 do
     begin
-      if proc_list.IndexOfObject(proc_full_list.Objects[i]) < 0 then proc_full_list.Delete(i);
+      if listProcess.IndexOfObject(listProcessFullName.Objects[i]) < 0 then listProcessFullName.Delete(i);
       dec(i);
     end;
   finally
@@ -171,8 +162,8 @@ begin
   if not FReady then exit;
   EnumProc;
   Name := AnsiLowerCase(Name);
-  if proc_list.indexof(Name) < 0 then exit;
-  hProc := OpenProcess(PROCESS_TERMINATE, true, dword(proc_list.Objects[proc_list.indexof(Name)]));
+  if listProcess.indexof(Name) < 0 then exit;
+  hProc := OpenProcess(PROCESS_TERMINATE, true, dword(listProcess.Objects[listProcess.indexof(Name)]));
   TerminateProcess(hProc, 0);
 end;
 //------------------------------------------------------------------------------
@@ -188,34 +179,34 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IndexOf(Name: string): integer;
 begin
-  result := proc_list.IndexOf(AnsiLowerCase(Name));
+  result := listProcess.IndexOf(AnsiLowerCase(Name));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IndexOfFullName(Name: string): integer;
 begin
-  result := proc_full_list.IndexOf(AnsiLowerCase(Name));
+  result := listProcessFullName.IndexOf(AnsiLowerCase(Name));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IndexOfPID(pid: dword): integer;
 begin
-  result := proc_list.IndexOfObject(TObject(pid));
+  result := listProcess.IndexOfObject(TObject(pid));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IndexOfPIDFullName(pid: dword): integer;
 begin
-  result := proc_full_list.IndexOfObject(TObject(pid));
+  result := listProcessFullName.IndexOfObject(TObject(pid));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetName(index: integer): string;
 begin
   result := '';
-  if (index >= 0) and (index < proc_list.Count) then result := proc_list.strings[index];
+  if (index >= 0) and (index < listProcess.Count) then result := listProcess.strings[index];
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetFullName(index: integer): string;
 begin
   result := '';
-  if (index >= 0) and (index < proc_full_list.Count) then result := proc_full_list.strings[index];
+  if (index >= 0) and (index < listProcessFullName.Count) then result := listProcessFullName.strings[index];
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetFullNameByPID(pid: uint): string;
@@ -336,11 +327,12 @@ end;
 //------------------------------------------------------------------------------
 function EnumWProc(h: THandle; l: LPARAM): bool; stdcall;
 var
+  helper: TProcessHelper absolute l;
   exstyle: PtrUInt;
   ch: array [0..10] of char;
 begin
   result := true;
-  inc(PWinEnumData(l)^.wincount);
+  inc(helper.FWindowsCount);
 
   if IsWindowVisible(h) then
   begin
@@ -352,27 +344,26 @@ begin
       if windows.GetWindowText(h, ch, 10) < 1 then exit;
     end;
 
-    PWinEnumData(l)^.pList^.Add(pointer(h));
+    helper.listAppWindows.Add(pointer(h));
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumAppWindows;
 var
-  data: TWinEnumData;
+  oldWindowsCount: integer;
 begin
   crsection.Acquire;
   try
-    self.FWindowsCountChanged := false;
+    oldWindowsCount := FWindowsCount;
+    FWindowsCountChanged := false;
+    FWindowsCount := 0;
     if not FReady then exit;
 
-    win_list.Clear;
-    data.wincount := 0;
-    data.pList := @win_list;
-    EnumWindows(@EnumWProc, LPARAM(@data));
-    win_list.Sort(CmpWindows);
+    listAppWindows.Clear;
+    EnumWindows(@EnumWProc, LPARAM(self));
+    listAppWindows.Sort(CmpWindows);
 
-    FWindowsCountChanged := data.wincount <> FWindowsCount;
-    FWindowsCount := data.wincount;
+    FWindowsCountChanged := oldWindowsCount <> FWindowsCount;
   finally
     crsection.Leave;
   end;
@@ -412,9 +403,9 @@ begin
   result := true;
   index := ZOrderIndex(wnd);
   i := 0;
-  while i < win_list.count do
+  while i < listAppWindows.count do
   begin
-    h := THandle(win_list.items[i]);
+    h := THandle(listAppWindows.items[i]);
     if h <> wnd then
       if IsWindowVisible(h) and not IsIconic(h) then
         if ZOrderIndex(h) > index then
@@ -465,9 +456,9 @@ begin
     EnumAppWindows;
     wlist := TFPList.Create;
     i := 0;
-    while i < win_list.count do
+    while i < listAppWindows.count do
     begin
-      wnd := THandle(win_list.items[i]);
+      wnd := THandle(listAppWindows.items[i]);
       GetWindowThreadProcessId(wnd, @wtpid);
       if GetFullName(IndexOfPIDFullName(wtpid)) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
       inc(i);
@@ -512,17 +503,17 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowsCount: integer;
 begin
-  result := win_list.count;
+  result := listAppWindows.count;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowHandle(index: integer): THandle;
 begin
-  result := THandle(win_list.items[index]);
+  result := THandle(listAppWindows.items[index]);
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowIndex(h: THandle): integer;
 begin
-  result := win_list.IndexOf(pointer(h));
+  result := listAppWindows.IndexOf(pointer(h));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowProcessName(h: THandle): string;

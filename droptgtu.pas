@@ -16,7 +16,6 @@ type
   _DropManager = class
   protected
     FDropTarget: _DropTarget;
-    FList: TStrings;
     procedure  DropTarget_Forget;  // used by DropTarget.Destroy;
   public
     OnDragOver: TProc;
@@ -30,11 +29,11 @@ type
     function DropTarget_Create(ADropHWnd: HWND): HResult;
     function DropTarget_Exists: Boolean;
     function DropTarget_LifeState: Tgwdt_ls;
-    procedure AddToListHDrop(h: HDROP);
-    procedure AddToListHGlobalPIDL(h: HGLOBAL);
-    procedure AddToListIStreamPIDL(h: Pointer);
-    procedure AddToListIStreamFileName(h: Pointer);
-    procedure MakeList(const dataObj: IDataObject);
+    procedure AddToListHDrop(h: HDROP; var List: TStrings);
+    procedure AddToListHGlobalPIDL(h: HGLOBAL; var List: TStrings);
+    procedure AddToListIStreamPIDL(h: Pointer; var List: TStrings);
+    procedure AddToListIStreamFileName(h: Pointer; var List: TStrings);
+    procedure MakeList(const dataObj: IDataObject; var List: TStrings);
     function DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
     function DragOver(grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
     function DragLeave: HResult; virtual;
@@ -85,14 +84,12 @@ implementation
 constructor _DropManager.Create(ADropHWnd: HWND);
 begin
   inherited Create;
-  FList := TStringList.Create;
   FDropTarget := nil;
   DropTarget_Create(ADropHWnd);
 end;
 //------------------------------------------------------------------------------
 destructor _DropManager.Destroy;
 begin
-  FList.free;
   if Assigned(FDropTarget) then FDropTarget.Destroy;
   inherited Destroy;
 end;
@@ -120,7 +117,7 @@ begin
   else result := gwdt_ls_Start;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListHDrop(h: HDROP);
+procedure _DropManager.AddToListHDrop(h: HDROP; var List: TStrings);
 var
   i, size: uint;
   filename: array [0..MAX_PATH - 1] of char;
@@ -135,7 +132,7 @@ begin
     while i < size do
     begin
       dragQueryFile(h, i, filename, sizeof(filename));
-      FList.Add(filename);
+      List.Add(filename);
       inc(i);
     end;
     DragFinish(h);
@@ -144,7 +141,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListIStreamFileName(h: Pointer);
+procedure _DropManager.AddToListIStreamFileName(h: Pointer; var List: TStrings);
 var
   ist: IStream;
   stat: STATSTG;
@@ -163,13 +160,13 @@ begin
     size := longint(stat.cbSize);
     if size > MAX_PATH then size := MAX_PATH;
     ist.Read(@data, size, @cbRead);
-    FList.Add(strpas(pchar(@data)));
+    List.Add(strpas(pchar(@data)));
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListHGlobalPIDL(h: HGLOBAL);
+procedure _DropManager.AddToListHGlobalPIDL(h: HGLOBAL; var List: TStrings);
 var
   p: Pointer;
   i, gsize, size, qty: longint;
@@ -210,7 +207,7 @@ begin
       begin
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
-        FList.Add(idpath);
+        List.Add(idpath);
         {$ifdef DEBUG_DROPTGT}
         notifier.message('PIDL ToString = ' + idpath);
         {$endif}
@@ -223,7 +220,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // TODO: check if CIDA is valid
-procedure _DropManager.AddToListIStreamPIDL(h: Pointer);
+procedure _DropManager.AddToListIStreamPIDL(h: Pointer; var List: TStrings);
 var
   ist: IStream;
   stat: STATSTG;
@@ -266,10 +263,9 @@ begin
       pidl := PIDL_FromCIDA(i, @data, size);
       if assigned(pidl) then
       begin
-        //idpath := PIDL_ToString(pidl, size);
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
-        FList.Add(idpath);
+        List.Add(idpath);
         {$ifdef DEBUG_DROPTGT}
         notifier.message('PIDL ToString = ' + idpath);
         {$endif}
@@ -280,7 +276,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.MakeList(const dataObj: IDataObject);
+procedure _DropManager.MakeList(const dataObj: IDataObject; var List: TStrings);
 var
   Rslt: HResult;
   EnumFormatEtc: IEnumFormatEtc;
@@ -319,33 +315,33 @@ begin
       if FormatEtc.tymed and TYMED_HGLOBAL <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
-          if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHDrop(StgMedium.hGlobal);
+          if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHDrop(StgMedium.hGlobal, List);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
           except end;
         end;
     Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
   end;
-  if FList.Count > 0 then exit;
+  if List.Count > 0 then exit;
 
   // handle SHELLIDLIST //
   EnumFormatEtc.Reset;
   Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
-  while (Rslt = S_OK) and (FList.Count < 1) do
+  while (Rslt = S_OK) and (List.Count < 1) do
   begin
     GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
     if stricomp(pchar(@ch), 'SHELL IDLIST ARRAY') = 0 then
       if FormatEtc.tymed and (TYMED_HGLOBAL or TYMED_ISTREAM) <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
-          if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHGlobalPIDL(StgMedium.hGlobal)
+          if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHGlobalPIDL(StgMedium.hGlobal, List)
           else
-          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamPIDL(StgMedium.pstm);
+          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamPIDL(StgMedium.pstm, List);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
           except end;
         end;
     Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
   end;
-  if FList.Count > 0 then exit;
+  if List.Count > 0 then exit;
 
   // handle FileName //
   EnumFormatEtc.Reset;
@@ -357,9 +353,9 @@ begin
       if FormatEtc.tymed and (TYMED_FILE or TYMED_ISTREAM) <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
-          if StgMedium.tymed and TYMED_FILE = TYMED_FILE then FList.Add(pchar(StgMedium.lpszFileName))
+          if StgMedium.tymed and TYMED_FILE = TYMED_FILE then List.Add(pchar(StgMedium.lpszFileName))
           else
-          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamFileName(StgMedium.pstm);
+          if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamFileName(StgMedium.pstm, List);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
           except end;
         end;
@@ -387,15 +383,20 @@ begin
 end;
 //------------------------------------------------------------------------------
 function _DropManager.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+var
+  FList: TStrings;
 begin
   dwEffect := DROPEFFECT_COPY;
   result := S_OK;
+  {$ifdef DEBUG_DROPTGT}
+  notifier.message('DropManager.Drop');
+  {$endif}
   if assigned(OnDrop) then
   begin
-    FList.Clear;
-    MakeList(dataObj);
+    FList := TStringList.Create;
+    MakeList(dataObj, FList);
     OnDrop(FList, WindowFromPoint(pt));
-    FList.Clear;
+    FList.Free;
   end;
 end;
 //------------------------------------------------------------------------------

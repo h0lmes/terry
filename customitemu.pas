@@ -125,7 +125,7 @@ begin
   // change window proc
   FWndInstance := MakeObjectInstance(WindowProc);
   FPrevWndProc := Pointer(GetWindowLongPtr(FHWnd, GWL_WNDPROC));
-  SetWindowLongPtr(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
+  SetWindowLongPtr(FHWnd, GWL_WNDPROC, PtrInt(FWndInstance));
 
   FItemSize := AParams.ItemSize;
   FSize := FItemSize;
@@ -143,7 +143,8 @@ end;
 destructor TCustomItem.Destroy;
 begin
   // restore window proc
-  if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
+  SetWindowLong(FHWnd, GWL_WNDPROC, PtrInt(FPrevWndProc));
+  FreeObjectInstance(FWndInstance);
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
   inherited;
 end;

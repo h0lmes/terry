@@ -148,8 +148,8 @@ begin
     // workaround for Windows message handling in LCL //
     AddLog('Init.NativeWndProc');
     FWndInstance := MakeObjectInstance(NativeWndProc);
-    FPrevWndProc := pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
-    SetWindowLongPtr(Handle, GWL_WNDPROC, LongInt(FWndInstance));
+    FPrevWndProc := Pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
+    SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
 
     // Sets //
     AddLog('Init.Sets');
@@ -322,15 +322,16 @@ begin
       KillTimer(handle, ID_TIMER);
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
-      // assuming these are singletons - leave it to the system
-      //if assigned(DropMgr) then DropMgr.Destroy;
-      //if assigned(ItemMgr) then ItemMgr.Free;
-      ///if assigned(ahint) then ahint.Free;
-      //if assigned(theme) then theme.Free;
-      //if assigned(sets) then sets.Free;
-      //if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
-      //////TDropIndicator.DestroyIndicator;
-      //LockList.free;
+      if assigned(DropMgr) then DropMgr.Destroy;
+      if assigned(ItemMgr) then ItemMgr.Free;
+      if assigned(ahint) then ahint.Free;
+      if assigned(theme) then theme.Free;
+      if assigned(sets) then sets.Free;
+      if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
+      LockList.free;
+      SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
+      FreeObjectInstance(FWndInstance);
+      //TDropIndicator.DestroyIndicator;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
     end;
@@ -1257,6 +1258,7 @@ begin
     ItemMgr.DragLeave;
     ItemMgr.WHMouseMove(pt);
     SetActiveWindow(handle);
+    SetForegroundWindow(handle); // set foreground to finalize dragdrop operation
   except
     on e: Exception do err('Base.OnDrop', e);
   end;
@@ -1359,6 +1361,8 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.WMDisplayChange(var Message: TMessage);
 begin
+  screen.UpdateMonitors;
+  sets.StoreParam(gpMonitor, sets.GetParam(gpMonitor));
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;

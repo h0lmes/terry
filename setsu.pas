@@ -418,7 +418,7 @@ begin
   gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 20);
   gpZoomWidth: container.ZoomWidth := SetRange((value div 2) * 2, 4, 10);
   gpZoomItems: container.ZoomItems := boolean(value);
-  gpMonitor: container.Monitor := value;
+  gpMonitor: container.Monitor := SetRange(value, -1, screen.MonitorCount - 1);
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
   gpEdgeOffset: container.EdgeOffset := SetRange(value, -100, 100);
