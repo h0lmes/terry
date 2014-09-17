@@ -356,15 +356,6 @@ msgctxt "tfrmaddcommand.caption"
 msgid "Add command"
 msgstr "Добавить команду"
 
-#: tfrmaddcommand.lv.columns[0].caption
-msgctxt "TFRMADDCOMMAND.LV.COLUMNS[0].CAPTION"
-msgid "Command"
-msgstr "Команда"
-
-#: tfrmaddcommand.lv.columns[1].caption
-msgid "Descritpion"
-msgstr "Описание"
-
 #: tfrmcmd.btn_browse.caption
 msgctxt "TFRMCMD.BTN_BROWSE.CAPTION"
 msgid "..."

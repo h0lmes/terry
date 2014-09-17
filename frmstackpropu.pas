@@ -280,8 +280,8 @@ var
 begin
   try
     FChanged := false;
-    str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), color_data,
-      cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, SpecialFolder, chbPreview.Checked);
+    str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), SpecialFolder,
+      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, chbPreview.Checked);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
     on e: Exception do frmterry.notify('frmStackProp.btnApplyClick'#10#13 + e.message);

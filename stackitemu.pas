@@ -99,10 +99,10 @@ type
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 
-    class function Make(AHWnd: uint; ACaption, AImage: string;
+    class function Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: string = ''; APreview: boolean = true): string;
+      ADistort: integer = DEFAULT_DISTORT; APreview: boolean = true): string;
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
@@ -516,8 +516,8 @@ end;
 //------------------------------------------------------------------------------
 function TStackItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, imagefile, color_data, FMode,
-    FOffset, FAnimationSpeed, FDistort, FSpecialFolder, FPreview);
+  result:= Make(FHWnd, FCaption, imagefile, FSpecialFolder,
+    color_data, FMode, FOffset, FAnimationSpeed, FDistort, FPreview);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -732,21 +732,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string;
+class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-  ADistort: integer = DEFAULT_DISTORT; ASpecialFolder: string = ''; APreview: boolean = true): string;
+  ADistort: integer = DEFAULT_DISTORT; APreview: boolean = true): string;
 begin
   result := 'class="stack";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
   if AImage <> '' then result := result + 'image="' + AImage + '";';
+  if ASpecialFolder <> '' then result := result + 'special_folder="' + ASpecialFolder + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if AMode <> 0 then result := result + 'mode="' + inttostr(AMode) + '";';
   if AOffset <> 0 then result := result + 'offset="' + inttostr(AOffset) + '";';
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
-  if ASpecialFolder <> '' then result := result + 'special_folder="' + ASpecialFolder + '";';
   if not APreview then result := result + 'preview="0";';
 end;
 //------------------------------------------------------------------------------

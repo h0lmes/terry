@@ -78,7 +78,7 @@ type
     function AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
     procedure CopyItemDescriptor(pFrom, pTo: PItem);
   public
-    items: array [0..MAX_ITEM_COUNT - 1] of TItem;
+    items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
     TaskItemCount: integer;
     HoverItemHWnd: THandle; // handle of the item over which the mouse is //

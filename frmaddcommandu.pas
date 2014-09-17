@@ -6,9 +6,18 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  gettext, DefaultTranslator, ComCtrls, ExtCtrls, StdCtrls;
+  gettext, DefaultTranslator, ComCtrls, ExtCtrls, StdCtrls, IniFiles;
 
 type
+  TItem = record
+    classname: array [0..31] of char;
+    name: array [0..255] of char;
+    command: array [0..255] of char;
+    params: array [0..255] of char;
+    icon: array [0..255] of char;
+    description: array [0..1023] of char;
+  end;
+  PItem = ^TItem;
 
   { TfrmAddCommand }
 
@@ -16,13 +25,17 @@ type
     btnAdd: TButton;
     btnClose: TButton;
     images: TImageList;
-    lv: TListView;
-    Panel1: TPanel;
+    memo: TMemo;
+    tree: TTreeView;
     procedure btnAddClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure treeSelectionChanged(Sender: TObject);
   private
+    function AddGroup(name: string): TTreeNode;
+    procedure AddItem(node: TTreeNode; classname, name, command, params, icon, description: string);
   public
     Filename: string;
     class procedure Open;
@@ -32,7 +45,7 @@ var
   frmAddCommand: TfrmAddCommand;
 
 implementation
-uses declu, toolu, frmterryu, scitemu;
+uses declu, toolu, frmterryu, scitemu, stackitemu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmAddCommand.Open;
@@ -40,8 +53,8 @@ var
   Lang, FallbackLang, tmpFilename: string;
 begin
   GetLanguageIDs(Lang, FallbackLang);
-  tmpFilename := UnzipPath('%pp%\locale\commandlist.' + FallbackLang + '.txt');
-  if not FileExists(tmpFilename) then tmpFilename := UnzipPath('%pp%\locale\commandlist.txt');
+  tmpFilename := UnzipPath('%pp%\locale\commandlist.' + FallbackLang + '.ini');
+  if not FileExists(tmpFilename) then tmpFilename := UnzipPath('%pp%\locale\commandlist.ini');
   if not FileExists(tmpFilename) then
   begin
     frmterry.notify(UTF8ToAnsi(XErrorCommandListNotFound));
@@ -52,57 +65,139 @@ begin
   frmAddCommand.ShowModal;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmAddCommand.FormShow(Sender: TObject);
-var
-  list: TStrings;
-  i: integer;
-  item: TListItem;
+procedure TfrmAddCommand.FormCreate(Sender: TObject);
 begin
-  try list := TStringlist.Create;
-  except exit;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmAddCommand.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var
+  i: integer;
+  item: PItem;
+begin
+  i := 0;
+  while i < tree.Items.Count do
+  begin
+    item := tree.Items.Item[i].Data;
+    if assigned(item) then Dispose(item);
+    inc(i);
   end;
 
+  CloseAction := cafree;
+  frmAddCommand := nil;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmAddCommand.FormShow(Sender: TObject);
+var
+  ini: TIniFile;
+  list: TStrings;
+  g, i: integer;
+  node: TTreeNode;
+  group, groupName, classname, name, command, params, icon, description: string;
+begin
   try
-    list.LoadFromFile(Filename);
-    lv.BeginUpdate;
-    lv.Items.Clear;
-    i := 0;
-    while i < list.Count do
-    begin
-      item := lv.Items.Add;
-      item.Caption := AnsiToUTF8(list.strings[i]);
-      if i + 1 < list.Count then item.SubItems.Add(AnsiToUTF8(list.strings[i + 1]));
-      inc(i, 2);
-    end;
-    lv.EndUpdate;
-  finally
-    list.free;
+    constraints.MinHeight := ClientHeight;
+    constraints.MinWidth := ClientWidth;
+
+    tree.BeginUpdate;
+    tree.Items.Clear;
+
+    ini := TIniFile.Create(Filename);
+    list := TStringList.Create;
+    ini.ReadSections(list);
+
+    g := 1;
+    repeat
+      group := 'group' + inttostr(g);
+      groupName := ini.ReadString(group, 'groupname', '');
+      if groupName <> '' then node := AddGroup(groupName);
+
+      i := 1;
+      repeat
+        classname := ini.ReadString(group, 'class' + inttostr(i), 'shortcut');
+        name := ini.ReadString(group, 'name' + inttostr(i), '');
+        command := ini.ReadString(group, 'command' + inttostr(i), '');
+        params := ini.ReadString(group, 'params' + inttostr(i), '');
+        icon := ini.ReadString(group, 'icon' + inttostr(i), '');
+        description := ini.ReadString(group, 'description' + inttostr(i), '');
+        if (name <> '') and (command <> '') then AddItem(node, classname, name, command, params, icon, description);
+        inc(i);
+      until (name = '') and (command = '');
+
+      node.Expand(true);
+      inc(g);
+    until (groupName = '');
+
+
+    ini.free;
+
+    tree.EndUpdate;
+  except
+    on e: Exception do raise Exception.Create('frmAddCommand.FormShow.ReadItems'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+function TfrmAddCommand.AddGroup(name: string): TTreeNode;
+begin
+  result := tree.Items.Add(nil, name);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmAddCommand.AddItem(node: TTreeNode; classname, name, command, params, icon, description: string);
+var
+  item: PItem;
+begin
+  if assigned(node) then
+  try
+    New(item);
+    tree.Items.AddChildObject(node, name, item);
+    strlcopy(item.classname, pchar(classname), 31);
+    strlcopy(item.name, pchar(name), 255);
+    strlcopy(item.command, pchar(command), 255);
+    strlcopy(item.params, pchar(params), 255);
+    strlcopy(item.icon, pchar(icon), 255);
+    strlcopy(item.description, pchar(description), 1023);
+  except
+    on e: Exception do raise Exception.Create('frmAddCommand.AddItem'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmAddCommand.treeSelectionChanged(Sender: TObject);
+var
+  item: PItem;
+begin
+  if assigned(tree.Selected) then
+    if assigned(tree.Selected.Parent) then
+    begin
+      item := tree.Selected.Data;
+      memo.Text := pchar(item.description);
+    end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmAddCommand.btnAddClick(Sender: TObject);
+var
+  item: PItem;
+  name, cmd, params, icon, strItem: string;
+begin
+  if assigned(tree.Selected) then
+    if assigned(tree.Selected.Parent) then
+    begin
+      item := tree.Selected.Data;
+      name := pchar(item.name);
+      cmd := pchar(item.command);
+      params := pchar(item.params);
+      icon := pchar(item.icon);
+
+      if strlcomp(pchar(item.classname), 'stack', 5) = 0 then
+        strItem := TStackItem.Make(0, name, icon, cmd)
+      else
+        strItem := TShortcutItem.Make(0, name, cmd, params, '', icon, 1);
+
+      frmterry.ItemMgr.InsertItem(strItem);
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.btnCloseClick(Sender: TObject);
 begin
   Close;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmAddCommand.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
-  lv.Items.Clear;
-  CloseAction := cafree;
-  frmAddCommand := nil;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmAddCommand.btnAddClick(Sender: TObject);
-var
-  cmd, params: string;
-begin
-  if lv.ItemIndex > -1 then
-  begin
-    cmd := UTF8ToAnsi(lv.Items[lv.ItemIndex].Caption);
-    split(cmd, '(', cmd, params);
-    params := cuttolast(params, ')');
-    frmterry.ItemMgr.InsertItem(TShortcutItem.Make(0, copy(cmd, 2, length(cmd)), cmd, params, '', '', 1));
-  end;
 end;
 //------------------------------------------------------------------------------
 end.

@@ -1,69 +1,56 @@
 object frmAddCommand: TfrmAddCommand
-  Left = 362
+  Left = 464
   Height = 554
-  Top = 180
-  Width = 877
+  Top = 228
+  Width = 617
   Caption = 'Add command'
   ClientHeight = 554
-  ClientWidth = 877
+  ClientWidth = 617
   FormStyle = fsStayOnTop
   OnClose = FormClose
+  OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.0.10.0'
-  object lv: TListView
-    Left = 10
-    Height = 494
-    Top = 10
-    Width = 857
-    Align = alClient
-    BorderSpacing.Around = 10
-    Columns = <    
-      item
-        Caption = 'Command'
-        Width = 220
-      end    
-      item
-        Caption = 'Descritpion'
-        Width = 600
-      end>
-    ColumnClick = False
-    LargeImages = images
+  object tree: TTreeView
+    Left = 15
+    Height = 524
+    Top = 15
+    Width = 372
+    Align = alLeft
+    BorderSpacing.Around = 15
+    DefaultItemHeight = 18
     ReadOnly = True
-    RowSelect = True
+    RightClickSelect = True
     ScrollBars = ssAutoBoth
-    SmallImages = images
     TabOrder = 0
-    ViewStyle = vsReport
+    OnSelectionChanged = treeSelectionChanged
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
-  object Panel1: TPanel
-    Left = 0
-    Height = 40
-    Top = 514
-    Width = 877
-    Align = alBottom
-    BevelOuter = bvNone
-    ClientHeight = 40
-    ClientWidth = 877
+  object btnAdd: TButton
+    Left = 400
+    Height = 29
+    Top = 470
+    Width = 200
+    Caption = 'Add command'
+    OnClick = btnAddClick
     TabOrder = 1
-    object btnAdd: TButton
-      Left = 10
-      Height = 29
-      Top = 1
-      Width = 200
-      Caption = 'Add command'
-      OnClick = btnAddClick
-      TabOrder = 0
-    end
-    object btnClose: TButton
-      Left = 215
-      Height = 29
-      Top = 1
-      Width = 200
-      Caption = 'Close window'
-      OnClick = btnCloseClick
-      TabOrder = 1
-    end
+  end
+  object btnClose: TButton
+    Left = 400
+    Height = 29
+    Top = 510
+    Width = 200
+    Caption = 'Close window'
+    OnClick = btnCloseClick
+    TabOrder = 2
+  end
+  object memo: TMemo
+    Left = 400
+    Height = 440
+    Top = 15
+    Width = 200
+    TabOrder = 3
   end
   object images: TImageList
     Height = 32
