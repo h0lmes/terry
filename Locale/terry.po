@@ -323,11 +323,6 @@ msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"
 msgid "Add icon"
 msgstr ""
 
-#: tfrmaddcommand.caption
-msgctxt "TFRMADDCOMMAND.CAPTION"
-msgid "Add command"
-msgstr ""
-
 #: tfrmcmd.btn_browse.caption
 msgctxt "TFRMCMD.BTN_BROWSE.CAPTION"
 msgid "..."
@@ -737,6 +732,10 @@ msgstr ""
 
 #: tfrmsets.chbreservescreenedge.caption
 msgid "Reserve screen edge"
+msgstr ""
+
+#: tfrmsets.chbstackopenanimation.caption
+msgid "Stack open/close animation"
 msgstr ""
 
 #: tfrmsets.chbtaskbar.caption

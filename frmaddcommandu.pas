@@ -66,6 +66,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.FormCreate(Sender: TObject);
 begin
+  Caption := XSpecificIcons;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -137,7 +138,7 @@ end;
 //------------------------------------------------------------------------------
 function TfrmAddCommand.AddGroup(name: string): TTreeNode;
 begin
-  result := tree.Items.Add(nil, name);
+  result := tree.Items.Add(nil, AnsiToUTF8(name));
 end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.AddItem(node: TTreeNode; classname, name, command, params, icon, description: string);
@@ -147,7 +148,7 @@ begin
   if assigned(node) then
   try
     New(item);
-    tree.Items.AddChildObject(node, name, item);
+    tree.Items.AddChildObject(node, AnsiToUTF8(name), item);
     strlcopy(item.classname, pchar(classname), 31);
     strlcopy(item.name, pchar(name), 255);
     strlcopy(item.command, pchar(command), 255);
@@ -171,7 +172,7 @@ begin
   if assigned(item) then
   begin
     btnAdd.Show;
-    memo.Text := pchar(item.description);
+    memo.Text := AnsiToUTF8(pchar(item.description));
   end else begin
     btnAdd.Hide;
     memo.Clear;

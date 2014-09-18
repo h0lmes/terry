@@ -42,6 +42,7 @@ TFRMSETS.CHB_ACTIVATE_RUNNING.CAPTION=Activate program if already running
 TFRMSETS.CHB_USE_SHELL_CONTEXT_MENUS.CAPTION=Show Windows Explorer context menus for programs
 TFRMSETS.LBLANIMATEICONS.CAPTION=Animate icons:
 TFRMSETS.LBLICONSPACING.CAPTION=Icon spacing
+TFRMSETS.CHBSTACKOPENANIMATION.CAPTION=Stack open/close animation
 TFRMSETS.TSSYSTEM.CAPTION=System
 TFRMSETS.LBLLAUNCHINTERVAL.CAPTION=Minimum time before the next run of the program (milliseconds):
 TFRMSETS.LBLLAUNCHINTERVALTIP.CAPTION=Prevents accidental run of multiple copies of program

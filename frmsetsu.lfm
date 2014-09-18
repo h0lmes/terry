@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsPosition
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -354,7 +354,7 @@ object frmsets: Tfrmsets
     end
     object tsStyle: TTabSheet
       Caption = 'Style'
-      ClientHeight = 487
+      ClientHeight = 492
       ClientWidth = 462
       object btnLayersEditor: TBitBtn
         Left = 415
@@ -429,33 +429,33 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       object lblZoomWideness: TLabel
         Left = 15
-        Height = 14
-        Top = 352
-        Width = 56
+        Height = 13
+        Top = 372
+        Width = 55
         Caption = 'Zoom width'
         ParentColor = False
       end
       object lblIconSize: TLabel
         Left = 15
-        Height = 14
-        Top = 187
-        Width = 43
+        Height = 13
+        Top = 207
+        Width = 42
         Caption = 'Icon size'
         ParentColor = False
       end
       object lblZoomedIconSize: TLabel
         Left = 15
-        Height = 14
-        Top = 242
-        Width = 66
+        Height = 13
+        Top = 262
+        Width = 65
         Caption = 'Icon size max'
         ParentColor = False
       end
       object lblActivateRunningProgramTip: TLabel
         Left = 15
-        Height = 14
+        Height = 13
         Top = 92
-        Width = 185
+        Width = 184
         Caption = '<Ctrl + Click> to run program anyway'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -468,7 +468,7 @@ object frmsets: Tfrmsets
       object cbZoomItems: TCheckBox
         Left = 15
         Height = 19
-        Top = 155
+        Top = 175
         Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnClick = cbZoomItemsClick
@@ -513,7 +513,7 @@ object frmsets: Tfrmsets
       object cboItemAnimationType: TComboBox
         Left = 40
         Height = 21
-        Top = 437
+        Top = 455
         Width = 400
         DropDownCount = 10
         ItemHeight = 13
@@ -523,16 +523,16 @@ object frmsets: Tfrmsets
       end
       object lblAnimateIcons: TLabel
         Left = 15
-        Height = 14
-        Top = 412
-        Width = 71
+        Height = 13
+        Top = 432
+        Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
       end
       object tbIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 207
+        Top = 227
         Width = 421
         Frequency = 8
         Max = 128
@@ -545,7 +545,7 @@ object frmsets: Tfrmsets
       object tbBigIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 262
+        Top = 282
         Width = 421
         Frequency = 16
         Max = 256
@@ -558,7 +558,7 @@ object frmsets: Tfrmsets
       object tbZoomWidth: TTrackBar
         Left = 30
         Height = 30
-        Top = 372
+        Top = 392
         Width = 106
         Max = 5
         Min = 2
@@ -569,16 +569,16 @@ object frmsets: Tfrmsets
       end
       object lblIconSpacing: TLabel
         Left = 15
-        Height = 14
-        Top = 297
-        Width = 61
+        Height = 13
+        Top = 317
+        Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
       end
       object tbIconSpacing: TTrackBar
         Left = 30
         Height = 30
-        Top = 317
+        Top = 337
         Width = 291
         Frequency = 2
         Max = 20
@@ -586,6 +586,15 @@ object frmsets: Tfrmsets
         Position = 0
         ShowSelRange = False
         TabOrder = 9
+      end
+      object chbStackOpenAnimation: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 145
+        Width = 150
+        Caption = 'Stack open/close animation'
+        OnChange = chbStackOpenAnimationChange
+        TabOrder = 10
       end
     end
     object tsSystem: TTabSheet

@@ -1034,6 +1034,7 @@ begin
     icp.ShowHint := sets.container.ShowHint;
     icp.Animation := sets.container.ItemAnimation;
     icp.LockDragging := sets.container.LockDragging;
+    icp.StackOpenAnimation := sets.container.StackOpenAnimation;
 
     if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
     else
@@ -1057,7 +1058,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // do not call directly !!!
-// item call this using DockH.DockDeleteItem from TCustomItem.Delete
+// item can call this using DockH.DockDeleteItem from TCustomItem.Delete
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
   i: integer;

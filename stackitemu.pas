@@ -47,6 +47,7 @@ type
     FMode: integer;
     FOffset: integer;
     FAnimationSpeed: integer;
+    FOpenAnimation: boolean;
     FDistort: integer;
     FDragOver: boolean;
     FSpecialFolder: string;
@@ -121,6 +122,7 @@ constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: _It
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
+  FOpenAnimation := AParams.StackOpenAnimation;
   UpdateItem(AData);
   UpdateIndicator;
 end;
@@ -139,6 +141,7 @@ begin
   FMode := 0;
   FOffset := 0;
   FAnimationSpeed := DEFAULT_ANIM_SPEED;
+  FOpenAnimation := true;
   FDistort := DEFAULT_DISTORT;
   FDragOver := false;
   FSpecialFolder := '';
@@ -314,6 +317,7 @@ begin
           if FIndicator <> nil then UpdateIndicator;
           CloseStack;
         end;
+      gpStackOpenAnimation: FOpenAnimation := param <> 0;
       tcThemeChanged:
         begin
           UpdateItemInternal; // in order to update default stack image //
@@ -773,6 +777,7 @@ begin
         AddSpecialFolder(csidl);
         if csidl = CSIDL_DESKTOPDIRECTORY then AddSpecialFolder(CSIDL_COMMON_DESKTOPDIRECTORY);
         if csidl = CSIDL_PERSONAL then AddSpecialFolder(CSIDL_COMMON_DOCUMENTS);
+        UpdatePreview;
       end else begin
         FSpecialFolder := '';
       end;
@@ -1062,7 +1067,7 @@ begin
   finally
     FUpdating := false;
   end;
-  UpdatePreview;
+  //UpdatePreview;
 
   if FItemCount = 0 then exit;
 
@@ -1090,6 +1095,7 @@ var
   step: extended;
   i: integer;
   wpi: uint;
+  showItems: boolean;
 begin
   step := mc.GetStep(FMode, FItemCount);
   if FAnimationSpeed > DEFAULT_ANIM_SPEED then step := step * (1 + (FAnimationSpeed - DEFAULT_ANIM_SPEED) * 0.5);
@@ -1103,24 +1109,31 @@ begin
   else
   if (FState = stsOpening) and (FStateProgress < 1) then
   begin
-      if FStateProgress = 0 then
-      begin
-        wpi := BeginDeferWindowPos(FItemCount);
-        for i := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[i].hWnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
-        EndDeferWindowPos(wpi);
-      end;
+      showItems := false;
+      if FStateProgress = 0 then showItems := true;
+
       FStateProgress += step;
+      if not FOpenAnimation then FStateProgress := 1;
       if FStateProgress >= 1 then
       begin
         FStateProgress := 1;
         FState := stsOpen;
       end;
       ShowStackState;
+
+      if showItems then
+      begin
+        wpi := BeginDeferWindowPos(FItemCount);
+        for i := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[i].hWnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
+        EndDeferWindowPos(wpi);
+      end;
   end
   else
   if (FState = stsClosing) and (FStateProgress > 0) then
   begin
       FStateProgress -= step;
+      if not FOpenAnimation then FStateProgress := 0;
+
       if FStateProgress <= 0 then
       begin
         FStateProgress := 0;
@@ -1130,12 +1143,20 @@ begin
         AllSubitemsCmd(icSelect, 0);
       end;
       ShowStackState;
+
+      if FState = stsClosed then
+      begin
+        wpi := BeginDeferWindowPos(FItemCount);
+        for i := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[i].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
+        EndDeferWindowPos(wpi);
+      end;
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.ShowStackState;
 var
   i: integer;
+  wpi: uint;
   wr: windows.TRect;
   xyaa: TStackItemData;
 begin
@@ -1170,12 +1191,6 @@ begin
   for i := 0 to FItemCount - 1 do
   begin
     if items[i].draw then items[i].item.Draw(items[i].x, items[i].y, items[i].s, items[i].alpha, items[i].angle, items[i].hint_align, items[i].hint_alpha, false);
-  end;
-
-  if FState = stsClosed then
-  begin
-    for i := 0 to FItemCount - 1 do
-      SetWindowPos(items[i].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
   end;
 end;
 //------------------------------------------------------------------------------

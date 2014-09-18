@@ -202,17 +202,19 @@ end;
 // converts filesystem path or GUID to PIDL //
 function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 var
-  desk: IShellFolder;
   path: array [0..MAX_PATH - 1] of TOleChar;
-  eaten, attribs: uint;
+  desk: IShellFolder;
+  tmp, attribs: cardinal;
 begin
   Result := nil;
-  if not Failed(SHGetDesktopFolder(desk)) then
+  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, pszFile, -1, @path, MAX_PATH);
+  if SHParseDisplayName(@path, nil, Result, 0, @tmp) <> S_OK then Result := nil;
+  {if not Failed(SHGetDesktopFolder(desk)) then
   begin
     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, pszFile, -1, @path, MAX_PATH);
     desk._AddRef;
-    if Failed(desk.ParseDisplayName(0, nil, @path, eaten, Result, attribs)) then Result := nil;
-  end;
+    if Failed(desk.ParseDisplayName(0, nil, @path, tmp, Result, attribs)) then Result := nil;
+  end;}
 end;
 //------------------------------------------------------------------------------
 // makes IShellFolder for pidl (that is FQ PIDL folder) //

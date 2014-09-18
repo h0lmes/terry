@@ -2,21 +2,20 @@ object frmAddCommand: TfrmAddCommand
   Left = 495
   Height = 474
   Top = 246
-  Width = 423
-  Caption = 'Add command'
+  Width = 471
   ClientHeight = 474
-  ClientWidth = 423
+  ClientWidth = 471
   FormStyle = fsStayOnTop
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.2.4.0'
   object tree: TTreeView
     Left = 15
     Height = 384
     Top = 15
-    Width = 393
+    Width = 441
     Align = alClient
     BorderSpacing.Left = 15
     BorderSpacing.Top = 15
@@ -32,10 +31,11 @@ object frmAddCommand: TfrmAddCommand
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object btnAdd: TButton
-    Left = 250
+    Left = 298
     Height = 25
     Top = 25
     Width = 130
+    Anchors = [akTop, akRight]
     Caption = 'Add icon'
     OnClick = btnAddClick
     TabOrder = 1
@@ -45,7 +45,7 @@ object frmAddCommand: TfrmAddCommand
     Left = 15
     Height = 50
     Top = 409
-    Width = 393
+    Width = 441
     Align = alBottom
     BorderSpacing.Left = 15
     BorderSpacing.Right = 15

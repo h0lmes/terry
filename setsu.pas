@@ -40,6 +40,7 @@ type
     HintEffects: boolean;
     LockDragging: boolean;
     UseShellContextMenus: boolean;
+    StackOpenAnimation: boolean;
 
     AutoHideOnFullScreenApp: boolean;
 
@@ -225,6 +226,7 @@ begin
   container.HintEffects := ini.ReadBool('base', 'HintEffects', false);
   container.AutoHideOnFullScreenApp := ini.ReadBool('base', 'AutoHideOnFullScreenApp', true);
   container.UseShellContextMenus := ini.ReadBool('base', 'UseShellContextMenus', true);
+  container.StackOpenAnimation := ini.ReadBool('base', 'StackOpenAnimation', true);
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
@@ -313,10 +315,11 @@ begin
   ini.WriteBool('base', 'ShowHint', container.ShowHint);
   ini.WriteBool('base', 'HintEffects', container.HintEffects);
   ini.WriteBool('base', 'UseShellContextMenus', container.UseShellContextMenus);
-  ini.WriteBool('base', 'Blur', container.Blur);
+  ini.WriteBool('base', 'StackOpenAnimation', container.StackOpenAnimation);
   // gfx //
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
   ini.WriteBool('gfx', 'Reflection', container.Reflection);
+  ini.WriteBool('gfx', 'Blur', container.Blur);
   // font //
   ini.WriteString('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
@@ -447,6 +450,7 @@ begin
   gpReflection: container.Reflection := boolean(value);
   gpAutoHideOnFullScreenApp: container.AutoHideOnFullScreenApp := boolean(value);
   gpUseShellContextMenus: container.UseShellContextMenus := boolean(value);
+  gpStackOpenAnimation: container.StackOpenAnimation := boolean(value);
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpBlur: container.Blur := boolean(value);
   end;
@@ -492,6 +496,7 @@ begin
   gpReflection: result := integer(container.Reflection);
   gpAutoHideOnFullScreenApp: result := integer(container.AutoHideOnFullScreenApp);
   gpUseShellContextMenus: result := integer(container.UseShellContextMenus);
+  gpStackOpenAnimation: result := integer(container.StackOpenAnimation);
   gpBaseAlpha: result := container.BaseAlpha;
   gpBlur: result := integer(container.Blur);
   end;
@@ -540,6 +545,7 @@ begin
   dst.HintEffects := src.HintEffects;
   dst.LockDragging := src.LockDragging;
   dst.UseShellContextMenus := src.UseShellContextMenus;
+  dst.StackOpenAnimation := src.StackOpenAnimation;
   dst.AutoHideOnFullScreenApp := src.AutoHideOnFullScreenApp;
   dst.Reflection := src.Reflection;
   dst.BaseAlpha := src.BaseAlpha;

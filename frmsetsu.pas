@@ -23,6 +23,7 @@ type
     chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
     chbTaskbar: TCheckBox;
+    chbStackOpenAnimation: TCheckBox;
     gbAutostart: TGroupBox;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
@@ -111,6 +112,7 @@ type
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
     procedure chbReserveScreenEdgeClick(Sender: TObject);
+    procedure chbStackOpenAnimationChange(Sender: TObject);
     procedure chbTaskbarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -368,6 +370,9 @@ begin
   chb_use_shell_context_menus.checked := sets.container.UseShellContextMenus;
   chb_activate_running.checked := sets.container.ActivateRunning;
   chb_show_running_indicator.checked := sets.container.ShowRunningIndicator;
+  chbStackOpenAnimation.OnChange := nil;
+  chbStackOpenAnimation.Checked := sets.container.StackOpenAnimation;
+  chbStackOpenAnimation.OnChange := chbStackOpenAnimationChange;
 
   //
   // system //
@@ -652,6 +657,11 @@ end;
 procedure Tfrmsets.cboItemAnimationTypeChange(Sender: TObject);
 begin
   frmterry.SetParam(gpItemAnimation, cboItemAnimationType.ItemIndex);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbStackOpenAnimationChange(Sender: TObject);
+begin
+  frmterry.SetParam(gpStackOpenAnimation, integer(chbStackOpenAnimation.Checked));
 end;
 //------------------------------------------------------------------------------
 //

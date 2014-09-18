@@ -347,11 +347,6 @@ msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"
 msgid "Add icon"
 msgstr "Добавить значок"
 
-#: tfrmaddcommand.caption
-msgctxt "tfrmaddcommand.caption"
-msgid "Add command"
-msgstr "Добавить команду"
-
 #: tfrmcmd.btn_browse.caption
 msgctxt "TFRMCMD.BTN_BROWSE.CAPTION"
 msgid "..."
@@ -769,6 +764,10 @@ msgstr "Включить эффекты для подсказок"
 #: tfrmsets.chbreservescreenedge.caption
 msgid "Reserve screen edge"
 msgstr "Резервировать край экрана"
+
+#: tfrmsets.chbstackopenanimation.caption
+msgid "Stack open/close animation"
+msgstr "Анимация открытия/закрытия стека"
 
 #: tfrmsets.chbtaskbar.caption
 msgid "Show icons for running tasks (taskbar)"

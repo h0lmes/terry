@@ -47,6 +47,7 @@ type
     gpActivateRunning,
     gpShowRunningIndicator,
     gpItemAnimation,
+    gpStackOpenAnimation,
     gpLockMouseEffect,
     gpReflection,
     gpReflectionSize,
@@ -93,6 +94,7 @@ type
     ShowHint: boolean;
     Animation: integer;
     LockDragging: boolean;
+    StackOpenAnimation: boolean;
   end;
 
   TBaseCmd = function(id: TGParam; param: integer): integer of object;
