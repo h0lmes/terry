@@ -107,7 +107,8 @@ type
     imagefile: string;
     color_data: integer;
     LastMouseUp: cardinal;
-    procedure UpdateItemInternal;
+    procedure UpdateItemI;
+    procedure UpdateItemMeasureCaption;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
     procedure Exec;
@@ -190,7 +191,7 @@ begin
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
       gpSite: if FIndicator <> nil then UpdateIndicator;
-      gpShowHint: UpdateItemInternal;
+      gpShowHint: UpdateItemI;
       tcThemeChanged: if FIndicator <> nil then UpdateIndicator;
 
       // commands //
@@ -234,21 +235,15 @@ begin
     on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data'#10#13 + e.message);
   end;
 
-  UpdateItemInternal;
+  UpdateItemI;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateItemInternal;
+procedure TShortcutSubitem.UpdateItemI;
 var
   sfi: TSHFileInfoA;
-  path: array [0..MAX_PATH] of char;
-  temp: string;
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
-  // caption extent measurement vars //
-  hgdip, hfont, hfontfamily: Pointer;
-  rect: TRectF;
-  dc: HDC;
 begin
   if FFreed or FUpdating then exit;
 
@@ -264,33 +259,18 @@ begin
         PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
         PIDL_Free(pidFolder);
         command := strpas(pszName);
-        if FileExists(command) or DirectoryExists(command) then
-          command := ZipPath(command)
-        else
-          FCaption := '::::';
+        if FileExists(command) or DirectoryExists(command) then command := ZipPath(command)
+        else FCaption := '::::';  // assuming it is a PIDL
       end;
 
       // create PIDL from GUID //
       PIDL_Free(apidl);
       if IsGUID(command) then apidl := PIDL_GetFromPath(pchar(command));
       is_pidl := assigned(apidl);
-
-      // parse PIDL //
       if is_pidl and (FCaption = '::::') then
       begin
         SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
         FCaption := sfi.szDisplayName;
-        // try converting PIDL to file system path //
-        if SHGetPathFromIDList(apidl, pchar(@path)) then
-        begin
-          temp := strpas(pchar(@path));
-          if FileExists(temp) or DirectoryExists(temp) then
-          begin
-            command := ZipPath(temp);
-            PIDL_Free(apidl);
-            is_pidl := false;
-          end;
-        end;
       end;
 
       // load images //
@@ -305,45 +285,53 @@ begin
       end;
 
       // measure caption and adjust border size //
-      FBorder := 8;
-      FCaptionWidth := 0;
-      FCaptionHeight := 0;
-      if FShowHint and (length(FCaption) > 0) then
-      begin
-        CopyFontData(sets.container.StackFont, FFont);
-        dc := CreateCompatibleDC(0);
-        if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
-        GdipCreateFromHDC(dc, hgdip);
-        try
-          GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-        except
-          on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
-        end;
-        GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
-        rect.x := 0;
-        rect.y := 0;
-        rect.Width := 0;
-        rect.Height := 0;
-        try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
-        except
-          on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
-        end;
-        GdipDeleteGraphics(hgdip);
-        DeleteDC(dc);
-        FCaptionWidth := min(ceil(rect.Width), 150);
-        FCaptionHeight := ceil(rect.Height);
-        FBorder := FCaptionWidth + FCaptionHeight + 8;
-      end;
+      UpdateItemMeasureCaption;
     finally
       FUpdating:= false;
     end;
+
+    Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+    sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
     on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal'#10#13 + e.message);
   end;
-
-  Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
-
-  sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0);
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.UpdateItemMeasureCaption;
+var
+  hgdip, hfont, hfontfamily: Pointer;
+  rect: TRectF;
+  dc: HDC;
+begin
+  FBorder := 8;
+  FCaptionWidth := 0;
+  FCaptionHeight := 0;
+  if FShowHint and (length(FCaption) > 0) then
+  begin
+    CopyFontData(sets.container.StackFont, FFont);
+    dc := CreateCompatibleDC(0);
+    if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
+    GdipCreateFromHDC(dc, hgdip);
+    try
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
+    except
+      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
+    end;
+    GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+    rect.x := 0;
+    rect.y := 0;
+    rect.Width := 0;
+    rect.Height := 0;
+    try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
+    except
+      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
+    end;
+    GdipDeleteGraphics(hgdip);
+    DeleteDC(dc);
+    FCaptionWidth := min(ceil(rect.Width), 150);
+    FCaptionHeight := ceil(rect.Height);
+    FBorder := FCaptionWidth + FCaptionHeight + 8;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.UpdateIndicator;
@@ -745,7 +733,7 @@ begin
     begin
       imagefile := toolu.ZipPath(filename);
       color_data := DEFAULT_COLOR_DATA;
-      UpdateItemInternal;
+      UpdateItemI;
     end
     else
     begin

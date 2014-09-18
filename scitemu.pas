@@ -15,6 +15,8 @@ type
     command: string;
     params: string;
     dir: string;
+    FImageFile: string;
+    FImageFile2: string;
     showcmd: integer;
     hide: boolean;
     FUseShellContextMenus: boolean;
@@ -24,14 +26,14 @@ type
     FIndicatorH: integer;
     is_pidl: boolean;
     apidl: PItemIDList;
-    imagefile: string;
     color_data: integer;
     LastMouseUp: cardinal;
     FBitBucket: boolean;
     FBitBucketFiles: integer;
-    procedure UpdateItemInternal;
-    procedure UpdateBitBucket;
-    procedure UpdateBitBucket2;
+    procedure UpdateItemI;
+    procedure LoadImageI;
+    procedure BitBucketCheck;
+    procedure BitBucketUpdate;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer);
     procedure Exec;
@@ -73,7 +75,7 @@ begin
   command:= '';
   params:= '';
   dir:= '';
-  imagefile:= '';
+  FImageFile:= '';
   color_data:= DEFAULT_COLOR_DATA;
   showcmd:= 0;
   hide:= false;
@@ -113,7 +115,7 @@ begin
       command := ini.ReadString(IniSection, 'command', '');
       params := ini.ReadString(IniSection, 'params', '');
       dir := ini.ReadString(IniSection, 'dir', '');
-      imagefile := ini.ReadString(IniSection, 'image', '');
+      FImageFile := ini.ReadString(IniSection, 'image', '');
       hide := boolean(ini.ReadInteger(IniSection, 'hide', 0));
       color_data := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
       showcmd := ini.ReadInteger(IniSection, 'showcmd', sw_shownormal);
@@ -125,7 +127,7 @@ begin
       command := FetchValue(AData, 'command="', '";');
       params := FetchValue(AData, 'params="', '";');
       dir := FetchValue(AData, 'dir="', '";');
-      imagefile := FetchValue(AData, 'image="', '";');
+      FImageFile := FetchValue(AData, 'image="', '";');
       hide := false;
       color_data := DEFAULT_COLOR_DATA;
       showcmd := 1;
@@ -140,14 +142,12 @@ begin
     on e: Exception do raise Exception.Create('ShortcutItem.UpdateItem'#10#13 + e.message);
   end;
 
-  UpdateItemInternal;
+  UpdateItemI;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateItemInternal;
+procedure TShortcutItem.UpdateItemI;
 var
   sfi: TSHFileInfoA;
-  path: array [0..MAX_PATH] of char;
-  temp: string;
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
@@ -166,47 +166,25 @@ begin
         PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
         PIDL_Free(pidFolder);
         command := strpas(pszName);
-        if FileExists(command) or DirectoryExists(command) then
-          command := ZipPath(command)
-        else
-          FCaption := '::::';
+        if FileExists(command) or DirectoryExists(command) then command := ZipPath(command)
+        else FCaption := '::::'; // assuming it is a PIDL
       end;
 
       // create PIDL from GUID //
       PIDL_Free(apidl);
       if IsGUID(command) then apidl := PIDL_GetFromPath(pchar(command));
       is_pidl := assigned(apidl);
-
-      // parse PIDL //
       if is_pidl and (FCaption = '::::') then
       begin
         SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
         FCaption := sfi.szDisplayName;
-        // try converting PIDL to file system path //
-        if SHGetPathFromIDList(apidl, pchar(@path)) then
-        begin
-          temp := strpas(pchar(@path));
-          if FileExists(temp) or DirectoryExists(temp) then
-          begin
-            command := ZipPath(temp);
-            PIDL_Free(apidl);
-            is_pidl := false;
-          end;
-        end;
       end;
 
       // check if it is BITBUCKET //
-      UpdateBitBucket;
+      BitBucketCheck;
 
-      // load image //
-      try if FImage <> nil then GdipDisposeImage(FImage);
-      except end;
-      FImage := nil;
-      if imagefile <> '' then LoadImage(imagefile, FBigItemSize, false, true, FImage, FIW, FIH)
-      else begin
-        if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
-        else LoadImage(command, FBigItemSize, false, true, FImage, FIW, FIH);
-      end;
+      // load appropriate image //
+      LoadImageI;
     finally
       FUpdating:= false;
     end;
@@ -217,13 +195,34 @@ begin
   Draw(Fx, Fy, FSize, true, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateBitBucket;
+procedure TShortcutItem.LoadImageI;
+begin
+  try if FImage <> nil then GdipDisposeImage(FImage);
+  except end;
+  FImage := nil;
+
+  if FImageFile <> '' then // if custom image set
+  begin
+    if (FImageFile2 <> '') and (FBitBucketFiles > 0) then // if bitbucket is full and appropriate image exists
+       LoadImage(FImageFile2, FBigItemSize, false, true, FImage, FIW, FIH)
+    else // if no image for full bitbucket
+      LoadImage(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
+  end
+  else // if no custom image
+  begin
+    if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
+    else LoadImage(command, FBigItemSize, false, true, FImage, FIW, FIH);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.BitBucketCheck;
 var
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
   pidFolder, pidChild: PItemIDList;
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
+  ext: string;
 begin
   FBitBucket := false;
   if is_pidl then
@@ -245,11 +244,25 @@ begin
     PIDL_Free(pidFolder);
   end;
 
-  if FBitBucket then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil)
-  else KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
+  FImageFile2 := '';
+  if FBitBucket then // if this shortcut is bitbucket
+  begin
+    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil); // set timer for update
+
+    if FImageFile <> '' then // search an image for full bitbucket
+    begin
+      ext := ExtractFileExt(FImageFile);
+      FImageFile2 := ChangeFileExt(FImageFile, ' full' + ext);
+      if not FileExists(FImageFile2) then FImageFile2 := ChangeFileExt(FImageFile, '_full' + ext);
+      if not FileExists(FImageFile2) then FImageFile2 := ChangeFileExt(FImageFile, '-full' + ext);
+      if not FileExists(FImageFile2) then FImageFile2 := '';
+    end;
+  end
+  else // if it is not
+    KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateBitBucket2;
+procedure TShortcutItem.BitBucketUpdate;
 var
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
@@ -257,6 +270,7 @@ var
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
   qty: integer;
+  temp: string;
 begin
   OleCheck(SHGetDesktopFolder(psfDesktop));
   OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
@@ -270,10 +284,11 @@ begin
   end;
   PIDL_Free(pidFolder);
 
+  // if quantity changed
   if FBitBucketFiles <> qty then
   begin
     FBitBucketFiles := qty;
-    LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH);
+    LoadImageI;
     Draw(Fx, Fy, FSize, true, 0, FShowItem);
   end;
 end;
@@ -309,7 +324,7 @@ begin
           if FBigItemSize <= 128 then temp:= 128
           else if FBigItemSize <= 160 then temp:= 160
           else if FBigItemSize <= 192 then temp:= 192;
-          if temp <> FIW then UpdateItemInternal;
+          if temp <> FIW then UpdateItemI;
         end;
       gpShowRunningIndicator:
         begin
@@ -574,7 +589,7 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, command, params, dir, imagefile, showcmd, color_data, hide);
+  result:= Make(FHWnd, FCaption, command, params, dir, FImageFile, showcmd, color_data, hide);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -637,7 +652,7 @@ begin
 
       if (Msg = WM_TIMER) and (wParam = ID_TIMER_UPDATE_SHORTCUT) then
       begin
-        if FBitBucket then UpdateBitBucket2;
+        if FBitBucket then BitBucketUpdate;
       end;
   end;
 end;
@@ -734,9 +749,9 @@ begin
     ext := AnsiLowerCase(ExtractFileExt(filename));
     if (ext = '.png') or (ext = '.ico') then
     begin
-      imagefile := toolu.ZipPath(filename);
+      FImageFile := toolu.ZipPath(filename);
       color_data := DEFAULT_COLOR_DATA;
-      UpdateItemInternal;
+      UpdateItemI;
     end
     else
     begin
@@ -755,7 +770,7 @@ begin
   if command <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(command), szIni);
   if params <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(params), szIni);
   if dir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(dir), szIni);
-  if imagefile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(imagefile), szIni);
+  if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
   if showcmd <> sw_shownormal then WritePrivateProfileString(szIniGroup, 'showcmd', pchar(inttostr(showcmd)), szIni);
   if color_data <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(color_data)), szIni);
   if hide then WritePrivateProfileString(szIniGroup, 'hide', '1', szIni);
