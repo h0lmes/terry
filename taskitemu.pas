@@ -13,7 +13,6 @@ type
     procedure UpdateItemInternal;
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure Configure;
   public
     property AppHWnd: THandle read FAppHWnd;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
@@ -22,13 +21,9 @@ type
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
-    procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
-    function CanOpenFolder: boolean; override;
-    procedure OpenFolder; override;
-    function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
   end;
 
@@ -124,118 +119,85 @@ var
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
 begin
-  if FFreed or FUpdating or (FFloating and not AForce) then exit;
-
-  // set position //
   try
-    ItemRect := GetRectFromSize(ASize);
-    Fx := Ax;
-    Fy := Ay;
-    FShowItem := AShowItem;
-    if need_dock then
-    begin
-      Ax := FxDocking;
-      Ay := FyDocking;
-    end;
-    xReal := Ax - ItemRect.Left;
-    yReal := Ay - ItemRect.Top;
+    if FFreed or FUpdating or (FFloating and not AForce) then exit;
 
-    if (FSize = ASize) and not AForce then
-    begin
-
-      if wpi > 0 then
+    // set position //
+    try
+      ItemRect := GetRectFromSize(ASize);
+      Fx := Ax;
+      Fy := Ay;
+      FShowItem := AShowItem;
+      if need_dock then
       begin
-        DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
+        Ax := FxDocking;
+        Ay := FyDocking;
+      end;
+      xReal := Ax - ItemRect.Left;
+      yReal := Ay - ItemRect.Top;
+
+      if (FSize = ASize) and not AForce then
+      begin
+
+        if wpi > 0 then
+        begin
+          DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+          UpdateHint(xReal, yReal);
+        end else
+          SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        exit;
+
       end else
-        SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-      exit;
+        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
-    end else
-      if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
+      FSize := ASize;
+      if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
 
-    FSize := ASize;
-    if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
-
-    UpdateHint(xReal, yReal);
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.SetPosition(' + caption + ')'#10#13 + e.message);
-  end;
-
-  // init drawing //
-  try
-    bmp.topleft.x := xReal;
-    bmp.topleft.y := yReal;
-    bmp.width := FSize + ItemRect.Left * 2;
-    bmp.height := FSize + ItemRect.Top * 2;
-    if not CreateBitmap(bmp) then raise Exception.Create('TaskItem.Draw CreateBitmap error');
-    if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
-    if not assigned(dst) then raise Exception.Create('TaskItem.Draw CreateGraphics error');
-    GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-    GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
-    GdipDeleteBrush(brush);
-
-    GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-    GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-    GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-    xBitmap := 0;
-    yBitmap := 0;
-    inc(xBitmap, ItemRect.Left);
-    inc(yBitmap, ItemRect.Top);
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.InitDraw'#10#13 + e.message);
-  end;
-
-  // color and alpha-blending matrices //
-  hattr := nil;
-  try
-    tmp_color_data := DEFAULT_COLOR_DATA;
-    if FSelected then
-    begin
-      brightness := max(byte(tmp_color_data shr 16) - $10, 0);
-      tmp_color_data := cardinal(tmp_color_data and $ff00ffff) + cardinal(brightness shl 16);
-      CreateColorMatrix(tmp_color_data, l_matrix);
-      GdipCreateImageAttributes(hattr);
-      GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @l_matrix, nil, ColorMatrixFlagsDefault);
+      UpdateHint(xReal, yReal);
+    except
+      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.Matrices'#10#13 + e.message);
-  end;
 
-  // draw icon //
-  try
-    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage,
-      xBitmap, yBitmap, FSize, FSize,
-      0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.Icons'#10#13 + e.message);
-  end;
+    // init drawing //
+    try
+      bmp.topleft.x := xReal;
+      bmp.topleft.y := yReal;
+      bmp.width := FSize + ItemRect.Left * 2;
+      bmp.height := FSize + ItemRect.Top * 2;
+      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+      if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
+      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
+      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
+      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
+      GdipDeleteBrush(brush);
 
-  // reflection //
-  try
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
+      xBitmap := 0;
+      yBitmap := 0;
+      inc(xBitmap, ItemRect.Left);
+      inc(yBitmap, ItemRect.Top);
+    except
+      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
+    end;
+
+    if assigned(FImage) then
+      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
+
     if FReflection and not FFloating and assigned(FImage) then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.Reflection'#10#13 + e.message);
-  end;
-
-  // update window content //
-  try
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.UpdateWindow'#10#13 + e.message);
-  end;
 
-  // cleanup //
-  try
     if FSelected then GdipDisposeImageAttributes(hattr);
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
+
   except
-    on e: Exception do raise Exception.Create('TaskItem.Draw.Cleanup'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -257,11 +219,6 @@ begin
   end;
 
   UpdateItemInternal; // update item icon and text just in case //
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.MouseHeld(button: TMouseButton);
-begin
-  inherited;
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
@@ -301,10 +258,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.Configure;
-begin
-end;
-//------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
 begin
   if FFreed then exit;
@@ -319,20 +272,6 @@ end;
 procedure TTaskItem.Exec;
 begin
   ProcessHelper.ActivateWindow(FAppHWnd);
-end;
-//------------------------------------------------------------------------------
-function TTaskItem.CanOpenFolder: boolean;
-begin
-  result := false;
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.OpenFolder;
-begin
-end;
-//------------------------------------------------------------------------------
-function TTaskItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
-begin
-  result := false;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);

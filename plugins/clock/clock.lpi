@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -45,9 +45,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10"/>
-        <CursorPos X="24" Y="20"/>
-        <FoldState Value=" T3i0032 pjdk509316p"/>
+        <TopLine Value="249"/>
+        <CursorPos X="3" Y="280"/>
+        <FoldState Value=" T3i0032 pjdk509126x"/>
         <UsageCount Value="54"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -130,128 +130,128 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="clock.lpr"/>
-        <Caret Line="38" Column="1" TopLine="4"/>
+        <Caret Line="332" Column="3" TopLine="319"/>
       </Position1>
       <Position2>
         <Filename Value="clock.lpr"/>
-        <Caret Line="332" Column="3" TopLine="319"/>
+        <Caret Line="8" Column="6" TopLine="1"/>
       </Position2>
       <Position3>
         <Filename Value="clock.lpr"/>
-        <Caret Line="8" Column="6" TopLine="1"/>
+        <Caret Line="22" Column="1" TopLine="5"/>
       </Position3>
       <Position4>
         <Filename Value="clock.lpr"/>
-        <Caret Line="22" Column="1" TopLine="5"/>
+        <Caret Line="209" Column="43" TopLine="196"/>
       </Position4>
       <Position5>
         <Filename Value="clock.lpr"/>
-        <Caret Line="209" Column="43" TopLine="196"/>
+        <Caret Line="277" Column="35" TopLine="234"/>
       </Position5>
       <Position6>
         <Filename Value="clock.lpr"/>
-        <Caret Line="277" Column="35" TopLine="234"/>
+        <Caret Line="204" Column="1" TopLine="196"/>
       </Position6>
       <Position7>
         <Filename Value="clock.lpr"/>
-        <Caret Line="204" Column="1" TopLine="196"/>
+        <Caret Line="7" Column="10" TopLine="1"/>
       </Position7>
       <Position8>
         <Filename Value="clock.lpr"/>
-        <Caret Line="7" Column="10" TopLine="1"/>
+        <Caret Line="6" Column="23" TopLine="1"/>
       </Position8>
       <Position9>
         <Filename Value="clock.lpr"/>
-        <Caret Line="6" Column="23" TopLine="1"/>
+        <Caret Line="250" Column="67" TopLine="1"/>
       </Position9>
       <Position10>
         <Filename Value="clock.lpr"/>
-        <Caret Line="250" Column="67" TopLine="1"/>
+        <Caret Line="262" Column="13" TopLine="230"/>
       </Position10>
       <Position11>
         <Filename Value="clock.lpr"/>
-        <Caret Line="262" Column="13" TopLine="230"/>
+        <Caret Line="343" Column="12" TopLine="338"/>
       </Position11>
       <Position12>
         <Filename Value="clock.lpr"/>
-        <Caret Line="343" Column="12" TopLine="338"/>
+        <Caret Line="223" Column="12" TopLine="194"/>
       </Position12>
       <Position13>
         <Filename Value="clock.lpr"/>
-        <Caret Line="223" Column="12" TopLine="194"/>
+        <Caret Line="124" Column="15" TopLine="102"/>
       </Position13>
       <Position14>
         <Filename Value="clock.lpr"/>
-        <Caret Line="124" Column="15" TopLine="102"/>
+        <Caret Line="211" Column="1" TopLine="163"/>
       </Position14>
       <Position15>
         <Filename Value="clock.lpr"/>
-        <Caret Line="211" Column="1" TopLine="163"/>
+        <Caret Line="194" Column="14" TopLine="164"/>
       </Position15>
       <Position16>
         <Filename Value="clock.lpr"/>
-        <Caret Line="194" Column="14" TopLine="164"/>
+        <Caret Line="397" Column="43" TopLine="352"/>
       </Position16>
       <Position17>
         <Filename Value="clock.lpr"/>
-        <Caret Line="397" Column="43" TopLine="352"/>
+        <Caret Line="272" Column="1" TopLine="262"/>
       </Position17>
       <Position18>
         <Filename Value="clock.lpr"/>
-        <Caret Line="272" Column="1" TopLine="262"/>
+        <Caret Line="305" Column="1" TopLine="289"/>
       </Position18>
       <Position19>
         <Filename Value="clock.lpr"/>
-        <Caret Line="305" Column="1" TopLine="289"/>
+        <Caret Line="130" Column="46" TopLine="121"/>
       </Position19>
       <Position20>
         <Filename Value="clock.lpr"/>
-        <Caret Line="130" Column="46" TopLine="121"/>
+        <Caret Line="200" Column="1" TopLine="199"/>
       </Position20>
       <Position21>
         <Filename Value="clock.lpr"/>
-        <Caret Line="200" Column="1" TopLine="199"/>
+        <Caret Line="306" Column="15" TopLine="293"/>
       </Position21>
       <Position22>
         <Filename Value="clock.lpr"/>
-        <Caret Line="306" Column="15" TopLine="293"/>
+        <Caret Line="316" Column="1" TopLine="292"/>
       </Position22>
       <Position23>
         <Filename Value="clock.lpr"/>
-        <Caret Line="316" Column="1" TopLine="292"/>
+        <Caret Line="307" Column="35" TopLine="289"/>
       </Position23>
       <Position24>
         <Filename Value="clock.lpr"/>
-        <Caret Line="307" Column="35" TopLine="289"/>
+        <Caret Line="340" Column="77" TopLine="292"/>
       </Position24>
       <Position25>
         <Filename Value="clock.lpr"/>
-        <Caret Line="340" Column="77" TopLine="292"/>
+        <Caret Line="21" Column="1" TopLine="13"/>
       </Position25>
       <Position26>
         <Filename Value="clock.lpr"/>
-        <Caret Line="21" Column="1" TopLine="13"/>
+        <Caret Line="54" Column="1" TopLine="37"/>
       </Position26>
       <Position27>
         <Filename Value="clock.lpr"/>
-        <Caret Line="54" Column="1" TopLine="37"/>
+        <Caret Line="382" Column="1" TopLine="44"/>
       </Position27>
       <Position28>
         <Filename Value="clock.lpr"/>
-        <Caret Line="382" Column="1" TopLine="44"/>
+        <Caret Line="9" Column="35" TopLine="1"/>
       </Position28>
       <Position29>
         <Filename Value="clock.lpr"/>
-        <Caret Line="9" Column="35" TopLine="1"/>
+        <Caret Line="425" Column="21" TopLine="396"/>
       </Position29>
       <Position30>
         <Filename Value="clock.lpr"/>
-        <Caret Line="425" Column="21" TopLine="396"/>
+        <Caret Line="20" Column="24" TopLine="262"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <PathDelim Value="\"/>
     <SearchPaths>
       <IncludeFiles Value="..\..;$(ProjOutDir)"/>
@@ -270,6 +270,7 @@
     </CodeGeneration>
     <Linking>
       <Debugging>
+        <GenerateDebugInfo Value="False"/>
         <UseLineInfoUnit Value="False"/>
       </Debugging>
       <Options>
@@ -296,4 +297,5 @@
       </Item3>
     </Exceptions>
   </Debugging>
+  <EditorMacros Count="0"/>
 </CONFIG>

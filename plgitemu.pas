@@ -15,6 +15,8 @@ type TPluginItem = class(TCustomItem)
     FIH2: cardinal;
     hwnd2: uint; // to speed up gdiplus drawing //
     PluginFile: string;
+    FIniFile: string;
+    FIniSection: string;
     // plugin lib vars
     hLib: uint;
     OnCreate: _OnCreate;
@@ -28,6 +30,7 @@ type TPluginItem = class(TCustomItem)
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CreatePlugin(AData: string);
   public
+    procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
     function GetFilename: string;
@@ -43,8 +46,6 @@ type TPluginItem = class(TCustomItem)
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
-    function CanOpenFolder: boolean; override;
-    procedure OpenFolder; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
   end;
 
@@ -61,14 +62,13 @@ begin
   FImage := nil;
   AutoDeleteOverlay := true;
   FImage2 := nil;
+  lpData := nil;
   CreatePlugin(AData);
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.CreatePlugin(AData: string);
 var
-  IniFile, IniSection: string;
   ini: TIniFile;
-  szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
 begin
   FFreed := false;
   try
@@ -76,12 +76,12 @@ begin
     hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, WINITEM_CLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
 
     // get library path //
-    IniFile := FetchValue(AData, 'inifile="', '";');
-    IniSection := FetchValue(AData, 'inisection="', '";');
-    if (length(IniFile) > 0) and (length(IniSection) > 0) then
+    FIniFile := FetchValue(AData, 'inifile="', '";');
+    FIniSection := FetchValue(AData, 'inisection="', '";');
+    if (length(FIniFile) > 0) and (length(FIniSection) > 0) then
     begin
-      ini := TIniFile.Create(IniFile);
-      PluginFile := toolu.UnzipPath(ini.ReadString(IniSection, 'file', ''));
+      ini := TIniFile.Create(FIniFile);
+      PluginFile := toolu.UnzipPath(ini.ReadString(FIniSection, 'file', ''));
       ini.free;
     end else begin
       PluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
@@ -99,22 +99,33 @@ begin
     @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
     @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
     if not assigned(OnCreate) then raise Exception.Create('OnCreate is NULL');
-
-
-    // call Create //
-    lpData := nil;
-    if (IniFile <> '') and (IniSection <> '') then
-    begin
-      strlcopy(szIni, @IniFile[1], length(IniFile));
-      strlcopy(szIniGroup, @IniSection[1], length(IniSection));
-      lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
-    end
-    else lpData := OnCreate(FHWnd, hLib, nil, nil);
-
-    FFreed := not assigned(lpData);
-    if FFreed then raise Exception.Create('OnCreate returned NULL');
   except
     on e: Exception do raise Exception.Create('PluginItem.CreatePlugin'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TPluginItem.CallCreate;
+var
+  szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
+begin
+  lpData := nil;
+  if (FIniFile <> '') and (FIniSection <> '') then
+  begin
+    try
+      strlcopy(szIni, pchar(FIniFile), length(FIniFile));
+      strlcopy(szIniGroup, pchar(FIniSection), length(FIniSection));
+      lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
+    except
+      on e: Exception do raise Exception.Create('PluginItem.CallCreate'#10#13 + e.message);
+    end;
+  end
+  else
+  begin
+    try
+      lpData := OnCreate(FHWnd, hLib, nil, nil);
+    except
+      on e: Exception do raise Exception.Create('PluginItem.CallCreate_NoIni'#10#13 + e.message);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -123,7 +134,7 @@ begin
   try
     if assigned(OnDestroy) then OnDestroy(lpData, FHWnd);
   except
-    on e: Exception do raise Exception.Create('PluginItem.OnDestroy'#10#13 + e.message);
+    //on e: Exception do raise Exception.Create('PluginItem.OnDestroy'#10#13 + e.message);
   end;
   try if AutoDeleteImage then GdipDisposeImage(FImage);
   except end;
@@ -178,177 +189,158 @@ var
   ItemRect: windows.TRect;
   animation_offset_x, animation_offset_y, animation_size: integer;
 begin
-  if FFreed or not FEnabled or (FFloating and not AForce) then exit;
-  animation_offset_x := 0;
-  animation_offset_y := 0;
-  animation_size := 0;
-
-  // set position //
-
   try
-    ItemRect := GetRectFromSize(ASize);
-    Fx := Ax;
-    Fy := Ay;
-    FShowItem := AShowItem;
-    if need_dock then
-    begin
-      Ax := FxDocking;
-      Ay := FyDocking;
-    end;
-    xReal := Ax - ItemRect.Left;
-    yReal := Ay - ItemRect.Top;
+    if FFreed or not FEnabled or (FFloating and not AForce) then exit;
+    animation_offset_x := 0;
+    animation_offset_y := 0;
+    animation_size := 0;
 
-    // bounce animation //
-    if FAnimationProgress > 0 then
-      if (FAnimationType >= 2) and (FAnimationType <= 4) then
+    // set position //
+    try
+      ItemRect := GetRectFromSize(ASize);
+      Fx := Ax;
+      Fy := Ay;
+      FShowItem := AShowItem;
+      if need_dock then
       begin
-        animation_offset_x := FAnimationProgress mod 30;
-        if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
-        animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
-        if (FSite = 0) or (FSite = 2) then dec(yReal, animation_offset_x);
+        Ax := FxDocking;
+        Ay := FyDocking;
       end;
+      xReal := Ax - ItemRect.Left;
+      yReal := Ay - ItemRect.Top;
 
-    if (FSize = ASize) and not AForce then
-    begin
+      // bounce animation //
+      if FAnimationProgress > 0 then
+        if (FAnimationType >= 2) and (FAnimationType <= 4) then
+        begin
+          animation_offset_x := FAnimationProgress mod 30;
+          if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
+          animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
+          if (FSite = 0) or (FSite = 2) then dec(yReal, animation_offset_x);
+        end;
 
-      if wpi > 0 then
+      if (FSize = ASize) and not AForce then
       begin
-        DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
+
+        if wpi > 0 then
+        begin
+          DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+          UpdateHint(xReal, yReal);
+        end else
+          SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        exit;
+
       end else
-        SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-      exit;
+        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
-    end else
-      if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
+      FSize:= ASize;
+      if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
 
-    FSize:= ASize;
-    if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
-
-    UpdateHint(xReal, yReal);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.SetPosition'#10#13 + e.message);
-  end;
-
-
-  try
-    bmp.topleft.x := xReal;
-    bmp.topleft.y := yReal;
-    bmp.width := FSize + ItemRect.Left * 2;
-    bmp.height := FSize + ItemRect.Top * 2;
-    if not CreateBitmap(bmp) then raise Exception.Create('PluginItem.Draw CreateBitmap error');
-    if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
-    if not assigned(dst) then raise Exception.Create('PluginItem.Draw CreateGraphics error');
-    GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-    GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
-    GdipDeleteBrush(brush);
-
-    GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-    GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-    GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-    xBitmap := 0;
-    yBitmap := 0;
-
-    if FAnimationProgress > 0 then
-    begin
-      // rotate //
-      if FAnimationType = 1 then
-      begin
-        dec(xBitmap, ItemRect.Left);
-        dec(yBitmap, ItemRect.Top);
-        dec(xBitmap, FSize div 2);
-        dec(yBitmap, FSize div 2);
-        GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, FAnimationProgress * 6, MatrixOrderPrepend);
-      end;
-      // bounce //
-      if (FAnimationType >= 2) and (FAnimationType <= 4) then
-      begin
-        animation_offset_x := FAnimationProgress mod 30;
-        if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
-        animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
-        if FSite = 1 then inc(yBitmap, animation_offset_x)
-        else if FSite = 3 then dec(yBitmap, animation_offset_x);
-      end;
-      // quake //
-      if FAnimationType = 5 then
-      begin
-        if FAnimationProgress mod 2 = 1 then exit;
-        animation_offset_x := random(FItemSize div 3) - FItemSize div 6;
-        animation_offset_y := random(FItemSize div 3) - FItemSize div 6;
-        inc(xBitmap, animation_offset_x);
-        inc(yBitmap, animation_offset_y);
-      end;
-      // swing //
-      if FAnimationType = 6 then
-      begin
-        dec(xBitmap, ItemRect.Left);
-        dec(yBitmap, ItemRect.Top);
-        dec(xBitmap, FSize div 2);
-        dec(yBitmap, FSize div 2);
-        GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, sin(FAnimationProgress * 6) * 30, MatrixOrderPrepend);
-      end;
-      // vibrate //
-      if FAnimationType = 7 then
-      begin
-        animation_size := round(sin(FAnimationProgress * 3) * 6);
-        dec(xBitmap, animation_size div 2);
-        dec(yBitmap, animation_size div 2);
-      end;
-      // zoom //
-      if FAnimationType = 8 then
-      begin
-        animation_size := round(sin(FAnimationProgress * 6) * 10);
-        dec(xBitmap, animation_size div 2);
-        dec(yBitmap, animation_size div 2);
-      end;
+      UpdateHint(xReal, yReal);
+    except
+      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
 
-    inc(xBitmap, ItemRect.Left);
-    inc(yBitmap, ItemRect.Top);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.InitDraw'#10#13 + e.message);
-  end;
+    // init draw //
+    try
+      bmp.topleft.x := xReal;
+      bmp.topleft.y := yReal;
+      bmp.width := FSize + ItemRect.Left * 2;
+      bmp.height := FSize + ItemRect.Top * 2;
+      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+      if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
+      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
+      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
+      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
+      GdipDeleteBrush(brush);
 
-  // draw icons //
-  try
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
+      xBitmap := 0;
+      yBitmap := 0;
+
+      if FAnimationProgress > 0 then
+      begin
+        // rotate //
+        if FAnimationType = 1 then
+        begin
+          dec(xBitmap, ItemRect.Left);
+          dec(yBitmap, ItemRect.Top);
+          dec(xBitmap, FSize div 2);
+          dec(yBitmap, FSize div 2);
+          GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
+          GdipRotateWorldTransform(dst, FAnimationProgress * 6, MatrixOrderPrepend);
+        end;
+        // bounce //
+        if (FAnimationType >= 2) and (FAnimationType <= 4) then
+        begin
+          animation_offset_x := FAnimationProgress mod 30;
+          if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
+          animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
+          if FSite = 1 then inc(yBitmap, animation_offset_x)
+          else if FSite = 3 then dec(yBitmap, animation_offset_x);
+        end;
+        // quake //
+        if FAnimationType = 5 then
+        begin
+          if FAnimationProgress mod 2 = 1 then exit;
+          animation_offset_x := random(FItemSize div 3) - FItemSize div 6;
+          animation_offset_y := random(FItemSize div 3) - FItemSize div 6;
+          inc(xBitmap, animation_offset_x);
+          inc(yBitmap, animation_offset_y);
+        end;
+        // swing //
+        if FAnimationType = 6 then
+        begin
+          dec(xBitmap, ItemRect.Left);
+          dec(yBitmap, ItemRect.Top);
+          dec(xBitmap, FSize div 2);
+          dec(yBitmap, FSize div 2);
+          GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
+          GdipRotateWorldTransform(dst, sin(FAnimationProgress * 6) * 30, MatrixOrderPrepend);
+        end;
+        // vibrate //
+        if FAnimationType = 7 then
+        begin
+          animation_size := round(sin(FAnimationProgress * 3) * 6);
+          dec(xBitmap, animation_size div 2);
+          dec(yBitmap, animation_size div 2);
+        end;
+        // zoom //
+        if FAnimationType = 8 then
+        begin
+          animation_size := round(sin(FAnimationProgress * 6) * 10);
+          dec(xBitmap, animation_size div 2);
+          dec(yBitmap, animation_size div 2);
+        end;
+      end;
+
+      inc(xBitmap, ItemRect.Left);
+      inc(yBitmap, ItemRect.Top);
+    except
+      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
+    end;
+
+    // draw icons //
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage,
       xBitmap, yBitmap, FSize + animation_size, FSize + animation_size,
       0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
     if assigned(FImage2) then GdipDrawImageRectRectI(dst, FImage2,
       xBitmap, yBitmap, FSize + animation_size, FSize + animation_size,
       0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.Icons'#10#13 + e.message);
-  end;
 
-  try if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
-  except end;
-
-  // reflection //
-  try
+    if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
     if FReflection and not FFloating then BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.Reflection'#10#13 + e.message);
-  end;
-
-  // update window content //
-  try
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.UpdateWindow'#10#13 + e.message);
-  end;
 
-  // cleanup //
-  try
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('PluginItem.Draw.Cleanup'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -482,26 +474,6 @@ begin
     $f005..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
-end;
-//------------------------------------------------------------------------------
-function TPluginItem.CanOpenFolder: boolean;
-var
-  _file: string;
-begin
-  _file := toolu.UnzipPath(PluginFile);
-  if not fileexists(_file) then _file := ExtractFilePath(toolu.FindFile(_file));
-  result := fileexists(_file);
-end;
-//------------------------------------------------------------------------------
-procedure TPluginItem.OpenFolder;
-var
-  _file: string;
-begin
-  if freed then exit;
-  _file := toolu.UnzipPath(PluginFile);
-  if not fileexists(_file) then _file := ExtractFilePath(toolu.FindFile(_file))
-  else _file := ExtractFilePath(_file);
-  DockExecute(FHWnd, pchar(_file), nil, nil, sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.Save(szIni: pchar; szIniGroup: pchar);

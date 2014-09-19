@@ -76,10 +76,6 @@ type TCustomItem = class
     property ScreenRect: windows.TRect read GetScreenRect;
     property DontSave: boolean read FDontSave;
 
-    function HitTest(Ax, Ay: integer): boolean;
-    function ScreenHitTest(Ax, Ay: integer): boolean;
-    procedure Animate(AAnimationType: integer);
-
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
@@ -93,14 +89,18 @@ type TCustomItem = class
     procedure WndMessage(var msg: TMessage); virtual; abstract;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
     function cmd(id: TGParam; param: integer): integer; virtual;
-    procedure LME(lock: boolean);
     procedure Timer; virtual;
-    function CanOpenFolder: boolean; virtual; abstract;
-    procedure OpenFolder; virtual; abstract;
+    function CanOpenFolder: boolean; virtual;
+    procedure OpenFolder; virtual;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(szIni: pchar; szIniGroup: pchar); virtual; abstract;
-    procedure Delete; virtual;
-    //
+
+    function HitTest(Ax, Ay: integer): boolean;
+    function ScreenHitTest(Ax, Ay: integer): boolean;
+    procedure Animate(AAnimationType: integer);
+    procedure LME(lock: boolean);
+    procedure Delete;
+
     class procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
 end;
 
@@ -278,11 +278,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.LME(lock: boolean);
-begin
-  dockh.DockletLockMouseEffect(FHWnd, lock);
-end;
-//------------------------------------------------------------------------------
 procedure TCustomItem.Timer;
 begin
   if FFreed or FUpdating then exit;
@@ -348,20 +343,18 @@ begin
   UpdateHint;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.Animate(AAnimationType: integer);
+function TCustomItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
 begin
-  FAnimationType := AAnimationType;
-  case FAnimationType of
-    1: FAnimationEnd := 60; // rotate
-    2: FAnimationEnd := 30; // bounce 1
-    3: FAnimationEnd := 60; // bounce 2
-    4: FAnimationEnd := 90; // bounce 3
-    5: FAnimationEnd := 60; // quake
-    6: FAnimationEnd := 56; // swing
-    7: FAnimationEnd := 56; // vibrate
-    8: FAnimationEnd := 56; // zoom
-  end;
-  FAnimationProgress := 1;
+  result := false;
+end;
+//------------------------------------------------------------------------------
+function TCustomItem.CanOpenFolder: boolean;
+begin
+  result := false;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.OpenFolder;
+begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.SetCaption(value: string);
@@ -447,9 +440,25 @@ begin
   result := ptinrect(GetScreenRect, classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
-function TCustomItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
+procedure TCustomItem.Animate(AAnimationType: integer);
 begin
-  result := false;
+  FAnimationType := AAnimationType;
+  case FAnimationType of
+    1: FAnimationEnd := 60; // rotate
+    2: FAnimationEnd := 30; // bounce 1
+    3: FAnimationEnd := 60; // bounce 2
+    4: FAnimationEnd := 90; // bounce 3
+    5: FAnimationEnd := 60; // quake
+    6: FAnimationEnd := 56; // swing
+    7: FAnimationEnd := 56; // vibrate
+    8: FAnimationEnd := 56; // zoom
+  end;
+  FAnimationProgress := 1;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.LME(lock: boolean);
+begin
+  dockh.DockletLockMouseEffect(FHWnd, lock);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Delete;

@@ -18,8 +18,6 @@ type TSeparatorItem = class(TCustomItem)
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
-    function CanOpenFolder: boolean; override;
-    procedure OpenFolder; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 end;
 
@@ -83,44 +81,43 @@ var
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
 begin
-  if FFreed or (FFloating and not AForce) then exit;
-
-  // set position //
-
   try
-    ItemRect := GetRectFromSize(ASize);
-    Fx := Ax;
-    Fy := Ay;
-    FShowItem := AShowItem;
-    if need_dock then
-    begin
-      Ax := FxDocking;
-      Ay := FyDocking;
-    end;
-    xReal := Ax - ItemRect.Left;
-    yReal := Ay - ItemRect.Top;
+    if FFreed or (FFloating and not AForce) then exit;
 
-    if (FSize = ASize) and not AForce then
-    begin
-
-      if wpi > 0 then
+    // set position //
+    try
+      ItemRect := GetRectFromSize(ASize);
+      Fx := Ax;
+      Fy := Ay;
+      FShowItem := AShowItem;
+      if need_dock then
       begin
-        DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
+        Ax := FxDocking;
+        Ay := FyDocking;
+      end;
+      xReal := Ax - ItemRect.Left;
+      yReal := Ay - ItemRect.Top;
+
+      if (FSize = ASize) and not AForce then
+      begin
+
+        if wpi > 0 then
+        begin
+          DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+          UpdateHint(xReal, yReal);
+        end else
+          SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        exit;
+
       end else
-        SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-      exit;
+        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
-    end else
-      if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
+      FSize := ASize;
+      if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
+    except
+      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
+    end;
 
-    FSize := ASize;
-    if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
-  except
-    on e: Exception do raise Exception.Create('SeparatorItem.Draw.SetPosition(' + caption + ')'#10#13 + e.message);
-  end;
-
-  try
     xBitmap := ItemRect.Left;
     yBitmap := ItemRect.Top;
 
@@ -162,9 +159,9 @@ begin
           bmp.topleft.y:= yReal;
           bmp.width:= FSize + ItemRect.Left * 2;
           bmp.height:= FSize + ItemRect.Top * 2;
-          if not CreateBitmap(bmp) then raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
+          if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
           dst:= CreateGraphics(bmp.dc, 0);
-          if not assigned(dst) then raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
+          if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
           GdipSetCompositingMode(dst, CompositingModeSourceOver);
           GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
           GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
@@ -181,7 +178,7 @@ begin
           DeleteBitmap(bmp);
         end;
       except
-        on e: Exception do raise Exception.Create('SeparatorItem.DrawWithImage'#10#13 + e.message);
+        on e: Exception do raise Exception.Create('DrawWithImage'#10#13 + e.message);
       end;
 
     end
@@ -212,19 +209,18 @@ begin
           DeleteBitmap(bmp);
         end;
       except
-        on e: Exception do raise Exception.Create('SeparatorItem.DrawNoImage'#10#13 + e.message);
+        on e: Exception do raise Exception.Create('DrawWithNoImage'#10#13 + e.message);
       end;
 
     end;
 
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.Draw(' + caption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 function TSeparatorItem.ToString: string;
 begin
-  if FFreed then exit;
   result:= 'class="separator";';
 end;
 //------------------------------------------------------------------------------
@@ -271,15 +267,6 @@ begin
     $f005..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
-end;
-//------------------------------------------------------------------------------
-function TSeparatorItem.CanOpenFolder: boolean;
-begin
-  result := false;
-end;
-//------------------------------------------------------------------------------
-procedure TSeparatorItem.OpenFolder;
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TSeparatorItem.Save(szIni: pchar; szIniGroup: pchar);

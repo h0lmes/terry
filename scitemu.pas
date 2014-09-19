@@ -12,13 +12,14 @@ type
 
   TShortcutItem = class(TCustomItem)
   private
-    command: string;
-    params: string;
-    dir: string;
+    FCommand: string;
+    FParams: string;
+    FDir: string;
     FImageFile: string;
     FImageFile2: string;
-    showcmd: integer;
-    hide: boolean;
+    FShowCmd: integer;
+    FHide: boolean;
+    FColorData: integer;
     FUseShellContextMenus: boolean;
     FRunning: boolean;
     FIndicator: Pointer;
@@ -26,7 +27,6 @@ type
     FIndicatorH: integer;
     is_pidl: boolean;
     apidl: PItemIDList;
-    color_data: integer;
     LastMouseUp: cardinal;
     FBitBucket: boolean;
     FBitBucketFiles: integer;
@@ -57,11 +57,9 @@ type
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     //
     class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
+      AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
     class function FromFile(filename: string): string;
   end;
-
-var window_list: TFPList;
 
 implementation
 uses dockh, themeu, toolu, frmitemoptu;
@@ -72,13 +70,13 @@ begin
   FUseShellContextMenus := AParams.UseShellContextMenus;
 
   LastMouseUp:= 0;
-  command:= '';
-  params:= '';
-  dir:= '';
+  FCommand:= '';
+  FParams:= '';
+  FDir:= '';
   FImageFile:= '';
-  color_data:= DEFAULT_COLOR_DATA;
-  showcmd:= 0;
-  hide:= false;
+  FColorData:= DEFAULT_COLOR_DATA;
+  FShowCmd:= 0;
+  FHide:= false;
   FRunning:= false;
 
   UpdateItem(AData);
@@ -112,30 +110,30 @@ begin
     begin
       ini := TIniFile.Create(IniFile);
       caption := ini.ReadString(IniSection, 'caption', '');
-      command := ini.ReadString(IniSection, 'command', '');
-      params := ini.ReadString(IniSection, 'params', '');
-      dir := ini.ReadString(IniSection, 'dir', '');
+      FCommand := ini.ReadString(IniSection, 'command', '');
+      FParams := ini.ReadString(IniSection, 'params', '');
+      FDir := ini.ReadString(IniSection, 'dir', '');
       FImageFile := ini.ReadString(IniSection, 'image', '');
-      hide := boolean(ini.ReadInteger(IniSection, 'hide', 0));
-      color_data := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
-      showcmd := ini.ReadInteger(IniSection, 'showcmd', sw_shownormal);
+      FHide := boolean(ini.ReadInteger(IniSection, 'hide', 0));
+      FColorData := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
+      FShowCmd := ini.ReadInteger(IniSection, 'showcmd', sw_shownormal);
       ini.free;
     end
     else
     begin
       caption := FetchValue(AData, 'caption="', '";');
-      command := FetchValue(AData, 'command="', '";');
-      params := FetchValue(AData, 'params="', '";');
-      dir := FetchValue(AData, 'dir="', '";');
+      FCommand := FetchValue(AData, 'command="', '";');
+      FParams := FetchValue(AData, 'params="', '";');
+      FDir := FetchValue(AData, 'dir="', '";');
       FImageFile := FetchValue(AData, 'image="', '";');
-      hide := false;
-      color_data := DEFAULT_COLOR_DATA;
-      showcmd := 1;
-      try hide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
+      FHide := false;
+      FColorData := DEFAULT_COLOR_DATA;
+      FShowCmd := 1;
+      try FHide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
       except end;
-      try color_data := strtoint(FetchValue(AData, 'color_data="', '";'));
+      try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
       except end;
-      try showcmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
+      try FShowCmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
       except end;
     end;
   except
@@ -159,20 +157,20 @@ begin
       FUpdating := true;
 
       // convert CSIDL to path //
-      csidl := CSIDL_ToInt(command);
+      csidl := CSIDL_ToInt(FCommand);
       if csidl > -1 then
       begin
         OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
         PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
         PIDL_Free(pidFolder);
-        command := strpas(pszName);
-        if FileExists(command) or DirectoryExists(command) then command := ZipPath(command)
+        FCommand := strpas(pszName);
+        if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
         else FCaption := '::::'; // assuming it is a PIDL
       end;
 
       // create PIDL from GUID //
       PIDL_Free(apidl);
-      if IsGUID(command) then apidl := PIDL_GetFromPath(pchar(command));
+      if IsGUID(FCommand) then apidl := PIDL_GetFromPath(pchar(FCommand));
       is_pidl := assigned(apidl);
       if is_pidl and (FCaption = '::::') then
       begin
@@ -211,7 +209,7 @@ begin
   else // if no custom image
   begin
     if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
-    else LoadImage(command, FBigItemSize, false, true, FImage, FIW, FIH);
+    else LoadImage(FCommand, FBigItemSize, false, true, FImage, FIW, FIH);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -228,7 +226,7 @@ begin
   if is_pidl then
   begin
     OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
-    FBitBucket := PIDL_GetDisplayName2(pidFolder) = command;
+    FBitBucket := PIDL_GetDisplayName2(pidFolder) = FCommand;
     if FBitBucket then
     begin
       OleCheck(SHGetDesktopFolder(psfDesktop));
@@ -341,9 +339,9 @@ begin
       // commands //
 
       icUpdateRunning:
-        if length(command) > 0 then
+        if length(FCommand) > 0 then
         begin
-          b := ProcessHelper.FullNameExists(UnzipPath(command));
+          b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
           if b and (FIndicator = nil) then UpdateIndicator;
           if b <> FRunning then
           begin
@@ -506,7 +504,7 @@ begin
     end;
 
     // draw icons //
-    TCustomItem.CreateColorAttributes(color_data, FSelected, hattr);
+    TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
@@ -530,7 +528,7 @@ begin
     DeleteBitmap(bmp);
 
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.Draw(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -589,7 +587,7 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, command, params, dir, FImageFile, showcmd, color_data, hide);
+  result:= Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -627,12 +625,12 @@ begin
   LME(true);
 
   // if shell context menu is enabled //
-  if FUseShellContextMenus and (command <> '') or is_pidl then
+  if FUseShellContextMenus and ((FCommand <> '') or is_pidl) then
   begin
     if is_pidl then result := shcontextu.ShContextMenu(FHWnd, pt, apidl, FHMenu)
     else
     begin
-      filename := toolu.UnzipPath(command);
+      filename := toolu.UnzipPath(FCommand);
       if not fileexists(filename) and not directoryexists(filename) then filename := toolu.FindFile(filename);
       if fileexists(filename) or directoryexists(filename) then result := shcontextu.ShContextMenu(FHWnd, pt, filename, FHMenu);
     end;
@@ -667,7 +665,7 @@ begin
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
-    $f005: ProcessHelper.RunAsUser(command, params, dir, showcmd);
+    $f005: ProcessHelper.RunAsUser(FCommand, FParams, FDir, FShowCmd);
     $f006..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
@@ -679,7 +677,7 @@ var
 begin
   if is_pidl then
   begin
-    if hide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
+    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
     else DockletDoAttensionAnimation(FHWnd);
     sei.cbSize := sizeof(sei);
     sei.lpIDList := apidl;
@@ -695,15 +693,15 @@ begin
   begin
     if FActivateRunningDefault and (GetAsyncKeystate(17) >= 0) then
     begin
-      if hide then DockExecute(FHWnd, '/hide', '', '', 0);
+      if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
       begin
-        if not hide then DockletDoAttensionAnimation(FHWnd);
-        DockExecute(FHWnd, pchar(command), pchar(params), pchar(dir), showcmd);
+        if not FHide then DockletDoAttensionAnimation(FHWnd);
+        DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
       end;
     end else begin
-      if hide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
-      DockExecute(FHWnd, pchar(command), pchar(params), pchar(dir), showcmd);
+      if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
+      DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
     end;
   end;
 end;
@@ -713,7 +711,7 @@ begin
   try
     result := false;
     LME(true);
-    result := ProcessHelper.ActivateProcessMainWindow(UnzipPath(command), FHWnd, ScreenRect, FSite);
+    result := ProcessHelper.ActivateProcessMainWindow(UnzipPath(FCommand), FHWnd, ScreenRect, FSite);
   finally
     LME(false);
   end;
@@ -723,7 +721,7 @@ function TShortcutItem.CanOpenFolder: boolean;
 var
   _file: string;
 begin
-  _file := toolu.UnzipPath(command);
+  _file := toolu.UnzipPath(FCommand);
   if not fileexists(_file) or not directoryexists(_file) then _file := ExtractFilePath(toolu.FindFile(_file));
   result := fileexists(_file) or directoryexists(_file);
 end;
@@ -732,7 +730,7 @@ procedure TShortcutItem.OpenFolder;
 var
   _file: string;
 begin
-  _file := toolu.UnzipPath(command);
+  _file := toolu.UnzipPath(FCommand);
   if not fileexists(_file) or not directoryexists(_file)
   then _file := ExtractFilePath(toolu.FindFile(_file))
   else _file := ExtractFilePath(_file);
@@ -750,12 +748,12 @@ begin
     if (ext = '.png') or (ext = '.ico') then
     begin
       FImageFile := toolu.ZipPath(filename);
-      color_data := DEFAULT_COLOR_DATA;
+      FColorData := DEFAULT_COLOR_DATA;
       UpdateItemI;
     end
     else
     begin
-      if not is_pidl then DockExecute(FHWnd, pchar(command), pchar('"' + filename + '"'), nil, 1);
+      if not is_pidl then DockExecute(FHWnd, pchar(FCommand), pchar('"' + filename + '"'), nil, 1);
     end;
   end;
 end;
@@ -767,17 +765,17 @@ begin
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'shortcut', szIni);
   if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
-  if command <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(command), szIni);
-  if params <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(params), szIni);
-  if dir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(dir), szIni);
+  if FCommand <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(FCommand), szIni);
+  if FParams <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(FParams), szIni);
+  if FDir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(FDir), szIni);
   if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
-  if showcmd <> sw_shownormal then WritePrivateProfileString(szIniGroup, 'showcmd', pchar(inttostr(showcmd)), szIni);
-  if color_data <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(color_data)), szIni);
-  if hide then WritePrivateProfileString(szIniGroup, 'hide', '1', szIni);
+  if FShowCmd <> sw_shownormal then WritePrivateProfileString(szIniGroup, 'showcmd', pchar(inttostr(FShowCmd)), szIni);
+  if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
+  if FHide then WritePrivateProfileString(szIniGroup, 'hide', '1', szIni);
 end;
 //------------------------------------------------------------------------------
 class function TShortcutItem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; color_data: integer = DEFAULT_COLOR_DATA; hide: boolean = false): string;
+  AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -787,8 +785,8 @@ begin
   if ADir <> '' then result := result + 'dir="' + ADir + '";';
   if AImage <> '' then result := result + 'image="' + AImage + '";';
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
-  if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
-  if hide then result := result + 'hide="1";';
+  if AColorData <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
+  if AHide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------
 class function TShortcutItem.FromFile(filename: string): string;

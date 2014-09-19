@@ -163,6 +163,7 @@ type
     function ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
     function ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
     function AllItemCmd(id: TGParam; param: integer): integer;
+    procedure PluginCallCreate(HWnd: HANDLE);
     function GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
     procedure SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
@@ -1005,10 +1006,26 @@ begin
   AllItemCmd(icSelect, 0);
 
   result := CreateItem(data);
-  if not (result = THandle(0)) then DockAdd(result);
+  if result <> THandle(0) then
+  begin
+    DockAdd(result);
+    PluginCallCreate(result);
+  end;
   if Update then ItemsChanged(true);
   // save settings //
   if Save then AllItemsSave;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.PluginCallCreate(HWnd: HANDLE);
+var
+  Inst: TCustomItem;
+begin
+  try
+    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 function _ItemManager.CreateItem(data: string): THandle;
@@ -1050,7 +1067,7 @@ begin
   end;
 
   try
-    if Inst <> nil then
+    if assigned(Inst) then
       if Inst.Freed then FreeAndNil(Inst) else result := Inst.HWnd;
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin'#10#13 + e.message);
@@ -1828,7 +1845,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TPluginItem then result := TPluginItem(Inst).GetFilename;
   except
-    on e: Exception do err('Terry.ItemManager.GetPluginFile', e);
+    on e: Exception do err('ItemManager.GetPluginFile', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1840,7 +1857,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateImage(lpImageNew, AutoDelete);
   except
-    on e: Exception do err('Terry.ItemManager.SetPluginImage', e);
+    on e: Exception do err('ItemManager.SetPluginImage', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1852,7 +1869,7 @@ begin
     if HWnd <> 0 then Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateOverlay(lpOverlayNew, AutoDelete);
   except
-    on e: Exception do err('Terry.ItemManager.SetPluginOverlay', e);
+    on e: Exception do err('ItemManager.SetPluginOverlay', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1865,7 +1882,7 @@ begin
     if (Inst is TCustomItem) and (sets.container.ItemAnimation > 0) then
       Inst.Animate(sets.container.ItemAnimation);
   except
-    on e: Exception do err('Terry.ItemManager.PluginAnimate', e);
+    on e: Exception do err('ItemManager.PluginAnimate', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1877,7 +1894,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Caption := NewCaption;
   except
-    on e: Exception do err('Terry.ItemManager.SetPluginCaption', e);
+    on e: Exception do err('ItemManager.SetPluginCaption', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1890,7 +1907,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Caption;
   except
-    on e: Exception do err('Terry.ItemManager.GetPluginCaption', e);
+    on e: Exception do err('ItemManager.GetPluginCaption', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1903,7 +1920,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.ScreenRect;
   except
-    on e: Exception do err('Terry.ItemManager.GetPluginRect', e);
+    on e: Exception do err('ItemManager.GetPluginRect', e);
   end;
 end;
 //------------------------------------------------------------------------------

@@ -200,30 +200,23 @@ var
 begin
   if lpData.Background <> nil then GdipDisposeImage(lpData.Background);
   if lpData.Foreground <> nil then GdipDisposeImage(lpData.Foreground);
+  if lpData.ButtonNext <> nil then GdipDisposeImage(lpData.ButtonNext);
+  if lpData.ButtonPrevious <> nil then GdipDisposeImage(lpData.ButtonPrevious);
   lpData.Background := nil;
   lpData.Foreground := nil;
+  lpData.ButtonNext := nil;
+  lpData.ButtonPrevious := nil;
 
   FillChar(tmp, MAX_PATH, 0);
   strcat(@tmp, @lpData.PluginRoot);
   strcat(@tmp, 'Backgrounds\');
   strcat(@tmp, @lpData.BackFile);
   lpData.Background := DockletLoadGDIPlusImage(@tmp);
-
   FillChar(tmp, MAX_PATH, 0);
   strcat(@tmp, @lpData.PluginRoot);
   strcat(@tmp, 'Foregrounds\');
   strcat(@tmp, @lpData.BackFile);
   lpData.Foreground := DockletLoadGDIPlusImage(@tmp);
-end;
-//------------------------------------------------------------------------------
-procedure LoadButtons(lpData: PData);
-var
-  tmp: array [0..MAX_PATH - 1] of char;
-begin
-  if lpData.ButtonNext <> nil then GdipDisposeImage(lpData.ButtonNext);
-  if lpData.ButtonPrevious <> nil then GdipDisposeImage(lpData.ButtonPrevious);
-  lpData.ButtonNext := nil;
-  lpData.ButtonPrevious := nil;
 
   FillChar(tmp, MAX_PATH, 0);
   strcat(@tmp, @lpData.PluginRoot);
@@ -250,6 +243,10 @@ begin
   Instance.SecArmColor := $ffff2000;
   StrCopy(Instance.BackFile, 'Default.png');
   FillChar(Instance.PluginRoot, MAX_PATH, 0);
+  Instance.Background := nil;
+  Instance.Foreground := nil;
+  Instance.ButtonNext := nil;
+  Instance.ButtonPrevious := nil;
 
   DockletGetRootFolder(hWnd, @szRet);
   strcat(@Instance.PluginRoot, @szRet);
@@ -262,8 +259,7 @@ begin
     try Instance.ArmColor := StrToInt(strpas(@szRet));
     except end;
 
-    GetPrivateProfileString(szIniGroup, 'SecArmColor',
-      pchar(ColorToString(Instance.SecArmColor)), @szRet, 11, szIni);
+    GetPrivateProfileString(szIniGroup, 'SecArmColor', pchar(ColorToString(Instance.SecArmColor)), @szRet, 11, szIni);
     try Instance.SecArmColor := StrToInt(strpas(@szRet));
     except end;
 
@@ -281,7 +277,6 @@ begin
   result := Instance;
 
   LoadBackground(Instance);
-  LoadButtons(Instance);
   ClockWork(Instance);
 
   //Instance.frmscheduler:= Tfrmscheduler.create(nil);

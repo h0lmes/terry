@@ -38,8 +38,8 @@ type
     FIndicatorW: integer;
     FIndicatorH: integer;
     FUseShellContextMenus: boolean;
-    imagefile: string;
-    color_data: integer;
+    FImageFile: string;
+    FColorData: integer;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
     FItemCount: integer;
     FState: TStackState;
@@ -60,7 +60,6 @@ type
     procedure DrawIndicator(dst: Pointer);
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure Configure;
     procedure OnDragEnter;
     procedure OnDragOver;
     procedure OnDragLeave;
@@ -95,8 +94,6 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
-    function CanOpenFolder: boolean; override;
-    procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 
@@ -131,8 +128,8 @@ procedure TStackItem.Init;
 begin
   inherited;
 
-  imagefile := '';
-  color_data := DEFAULT_COLOR_DATA;
+  FImageFile := '';
+  FColorData := DEFAULT_COLOR_DATA;
   FRunning := false;
   FItemCount := 0;
   SetLength(items, MAX_SUBITEMS);
@@ -183,8 +180,8 @@ begin
       begin
         ini := TIniFile.Create(IniFile);
         caption := ini.ReadString(IniSection, 'caption', '');
-        imagefile := ini.ReadString(IniSection, 'image', '');
-        color_data := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
+        FImageFile := ini.ReadString(IniSection, 'image', '');
+        FColorData := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
         try FMode := SetRange(strtoint(ini.ReadString(IniSection, 'mode', '0')), 0, 1000);
         except end;
         try FOffset := SetRange(strtoint(ini.ReadString(IniSection, 'offset', '0')), 0, 200);
@@ -209,14 +206,14 @@ begin
       else
       begin
         caption := FetchValue(AData, 'caption="', '";');
-        imagefile := FetchValue(AData, 'image="', '";');
-        color_data := DEFAULT_COLOR_DATA;
+        FImageFile := FetchValue(AData, 'image="', '";');
+        FColorData := DEFAULT_COLOR_DATA;
         FMode := 0;
         FOffset := 0;
         FAnimationSpeed := DEFAULT_ANIM_SPEED;
         FDistort := DEFAULT_DISTORT;
         FSpecialFolder := '';
-        try color_data := strtoint(FetchValue(AData, 'color_data="', '";'));
+        try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
         except end;
         try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
         except end;
@@ -250,7 +247,7 @@ begin
     try
       FUpdating := true;
       // load images from files //
-      LoadImage(imagefile, FBigItemSize, false, false, FImage, FIW, FIH);
+      LoadImage(FImageFile, FBigItemSize, false, false, FImage, FIW, FIH);
       // default stack image //
       if FImage = nil then
       begin
@@ -418,7 +415,7 @@ begin
 
       UpdateHint(xReal, yReal);
     except
-      on e: Exception do raise Exception.Create('SetPosition(' + caption + ')'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
 
     // init draw //
@@ -449,10 +446,10 @@ begin
     end;
 
     // draw icons //
-    TCustomItem.CreateColorAttributes(color_data, FSelected, hattr);
+    TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if FSelected or (color_data <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
+    if FSelected or (FColorData <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
 
     if assigned(FPreviewImage) then
       GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
@@ -473,7 +470,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('StackItem.Draw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -521,8 +518,8 @@ end;
 //------------------------------------------------------------------------------
 function TStackItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, imagefile, FSpecialFolder,
-    color_data, FMode, FOffset, FAnimationSpeed, FDistort, FPreview);
+  result:= Make(FHWnd, FCaption, FImageFile, FSpecialFolder,
+    FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -571,7 +568,7 @@ begin
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
-    $f001: Configure;
+    $f001: TfrmStackProp.Open(ToString, UpdateItem, self);
     $f002: ; // open folder
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
@@ -579,11 +576,6 @@ begin
     $f006..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.Configure;
-begin
-  TfrmStackProp.Open(ToString, UpdateItem, self);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.WndMessage(var msg: TMessage);
@@ -634,15 +626,6 @@ begin
   if FState = stsClosed then OpenStack
   else
   if FState = stsOpen then CloseStack;
-end;
-//------------------------------------------------------------------------------
-function TStackItem.CanOpenFolder: boolean;
-begin
-  result := false;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.OpenFolder;
-begin
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.OnDragEnter;
@@ -698,8 +681,8 @@ begin
   ext := AnsiLowerCase(ExtractFileExt(filename));
   if (ext = '.png') or (ext = '.ico') then
   begin
-    imagefile := toolu.ZipPath(filename);
-    color_data := DEFAULT_COLOR_DATA;
+    FImageFile := toolu.ZipPath(filename);
+    FColorData := DEFAULT_COLOR_DATA;
     UpdateItemInternal;
     exit;
   end;
@@ -722,8 +705,8 @@ begin
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'stack', szIni);
   if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
-  if imagefile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(imagefile), szIni);
-  if color_data <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(color_data)), szIni);
+  if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
+  if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
   if FMode <> 0 then WritePrivateProfileString(szIniGroup, 'mode', pchar(inttostr(FMode)), szIni);
   if FOffset <> 0 then WritePrivateProfileString(szIniGroup, 'offset', pchar(inttostr(FOffset)), szIni);
   WritePrivateProfileString(szIniGroup, 'animation_speed', pchar(inttostr(FAnimationSpeed)), szIni);
