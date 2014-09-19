@@ -146,7 +146,7 @@ begin
   container.BaseAlpha := 255;
   SetsPathFile := sets_file;
   progpath := _prog_path;
-  PluginsPath := progpath + '\Plugins';
+  PluginsPath := progpath + '\Docklets';
   ThemesPath := IncludeTrailingPathDelimiter(progpath) + 'Themes\';
 end;
 //------------------------------------------------------------------------------
@@ -716,7 +716,7 @@ begin
     while i < PluginFilesList.Count do
     begin
       SetCurrentDir(ExtractFilePath(PluginFilesList.strings[i]));
-      hLib := LoadLibrary(pansichar(PluginFilesList.strings[i]));
+      hLib := LoadLibrary(pchar(PluginFilesList.strings[i]));
       if hLib < 33 then PluginFilesList.Delete(i)
       else begin
         @OnGetInformation := GetProcAddress(hLib, 'OnGetInformation');

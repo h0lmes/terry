@@ -445,19 +445,16 @@ end;
 procedure TPluginItem.WndMessage(var msg: TMessage);
 begin
   msg.Result := 0;
-  if FFreed then exit;
+  if FFreed or not assigned(OnWndMessage) then exit;
 
   with msg do
   begin
-    if assigned(OnWndMessage) then
-    begin
-      if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
+      {if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
       begin
         TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
-      end;
+      end;}
       OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
-    end;
   end;
 end;
 //------------------------------------------------------------------------------

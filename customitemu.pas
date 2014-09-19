@@ -373,7 +373,7 @@ var
   do_show: boolean;
 begin
   try
-    do_show := FShowHint and FHover and not FFloating and not FLockMouseEffect and (FCaption <> '');
+    do_show := FShowHint and FHover and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
       frmterry.DeactivateHint(FHWnd);
@@ -490,7 +490,8 @@ begin
       on e: Exception do raise Exception.Create('TCustomItem.WindowProc.Pre'#10#13 + e.message);
     end;
 
-    try WndMessage(message);
+    try
+      WndMessage(message);
     except
       on e: Exception do raise Exception.Create('TCustomItem.WindowProc.WndMessage'#10#13 + e.message);
     end;

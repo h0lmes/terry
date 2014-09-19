@@ -92,9 +92,11 @@ begin
       // parameters //
       gpBigItemSize:
         begin
-          if FBigItemSize <= 128 then temp := 128
+          if FBigItemSize <= 96 then temp := 96
+          else if FBigItemSize <= 128 then temp := 128
           else if FBigItemSize <= 160 then temp := 160
-          else if FBigItemSize <= 192 then temp := 192;
+          else if FBigItemSize <= 192 then temp := 192
+          else if FBigItemSize <= 256 then temp := 256;
           if temp <> FIW then UpdateItemInternal;
         end;
 
@@ -111,10 +113,7 @@ end;
 procedure TTaskItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
   bmp: _SimpleBitmap;
-  dst: Pointer;
-  hattr, brush: Pointer;
-  l_matrix: ColorMatrix;
-  brightness, tmp_color_data: integer;
+  dst, brush: Pointer;
   xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
@@ -188,11 +187,10 @@ begin
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
 
-    if FReflection and not FFloating and assigned(FImage) then
+    if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
-    if FSelected then GdipDisposeImageAttributes(hattr);
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
 

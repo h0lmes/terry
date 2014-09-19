@@ -319,9 +319,11 @@ begin
       // parameters //
       gpBigItemSize:
         begin
-          if FBigItemSize <= 128 then temp:= 128
-          else if FBigItemSize <= 160 then temp:= 160
-          else if FBigItemSize <= 192 then temp:= 192;
+          if FBigItemSize <= 96 then temp := 96
+          else if FBigItemSize <= 128 then temp := 128
+          else if FBigItemSize <= 160 then temp := 160
+          else if FBigItemSize <= 192 then temp := 192
+          else if FBigItemSize <= 256 then temp := 256;
           if temp <> FIW then UpdateItemI;
         end;
       gpShowRunningIndicator:
