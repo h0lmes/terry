@@ -54,7 +54,7 @@ uses
 //------------------------------------------------------------------------------
 procedure inf(where, data: string);
 begin
-  frmterry.notify(where + #10#13 + '  ' + #10#13 + data);
+  frmterry.notify(where + ':   ' + data);
 end;
 //------------------------------------------------------------------------------
 function DockletIsVisible(id: HWND): bool; stdcall;
@@ -68,7 +68,7 @@ begin
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletIsVisible', e);
   end;
-  {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible2', inttostr(id) + ' ' + inttostr(integer(result))); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible2', inttostr(id) + ', ' + inttostr(integer(result))); {$endif}
 end;
 //------------------------------------------------------------------------------
 function DockletIsUndocked(id: HWND): bool; stdcall;
@@ -122,7 +122,7 @@ end;
 //------------------------------------------------------------------------------
 function DockletSetLabel(id: HWND; szCaption: pchar): integer; stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletSetLabel', inttostr(id) + #10#13 + strpas(szCaption)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletSetLabel', inttostr(id) + ', ' + strpas(szCaption)); {$endif}
   result := 0;
   try
     if assigned(frmterry) then
@@ -147,12 +147,12 @@ begin
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletLoadGDIPlusImage', e);
   end;
-  {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage2', inttohex(dword(result), 8)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage2', '0x' + inttohex(dword(result), 8)); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure DockletSetImage(id: HWND; image: Pointer; AutoDelete: bool); stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletSetImage', inttostr(id) + #10#13 + inttohex(dword(image), 8)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletSetImage', inttostr(id) + ', 0x' + inttohex(dword(image), 8)); {$endif}
   try
     if assigned(frmterry) then
       if assigned(frmterry.ItemMgr) then
@@ -164,7 +164,7 @@ end;
 //------------------------------------------------------------------------------
 procedure DockletSetImageFile(id: HWND; szImage: pchar); stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletSetImageFile', inttostr(id) + #10#13 + strpas(szImage)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletSetImageFile', inttostr(id) + ', ' + strpas(szImage)); {$endif}
   try
     if szImage <> nil then
       DockletSetImage(id, DockletLoadGDIPlusImage(szImage), true);
@@ -175,7 +175,7 @@ end;
 //------------------------------------------------------------------------------
 procedure DockletSetImageOverlay(id: uint; overlay: Pointer; AutoDelete: bool); stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletSetImageOverlay', inttostr(id) + #10#13 + inttohex(dword(overlay), 8)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletSetImageOverlay', inttostr(id) + ', 0x' + inttohex(dword(overlay), 8)); {$endif}
   try
     if assigned(frmterry) then
       if assigned(frmterry.ItemMgr) then
@@ -189,7 +189,7 @@ function DockletBrowseForImage(id: HWND; szImage: pchar; szRoot: pchar): bool; s
 var
   sTemp: string;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletBrowseForImage1', inttostr(id) + #10#13 + strpas(szImage) + #10#13 + strpas(szRoot)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletBrowseForImage1', inttostr(id) + ', ' + strpas(szImage) + ', ' + strpas(szRoot)); {$endif}
   result:= false;
   try
     if szImage <> nil then
@@ -209,12 +209,12 @@ begin
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletBrowseForImage', e);
   end;
-  {$ifdef DEBUG_EXPORTS} if result then inf('DockletBrowseForImage2', inttostr(id) + #10#13 + strpas(szImage) + #10#13 + strpas(szRoot)); {$endif}
+  {$ifdef DEBUG_EXPORTS} if result then inf('DockletBrowseForImage2', inttostr(id) + ', ' + strpas(szImage) + ', ' + strpas(szRoot)); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure DockletLockMouseEffect(id: HWND; lock: bool); stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletLockMouseEffect', inttostr(id) + #10#13 + inttostr(integer(lock))); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletLockMouseEffect', inttostr(id) + ', ' + inttostr(integer(lock))); {$endif}
   try
     if assigned(frmterry) then frmterry.LockMouseEffect(id, lock);
   except
@@ -236,7 +236,7 @@ procedure DockletGetRelativeFolder(id: HWND; szFolder: pchar); stdcall;
 var
   rel: string;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletGetRelativeFolder1', inttostr(id) + #10#13 + strpas(szFolder)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletGetRelativeFolder1', inttostr(id)); {$endif}
   try
     rel := frmterry.ItemMgr.GetPluginFile(id);
     rel := IncludeTrailingPathDelimiter(extractfilepath(rel));
@@ -245,21 +245,21 @@ begin
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletGetRelativeFolder', e);
   end;
-  {$ifdef DEBUG_EXPORTS} inf('DockletGetRelativeFolder2', inttostr(id) + #10#13 + strpas(szFolder)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletGetRelativeFolder2', inttostr(id) + ', ' + strpas(szFolder)); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure DockletGetRootFolder(id: HWND; szFolder: pchar); stdcall;
 var
   rel: string;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletGetRootFolder1', inttostr(id) + #10#13 + strpas(szFolder)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletGetRootFolder1', inttostr(id)); {$endif}
   try
     rel := UnzipPath('%pp%\');
     if assigned(szFolder) then StrLCopy(szFolder, pchar(rel), MAX_PATH);
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletGetRootFolder', e);
   end;
-  {$ifdef DEBUG_EXPORTS} inf('DockletGetRootFolder2', inttostr(id) + #10#13 + strpas(szFolder)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletGetRootFolder2', inttostr(id) + ', ' + strpas(szFolder)); {$endif}
 end;
 //------------------------------------------------------------------------------
 function DockletQueryDockEdge(id: HWND): integer; stdcall;

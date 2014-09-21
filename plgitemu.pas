@@ -88,6 +88,7 @@ begin
     end;
 
     // load library //
+    SetCurrentDir(ExtractFilePath(PluginFile));
     hLib := LoadLibrary(pchar(PluginFile));
     if hLib = 0 then raise Exception.Create('LoadLibrary(' + PluginFile + ') failed');
     @OnCreate := GetProcAddress(hLib, 'OnCreate');
@@ -159,10 +160,15 @@ procedure TPluginItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
 begin
   if not FFreed then
   begin
-    try if AutoDeleteImage then GdipDisposeImage(FImage);
+    try
+      if AutoDeleteImage then
+        if assigned(FImage) then GdipDisposeImage(FImage);
     except end;
     FImage := AImage;
-    AutoDeleteImage := DownscaleImage(FImage, 128, false, FIW, FIH, AutoDelete) or AutoDelete;
+    GdipGetImageWidth(FImage, FIW);
+    GdipGetImageHeight(FImage, FIH);
+    AutoDeleteImage := AutoDelete;
+    //AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
     if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   end;
 end;
@@ -171,10 +177,15 @@ procedure TPluginItem.UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
 begin
   if not FFreed then
   begin
-    try if AutoDeleteOverlay then GdipDisposeImage(FImage2);
+    try
+      if AutoDeleteOverlay then
+        if assigned(FImage2) then GdipDisposeImage(FImage2);
     except end;
     FImage2 := AOverlay;
-    AutoDeleteOverlay := DownscaleImage(FImage2, 128, false, FIW2, FIH2, AutoDelete) or AutoDelete;
+    GdipGetImageWidth(FImage2, FIW2);
+    GdipGetImageHeight(FImage2, FIH2);
+    AutoDeleteOverlay := AutoDelete;
+    //AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
     if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
   end;
 end;
@@ -326,15 +337,14 @@ begin
     end;
 
     // draw icons //
-    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage,
-      xBitmap, yBitmap, FSize + animation_size, FSize + animation_size,
-      0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
-    if assigned(FImage2) then GdipDrawImageRectRectI(dst, FImage2,
-      xBitmap, yBitmap, FSize + animation_size, FSize + animation_size,
-      0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
+    if assigned(FImage) then
+      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
+    if assigned(FImage2) then
+      GdipDrawImageRectRectI(dst, FImage2, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
 
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
-    if FReflection and not FFloating then BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+    if FReflection and (FReflectionSize > 0) and not FFloating then
+      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
     DeleteGraphics(dst);
@@ -449,11 +459,11 @@ begin
 
   with msg do
   begin
-      {if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
+      if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
       begin
         TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
-      end;}
+      end;
       OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
   end;
 end;

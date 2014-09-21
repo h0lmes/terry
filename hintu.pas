@@ -222,7 +222,7 @@ begin
       GdipAddPathRectangle(path, aheight div 2, 0, awidth - aheight - 1, aheight);
       GdipAddPathEllipse(path, 0, 0, aheight - 1, aheight - 1);
       GdipAddPathEllipse(path, awidth - aheight - 1, 0, aheight - 1, aheight - 1);
-      GdipCreateSolidFill($90000000 + font.color_outline and $ffffff, hbrush);
+      GdipCreateSolidFill($c0000000 + font.color_outline and $ffffff, hbrush);
       GdipFillPath(hgdip, hbrush, path);
       GdipDeleteBrush(hbrush);
       GdipDeletePath(path);
@@ -244,6 +244,7 @@ begin
 
       GdipCreateSolidFill(font.color, hbrush);
       GdipDrawString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, hbrush);
+      GdipDeleteBrush(hbrush);
 
       UpdateLWindow(hWnd, bmp, alpha);
       SetWindowPos(hWnd, hwnd_topmost, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
@@ -251,7 +252,6 @@ begin
       if not Visible and sets.container.HintEffects then SetTimer(hWnd, ID_TIMER, 10, nil);
       Visible := True;
 
-      GdipDeleteBrush(hbrush);
       GdipDeleteFont(hfont);
       GdipDeleteFontFamily(hfontfamily);
       GdipDeleteGraphics(hgdip);

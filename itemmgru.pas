@@ -623,12 +623,12 @@ var
   zoom_minstep: integer;
   zoom_stepcount: integer;
   xstep: integer;
-  need_zoom_items: boolean;
+  doUpdate: boolean;
   item: integer;
   Inst: TCustomItem;
 begin
   if not Enabled then exit;
-  need_zoom_items := false;
+  doUpdate := false;
   zoom_minstep := 2 + ZoomSpeed;
   zoom_stepcount := 9 - ZoomSpeed;
 
@@ -637,7 +637,7 @@ begin
   try
       if Zooming and (ZoomItemSizeDiff < BigItemSize - ItemSize) then
       begin
-        need_zoom_items := true;
+        doUpdate := true;
         xstep := max(abs(BigItemSize - ItemSize - ZoomItemSizeDiff) div zoom_stepcount, zoom_minstep);
         if abs(BigItemSize - ItemSize - ZoomItemSizeDiff) <= zoom_minstep
         then ZoomItemSizeDiff := BigItemSize - ItemSize
@@ -646,13 +646,11 @@ begin
 
       if not Zooming and (ZoomItemSizeDiff > 0) then
       begin
-        need_zoom_items := true;
+        doUpdate := true;
         xstep := max(abs(ZoomItemSizeDiff) div zoom_stepcount, zoom_minstep);
         if abs(ZoomItemSizeDiff) <= zoom_minstep then ZoomItemSizeDiff := 0
         else if ZoomItemSizeDiff > 0 then dec(ZoomItemSizeDiff, round(xstep));
       end;
-
-      if need_zoom_items then ItemsChanged;
   except
     on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
   end;
@@ -668,6 +666,8 @@ begin
   except
     on e: Exception do err('ItemManager.Timer.ItemTimer', e);
   end;
+
+  if doUpdate then ItemsChanged;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetTheme;

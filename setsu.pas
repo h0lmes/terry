@@ -705,13 +705,10 @@ begin
     cdir := GetCurrentDir;
     if not assigned(PluginsList) then PluginsList:= TStringList.Create;
     if not assigned(PluginFilesList) then PluginFilesList:= TStringList.Create;
-
     PluginsList.clear;
     PluginFilesList.clear;
-    AddLog('Sets.ScanPlugins.SearchFilesRecurse');
     toolu.SearchFilesRecurse(PluginsPath, '*.dll', PluginFilesList);
 
-    AddLog('Sets.ScanPlugins.CycleGetInfo');
     i := 0;
     while i < PluginFilesList.Count do
     begin

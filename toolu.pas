@@ -5,6 +5,9 @@ interface
 uses Windows, jwaWindows, Messages, SysUtils, Variants, Classes,
   Graphics, Controls, Forms, Dialogs, ShellAPI, Registry, ComObj, ShlObj, ActiveX;
 
+//function AddClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
+//function RemoveClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
+
 function IsWindowsVista: boolean;
 function IsWin64: boolean;
 function GetFont: string;

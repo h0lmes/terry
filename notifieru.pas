@@ -291,8 +291,6 @@ begin
   try
     if alert then GdipCreateSolidFill($ffff5000, hbrush) else GdipCreateSolidFill($ffffffff, hbrush);
     GdipDrawString(hgdip, PWideChar(WideString(Caption)), -1, caption_font, @caption_rect, nil, hbrush);
-    GdipDeleteBrush(hbrush);
-    if alert then GdipCreateSolidFill($ffff5000, hbrush) else GdipCreateSolidFill($ffffffff, hbrush);
     GdipDrawString(hgdip, PWideChar(WideString(Text)), -1, message_font, @text_rect, nil, hbrush);
     GdipDeleteBrush(hbrush);
   except
@@ -360,6 +358,7 @@ var
   delta: integer;
   set_pos: boolean;
   acoeff: integer;
+  pt: windows.TPoint;
 begin
   if active then
   try
@@ -381,7 +380,11 @@ begin
     if (x <> need_x) or (y <> need_y) then showtime := gettickcount
     else
     if not alert then
-      if gettickcount - showtime > timeout then Close;
+    begin
+      GetCursorPos(pt);
+      if WindowFromPoint(pt) <> hWnd then
+        if gettickcount - showtime > timeout then Close;
+    end;
   except
     on e: Exception do err('Notifier.Timer', e);
   end;

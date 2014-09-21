@@ -96,8 +96,7 @@ procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
-procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
-  margins: windows.TRect; Style: TStretchStyle = ssStretch);
+procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -850,12 +849,13 @@ begin
   result := false;
   srcwidth := 32;
   srcheight := 32;
-  if image = nil then exit;
+  if not assigned(image) then exit;
 
   try
-    imgTemp:= nil;
     GdipGetImageWidth(image, w);
     GdipGetImageHeight(image, h);
+    if h > w then h := w;
+    if w > h then w := h;
     srcwidth := w;
     srcheight := h;
     // downscale image //
