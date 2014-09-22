@@ -11,7 +11,7 @@ object frmDebug: TfrmDebug
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '0.9.30.4'
+  LCLVersion = '1.2.4.0'
   object memo: TMemo
     Left = 10
     Height = 372

@@ -82,10 +82,7 @@ end;
 //------------------------------------------------------------------------------
 function _Notifier.GetMonitorRect(monitor: integer): Windows.TRect;
 begin
-  result.Left := 0;
-  result.Top := 0;
-  result.Right := screen.Width;
-  result.Bottom := screen.Height;
+  result := screen.DesktopRect;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
@@ -104,7 +101,7 @@ begin
       else if length(Text) > 30 then timeout := 11000;
       if current_text = '' then current_text := Text
       else current_text := current_text + #13#10#13#10 + Text;
-      Message_Internal('Terry', current_text, monitor, true);
+      Message_Internal('Terry', current_text, monitor, false);
     end;
   except
     on e: Exception do err('Notifier.Message', e);
@@ -138,18 +135,9 @@ begin
   // context //
   try
     bmp.dc := CreateCompatibleDC(0);
-    if bmp.dc = 0 then
-    begin
-      err('Notifier.Message_Internal'#10#13'Unable to create device context', nil);
-      FActivating := False;
-      exit;
-    end;
+    if bmp.dc = 0 then raise Exception.Create('CreateCompatibleDC failed');
     hgdip := CreateGraphics(bmp.dc, 0);
-    if not assigned(hgdip) then
-    begin
-      err('Notifier.Message_Internal.Context CreateGraphics failed', nil);
-      exit;
-    end;
+    if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
   except
     on e: Exception do
     begin
@@ -268,12 +256,12 @@ begin
 
     GdipClosePathFigure(path);
 
-    if dwm.CompositingEnabled then alpha := $40000000 else alpha := $ff101010;
+    if dwm.CompositingEnabled then alpha := $80000000 else alpha := $ff101010;
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
     GdipDeleteBrush(hbrush);
 
-    GdipCreatePen1($50ffffff, 1, UnitPixel, hpen);
+    GdipCreatePen1($60ffffff, 1, UnitPixel, hpen);
     GdipDrawPath(hgdip, hpen, path);
     GdipDeletePen(hpen);
 
@@ -391,9 +379,21 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _Notifier.Close;
+var
+  bmp: _SimpleBitmap;
 begin
   try
-    Message_Internal('', '', self.monitor, false);
+    //Message_Internal('', '', self.monitor, false);
+    bmp.topleft.x := -1;
+    bmp.topleft.y := -1;
+    bmp.Width := 1;
+    bmp.Height := 1;
+    if gdip_gfx.CreateBitmap(bmp) then
+    begin
+      gdip_gfx.UpdateLWindow(hWnd, bmp, 255);
+      gdip_gfx.DeleteBitmap(bmp);
+    end;
+
     DWM.DisableBlurBehindWindow(hWnd);
     KillTimer(hWnd, ID_TIMER);
     ShowWindow(hWnd, 0);

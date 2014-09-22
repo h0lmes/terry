@@ -436,8 +436,8 @@ msgctxt "TFRMCOLORDATA.LABEL5.CAPTION"
 msgid "Contrast"
 msgstr "Контраст"
 
-#: tfrmdebug.frmdebug.caption
-msgctxt "TFRMDEBUG.FRMDEBUG.CAPTION"
+#: tfrmdebug.caption
+msgctxt "tfrmdebug.caption"
 msgid "Debug info"
 msgstr "Отладочная информация"
 
