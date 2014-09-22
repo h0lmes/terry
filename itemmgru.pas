@@ -170,7 +170,7 @@ type
     procedure PluginAnimate(HWnd: HANDLE);
     procedure SetPluginCaption(HWnd: HANDLE; NewCaption: string);
     function GetPluginCaption(HWnd: HANDLE): string;
-    function GetPluginRect(HWnd: HANDLE): windows.TRect;
+    function GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
     function IsPluginUndocked(HWnd: HANDLE): boolean;
     function IsSeparator(HWnd: HANDLE): boolean;
     function IsTask(HWnd: HANDLE): boolean;
@@ -1911,14 +1911,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetPluginRect(HWnd: HANDLE): windows.TRect;
+function _ItemManager.GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
 var
   Inst: TCustomItem;
 begin
   try
-    result := classes.Rect(0, 0, 0, 0);
+    result := Visible;
+    r := classes.Rect(0, 0, 0, 0);
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then result := Inst.ScreenRect;
+    if Inst is TCustomItem then r := Inst.ScreenRect;
   except
     on e: Exception do err('ItemManager.GetPluginRect', e);
   end;

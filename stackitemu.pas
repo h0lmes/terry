@@ -31,6 +31,8 @@ type
     item: TCustomSubitem;
   end;
 
+  { TStackItem }
+
   TStackItem = class(TCustomItem)
   private
     FRunning: boolean;
@@ -262,8 +264,6 @@ begin
   except
     on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal'#10#13 + e.message);
   end;
-
-  Draw(Fx, Fy, FSize, true, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.UpdateIndicator;
@@ -276,7 +276,7 @@ begin
     FIndicatorW := theme.Indicator.W and $ffff;
     FIndicatorH := theme.Indicator.H and $ffff;
     GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
-    if FRunning then Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    if FRunning then Redraw;
   except
     on e: Exception do raise Exception.Create('StackItem.UpdateIndicator'#10#13 + e.message);
   end;
@@ -307,7 +307,7 @@ begin
           if FRunning and not boolean(param) then
           begin
             FRunning := false;
-            Draw(Fx, Fy, FSize, true, 0, FShowItem);
+            Redraw;
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
@@ -339,7 +339,7 @@ begin
           if b <> FRunning then
           begin
             FRunning := b;
-            Draw(Fx, Fy, FSize, true, 0, FShowItem);
+            Redraw;
           end;
         end;
       icDragEnter: OnDragEnter;
@@ -453,7 +453,7 @@ begin
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if FSelected or (FColorData <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
 
-    if assigned(FPreviewImage) then
+    if assigned(FPreviewImage) and (FState = stsClosed) then
       GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
     if FDropIndicator = 1 then
       if assigned(theme.DropIndicatorAdd.Image) then
@@ -833,7 +833,7 @@ begin
       GdipDeleteGraphics(g);
     end;
 
-    Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    Redraw;
   except
     on e: Exception do raise Exception.Create('StackItem.AddControlPanel'#10#13 + e.message);
   end;
@@ -1052,7 +1052,6 @@ begin
   finally
     FUpdating := false;
   end;
-  //UpdatePreview;
 
   if FItemCount = 0 then exit;
 
@@ -1114,7 +1113,7 @@ begin
       end;
   end
   else
-  if (FState = stsClosing) and (FStateProgress > 0) then
+  if FState = stsClosing then
   begin
       FStateProgress -= step;
       if not FOpenAnimation then FStateProgress := 0;
@@ -1128,6 +1127,7 @@ begin
         AllSubitemsCmd(icSelect, 0);
       end;
       ShowStackState;
+      Redraw;
 
       if FState = stsClosed then
       begin

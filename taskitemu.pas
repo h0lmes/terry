@@ -61,7 +61,6 @@ begin
   try
     try
       FUpdating := true;
-
       FIW := 0;
       FIH := 0;
       if FAppHWnd = THandle(0) then
@@ -74,11 +73,11 @@ begin
     finally
       FUpdating:= false;
     end;
+
+    Redraw;
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
   end;
-
-  Draw(Fx, Fy, FSize, true, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
@@ -216,7 +215,7 @@ begin
     ContextMenu(pt);
   end;
 
-  UpdateItemInternal; // update item icon and text just in case //
+  UpdateItemInternal; // update item icon and text //
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;

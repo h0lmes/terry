@@ -169,7 +169,7 @@ begin
     GdipGetImageHeight(FImage, FIH);
     AutoDeleteImage := AutoDelete;
     //AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
-    if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    if not FFloating then Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ begin
     GdipGetImageHeight(FImage2, FIH2);
     AutoDeleteOverlay := AutoDelete;
     //AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
-    if not FFloating then Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    if not FFloating then Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -365,7 +365,7 @@ begin
     begin
       inc(FAnimationProgress);
       if FAnimationProgress >= FAnimationEnd then FAnimationProgress := 0;
-      draw(Fx, Fy, FSize, true, 0, FShowItem);
+      Redraw;
     end;
   except
     on e: Exception do raise Exception.Create('PluginItem.Timer'#10#13 + e.message);
@@ -455,8 +455,7 @@ end;
 procedure TPluginItem.WndMessage(var msg: TMessage);
 begin
   msg.Result := 0;
-  if FFreed or not assigned(OnWndMessage) then exit;
-
+  if not FFreed and assigned(OnWndMessage) then
   with msg do
   begin
       if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
@@ -464,7 +463,7 @@ begin
         TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
       end;
-      OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
+      if msg = wm_timer then OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

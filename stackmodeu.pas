@@ -59,6 +59,8 @@ const
   PI = 3.14159;
   HSPACE = 50;
   VSPACE = 40;
+  DEFMODE_BIG = 4;
+  DEFMODE_SMALL = 1;
 
 var
   mc: TStackModeController;
@@ -92,7 +94,7 @@ function TStackModeController.GetStep(Mode: integer; ItemCount: integer): extend
 begin
   if mode = 0 then
   begin
-    if itemCount > 15 then mode := 3 else mode := 1;
+    if itemCount > 15 then mode := DEFMODE_BIG else mode := DEFMODE_SMALL;
   end;
   case Mode of
     6, 7:
@@ -112,7 +114,7 @@ var
 begin
   if Mode = 0 then
   begin
-    if ItemCount > 15 then Mode := 3 else Mode := 1;
+    if ItemCount > 15 then Mode := DEFMODE_BIG else Mode := DEFMODE_SMALL;
   end;
 
   if Distort < 1 then Distort := 1;
@@ -288,8 +290,8 @@ begin
   result.angle := 0;
 
   s := 0.9 + (sin(progress * PI / 2) * 0.1);
-  result.alpha := round(255 * s);
-  result.hint_alpha := round(max(s - 0.5, 0) * 510);
+  result.alpha := round(255 * progress); //round(255 * s);
+  result.hint_alpha := round(255 * progress); //round(max(s - 0.5, 0) * 510);
   result.hint_align := 0;
   d := Distort * 3 - 3;
   result.s := ItemSize;

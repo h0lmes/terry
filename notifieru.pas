@@ -354,16 +354,19 @@ begin
     if acoeff < 0 then acoeff := 0;
     if acoeff > 255 then acoeff := 255;
 
-    set_pos := boolean(need_x - x + need_y - y <> 0);
-    delta := abs(need_x - x) div 6;
-    if delta < 1 then delta := 1;
-    if x > need_x then Dec(x, delta);
-    if x < need_x then Inc(x, delta);
-    delta := abs(need_y - y) div 6;
-    if delta < 1 then delta := 1;
-    if y > need_y then Dec(y, delta);
-    if y < need_y then Inc(y, delta);
-    if set_pos then UpdateLWindowPosAlpha(hWnd, x, y, acoeff);
+    set_pos := (need_x <> x) or (need_y <> y);
+    if set_pos then
+    begin
+      delta := abs(need_x - x) div 6;
+      if delta < 1 then delta := 1;
+      if x > need_x then Dec(x, delta);
+      if x < need_x then Inc(x, delta);
+      delta := abs(need_y - y) div 6;
+      if delta < 1 then delta := 1;
+      if y > need_y then Dec(y, delta);
+      if y < need_y then Inc(y, delta);
+      UpdateLWindowPosAlpha(hWnd, x, y, acoeff);
+    end;
 
     if (x <> need_x) or (y <> need_y) then showtime := gettickcount
     else

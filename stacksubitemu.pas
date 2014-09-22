@@ -402,7 +402,7 @@ begin
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
       GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBilinear);
 
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;

@@ -186,11 +186,11 @@ begin
     finally
       FUpdating:= false;
     end;
+
+    Redraw;
   except
     on e: Exception do raise Exception.Create('ShortcutItem.UpdateItemInternal'#10#13 + e.message);
   end;
-
-  Draw(Fx, Fy, FSize, true, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.LoadImageI;
@@ -287,7 +287,7 @@ begin
   begin
     FBitBucketFiles := qty;
     LoadImageI;
-    Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -301,7 +301,7 @@ begin
     FIndicatorW := theme.Indicator.W and $ffff;
     FIndicatorH := theme.Indicator.H and $ffff;
     GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
-    if FRunning then Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    if FRunning then Redraw;
   except
     on e: Exception do raise Exception.Create('ShortcutItem.UpdateIndicator'#10#13 + e.message);
   end;
@@ -331,7 +331,7 @@ begin
           if FRunning and not boolean(param) then
           begin
             FRunning:= false;
-            Draw(Fx, Fy, FSize, true, 0, FShowItem);
+            Redraw;
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
@@ -348,7 +348,7 @@ begin
           if b <> FRunning then
           begin
             FRunning:= b;
-            Draw(Fx, Fy, FSize, true, 0, FShowItem);
+            Redraw;
           end;
         end;
     end;
@@ -580,7 +580,7 @@ begin
     begin
       inc(FAnimationProgress);
       if FAnimationProgress >= FAnimationEnd then FAnimationProgress := 0;
-      draw(Fx, Fy, FSize, true, 0, FShowItem);
+      Redraw;
     end;
   except
     on e: Exception do raise Exception.Create('ShortcutItem.Timer'#10#13 + e.message);

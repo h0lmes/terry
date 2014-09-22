@@ -58,6 +58,7 @@ type TCustomItem = class
     FAnimationProgress: integer; // animation progress 0..FAnimationEnd
 
     procedure Init; virtual;
+    procedure Redraw;
     procedure SetCaption(value: string);
     procedure UpdateHint(Ax: integer = -1000; Ay: integer = -1000);
     function GetRectFromSize(ASize: integer): windows.TRect;
@@ -195,26 +196,26 @@ begin
       gpItemSize:
         begin
           FItemSize := param;
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
       gpBigItemSize:
           FBigItemSize := word(param);
       gpReflection:
         begin
           FReflection := boolean(param);
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
       gpReflectionSize:
         begin
           FReflectionSize := param;
           FBorder := min(max(FReflectionSize, MIN_BORDER), FItemSize);
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
       gpSite:
         if param <> FSite then
         begin
           FSite := param;
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
       gpLockMouseEffect:
         begin
@@ -236,7 +237,7 @@ begin
         if FSelected <> boolean(param) then
         begin
           FSelected := boolean(param);
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
 
       icFloat:
@@ -258,14 +259,14 @@ begin
             FyDocking := FyDockFrom;
             FDockingProgress := 0;
           end;
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
 
       icDropIndicator:
         if FDropIndicator <> param then
         begin
           FDropIndicator := param;
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
+          Redraw;
         end;
 
       icHover: MouseHover(boolean(param));
@@ -278,6 +279,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TCustomItem.Redraw;
+begin
+  Draw(Fx, Fy, FSize, true, 0, FShowItem);
+end;
+//------------------------------------------------------------------------------
 procedure TCustomItem.Timer;
 begin
   if FFreed or FUpdating then exit;
@@ -288,7 +294,7 @@ begin
     FxDocking := FxDockFrom + round((Fx - FxDockFrom) * FDockingProgress);
     FyDocking := FyDockFrom + round((Fy - FyDockFrom) * FDockingProgress);
     if FDockingProgress >= 1 then need_dock := false;
-    draw(Fx, Fy, FSize, false, 0, FShowItem);
+    Draw(Fx, Fy, FSize, false, 0, FShowItem);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -422,7 +428,7 @@ function TCustomItem.GetScreenRect: windows.TRect;
 var
   r: windows.TRect;
 begin
-  result := GetRectFromSize(FSize);
+  result := GetClientRect;
   GetWindowRect(FHWnd, @r);
   inc(result.Left, r.Left);
   inc(result.Right, r.Left);

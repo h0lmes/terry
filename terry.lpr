@@ -50,6 +50,7 @@ uses
 {$R *.res}
 
 {$undef DEBUG_EXPORTS}
+{$undef DEBUG_LOADGDIPIMAGE}
 
 //------------------------------------------------------------------------------
 procedure inf(where, data: string);
@@ -85,6 +86,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 function DockletGetRect(id: HWND; r: windows.PRect): bool; stdcall;
+var
+  tmp: windows.TRect;
 begin
   {$ifdef DEBUG_EXPORTS} inf('DockletGetRect', inttostr(id)); {$endif}
   result := false;
@@ -92,8 +95,11 @@ begin
     if assigned(frmterry) then
       if assigned(frmterry.ItemMgr) then
       begin
-        r^ := frmterry.ItemMgr.GetPluginRect(id);
-        result := frmterry.ItemMgr.Visible;
+        result := frmterry.ItemMgr.GetPluginRect(id, tmp);
+        r.Left := tmp.left;
+        r.Top := tmp.top;
+        r.Right := tmp.right;
+        r.Bottom := tmp.bottom;
       end;
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletGetRect', e);
@@ -138,15 +144,21 @@ end;
 //------------------------------------------------------------------------------
 function DockletLoadGDIPlusImage(szImage: pchar): Pointer; stdcall;
 var
-  w, h: uint;
+  imagefile: string;
 begin
   {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage1', strpas(szImage)); {$endif}
   result := nil;
   try
-    if szImage <> nil then LoadImage(strpas(szImage), 256, false, false, result, w, h);
+    if szImage <> nil then
+    begin
+      imagefile := UnzipPath(strpas(szImage));
+      {$ifdef DEBUG_LOADGDIPIMAGE} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
+      GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), result);
+    end;
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletLoadGDIPlusImage', e);
   end;
+  {$ifdef DEBUG_LOADGDIPIMAGE} inf('DockletLoadGDIPlusImage', '0x' + inttohex(dword(result), 8)); {$endif}
   {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage2', '0x' + inttohex(dword(result), 8)); {$endif}
 end;
 //------------------------------------------------------------------------------

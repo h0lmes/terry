@@ -48,7 +48,7 @@ begin
     FIW := theme.Separator.W;
     FIH := theme.Separator.H;
     if assigned(theme.Separator.Image) then GdipCloneBitmapAreaI(0, 0, FIW, FIH, PixelFormat32bppPARGB, theme.Separator.Image, FImage);
-    Draw(Fx, Fy, FSize, true, 0, FShowItem);
+    Redraw;
   except
     on e: Exception do raise Exception.Create('SeparatorItem.UpdateItemInternal'#10#13 + e.message);
   end;
@@ -58,14 +58,9 @@ function TSeparatorItem.cmd(id: TGParam; param: integer): integer;
 begin
   try
     result := inherited cmd(id, param);
-
     case id of
       tcThemeChanged: UpdateItemInternal;
-      gpSite:
-        begin
-          UpdateItemInternal;
-          Draw(Fx, Fy, FSize, true, 0, FShowItem);
-        end;
+      gpSite: UpdateItemInternal;
     end;
   except
     on e: Exception do raise Exception.Create('SeparatorItem.Cmd'#10#13 + e.message);
