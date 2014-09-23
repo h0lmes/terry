@@ -802,7 +802,7 @@ begin
 
     PIDL_Free(pidFolder);
   except
-    on e: Exception do raise Exception.Create('StackItem.AddControlPanel'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddSpecialFolder'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -821,21 +821,34 @@ begin
     if (FItemCount > 0) and FPreview then
     begin
       border := round(FBigItemSize / 8);
-      itemSize := round((FBigItemSize - border * 2) / 3);
+      itemSize := (FBigItemSize - border * 2);
+      if FItemCount > 4 then itemSize := round(itemSize / 3)
+      else if FItemCount > 1 then itemSize := round(itemSize / 2);
+
       FPreviewImageW := FBigItemSize and $fff;
       FPreviewImageH := FBigItemSize and $fff;
       GdipCreateBitmapFromScan0(FPreviewImageW, FPreviewImageH, 0, PixelFormat32bppPARGB, nil, FPreviewImage);
       GdipGetImageGraphicsContext(FPreviewImage, g);
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
-      for i := 0 to Math.Min(FItemCount, 9) - 1 do
-        items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 3), border + (itemSize + 1) * (i div 3), itemSize - 2);
+      if FItemCount = 1 then
+         items[0].item.DrawPreview(g, border, border, itemSize - 2);
+      if (FItemCount >= 2) and (FItemCount <= 4) then
+      begin
+        for i := 0 to Math.Min(FItemCount, 4) - 1 do
+          items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
+      end;
+      if FItemCount >= 5 then
+      begin
+        for i := 0 to Math.Min(FItemCount, 9) - 1 do
+          items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 3), border + (itemSize + 1) * (i div 3), itemSize - 2);
+      end;
       GdipDeleteGraphics(g);
     end;
 
     Redraw;
   except
-    on e: Exception do raise Exception.Create('StackItem.AddControlPanel'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdatePreview'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

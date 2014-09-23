@@ -61,6 +61,7 @@ end;
 function DockletIsVisible(id: HWND): bool; stdcall;
 begin
   {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible', inttostr(id)); {$endif}
+
   result := false;
   try
     if assigned(frmterry) then

@@ -291,7 +291,8 @@ begin
 
   s := 0.9 + (sin(progress * PI / 2) * 0.1);
   result.alpha := round(255 * progress); //round(255 * s);
-  result.hint_alpha := round(255 * progress); //round(max(s - 0.5, 0) * 510);
+  result.hint_alpha := round(510 * progress) - 255;
+  if result.hint_alpha < 0 then result.hint_alpha := 0;
   result.hint_align := 0;
   d := Distort * 3 - 3;
   result.s := ItemSize;

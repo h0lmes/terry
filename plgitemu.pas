@@ -2,7 +2,7 @@ unit plgitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Dialogs,
-    IniFiles, GDIPAPI, gdip_gfx, math, declu, customitemu, DockH;
+    IniFiles, GDIPAPI, gdip_gfx, math, dynlibs, declu, customitemu, DockH;
 
 type TPluginItem = class(TCustomItem)
   private
@@ -89,7 +89,7 @@ begin
 
     // load library //
     SetCurrentDir(ExtractFilePath(PluginFile));
-    hLib := LoadLibrary(pchar(PluginFile));
+    hLib := LoadLibrary(PluginFile);
     if hLib = 0 then raise Exception.Create('LoadLibrary(' + PluginFile + ') failed');
     @OnCreate := GetProcAddress(hLib, 'OnCreate');
     @OnSave := GetProcAddress(hLib, 'OnSave');
@@ -135,7 +135,7 @@ begin
   try
     if assigned(OnDestroy) then OnDestroy(lpData, FHWnd);
   except
-    //on e: Exception do raise Exception.Create('PluginItem.OnDestroy'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.OnDestroy'#10#13 + e.message);
   end;
   try if AutoDeleteImage then GdipDisposeImage(FImage);
   except end;

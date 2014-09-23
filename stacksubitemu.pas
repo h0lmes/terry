@@ -109,6 +109,7 @@ type
     LastMouseUp: cardinal;
     procedure UpdateItemI;
     procedure UpdateItemMeasureCaption;
+    procedure UpdateItemRunningState;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
     procedure Exec;
@@ -195,17 +196,7 @@ begin
       tcThemeChanged: if FIndicator <> nil then UpdateIndicator;
 
       // commands //
-
-      icUpdateRunning:
-        begin
-          b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
-          if b and (FIndicator = nil) then UpdateIndicator;
-          if b <> FRunning then
-          begin
-            FRunning := b;
-            if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
-          end;
-        end;
+      icUpdateRunning: UpdateItemRunningState;
     end;
 
   except
@@ -331,6 +322,22 @@ begin
     FCaptionWidth := min(ceil(rect.Width), 150);
     FCaptionHeight := ceil(rect.Height);
     FBorder := FCaptionWidth + FCaptionHeight + 8;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.UpdateItemRunningState;
+var
+  b: boolean;
+begin
+  if length(FCommand) > 0 then
+  begin
+    b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
+    if b and (FIndicator = nil) then UpdateIndicator;
+    if b <> FRunning then
+    begin
+      FRunning := b;
+      if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

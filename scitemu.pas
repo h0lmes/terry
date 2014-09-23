@@ -31,6 +31,7 @@ type
     FBitBucket: boolean;
     FBitBucketFiles: integer;
     procedure UpdateItemI;
+    procedure UpdateItemRunningState;
     procedure LoadImageI;
     procedure BitBucketCheck;
     procedure BitBucketUpdate;
@@ -307,6 +308,22 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TShortcutItem.UpdateItemRunningState;
+var
+  b: boolean;
+begin
+  if length(FCommand) > 0 then
+  begin
+    b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
+    if b and (FIndicator = nil) then UpdateIndicator;
+    if b <> FRunning then
+    begin
+      FRunning:= b;
+      Redraw;
+    end;
+  end;
+end;
+//------------------------------------------------------------------------------
 function TShortcutItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
@@ -339,18 +356,7 @@ begin
       tcThemeChanged: if FIndicator <> nil then UpdateIndicator;
 
       // commands //
-
-      icUpdateRunning:
-        if length(FCommand) > 0 then
-        begin
-          b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
-          if b and (FIndicator = nil) then UpdateIndicator;
-          if b <> FRunning then
-          begin
-            FRunning:= b;
-            Redraw;
-          end;
-        end;
+      icUpdateRunning: UpdateItemRunningState;
     end;
 
   except
