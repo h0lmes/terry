@@ -484,6 +484,12 @@ var
   filecount: integer;
   filename: array [0..MAX_PATH - 1] of char;
 begin
+  try
+    WndMessage(message);
+  except
+    on e: Exception do raise Exception.Create('TCustomItem.WindowProc.WndMessage'#10#13 + e.message);
+  end;
+
   with message do
   begin
     try
@@ -494,12 +500,6 @@ begin
       if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
     except
       on e: Exception do raise Exception.Create('TCustomItem.WindowProc.Pre'#10#13 + e.message);
-    end;
-
-    try
-      WndMessage(message);
-    except
-      on e: Exception do raise Exception.Create('TCustomItem.WindowProc.WndMessage'#10#13 + e.message);
     end;
 
     if (msg >= wm_keyfirst) and (msg <= wm_keylast) then

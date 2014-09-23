@@ -90,7 +90,7 @@ function DockletGetRect(id: HWND; r: windows.PRect): bool; stdcall;
 var
   tmp: windows.TRect;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletGetRect', inttostr(id)); {$endif}
+  //{$ifdef DEBUG_EXPORTS} inf('DockletGetRect', inttostr(id)); {$endif}
   result := false;
   try
     if assigned(frmterry) then
@@ -147,13 +147,13 @@ function DockletLoadGDIPlusImage(szImage: pchar): Pointer; stdcall;
 var
   imagefile: string;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage1', strpas(szImage)); {$endif}
   result := nil;
   try
     if szImage <> nil then
     begin
       imagefile := UnzipPath(strpas(szImage));
       {$ifdef DEBUG_LOADGDIPIMAGE} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
+      {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
       GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), result);
     end;
   except

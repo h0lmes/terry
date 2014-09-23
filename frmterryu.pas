@@ -27,7 +27,7 @@ type
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
     HiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
-    LockList: TList; // disables zooming and related. stores windows' hadles that requested a lock //
+    LockList: TList; // disables zoom and related. stores hadles of windows that have requested a lock //
     crsection: TCriticalSection;
     function CloseQuery: integer;
     procedure MaintainNotForeground;
@@ -72,7 +72,7 @@ type
     MouseOver: boolean;
     InitDone: boolean;
 
-    hHook: uint;
+    hHook: THandle;
     hMenu, hMenuCreate: uint;
 
     procedure Init;
@@ -128,7 +128,7 @@ procedure Tfrmterry.Init;
 var
   i: integer;
   load_err: boolean;
-  sets_file: string;
+  theFile: string;
 begin
   try
     closing := False;
@@ -151,17 +151,22 @@ begin
     FPrevWndProc := Pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
     SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
 
+    // hook //
+    //theFile := UnzipPath('%pp%\hook.dll');
+    //hHook := 0;
+    //if FileExists(theFile) then hHook := LoadLibrary(pchar(theFile));
+
     // Sets //
     AddLog('Init.Sets');
-    sets_file := UnzipPath('%pp%\sets.ini');
+    theFile := UnzipPath('%pp%\sets.ini');
     i := 1;
     while i <= ParamCount do
     begin
-      if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then sets_file := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
+      if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then theFile := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
       inc(i);
     end;
     AddLog('Init.Sets.Create');
-    sets := _Sets.Create(sets_file, UnzipPath('%pp%'), Handle, BaseCmd);
+    sets := _Sets.Create(theFile, UnzipPath('%pp%'), Handle, BaseCmd);
     AddLog('Init.Sets.Load');
     sets.Load;
 
@@ -331,6 +336,7 @@ begin
       LockList.free;
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       FreeObjectInstance(FWndInstance);
+      //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);

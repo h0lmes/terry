@@ -181,6 +181,7 @@ begin
       if AutoDeleteOverlay then
         if assigned(FImage2) then GdipDisposeImage(FImage2);
     except end;
+    //GdipCloneBitmapAreaI(0, 0, 128, 128, PixelFormat32bppPARGB, AOverlay, FImage2);
     FImage2 := AOverlay;
     GdipGetImageWidth(FImage2, FIW2);
     GdipGetImageHeight(FImage2, FIH2);
@@ -463,7 +464,7 @@ begin
         TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
       end;
-      if msg = wm_timer then OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
+      OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------
