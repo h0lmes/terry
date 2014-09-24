@@ -37,6 +37,7 @@ type
     lblCredits3: TLabel;
     lblCredits4: TLabel;
     lblCredits5: TLabel;
+    lblZoomTime: TLabel;
     lbTheme: TListBox;
     memAutorun: TMemo;
     pages: TPageControl;
@@ -44,6 +45,7 @@ type
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
+    tbZoomTime: TTrackBar;
     tbReserveScreenEdgePercent: TTrackBar;
     tbIconSpacing: TTrackBar;
     tbZoomWidth: TTrackBar;
@@ -153,6 +155,7 @@ type
     procedure tbBigIconSizeChange(Sender: TObject);
     procedure tbIconSpacingChange(Sender: TObject);
     procedure tbReserveScreenEdgePercentChange(Sender: TObject);
+    procedure tbZoomTimeChange(Sender: TObject);
     procedure tbZoomWidthChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
     procedure btnLayersEditorClick(Sender: TObject);
@@ -353,6 +356,9 @@ begin
   tbZoomWidth.OnChange := nil;
   tbZoomWidth.Position := sets.container.ZoomWidth div 2;
   tbZoomWidth.OnChange := tbZoomWidthChange;
+  tbZoomTime.OnChange := nil;
+  tbZoomTime.Position := sets.container.ZoomTime;
+  tbZoomTime.OnChange := tbZoomTimeChange;
 
   UpdateItemSizeLabels;
 
@@ -636,12 +642,19 @@ begin
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.tbZoomTimeChange(Sender: TObject);
+begin
+  frmterry.SetParam(gpZoomTime, tbZoomTime.Position);
+  UpdateItemSizeLabels;
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmsets.UpdateItemSizeLabels;
 begin
   lblIconSize.caption := format(XLabelIconSize, [sets.container.itemsize]);
   lblZoomedIconSize.caption := format(XLabelZoomedIconSize, [sets.container.BigItemSize]);
   lblIconSpacing.caption := format(XLabelIconSpacing, [sets.container.ItemSpacing]);
   lblZoomWideness.caption := format(XLabelZoomWidth, [sets.container.ZoomWidth]);
+  lblZoomTime.caption := format(XLabelZoomTime, [sets.container.ZoomTime]);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbZoomItemsClick(Sender: TObject);

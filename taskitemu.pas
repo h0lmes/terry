@@ -165,15 +165,15 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
-      GdipDeleteBrush(brush);
-
       GdipSetCompositingMode(dst, CompositingModeSourceOver);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
       GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
+      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
+      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
+      GdipDeleteBrush(brush);
 
       xBitmap := 0;
       yBitmap := 0;

@@ -29,14 +29,13 @@ type
     ZoomWidth: integer;
     ItemSpacing: integer;
     ZoomItems: boolean; // enables zoom //
-    FZoomSmoothingLevel: integer; // indicates the nuber of transitional frames //
+    ZoomTime: integer;
+    ZoomStartTime: integer; // timestamp when zoming in or out has begun
     Reflection: boolean;
     ReflectionSize: integer;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
-    ZoomSpeed: integer;
-    MoveSpeed: integer;
     // monitor index //
     Monitor: integer;
     BaseSite: TBaseSite;
@@ -190,18 +189,16 @@ begin
   TaskItemCount := 0;
   Zooming := false;
   ZoomItems := false;
-  FZoomSmoothingLevel := 1;
   ItemSize := 40;
   BigItemSize := 90;
   ZoomWidth := 6;
+  ZoomTime := 120;
   ZoomItemSizeDiff := 0;
   Reflection := false;
   Monitor := 0;
   DropDistance := 80;
   DropPlace := NOT_AN_ITEM;
   DropPlaceEx := NOT_AN_ITEM;
-  ZoomSpeed := 1;
-  MoveSpeed := 1;
   LockDragging := false;
   HoverItemHWnd := 0;
   SelectedItemHWnd := 0;
@@ -287,18 +284,7 @@ begin
           ReflectionSize := value;
           ItemsChanged(true);
         end;
-      gpZoomSpeed:
-        begin
-          ZoomSpeed := value;
-          if ZoomSpeed > 6 then ZoomSpeed:= 6;
-          if ZoomSpeed < 1 then ZoomSpeed:= 1;
-        end;
-      gpMoveSpeed:
-        begin
-          MoveSpeed := value;
-          if MoveSpeed > 6 then MoveSpeed:= 6;
-          if MoveSpeed < 1 then MoveSpeed:= 1;
-        end;
+      gpZoomTime: ZoomTime := value;
       gpMonitor:
         begin
           Monitor := value;
@@ -620,36 +606,31 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Timer;
 var
-  zoom_minstep: integer;
-  zoom_stepcount: integer;
-  xstep: integer;
+  elapsed, xstep: integer;
   doUpdate: boolean;
   item: integer;
   Inst: TCustomItem;
 begin
   if not Enabled then exit;
   doUpdate := false;
-  zoom_minstep := 2 + ZoomSpeed;
-  zoom_stepcount := 9 - ZoomSpeed;
 
-  // smooth zoom in/out //
+  // zoom in/out smoothly //
   if ZoomItems or (ZoomItemSizeDiff > 0) then
   try
       if Zooming and (ZoomItemSizeDiff < BigItemSize - ItemSize) then
       begin
         doUpdate := true;
-        xstep := max(abs(BigItemSize - ItemSize - ZoomItemSizeDiff) div zoom_stepcount, zoom_minstep);
-        if abs(BigItemSize - ItemSize - ZoomItemSizeDiff) <= zoom_minstep
-        then ZoomItemSizeDiff := BigItemSize - ItemSize
-        else if ZoomItemSizeDiff < BigItemSize - ItemSize then inc(ZoomItemSizeDiff, round(xstep));
+        elapsed := abs(GetTickCount - ZoomStartTime);
+        if elapsed > ZoomTime then elapsed := ZoomTime;
+        ZoomItemSizeDiff := (BigItemSize - ItemSize) * elapsed div ZoomTime;
       end;
 
       if not Zooming and (ZoomItemSizeDiff > 0) then
       begin
         doUpdate := true;
-        xstep := max(abs(ZoomItemSizeDiff) div zoom_stepcount, zoom_minstep);
-        if abs(ZoomItemSizeDiff) <= zoom_minstep then ZoomItemSizeDiff := 0
-        else if ZoomItemSizeDiff > 0 then dec(ZoomItemSizeDiff, round(xstep));
+        elapsed := abs(GetTickCount - ZoomStartTime);
+        if elapsed > ZoomTime then elapsed := ZoomTime;
+        ZoomItemSizeDiff := BigItemSize - ItemSize - (BigItemSize - ItemSize) * elapsed div ZoomTime;
       end;
   except
     on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
@@ -1412,10 +1393,10 @@ var
   item, saved: extended;
 begin
   try
-    if not enabled then exit;
+    if not enabled or DraggingFile then exit;
 
     item := NOT_AN_ITEM;
-    if Zooming or CheckMouseOn or Dragging or DraggingFile then
+    if Zooming or CheckMouseOn or Dragging then
     begin
       item := ItemFromPoint(x, y, ifthen(Dragging or DraggingFile, DropDistance, 0));
       if item <> NOT_AN_ITEM then
@@ -1425,8 +1406,10 @@ begin
       end;
     end;
 
+    // enter zooming mode //
     if not Zooming and (item <> NOT_AN_ITEM) then
     begin
+      ZoomStartTime := GetTickCount;
       ZoomInOutItem := item;
       Zooming := true;
     end;
@@ -1457,6 +1440,7 @@ begin
   if enabled and (Zooming or do_now) then
   begin
     Zooming := false;
+    ZoomStartTime := GetTickCount;
     if (ItemCount <= 0) or do_now then
     begin
       ZoomItemSizeDiff := 0;

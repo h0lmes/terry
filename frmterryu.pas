@@ -373,6 +373,7 @@ begin
     ItemMgr.SetParam(gpBigItemSize, sets.container.BigItemSize);
     ItemMgr.SetParam(gpZoomItems, integer(sets.container.ZoomItems));
     ItemMgr.SetParam(gpZoomWidth, sets.container.ZoomWidth);
+    ItemMgr.SetParam(gpZoomTime, sets.container.ZoomTime);
     ItemMgr.SetParam(gpItemSpacing, sets.container.ItemSpacing);
     ItemMgr.SetParam(gpReflection, integer(sets.container.Reflection));
     ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
@@ -793,7 +794,7 @@ begin
     begin
       WHMouseMove($fffffff);
       UpdateRunning;
-      if not sets.container.StayOnTop then MaintainNotForeground;
+      MaintainNotForeground;
     end;
 
     if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
@@ -944,11 +945,10 @@ begin
   h := GetWindow(h, GW_HWNDPREV);
 	while h <> 0 do
 	begin
-    if h = handle then exit; // main dock window found first - nothing to do
-    if ItemMgr.IsItem(h) <> 0 then // one of the items is under a dock - adjust dock position
+    if h = handle then exit; // main dock window found - ok and exit
+    if ItemMgr.IsItem(h) <> 0 then // one of the items found (but not the dock yet) - adjust dock position
     begin
       SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-      AddLog('Base.MaintainNotForeground');
       exit;
     end;
     h := GetWindow(h, GW_HWNDPREV);

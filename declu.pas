@@ -15,6 +15,7 @@ type
     gpZoomWidth,
     gpItemSpacing,
     gpZoomItems,
+    gpZoomTime,
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
     gpTaskbar,
@@ -38,8 +39,6 @@ type
     gpAutoHideOnFullScreenApp,
     gpUseShellContextMenus,
     gpBaseAlpha,
-    gpZoomSpeed,
-    gpMoveSpeed,
     gpActivateInvokedApps,
     gpMonitor,
     gpAutoShowTime,
@@ -224,6 +223,7 @@ resourcestring
   XLabelZoomedIconSize = 'Icon size max: %d pt';
   XLabelIconSpacing = 'Icon spacing: %d pt';
   XLabelZoomWidth = 'Zoom width: %d';
+  XLabelZoomTime = 'Zoom time: %d ms';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';
   XPageGeneral = 'General';
   XPagePosition = 'Position';

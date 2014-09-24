@@ -401,15 +401,15 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       dst := CreateGraphics(bmp.dc, 0);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
-      GdipDeleteBrush(brush);
-
       GdipSetCompositingMode(dst, CompositingModeSourceOver);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
       GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBilinear);
+      GdipSetInterpolationMode(dst, InterpolationModeBilinear);
+
+      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
+      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
+      GdipDeleteBrush(brush);
 
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;
@@ -430,6 +430,7 @@ begin
     TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
+    GdipSetCompositingMode(dst, CompositingModeSourceOver);
 
     if FRunning and (AAlpha > 10) then DrawIndicator(dst, xBitmap, yBitmap);
     if AAngle > 0 then GdipResetWorldTransform(dst);

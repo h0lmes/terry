@@ -169,6 +169,10 @@ msgctxt "declu.xlabelzoomediconsize"
 msgid "Icon size max: %d pt"
 msgstr ""
 
+#: declu.xlabelzoomtime
+msgid "Zoom time: %d ms"
+msgstr ""
+
 #: declu.xlabelzoomwidth
 msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
@@ -876,6 +880,10 @@ msgstr ""
 
 #: tfrmsets.lblzoomediconsize.caption
 msgid "Icon size max"
+msgstr ""
+
+#: tfrmsets.lblzoomtime.caption
+msgid "Zoom time"
 msgstr ""
 
 #: tfrmsets.lblzoomwideness.caption

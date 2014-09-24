@@ -18,7 +18,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
@@ -428,9 +428,9 @@ object frmsets: Tfrmsets
       ClientHeight = 492
       ClientWidth = 462
       object lblZoomWideness: TLabel
-        Left = 15
+        Left = 295
         Height = 13
-        Top = 372
+        Top = 317
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -556,9 +556,9 @@ object frmsets: Tfrmsets
         TabOrder = 6
       end
       object tbZoomWidth: TTrackBar
-        Left = 30
+        Left = 310
         Height = 30
-        Top = 392
+        Top = 337
         Width = 106
         Max = 5
         Min = 2
@@ -579,7 +579,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 337
-        Width = 291
+        Width = 250
         Frequency = 2
         Max = 20
         OnChange = tbIconSpacingChange
@@ -595,6 +595,26 @@ object frmsets: Tfrmsets
         Caption = 'Stack open/close animation'
         OnChange = chbStackOpenAnimationChange
         TabOrder = 10
+      end
+      object lblZoomTime: TLabel
+        Left = 15
+        Height = 13
+        Top = 375
+        Width = 49
+        Caption = 'Zoom time'
+        ParentColor = False
+      end
+      object tbZoomTime: TTrackBar
+        Left = 30
+        Height = 30
+        Top = 395
+        Width = 386
+        Frequency = 60
+        Max = 600
+        OnChange = tbZoomTimeChange
+        Position = 0
+        ShowSelRange = False
+        TabOrder = 11
       end
     end
     object tsSystem: TTabSheet
