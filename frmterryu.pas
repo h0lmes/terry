@@ -269,6 +269,8 @@ begin
         execute_cmdline('/apps');
       end;
 
+    dwm.ExcludeFromPeek(Handle);
+
     InitDone := True;
   except
     on e: Exception do err('Base.Init', e);
@@ -532,10 +534,9 @@ var
   mon_rect: Windows.TRect;
   OldMouseOver: boolean;
 begin
-  crsection.Acquire;
+  if not crsection.TryEnter then exit;
+  if not IsLockedMouseEffect and assigned(ItemMgr) and IsWindowVisible(Handle) and not closing then
   try
-    if IsLockedMouseEffect or not assigned(ItemMgr) or not IsWindowVisible(Handle) or closing then exit;
-
     Windows.GetCursorPos(pt);
     if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
     begin

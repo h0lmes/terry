@@ -11,7 +11,7 @@ const
   MAX_SUBITEMS = 64;
   STATE_PROGRESS_MIN = 0.0;
   STATE_PROGRESS_MAX = 1.0;
-  DEFAULT_ANIM_SPEED = 5;
+  DEFAULT_ANIM_SPEED = 4;
   DEFAULT_DISTORT = 1;
 
 type
@@ -1057,34 +1057,25 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.OpenStack;
 begin
-  if FFreed then exit;
-
-  try
-    FUpdating := true;
-    UpdateSpecialFolder;
-  finally
-    FUpdating := false;
+  if not FFreed and (FItemCount > 0) and (FState = stsClosed) then
+  begin
+    try
+      FUpdating := true;
+      UpdateSpecialFolder;
+    finally
+      FUpdating := false;
+    end;
+    FState := stsOpening; // further progress is being done by timer //
   end;
-
-  if FItemCount = 0 then exit;
-
-  CheckDeleteSubitems;
-  if (FState = stsOpen) or (FState = stsOpening) then exit;
-
-  FState := stsOpening; // further progress is being done by timer //
-  LME(true);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.CloseStack;
 begin
-  if FFreed or (FItemCount = 0) then exit;
-
-  cmd(icSelect, 0);
-  if FState = stsClosed then CheckDeleteSubitems;
-  if (FState = stsClosed) or (FState = stsClosing) then exit;
-
-  FState := stsClosing;  // further progress is being done by timer //
-  if FStateProgress <= 0 then LME(false);
+  if not FFreed and (FItemCount > 0) and (FState = stsOpen) then
+  begin
+    cmd(icSelect, 0);
+    FState := stsClosing;  // further progress is being done by timer //
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.DoStateProgress;

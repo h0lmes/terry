@@ -5,6 +5,7 @@ uses windows;
 
 const
   WM_DWMCOMPOSITIONCHANGED = $031E;
+  DWMWA_EXCLUDED_FROM_PEEK = 12;
 
 type
   _DWM_BLURBEHIND = record
@@ -15,25 +16,29 @@ type
   end;
   P_DWM_BLURBEHIND = ^_DWM_BLURBEHIND;
 
-  _DWM = class
+  { TDWMHelper }
+
+  TDWMHelper = class
     private
       IsVista: boolean;
       hDwmLib: uint;
       DwmIsCompositionEnabled: function(pfEnabled: PBoolean): HRESULT; stdcall;
       DwmEnableBlurBehindWindow: function(destWnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
+      DwmSetWindowAttribute: function(Wnd: HWND; dwAttribute: DWORD; pvAttribute: Pointer; cb: DWORD): HRESULT; stdcall;
     public
       constructor Create;
       destructor Destroy; override;
       function CompositingEnabled: boolean;
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
+      procedure ExcludeFromPeek(const AHandle: THandle);
   end;
 
-var DWM: _DWM;
+var DWM: TDWMHelper;
 
 implementation
 //------------------------------------------------------------------------------
-constructor _DWM.Create;
+constructor TDWMHelper.Create;
 var
   VerInfo: TOSVersioninfo;
 begin
@@ -46,16 +51,17 @@ begin
   begin
     @DwmIsCompositionEnabled:= GetProcAddress(hDwmLib, 'DwmIsCompositionEnabled');
     @DwmEnableBlurBehindWindow:= GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
+    @DwmSetWindowAttribute:= GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
   end;
 end;
 //------------------------------------------------------------------------------
-destructor _DWM.Destroy;
+destructor TDWMHelper.Destroy;
 begin
   FreeLibrary(hDwmLib);
   inherited;
 end;
 //------------------------------------------------------------------------------
-function _DWM.CompositingEnabled: boolean;
+function TDWMHelper.CompositingEnabled: boolean;
 var
   enabled: Boolean;
 begin
@@ -64,7 +70,7 @@ begin
   result:= enabled;
 end;
 //------------------------------------------------------------------------------
-procedure _DWM.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
+procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
   bb: _DWM_BLURBEHIND;
 begin
@@ -79,7 +85,7 @@ begin
     DisableBlurBehindWindow(AHandle);
 end;
 //------------------------------------------------------------------------------
-procedure _DWM.DisableBlurBehindWindow(const AHandle: THandle);
+procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
   bb: _DWM_BLURBEHIND;
 begin
@@ -92,8 +98,19 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TDWMHelper.ExcludeFromPeek(const AHandle: THandle);
+var
+  exclude: integer;
+begin
+  if @DwmSetWindowAttribute <> nil then
+  begin
+    exclude := -1;
+    DwmSetWindowAttribute(AHandle, DWMWA_EXCLUDED_FROM_PEEK, @exclude, sizeof(exclude));
+  end;
+end;
+//------------------------------------------------------------------------------
 initialization
-  DWM:= _DWM.Create;
+  DWM:= TDWMHelper.Create;
 finalization
   DWM.free;
 end.

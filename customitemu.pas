@@ -107,7 +107,7 @@ end;
 
 
 implementation
-uses dockh, frmterryu;
+uses dockh, frmterryu, dwm_unit;
 //------------------------------------------------------------------------------
 constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
@@ -122,6 +122,7 @@ begin
     exit;
   end;
 
+  dwm.ExcludeFromPeek(FHWnd);
   SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
   // change window proc
   FWndInstance := MakeObjectInstance(WindowProc);

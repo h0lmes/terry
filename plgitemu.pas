@@ -165,10 +165,10 @@ begin
         if assigned(FImage) then GdipDisposeImage(FImage);
     except end;
     FImage := AImage;
-    GdipGetImageWidth(FImage, FIW);
-    GdipGetImageHeight(FImage, FIH);
-    AutoDeleteImage := AutoDelete;
-    //AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
+    //GdipGetImageWidth(FImage, FIW);
+    //GdipGetImageHeight(FImage, FIH);
+    //AutoDeleteImage := AutoDelete;
+    AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
     if not FFloating then Redraw;
   end;
 end;
@@ -181,12 +181,11 @@ begin
       if AutoDeleteOverlay then
         if assigned(FImage2) then GdipDisposeImage(FImage2);
     except end;
-    //GdipCloneBitmapAreaI(0, 0, 128, 128, PixelFormat32bppPARGB, AOverlay, FImage2);
     FImage2 := AOverlay;
-    GdipGetImageWidth(FImage2, FIW2);
-    GdipGetImageHeight(FImage2, FIH2);
-    AutoDeleteOverlay := AutoDelete;
-    //AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
+    //GdipGetImageWidth(FImage2, FIW2);
+    //GdipGetImageHeight(FImage2, FIH2);
+    //AutoDeleteOverlay := AutoDelete;
+    AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
     if not FFloating then Redraw;
   end;
 end;
@@ -459,11 +458,11 @@ begin
   if not FFreed and assigned(OnWndMessage) then
   with msg do
   begin
-      if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
+      {if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
       begin
         TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
-      end;
+      end;}
       OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
   end;
 end;

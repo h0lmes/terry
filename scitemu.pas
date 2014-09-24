@@ -411,9 +411,9 @@ begin
         if wpi > 0 then
         begin
           DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-          UpdateHint(xReal, yReal);
         end else
           SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        UpdateHint(xReal, yReal);
         exit;
 
       end else

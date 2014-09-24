@@ -719,7 +719,7 @@ begin
 end;
 
 var
-  i, itemPos: integer;
+  i, itemPos, overhead: integer;
   sizeInc: extended;
   offset: extended;
 begin
@@ -733,6 +733,8 @@ begin
     end else begin
       x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
     end;
+    overhead := 0;
+    if Zooming and DraggingFile then overhead := BigItemSize - ItemSize;
 
     // zoomed bubble additional size //
     offset := getHalfBubble;
@@ -757,7 +759,7 @@ begin
       itemPos := i * (ItemSize + ItemSpacing);
       if BaseSite = bsBottom then
       begin
-        items[i].y := FItemArea.Top + ItemSize - items[i].s;
+        items[i].y := FItemArea.Top + ItemSize - items[i].s + overhead;
         items[i].x := x + itemPos;
       end
       else
@@ -775,7 +777,7 @@ begin
       else
       if BaseSite = bsRight then
       begin
-        items[i].x := FItemArea.Left + ItemSize - items[i].s;
+        items[i].x := FItemArea.Left + ItemSize - items[i].s + overhead;
         items[i].y := y + itemPos;
       end;
 
@@ -1570,8 +1572,11 @@ procedure _ItemManager.WMDeactivateApp;
 var
   i: integer;
 begin
-  if not CheckMouseOn then Unzoom;
-  AllItemCmd(icHover, 0);
+  if not CheckMouseOn then
+  begin
+    Unzoom;
+    AllItemCmd(icHover, 0);
+  end;
 
   if Enabled then
   try
