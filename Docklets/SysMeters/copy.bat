@@ -1,0 +1,1 @@
+copy .\sysmeters.dll c:\terry\docklets\sysmeters\sysmeters.dll
