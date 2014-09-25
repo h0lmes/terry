@@ -28,7 +28,6 @@ type
     FFont: _FontData;
 
     FEnabled: boolean;
-    FConfigurable: boolean;
     FUpdating: boolean;
     FSelected: boolean; // when mouse button is down - icon becomes darken //
     FRunning: boolean;
@@ -36,7 +35,7 @@ type
     FSite: integer;
     FItemSize: integer;
     FLaunchInterval: integer;
-    FActivateRunningDefault: boolean;
+    FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
     FLockDragging: boolean;
 
@@ -689,7 +688,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if FActivateRunningDefault and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunning and (GetAsyncKeystate(17) >= 0) then
     begin
       if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
@@ -833,7 +832,7 @@ begin
 
   FItemSize := AParams.ItemSize;
   FLaunchInterval := AParams.LaunchInterval;
-  FActivateRunningDefault := AParams.ActivateRunning;
+  FActivateRunning := AParams.ActivateRunning;
   FSite := AParams.Site;
   FShowHint := AParams.ShowHint;
   FLockDragging := AParams.LockDragging;
@@ -852,7 +851,6 @@ begin
   FSize:= 32;
   FBorder := 8;
   FCaption := '';
-  FConfigurable:= true;
   FUpdating:= false;
   FSelected:= false;
   FRunning:= false;
@@ -882,7 +880,7 @@ begin
       gpSite: FSite := param;
       gpShowHint: FShowHint := boolean(param);
       gpLaunchInterval: FLaunchInterval := param;
-      gpActivateRunning: FActivateRunningDefault := boolean(param);
+      gpActivateRunning: FActivateRunning := boolean(param);
       gpLockDragging: FLockDragging := param <> 0;
 
       // commands //
@@ -1019,89 +1017,66 @@ var
   pos: TSmallPoint;
   ShiftState: TShiftState;
 begin
-  with message do
-  begin
-    pos := TSmallPoint(lParam);
-    ShiftState := [];
-    if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
-    if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
-  end;
+  try
+      with message do
+      begin
+        result := 0;
+        pos := TSmallPoint(lParam);
+        ShiftState := [];
+        if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
+        if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
+      end;
 
-  if message.msg = wm_lbuttondown then
-  begin
-      try
-        SetActiveWindow(FHWndParent);
-        MouseDownPoint.x:= pos.x;
-        MouseDownPoint.y:= pos.y;
-        if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y);
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.NativeWndProc.wm_lbuttondown'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_rbuttondown then
-  begin
-      try
-        SetActiveWindow(FHWndParent);
-        MouseDownPoint.x:= pos.x;
-        MouseDownPoint.y:= pos.y;
-        if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y);
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.NativeWndProc.wm_rbuttondown'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_mbuttondown then
-  begin
-      SetActiveWindow(FHWndParent);
-  end
-  else if message.msg = wm_lbuttonup then
-  begin
-      try
-        if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y);
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.NativeWndProc.wm_lbuttonup'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_rbuttonup then
-  begin
-      try
-        if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y);
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.NativeWndProc.wm_rbuttonup'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_mousemove then
-  begin
-      try
-        if not FLockDragging and (message.wParam and MK_LBUTTON <> 0) then
-        begin
-          if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then BeginDrag;
-        end;
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.WindowProc.wm_mousemove'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_command then
-  begin
-      try
-        WMCommand(message);
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.NativeWndProc.wm_command'#10#13 + e.message);
-      end;
-  end
-  else if message.msg = wm_timer then
-  begin
-      // mouse held //
-      try
-        if message.wParam = ID_TIMER_MOUSEHELD then
-        begin
-          KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-          MouseHeld(mbLeft);
-        end;
-      except
-        on e: Exception do raise Exception.Create('TCustomSubitem.WindowProc.wm_timer.dragdrop'#10#13 + e.message);
-      end;
-  end
-  else if (message.msg = wm_close) or (message.msg = wm_quit) then exit;
+      if message.msg = wm_lbuttondown then
+      begin
+            SetActiveWindow(FHWndParent);
+            MouseDownPoint.x:= pos.x;
+            MouseDownPoint.y:= pos.y;
+            if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y);
+      end
+      else if message.msg = wm_rbuttondown then
+      begin
+            SetActiveWindow(FHWndParent);
+            MouseDownPoint.x:= pos.x;
+            MouseDownPoint.y:= pos.y;
+            if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y);
+      end
+      else if message.msg = wm_mbuttondown then
+      begin
+          SetActiveWindow(FHWndParent);
+      end
+      else if message.msg = wm_lbuttonup then
+      begin
+            if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y);
+      end
+      else if message.msg = wm_rbuttonup then
+      begin
+            if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y);
+      end
+      else if message.msg = wm_mousemove then
+      begin
+            if not FLockDragging and (message.wParam and MK_LBUTTON <> 0) then
+            begin
+              if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then BeginDrag;
+            end;
+      end
+      else if message.msg = wm_command then
+      begin
+            WMCommand(message);
+      end
+      else if message.msg = wm_timer then
+      begin
+            if message.wParam = ID_TIMER_MOUSEHELD then
+            begin
+              KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
+              MouseHeld(mbLeft);
+            end;
+      end
+      else if (message.msg = wm_close) or (message.msg = wm_quit) then exit;
+
+  except
+    on e: Exception do raise Exception.Create('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
+  end;
 
   with message do result := DefWindowProc(hWnd, Msg, wParam, lParam);
 end;

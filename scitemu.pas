@@ -376,7 +376,8 @@ var
   animation_offset_x, animation_offset_y, animation_size: integer;
 begin
   try
-    if FFreed or FUpdating or (FFloating and not AForce) then exit;
+    if FFreed or FUpdating or (FFloating and not AForce)
+       or ((Fx = Ax) and (Fy = Ay) and (FSize = ASize) and (FShowItem = AShowItem) and not AForce and not need_dock) then exit;
     animation_offset_x := 0;
     animation_offset_y := 0;
     animation_size := 0;
@@ -407,7 +408,6 @@ begin
 
       if (FSize = ASize) and not AForce then
       begin
-
         if wpi > 0 then
         begin
           DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
@@ -415,13 +415,11 @@ begin
           SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
         UpdateHint(xReal, yReal);
         exit;
-
       end else
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
-
       UpdateHint(xReal, yReal);
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
@@ -434,7 +432,7 @@ begin
       bmp.width := FSize + ItemRect.Left * 2;
       bmp.height := FSize + ItemRect.Top * 2;
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
+      GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
       GdipSetCompositingMode(dst, CompositingModeSourceOver);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
@@ -511,7 +509,7 @@ begin
       on e: Exception do raise Exception.Create('InitBitmap'#10#13 + e.message);
     end;
 
-    // draw icons //
+    // draw icon //
     TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
@@ -626,7 +624,7 @@ begin
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
-  //AppendMenu(FHMenu, MF_STRING, $f005, PChar(UTF8ToAnsi(XRunAsUser)));
+  AppendMenu(FHMenu, MF_STRING, $f005, PChar(UTF8ToAnsi(XRunAsUser)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
   dockh.DockAddMenu(FHMenu);
@@ -650,19 +648,6 @@ begin
   Result := True;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.WndMessage(var msg: TMessage);
-begin
-  with msg do
-  begin
-      Result := 0;
-
-      if (Msg = WM_TIMER) and (wParam = ID_TIMER_UPDATE_SHORTCUT) then
-      begin
-        if FBitBucket then BitBucketUpdate;
-      end;
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure TShortcutItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 begin
   result := 0;
@@ -676,6 +661,19 @@ begin
     $f005: ProcessHelper.RunAsUser(FCommand, FParams, FDir, FShowCmd);
     $f006..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.WndMessage(var msg: TMessage);
+begin
+  with msg do
+  begin
+      Result := 0;
+
+      if (Msg = WM_TIMER) and (wParam = ID_TIMER_UPDATE_SHORTCUT) then
+      begin
+        if FBitBucket then BitBucketUpdate;
+      end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -699,7 +697,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if FActivateRunningDefault and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunning and (GetAsyncKeystate(17) >= 0) then
     begin
       if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then

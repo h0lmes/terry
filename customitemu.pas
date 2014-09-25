@@ -46,7 +46,7 @@ type TCustomItem = class
     FItemSize: integer;
     FBigItemSize: integer;
     FLaunchInterval: integer;
-    FActivateRunningDefault: boolean;
+    FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
 
     FImage: Pointer;
@@ -133,7 +133,7 @@ begin
   FSize := FItemSize;
   FBigItemSize := AParams.BigItemSize;
   FLaunchInterval := AParams.LaunchInterval;
-  FActivateRunningDefault := AParams.ActivateRunning;
+  FActivateRunning := AParams.ActivateRunning;
   FReflection := AParams.Reflection;
   FReflectionSize := AParams.ReflectionSize;
   FBorder := max(AParams.ReflectionSize, MIN_BORDER);
@@ -230,7 +230,7 @@ begin
         end;
       gpLockDragging: FLockDragging := param <> 0;
       gpLaunchInterval: FLaunchInterval := param;
-      gpActivateRunning: FActivateRunningDefault := boolean(param);
+      gpActivateRunning: FActivateRunning := boolean(param);
 
       // commands //
 
@@ -294,8 +294,8 @@ begin
     FDockingProgress += 0.05;
     FxDocking := FxDockFrom + round((Fx - FxDockFrom) * FDockingProgress);
     FyDocking := FyDockFrom + round((Fy - FyDockFrom) * FDockingProgress);
-    if FDockingProgress >= 1 then need_dock := false;
     Draw(Fx, Fy, FSize, false, 0, FShowItem);
+    if FDockingProgress >= 1 then need_dock := false;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -488,150 +488,110 @@ begin
   try
     WndMessage(message);
   except
-    on e: Exception do raise Exception.Create('TCustomItem.WindowProc.WndMessage'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('CustomItem.WindowProc.WndMessage'#10#13 + e.message);
   end;
 
-  with message do
-  begin
-    try
-      result := 0;
-      pos := TSmallPoint(LParam);
-      ShiftState := [];
-      if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
-      if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
-    except
-      on e: Exception do raise Exception.Create('TCustomItem.WindowProc.Pre'#10#13 + e.message);
+  try
+    with message do
+    begin
+        result := 0;
+        pos := TSmallPoint(LParam);
+        ShiftState := [];
+        if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
+        if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
+
+        if (msg >= wm_keyfirst) and (msg <= wm_keylast) then
+        begin
+          sendmessage(FHWndParent, msg, wParam, lParam);
+          exit;
+        end;
+
+        if msg = wm_lbuttondown then
+        begin
+              MouseDownPoint.x:= pos.x;
+              MouseDownPoint.y:= pos.y;
+              if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y)
+              else sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_rbuttondown then
+        begin
+              MouseDownPoint.x:= pos.x;
+              MouseDownPoint.y:= pos.y;
+              if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y)
+              else sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_lbuttonup then
+        begin
+              cmd(icFloat, 0);
+              if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
+              else sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_rbuttonup then
+        begin
+              if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
+              else sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_lbuttondblclk then
+        begin
+              if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam)
+              else
+              if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_mousemove then
+        begin
+              // undock item (the only place in whole code to undock) //
+              if (FCanDrag and not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
+              begin
+                if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
+                begin
+                  cmd(icFloat, 1);
+                  dockh.Undock(FHWnd);
+                end;
+              end;
+              // dock item //
+              if FFloating and (wParam and MK_LBUTTON = 0) then
+              begin
+                cmd(icFloat, 0);
+                dockh.Dock(FHWnd);
+              end;
+        end
+        else if msg = wm_exitsizemove then
+        begin
+              // dock item //
+              cmd(icFloat, 0);
+              dockh.Dock(FHWnd);
+        end
+        else if msg = wm_command then
+        begin
+              WMCommand(message.wParam, message.lParam, message.Result);
+        end
+        else if msg = wm_timer then
+        begin
+              // mouse held //
+              if wParam = ID_TIMER_MOUSEHELD then
+              begin
+                KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
+                MouseHeld(mbLeft);
+              end;
+        end
+        else if msg = wm_dropfiles then
+        begin
+              filecount := DragQueryFile(wParam, $ffffffff, nil, 0);
+              GetCursorPos(wpt);
+              i := 0;
+              while i < filecount do
+              begin
+                windows.dragQueryFile(wParam, i, pchar(filename), MAX_PATH);
+                if ScreenHitTest(wpt.x, wpt.y) then DropFile(FHWnd, wpt, pchar(filename));
+                inc(i);
+              end;
+        end
+        else if (msg = wm_close) or (msg = wm_quit) then exit;
+
+        message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
     end;
-
-    if (msg >= wm_keyfirst) and (msg <= wm_keylast) then
-    begin
-      sendmessage(FHWndParent, msg, wParam, lParam);
-      exit;
-    end;
-
-    if msg = wm_lbuttondown then
-    begin
-        try
-          MouseDownPoint.x:= pos.x;
-          MouseDownPoint.y:= pos.y;
-          if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y)
-          else sendmessage(FHWndParent, msg, wParam, lParam);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_lbuttondown'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_rbuttondown then
-    begin
-        try
-          MouseDownPoint.x:= pos.x;
-          MouseDownPoint.y:= pos.y;
-          if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y)
-          else sendmessage(FHWndParent, msg, wParam, lParam);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_rbuttondown'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_lbuttonup then
-    begin
-        try
-          cmd(icFloat, 0);
-          if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
-          else sendmessage(FHWndParent, msg, wParam, lParam);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_lbuttonup'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_rbuttonup then
-    begin
-        try
-          if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
-          else sendmessage(FHWndParent, msg, wParam, lParam);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_rbuttonup'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_lbuttondblclk then
-    begin
-        try
-          if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam)
-          else
-          if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_lbuttondblclk'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_mousemove then
-    begin
-        try
-          // undock item (the only place in whole code to undock) //
-          if (FCanDrag and not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
-          begin
-            if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
-            begin
-              cmd(icFloat, 1);
-              dockh.Undock(FHWnd);
-            end;
-          end;
-          // dock item //
-          if FFloating and (wParam and MK_LBUTTON = 0) then
-          begin
-            cmd(icFloat, 0);
-            dockh.Dock(FHWnd);
-          end;
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_mousemove'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_exitsizemove then
-    begin
-        // dock item //
-        try
-          cmd(icFloat, 0);
-          dockh.Dock(FHWnd);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_exitsizemove'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_command then
-    begin
-        try
-          WMCommand(message.wParam, message.lParam, message.Result);
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_command'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_timer then
-    begin
-        // mouse held //
-        try
-          if wParam = ID_TIMER_MOUSEHELD then
-          begin
-            KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-            MouseHeld(mbLeft);
-          end;
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_timer.dragdrop'#10#13 + e.message);
-        end;
-    end
-    else if msg = wm_dropfiles then
-    begin
-        try
-          filecount := DragQueryFile(wParam, $ffffffff, nil, 0);
-          GetCursorPos(wpt);
-          i := 0;
-          while i < filecount do
-          begin
-            windows.dragQueryFile(wParam, i, pchar(filename), MAX_PATH);
-            if ScreenHitTest(wpt.x, wpt.y) then DropFile(FHWnd, wpt, pchar(filename));
-            inc(i);
-          end;
-        except
-          on e: Exception do raise Exception.Create('TCustomItem.WindowProc.wm_dropfiles'#10#13 + e.message);
-        end;
-    end
-    else if (msg = wm_close) or (msg = wm_quit) then exit;
-
-    message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
+  except
+    on e: Exception do raise Exception.Create('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

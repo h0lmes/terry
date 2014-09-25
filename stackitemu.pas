@@ -400,7 +400,6 @@ begin
 
       if (FSize = ASize) and not AForce then
       begin
-
         if wpi > 0 then
         begin
           DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
@@ -408,13 +407,11 @@ begin
         end else
           SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
         exit;
-
       end else
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
-
       UpdateHint(xReal, yReal);
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
@@ -427,7 +424,7 @@ begin
       bmp.width := FSize + ItemRect.Left * 2;
       bmp.height := FSize + ItemRect.Top * 2;
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      if FFloating then dst := CreateGraphics(bmp.dc, ITEM_BACKGROUND) else dst := CreateGraphics(bmp.dc, 0);
+      GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
       GdipSetCompositingMode(dst, CompositingModeSourceOver);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
@@ -857,7 +854,7 @@ begin
   result.ItemSize := FItemSize;
   result.BigItemSize := FItemSize;
   result.LaunchInterval := FLaunchInterval;
-  result.ActivateRunning := FActivateRunningDefault;
+  result.ActivateRunning := FActivateRunning;
   result.UseShellContextMenus := FUseShellContextMenus;
   result.Site := FSite;
   result.Reflection := false;
@@ -1066,6 +1063,7 @@ begin
       FUpdating := false;
     end;
     FState := stsOpening; // further progress is being done by timer //
+    Redraw;
     if FDragOver then LME(true);
   end;
 end;
@@ -1130,9 +1128,9 @@ begin
         LME(false);
         CheckDeleteSubitems;
         AllSubitemsCmd(icSelect, 0);
+        Redraw;
       end;
       ShowStackState;
-      Redraw;
 
       if FState = stsClosed then
       begin

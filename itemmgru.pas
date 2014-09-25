@@ -90,8 +90,6 @@ type
     height: integer;
     widthZoomed: integer;
     heightZoomed: integer;
-    widthOverhead: integer; // used to stabilize file DragOver
-    heightOverhead: integer;
     MonitorRect: Windows.TRect;
     BaseWindowRect: GDIPAPI.TRect; // rect of the dock main window. updated on every RecalcDock //
     BaseImageRect: GDIPAPI.TRect; // rect of the dock image. updated on every RecalcDock //
@@ -700,7 +698,7 @@ begin
 end;
 
 var
-  i, itemPos, overhead: integer;
+  i, itemPos: integer;
   sizeInc: extended;
   offset: extended;
 begin
@@ -714,8 +712,6 @@ begin
     end else begin
       x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
     end;
-    overhead := 0;
-    if Zooming and DraggingFile then overhead := BigItemSize - ItemSize;
 
     // zoomed bubble additional size //
     offset := getHalfBubble;
@@ -740,7 +736,7 @@ begin
       itemPos := i * (ItemSize + ItemSpacing);
       if BaseSite = bsBottom then
       begin
-        items[i].y := FItemArea.Top + ItemSize - items[i].s + overhead;
+        items[i].y := FItemArea.Top + ItemSize - items[i].s;
         items[i].x := x + itemPos;
       end
       else
@@ -758,7 +754,7 @@ begin
       else
       if BaseSite = bsRight then
       begin
-        items[i].x := FItemArea.Left + ItemSize - items[i].s + overhead;
+        items[i].x := FItemArea.Left + ItemSize - items[i].s;
         items[i].y := y + itemPos;
       end;
 
@@ -838,27 +834,19 @@ begin
     height := 0;
     widthZoomed := 0;
     heightZoomed := 0;
-    widthOverhead := 0;
-    heightOverhead := 0;
     // vertical //
     if BaseSiteVertical then
     begin
       width := ItemSize + FItemArea.Left + FItemArea.Right;
       widthZoomed := max(width, ifthen(BaseSite = bsLeft, FItemArea.Left, FItemArea.Right) + ItemSize + ZoomItemSizeDiff);
-      widthOverhead := 0;
-      if Zooming and DraggingFile then widthOverhead := BigItemSize - ItemSize;
     // horizontal //
     end else begin
       height := ItemSize + FItemArea.Top + FItemArea.Bottom;
       heightZoomed := max(height, ifthen(BaseSite = bsTop, FItemArea.Top, FItemArea.Bottom) + ItemSize + ZoomItemSizeDiff);
-      heightOverhead := 0;
-      if Zooming and DraggingFile then heightOverhead := BigItemSize - ItemSize;
     end;
 
     // self XY relative to BaseWindowRect //
-    if BaseSite = bsLeft then x := 0
-    else
-    if BaseSite = bsRight then x := widthOverhead
+    if BaseSiteVertical then x := 0
     else
     begin
       if ItemCount = 0 then
@@ -874,9 +862,7 @@ begin
       end;
     end;
 
-    if BaseSite = bsTop then y := 0
-    else
-    if BaseSite = bsBottom then y := heightOverhead
+    if not BaseSiteVertical then y := 0
     else
     begin
       if ItemCount = 0 then
@@ -903,15 +889,15 @@ begin
     BaseWindowRect.y := MonitorRect.Top;
     if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
     else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width - widthOverhead + sets.wndoffset - sets.container.EdgeOffset
-    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height - heightOverhead + sets.wndoffset - sets.container.EdgeOffset;
+    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width + sets.wndoffset - sets.container.EdgeOffset
+    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height + sets.wndoffset - sets.container.EdgeOffset;
     if BaseSiteVertical then
     begin
-      BaseWindowRect.Width := Width + widthOverhead;
+      BaseWindowRect.Width := Width;
       BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
     end else begin
       BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
-      BaseWindowRect.Height := Height + heightOverhead;
+      BaseWindowRect.Height := Height;
     end;
 
     // finally //
@@ -1392,13 +1378,12 @@ procedure _ItemManager.Zoom(x, y: integer);
 var
   item, saved: extended;
 begin
+  if enabled and not DraggingFile then
   try
-    if not enabled or DraggingFile then exit;
-
     item := NOT_AN_ITEM;
     if Zooming or CheckMouseOn or Dragging then
     begin
-      item := ItemFromPoint(x, y, ifthen(Dragging or DraggingFile, DropDistance, 0));
+      item := ItemFromPoint(x, y, ifthen(Dragging, DropDistance, 0));
       if item <> NOT_AN_ITEM then
       begin
         if item < 0 then item := NOT_AN_ITEM;

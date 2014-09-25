@@ -31,6 +31,7 @@ type
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
     procedure Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
+    procedure MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
     procedure Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
     procedure Close;
     procedure Timer;
@@ -105,6 +106,20 @@ begin
     end;
   except
     on e: Exception do err('Notifier.Message', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _Notifier.MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
+begin
+  try
+    timeout := 8000;
+    if length(Text) > 50 then timeout := 15000
+    else if length(Text) > 30 then timeout := 11000;
+    if replace or (current_text = '') then current_text := Text
+    else current_text := current_text + #13#10#13#10 + Text;
+    Message_Internal('Terry', current_text, monitor, false);
+  except
+    on e: Exception do err('Notifier.MessageNoLog', e);
   end;
 end;
 //------------------------------------------------------------------------------

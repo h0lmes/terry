@@ -434,7 +434,6 @@ begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         sets.Visible := boolean(param);
         Visible := boolean(param);
-        { возможно поможет убрать глюк с проваливанием иногда некоторых значков под Терри }
         if boolean(param) then SetForeground;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
@@ -497,6 +496,7 @@ var
   dwSize: uint;
   ri: RAWINPUT;
 begin
+  message.result := 0;
   case message.msg of
     WM_INPUT:
     begin
@@ -504,12 +504,13 @@ begin
       GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
       if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
         raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
-      if (ri.header.dwType = RIM_TYPEMOUSE) then
+      if ri.header.dwType = RIM_TYPEMOUSE then
       begin
         if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
         if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
         WHMouseMove(0);
       end;
+      exit;
     end;
     WM_TIMER : WMTimer(message);
     WM_USER : WMUser(message);
@@ -985,36 +986,27 @@ begin
       OldBaseWindowRect := ItemMgr.BaseWindowRect;
     end;
 
-    if not RepaintBase then exit;
-
+    if RepaintBase then
     try
+      // prepare a bitmap //
       bmp.topleft.x := ItemMgr.BaseWindowRect.x;
       bmp.topleft.y := ItemMgr.BaseWindowRect.y;
       bmp.Width := ItemMgr.BaseWindowRect.Width;
       bmp.Height := ItemMgr.BaseWindowRect.Height;
-      gdip_gfx.CreateBitmap(bmp);
+      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       hgdip := gdip_gfx.CreateGraphics(bmp.dc);
-
+      if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
       GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
       GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
       GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
-
-      // avoid flickering when dragging a file //
-      if ItemMgr.DraggingFile then
-      begin
-        GdipCreateSolidFill(ITEM_BACKGROUND, hbrush);
-        GdipFillRectangle(hgdip, hbrush, 0, 0, ItemMgr.BaseWindowRect.Width, ItemMgr.BaseWindowRect.Height);
-        GdipDeleteBrush(hbrush);
-      end;
-
       // draw background //
       Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect);
-      // update window //
+      // update dock window //
       UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
 
-      // blur //
+      // deal with blur //
       if dwm.CompositingEnabled and sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
