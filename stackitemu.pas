@@ -1060,6 +1060,7 @@ begin
       FUpdating := false;
     end;
     FState := stsOpening; // further progress is being done by timer //
+    FHideHint := true;
     Redraw;
     if FDragOver then LME(true);
   end;
@@ -1122,6 +1123,7 @@ begin
       begin
         FStateProgress := 0;
         FState := stsClosed;
+        FHideHint := false;
         LME(false);
         CheckDeleteSubitems;
         AllSubitemsCmd(icSelect, 0);

@@ -84,7 +84,7 @@ type
     procedure err(where: string; e: Exception);
     procedure notify(message: string; silent: boolean = False);
     procedure alert(message: string);
-    procedure ActivateHint(hwnd: uint; caption_: string; x, y, direction: integer);
+    procedure ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     function BaseCmd(id: TGParam; param: integer): integer;
     procedure SetParam(id: TGParam; Value: integer);
@@ -1058,15 +1058,15 @@ begin
   else messagebox(handle, pchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.ActivateHint(hwnd: uint; caption_: string; x, y, direction: integer);
+procedure Tfrmterry.ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
 var
   monitor: cardinal;
 begin
   if not closing and not sets.IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.Dragging then
   begin
     if InitDone and not assigned(AHint) then AHint := _Hint.Create;
-    if hwnd = 0 then monitor := MonitorFromWindow(self.Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
-    if assigned(AHint) then AHint.ActivateHint(hwnd, caption_, x, y, direction, monitor);
+    if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
+    if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
   end;
 end;
 //------------------------------------------------------------------------------

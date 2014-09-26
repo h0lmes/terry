@@ -31,7 +31,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure ActivateHint(hwndOwner: uint; caption_: string; x, y, direction, monitor: integer);
+    procedure ActivateHint(hwndOwner: uint; caption_: string; x, y, monitor: integer; ASite: TBaseSite);
     procedure DeactivateHint(hwnd_: uint);
     procedure Timer;
     procedure UnregisterWindowClass;
@@ -114,7 +114,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.ActivateHint(hwndOwner: uint; caption_: string; x, y, direction, monitor: integer);
+procedure _Hint.ActivateHint(hwndOwner: uint; caption_: string; x, y, monitor: integer; ASite: TBaseSite);
 var
   hgdip, hfont, hfontfamily, hbrush, path: Pointer;
   rect: TRectF;
@@ -167,14 +167,13 @@ begin
       awidth := round(rect.Width) + aheight - 4;
       awidth := max(awidth, aheight * 3 div 2);
 
-      if direction = 0 then dec(y, aheight div 2);
-      if direction = 1 then dec(x, awidth div 2);
-      if direction = 2 then
+      if ASite = bsLeft then dec(y, aheight div 2)
+      else if ASite = bsTop then dec(x, awidth div 2)
+      else if ASite = bsRight then
       begin
         dec(y, aheight div 2);
         dec(x, awidth);
-      end;
-      if direction = 3 then
+      end else
       begin
         dec(y, aheight);
         dec(x, awidth div 2);

@@ -38,7 +38,8 @@ type TCustomItem = class
     FDropIndicator: integer;
     FReflection: boolean;
     FReflectionSize: integer;
-    FShowHint: boolean;
+    FShowHint: boolean; // global option
+    FHideHint: boolean; // local option
     FSite: integer;
     FHover: boolean;
     FLockDragging: boolean;
@@ -170,6 +171,7 @@ begin
   FReflectionSize:= 16;
   FBorder := FReflectionSize;
   FShowHint := true;
+  FHideHint := false;
   FSite:= 3;
   FHover:= false;
   FLockMouseEffect:= false;
@@ -380,7 +382,7 @@ var
   do_show: boolean;
 begin
   try
-    do_show := FShowHint and FHover and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
+    do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
       frmterry.DeactivateHint(FHWnd);
@@ -407,7 +409,7 @@ begin
     else
       hy := min(baserect.top - 10, hy - integer(round(FSize / 2) and $ffffffff) - 10);
 
-    frmterry.ActivateHint(FHWnd, FCaption, hx, hy, FSite);
+    frmterry.ActivateHint(FHWnd, FCaption, hx, hy);
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
   end;

@@ -5,15 +5,14 @@
     <PathDelim Value="\"/>
     <General>
       <Flags>
-        <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <Title Value="sysmeters"/>
+      <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
-      <UseXPManifest Value="True"/>
-      <Icon Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <i18n>
       <EnableI18N LFM="False"/>
@@ -21,137 +20,68 @@
     <VersionInfo>
       <StringTable ProductVersion=""/>
     </VersionInfo>
-    <BuildModes Count="1" Active="Default">
+    <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
-      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
-      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
     </PublishOptions>
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <Units Count="3">
+    <Units Count="2">
       <Unit0>
         <Filename Value="sysmeters.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="216"/>
-        <CursorPos X="50" Y="239"/>
-        <UsageCount Value="24"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UnitName Value="sysmeters"/>
       </Unit0>
       <Unit1>
-        <Filename Value="..\..\DockH.pas"/>
+        <Filename Value="cibufferu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="DockH"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="150"/>
-        <CursorPos X="24" Y="53"/>
-        <UsageCount Value="24"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UnitName Value="cibufferu"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="adCpuUsage.pas"/>
-        <UnitName Value="adCpuUsage"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="180"/>
-        <CursorPos X="14" Y="199"/>
-        <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit2>
     </Units>
-    <JumpHistory Count="16" HistoryIndex="15">
-      <Position1>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="40" Column="33" TopLine="28"/>
-      </Position1>
-      <Position2>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="304" Column="12" TopLine="281"/>
-      </Position2>
-      <Position3>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="109" Column="24" TopLine="90"/>
-      </Position3>
-      <Position4>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="295" Column="28" TopLine="272"/>
-      </Position4>
-      <Position5>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="254" Column="36" TopLine="235"/>
-      </Position5>
-      <Position6>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="107" Column="44" TopLine="105"/>
-      </Position6>
-      <Position7>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="97" Column="27" TopLine="91"/>
-      </Position7>
-      <Position8>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="14" Column="3" TopLine="1"/>
-      </Position8>
-      <Position9>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="34" Column="1" TopLine="16"/>
-      </Position9>
-      <Position10>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="255" Column="42" TopLine="236"/>
-      </Position10>
-      <Position11>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="204" Column="3" TopLine="185"/>
-      </Position11>
-      <Position12>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="265" Column="18" TopLine="246"/>
-      </Position12>
-      <Position13>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="244" Column="37" TopLine="225"/>
-      </Position13>
-      <Position14>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="204" Column="3" TopLine="185"/>
-      </Position14>
-      <Position15>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="107" Column="104" TopLine="85"/>
-      </Position15>
-      <Position16>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="242" Column="14" TopLine="218"/>
-      </Position16>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="sysmeters"/>
+    </Target>
     <SearchPaths>
-      <IncludeFiles Value="..\..;$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\.."/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <SyntaxMode Value="Delphi"/>
+        <AllowLabel Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <CodeGeneration>
+      <SmartLinkUnit Value="True"/>
+      <RelocatableUnit Value="True"/>
+      <TargetOS Value="win32"/>
+      <Optimizations>
+        <OptimizationLevel Value="2"/>
+      </Optimizations>
+    </CodeGeneration>
     <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+        <StripSymbols Value="True"/>
+      </Debugging>
+      <LinkSmart Value="True"/>
       <Options>
         <ExecutableType Value="Library"/>
       </Options>
     </Linking>
     <Other>
+      <CompilerMessages>
+        <MsgFileName Value=""/>
+      </CompilerMessages>
       <CompilerPath Value="$(CompPath)"/>
       <ExecuteAfter>
         <Command Value="copy.bat"/>
@@ -172,5 +102,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
