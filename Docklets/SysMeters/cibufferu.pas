@@ -13,6 +13,7 @@ type
   TCIBuffer = record
     buffer: array [0..31] of integer;
     size: integer;
+    count: integer;
     tail: integer;
   end;
 
@@ -28,6 +29,7 @@ var
 begin
   buf.size := asize;
   buf.tail := asize - 1;
+  buf.count := 0;
   for i := 0 to buf.size - 1 do buf.buffer[i] := avalue;
 end;
 
@@ -36,15 +38,17 @@ begin
   inc(buf.tail);
   if buf.tail >= buf.size then buf.tail := 0;
   buf.buffer[buf.tail] := avalue;
+  if buf.count < buf.size then inc(buf.count);
 end;
 
 procedure CIBuffer_Get(var buf: TCIBuffer; aindex: integer; out avalue: integer);
 var
   i: integer;
 begin
-  i := buf.tail + 1;
-  if i >= buf.size then dec(i, buf.size);
-  i := i + aindex;
+  if aindex < 0 then aindex := 0;
+  if aindex >= buf.size then aindex := buf.size - 1;
+
+  i := buf.tail + 1 + aindex;
   if i >= buf.size then dec(i, buf.size);
   avalue := buf.buffer[i];
 end;

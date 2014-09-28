@@ -60,16 +60,7 @@ end;
 //------------------------------------------------------------------------------
 function DockletIsVisible(id: HWND): bool; stdcall;
 begin
-  {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible', inttostr(id)); {$endif}
-
-  result := false;
-  try
-    if assigned(frmterry) then
-      if assigned(frmterry.ItemMgr) then
-        result := frmterry.ItemMgr.Visible;
-  except
-    on e: Exception do if assigned(frmterry) then frmterry.err('DockletIsVisible', e);
-  end;
+  result := IsWindowVisible(frmterry.Handle);
   {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible2', inttostr(id) + ', ' + inttostr(integer(result))); {$endif}
 end;
 //------------------------------------------------------------------------------

@@ -1528,8 +1528,8 @@ begin
   else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))
   else if cmd = 'shutdown' then toolu.ShutDown(ifthen(params = 'force', 5, 1))
   else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))
-  else if cmd = 'suspend' then toolu.SetSuspendState(false, false, false)
-  else if cmd = 'hibernate' then toolu.SetSuspendState(true, false, false)
+  else if cmd = 'suspend' then toolu.SetSuspendState(false)
+  else if cmd = 'hibernate' then toolu.SetSuspendState(true)
   else if cmd = 'kill' then ProcessHelper.Kill(params)
   else if cmd = 'setdisplaymode' then
   begin

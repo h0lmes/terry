@@ -62,7 +62,7 @@ procedure ResolveShortcut(wnd: HWND; var ShortcutPath: string; out params, dir, 
 function BrowseFolder(hWnd: THandle; title, default: string): string;
 procedure FreeAndNil(var Obj);
 function LinkAPI(const module, functionname: string): pointer;
-function SetSuspendState(Hibernate, ForceCritical, DisableWakeEvent: boolean): boolean;
+procedure SetSuspendState(Hibernate: boolean);
 function SetPrivilege(Name: string): boolean;
 procedure SetClipboard(Text: string);
 function GetClipboard: string;
@@ -887,14 +887,15 @@ begin
   else Result := nil;
 end;
 //------------------------------------------------------------------------------
-function SetSuspendState(Hibernate, ForceCritical, DisableWakeEvent: boolean): boolean;
+procedure SetSuspendState(Hibernate: boolean);
 var
-  dummy: function(Hibernate, ForceCritical, DisableWakeEvent: bool): bool;
+  susp: function(Hibernate, ForceCritical, DisableWakeEvent: bool): bool;
 begin
-  if not SetPrivilege('SeShutdownPrivilege') then exit;
-  @dummy := linkAPI('powrprof.dll', 'SetSuspendState');
-  if Assigned(dummy) then Result := dummy(Hibernate, ForceCritical, DisableWakeEvent)
-  else Result := False;
+  if SetPrivilege('SeShutdownPrivilege') then
+  begin
+    @susp := linkAPI('powrprof.dll', 'SetSuspendState');
+    if assigned(susp) then susp(Hibernate, false, false);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure SetClipboard(Text: string);

@@ -8,8 +8,7 @@ uses
   Math,
   DockH in '..\..\DockH.pas',
   GDIPAPI,
-  adCpuUsage,
-  cibufferu;
+  adCpuUsage, cibufferu;
 
 const
   PLUGIN_NAME = 'SysMeters';
@@ -18,6 +17,7 @@ const
   PLUGIN_NOTES = 'System performance monitor';
   GRAPH_COLOR = $c0ffffff;
   BUF_SIZE = 28;
+  ID_TIMER = 1;
 
 type
   TMeterMode = (mmCPU, mmRAM, mmDrive, mmBattery);
@@ -70,7 +70,7 @@ begin
   if loadPercent > 100 then loadPercent := 100;
 end;
 //------------------------------------------------------------------------------
-procedure getBattery(var percent, lifetimeH, lifetimeM: integer; var charging, noBattery: boolean);
+procedure getBattery(var percent, lifetimeH, lifetimeM: integer; var online, charging, noBattery: boolean);
 var
   SysPowerStatus: TSystemPowerStatus;
 begin
@@ -78,10 +78,16 @@ begin
   GetSystemPowerStatus(SysPowerStatus);
   percent := SysPowerStatus.BatteryLifePercent;
   if percent > 100 then percent := 100;
-  lifetimeM := SysPowerStatus.BatteryLifeTime div 60;
-  lifetimeH := lifetimeM div 60;
-  lifetimeM := lifetimeM - lifetimeH * 60;
-  charging := SysPowerStatus.ACLineStatus = 1;
+  lifetimeH := -1;
+  lifetimeM := -1;
+  if SysPowerStatus.BatteryLifeTime <> $ffffffff then
+  begin
+    lifetimeM := SysPowerStatus.BatteryLifeTime div 60;
+    lifetimeH := lifetimeM div 60;
+    lifetimeM := lifetimeM - lifetimeH * 60;
+  end;
+  online := SysPowerStatus.ACLineStatus = 1;
+  charging := SysPowerStatus.BatteryFlag and 8 <> 0;
   noBattery := SysPowerStatus.BatteryFlag and 128 <> 0;
 end;
 //------------------------------------------------------------------------------
@@ -103,57 +109,70 @@ var
   x1, y1, x2, y2: integer;
 begin
   GdipCreatePen1(GRAPH_COLOR, 4, UnitPixel, pen);
-  for i := 0 to buf.size - 2 do
-  begin
-    CIBuffer_Get(buf, i, value1);
-    CIBuffer_Get(buf, i + 1, value2);
-    if (value1 > -1) and (value2 > -1) then
+  if buf.count > 1 then
+    for i := buf.size - buf.count to buf.size - 1 do
     begin
-      x1 := 10 + i * 4 - 2;
-      y1 := 114 - value1 - 2;
-      x2 := 10 + (i + 1) * 4 - 2;
-      y2 := 114 - value2 - 2;
-      GdipDrawLineI(graphics, pen, x1, y1, x2, y2);
+      CIBuffer_Get(buf, i, value1);
+      CIBuffer_Get(buf, i + 1, value2);
+      if (value1 > -1) and (value2 > -1) then
+      begin
+        x1 := 10 + i * 4 - 2;
+        y1 := 114 - value1 - 2;
+        x2 := 10 + (i + 1) * 4 - 2;
+        y2 := 114 - value2 - 2;
+        GdipDrawLineI(graphics, pen, x1, y1, x2, y2);
+      end;
     end;
-  end;
   GdipDeletePen(pen);
 end;
 //------------------------------------------------------------------------------
-procedure DrawText(graphics: Pointer; txt: string);
+procedure DrawText(graphics: Pointer; bottom: boolean; txt: string);
 var
   rect: TRectF;
-  hff, hfont, hbrush: pointer;
+  hff, hfont, hbrush, hformat: pointer;
 begin
-  rect.X := 6;
+  rect.X := 0;
   rect.y := 8;
-  rect.Width := 112;
-  rect.Height := 64;
+  rect.Width := 128;
+  rect.Height := 112;
   GdipCreateFontFamilyFromName(PWideChar(WideString(PChar('Segoe UI'))), nil, hff);
-  GdipCreateFont(hff, 20, 1, 2, hfont);
+  GdipCreateFont(hff, 28, 1, 2, hfont);
+  GdipCreateStringFormat(0, LANG_NEUTRAL, hformat);
+  GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
+  if bottom then GdipSetStringFormatLineAlign(hformat, StringAlignmentFar);
   GdipCreateSolidFill(GRAPH_COLOR, hbrush);
-  GdipDrawString(graphics, PWideChar(WideString(txt)), -1, hfont, @rect, nil, hbrush);
+  GdipDrawString(graphics, PWideChar(WideString(txt)), -1, hfont, @rect, hformat, hbrush);
   GdipDeleteBrush(hbrush);
+  GdipDeleteStringFormat(hformat);
   GdipDeleteFont(hfont);
   GdipDeleteFontFamily(hff);
 end;
 //------------------------------------------------------------------------------
 procedure Battery(data: PData);
+  function inttostrf(i: integer): string;
+  begin
+    if i > 9 then result := inttostr(i) else result := '0' + inttostr(i);
+  end;
+
 var
   percent, lifetimeH, lifetimeM: integer;
-  charging, noBattery: boolean;
+  online, charging, noBattery: boolean;
   caption: string;
   overlay, g: pointer;
 begin
-  getBattery(percent, lifetimeH, lifetimeM, charging, noBattery);
+  getBattery(percent, lifetimeH, lifetimeM, online, charging, noBattery);
   if noBattery then percent := -1;
   CIBuffer_Put(data.buf, percent);
 
   if noBattery then caption := 'no battery'
   else
   begin
-    caption := inttostr(lifetimeH) + ':' + inttostr(lifetimeM) + ' ' + inttostr(percent) + '%';
-    if charging and (percent < 100) then caption := caption + ' (charging)';
-    if charging and (percent = 100) then caption := caption + ' (AC power)';
+    caption := '';
+    if not online and (lifetimeH <> -1) then caption := inttostr(lifetimeH) + ':' + inttostrf(lifetimeM) + ' hours ';
+    caption := caption + inttostr(percent) + '%';
+    if not online then caption := caption + ' remaining';
+    if online then caption := caption + ', AC online';
+    if charging then caption := caption + ', charging';
   end;
   if data.caption <> caption then
   begin
@@ -163,7 +182,7 @@ begin
 
   NewBitmap(overlay, g);
   DrawGraph(g, data.buf);
-  if noBattery then DrawText(g, 'N/A') else DrawText(g, 'Batt. ' + inttostr(percent) + '%');
+  if noBattery then DrawText(g, false, 'N/A') else DrawText(g, percent > 50, inttostr(percent) + '%');
   GdipDeleteGraphics(g);
   DockletSetImageOverlay(data.hwnd, overlay, true);
 end;
@@ -177,7 +196,7 @@ begin
   getCpu(percent);
   CIBuffer_Put(data.buf, percent);
 
-  caption := 'CPU load ' + inttostr(percent) + '%';
+  caption := 'CPU usage ' + inttostr(percent) + '%';
   if data.caption <> caption then
   begin
     data.caption := caption;
@@ -186,7 +205,7 @@ begin
 
   NewBitmap(overlay, g);
   DrawGraph(g, data.buf);
-  DrawText(g, 'CPU ' + inttostr(percent) + '%');
+  DrawText(g, false, inttostr(percent) + '%');
   GdipDeleteGraphics(g);
   DockletSetImageOverlay(data.hwnd, overlay, true);
 end;
@@ -200,7 +219,7 @@ begin
   getRam(percent, freeMB);
   CIBuffer_Put(data.buf, percent);
 
-  caption := 'RAM load ' + inttostr(percent) + '% (free ' + floattostr(freeMB) + ' MB)';
+  caption := 'RAM usage ' + inttostr(percent) + '% (free ' + floattostr(freeMB) + ' MB)';
   if data.caption <> caption then
   begin
     data.caption := caption;
@@ -209,7 +228,7 @@ begin
 
   NewBitmap(overlay, g);
   DrawGraph(g, data.buf);
-  DrawText(g, 'RAM ' + inttostr(percent) + '%');
+  DrawText(g, percent > 50, inttostr(percent) + '%');
   GdipDeleteGraphics(g);
   DockletSetImageOverlay(data.hwnd, overlay, true);
 end;
@@ -224,7 +243,7 @@ begin
   getDrive(data.letter, percent, freeGB);
   CIBuffer_Put(data.buf, percent);
 
-  if percent >= 0 then caption := data.letter + ': load ' + inttostr(percent) + '% (free ' + formatfloat('### ##0.0#', freeGB) + ' GB)'
+  if percent >= 0 then caption := data.letter + ': usage ' + inttostr(percent) + '% (free ' + formatfloat('### ##0.0#', freeGB) + ' GB)'
   else caption := data.letter + ': not found';
   if data.caption <> caption then
   begin
@@ -234,7 +253,23 @@ begin
 
   NewBitmap(overlay, g);
   DrawGraph(g, data.buf);
-  if percent < 0 then DrawText(g, data.letter + ': N/A') else DrawText(g, data.letter + ': ' + formatfloat('### ##0.0#', freeGB) + ' GB');
+  if percent < 0 then caption := data.letter + ': N/A'
+  else
+  begin
+    if freeGB >= 1000 then
+    begin
+      freeGB := freeGB / 1024;
+      caption := formatfloat('#0.0', freeGB) + 'TB';
+    end else
+    if freeGB >= 100 then
+    begin
+      caption := inttostr(round(freeGB)) + 'GB';
+    end else
+    begin
+      caption := formatfloat('#0.0', freeGB) + 'GB';
+    end;
+  end;
+  DrawText(g, percent > 50, caption);
   GdipDeleteGraphics(g);
   DockletSetImageOverlay(data.hwnd, overlay, true);
 end;
@@ -247,16 +282,6 @@ begin
   else if data.mode = mmDrive then Drive(data);
 end;
 //------------------------------------------------------------------------------
-procedure SetBackground(lpData: PData);
-var
-  tmp: array [0..MAX_PATH - 1] of char;
-begin
-  FillChar(tmp, MAX_PATH, 0);
-  strcat(@tmp, @lpData.PluginRoot);
-  strcat(@tmp, pchar('bg.png'));
-  DockletSetImageFile(lpData.hwnd, @tmp);
-end;
-//------------------------------------------------------------------------------
 procedure OnProcessMessage(lpData: PData; hwnd, uMsg: uint; wParam: WPARAM; lParam: LPARAM); stdcall;
 begin
   if uMsg = WM_TIMER then
@@ -267,12 +292,28 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure OnGetInformation(szName, szAuthor: pchar; iVersion: PInteger; szNotes: pchar); stdcall;
+procedure SetMode(data: PData; mode: TMeterMode);
+var
+  interval: cardinal;
 begin
-  strcopy(szName, PLUGIN_NAME);
-  strcopy(szAuthor, PLUGIN_AUTHOR);
-  iVersion^ := PLUGIN_VERSION;
-  strcopy(szNotes, PLUGIN_NOTES);
+  KillTimer(data.hWnd, ID_TIMER);
+  data.mode := mode;
+  CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
+  Work(data); // update immediately
+  interval := 1000;
+  if data.mode = mmBattery then interval := 5000
+  else if data.mode = mmDrive then interval := 5000;
+  SetTimer(data.hWnd, ID_TIMER, interval, nil);
+end;
+//------------------------------------------------------------------------------
+procedure SetBackground(lpData: PData);
+var
+  tmp: array [0..MAX_PATH - 1] of char;
+begin
+  FillChar(tmp, MAX_PATH, 0);
+  strcat(@tmp, @lpData.PluginRoot);
+  strcat(@tmp, pchar('bg.png'));
+  DockletSetImageFile(lpData.hwnd, @tmp);
 end;
 //------------------------------------------------------------------------------
 function OnCreate(hwnd, hInstance: uint; szIni, szIniGroup: pchar): PData; stdcall;
@@ -285,7 +326,6 @@ begin
     New(Instance);
     Instance.hwnd := hwnd;
     Instance.mode := mmCPU;
-    CIBuffer_Init(Instance.buf, BUF_SIZE, -1);
     result := Instance;
 
     FillChar(Instance.PluginRoot, MAX_PATH, 0);
@@ -304,8 +344,7 @@ begin
       Instance.letter := szRet[0];
     end;
 
-    Work(Instance);
-    SetTimer(hWnd, 1, 1000, nil);
+    SetMode(Instance, Instance.mode);
   except
     messagebox(hwnd, pchar(SysErrorMessage(GetLastError)), PLUGIN_NAME, mb_iconexclamation);
   end;
@@ -366,23 +405,25 @@ begin
     cmd := integer(TrackPopupMenuEx(hMenu, TPM_RETURNCMD, pt.x, pt.y, data.hwnd, nil));
     DockletLockMouseEffect(data.hWnd, false);
 
-    if cmd = 1 then data.mode := mmBattery;
-    if cmd = 2 then data.mode := mmCPU;
-    if cmd = 3 then data.mode := mmRAM;
+    if cmd = 1 then SetMode(data, mmBattery);
+    if cmd = 2 then SetMode(data, mmCPU);
+    if cmd = 3 then SetMode(data, mmRAM);
     if cmd > $100 then
     begin
-      data.mode := mmDrive;
       data.letter := drives[cmd - $100];
-    end;
-
-    if cmd > 0 then
-    begin
-      CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
-      dockh.DockletSetImageOverlay(data.hwnd, nil, true); // reset overlay
+      SetMode(data, mmDrive);
     end;
   finally
     DestroyMenu(hMenu);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure OnGetInformation(szName, szAuthor: pchar; iVersion: PInteger; szNotes: pchar); stdcall;
+begin
+  strcopy(szName, PLUGIN_NAME);
+  strcopy(szAuthor, PLUGIN_AUTHOR);
+  iVersion^ := PLUGIN_VERSION;
+  strcopy(szNotes, PLUGIN_NOTES);
 end;
 //------------------------------------------------------------------------------
 exports OnProcessMessage, OnGetInformation, OnCreate, OnDestroy, OnSave,
