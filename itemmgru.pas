@@ -132,6 +132,7 @@ type
     procedure Clear;
     procedure ClearDeleted;
     procedure UnDelete;
+    procedure CheckDeleted;
     function ZOrder(InsertAfter: uint): uint;
     procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
@@ -482,6 +483,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
+// clears the entire items array //
 procedure _ItemManager.Clear;
 var
   i: integer;
@@ -504,6 +506,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// clears the "deleted items" array //
 procedure _ItemManager.ClearDeleted;
 var
   i: integer;
@@ -522,7 +525,30 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// restores deleted items //
 procedure _ItemManager.UnDelete;
+var
+  h: THandle;
+  i: integer;
+  Inst: TCustomItem;
+begin
+  try
+    CheckDeleted;
+
+    // restore most recent deleted item //
+    if itemsDeleted.Count > 0 then
+    begin
+      DockAdd(THandle(itemsDeleted.Items[itemsDeleted.Count - 1]));
+      itemsDeleted.Delete(itemsDeleted.Count - 1);
+      ItemsChanged;
+    end;
+  except
+    on e: Exception do err('ItemManager.UnDelete', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+// clears out unwanted items from "deleted items" array //
+procedure _ItemManager.CheckDeleted;
 var
   h: THandle;
   i: integer;
@@ -531,7 +557,6 @@ begin
   try
     // clear task items //
     if itemsDeleted.Count > 0 then
-    begin
       for i := itemsDeleted.Count - 1 downto 0 do
       begin
         h := THandle(itemsDeleted.Items[i]);
@@ -542,15 +567,6 @@ begin
           itemsDeleted.Delete(i);
         end;
       end;
-    end;
-
-    // restore most recent item //
-    if itemsDeleted.Count > 0 then
-    begin
-      DockAdd(THandle(itemsDeleted.Items[itemsDeleted.Count - 1]));
-      itemsDeleted.Delete(itemsDeleted.Count - 1);
-      ItemsChanged;
-    end;
   except
     on e: Exception do err('ItemManager.UnDelete', e);
   end;

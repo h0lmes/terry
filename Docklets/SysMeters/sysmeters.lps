@@ -12,8 +12,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="24" Y="11"/>
+        <TopLine Value="278"/>
+        <CursorPos X="36" Y="298"/>
         <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -43,7 +43,7 @@
     <General>
       <ActiveWindowIndexAtStart Value="0"/>
     </General>
-    <JumpHistory Count="7" HistoryIndex="6">
+    <JumpHistory Count="8" HistoryIndex="7">
       <Position1>
         <Filename Value="sysmeters.lpr"/>
         <Caret Line="241" Column="50" TopLine="229"/>
@@ -72,6 +72,10 @@
         <Filename Value="cibufferu.pas"/>
         <Caret Line="17" Column="9" TopLine="1"/>
       </Position7>
+      <Position8>
+        <Filename Value="sysmeters.lpr"/>
+        <Caret Line="301" Column="70" TopLine="265"/>
+      </Position8>
     </JumpHistory>
   </ProjectSession>
   <EditorMacros Count="0"/>

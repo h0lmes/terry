@@ -14,7 +14,6 @@ function GetFont: string;
 function GetContentFont: string;
 function GetFontSize: integer;
 function GetContentFontSize: integer;
-function CreateAFont(Name: string; size: integer): HFont;
 function cut(itext, ch: string): string;
 function cutafter(itext, ch: string): string;
 procedure split(itext, ch: string; var str1, str2: string);
@@ -25,8 +24,6 @@ function FetchValue(itext: string; Value, delim: string): string;
 function PosEx(Value, atext: string; startpos: integer): integer;
 function cuttolast(itext, ch: string): string;
 function cutafterlast(itext, ch: string): string;
-function IsValidItemString(str: string): boolean;
-function IsValidShortcutString(str: string): boolean;
 function StringToRect(str: string): Windows.Trect;
 function RectToString(r: Windows.Trect): string;
 function StringToSize(str: string): Windows.TSize;
@@ -46,9 +43,8 @@ function CheckRunAsAdmin(filename: string): boolean;
 procedure SetRunAsAdmin(filename: string; enable: boolean);
 function GetWinVersion: string;
 procedure ShutDown(mode: integer);
-function GetUser: string;
+function SetPrivilege(Name: string): boolean;
 procedure GetFileVersion(filename: string; var maj, min, Release, build: integer);
-procedure AllowSetForeground(hWnd: HWND);
 function GetEnvVar(VarName: string): string;
 function FindFile(filename: string): string;
 function FindFilePF(filename: string): string;
@@ -61,9 +57,6 @@ procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16;
 procedure ResolveShortcut(wnd: HWND; var ShortcutPath: string; out params, dir, icon: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
 procedure FreeAndNil(var Obj);
-function LinkAPI(const module, functionname: string): pointer;
-procedure SetSuspendState(Hibernate: boolean);
-function SetPrivilege(Name: string): boolean;
 procedure SetClipboard(Text: string);
 function GetClipboard: string;
 function ColorToString(Color: uint): string;
@@ -77,7 +70,6 @@ procedure TruncLog(fs: TFileStream);
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
 
 implementation
-
 //------------------------------------------------------------------------------
 function IsWindowsVista: boolean;
 var
@@ -133,12 +125,6 @@ begin
     if IsWindowsVista then Result := 10;
   except
   end;
-end;
-//------------------------------------------------------------------------------
-function CreateAFont(Name: string; size: integer): HFont;
-begin
-  Result := CreateFont(size, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0,
-    0, PROOF_QUALITY, 0, PChar(Name));
 end;
 //------------------------------------------------------------------------------
 function cut(itext, ch: string): string;
@@ -322,44 +308,22 @@ begin
   Result := itext;
 end;
 //------------------------------------------------------------------------------
-function IsValidItemString(str: string): boolean;
-var
-  classname: string;
-begin
-  classname := FetchValue(str, 'class="', '";');
-  result := (classname = 'shortcut') or (classname = 'separator') or (classname = 'plugin') or (classname = 'stack');
-end;
-//------------------------------------------------------------------------------
-function IsValidShortcutString(str: string): boolean;
-begin
-  result := FetchValue(str, 'class="', '";') = 'shortcut';
-end;
-//------------------------------------------------------------------------------
 function StringToRect(str: string): Windows.Trect;
 begin
   Result := rect(0, 0, 0, 0);
-  try
-    Result.left := StrToInt(trim(fetch(str, ',', True)));
-  except
-  end;
-  try
-    Result.top := StrToInt(trim(fetch(str, ',', True)));
-  except
-  end;
-  try
-    Result.right := StrToInt(trim(fetch(str, ',', True)));
-  except
-  end;
-  try
-    Result.bottom := StrToInt(trim(fetch(str, ')')));
-  except
-  end;
+  try Result.left := StrToInt(trim(fetch(str, ',', True)));
+  except end;
+  try Result.top := StrToInt(trim(fetch(str, ',', True)));
+  except end;
+  try Result.right := StrToInt(trim(fetch(str, ',', True)));
+  except end;
+  try Result.bottom := StrToInt(trim(fetch(str, ')')));
+  except end;
 end;
 //------------------------------------------------------------------------------
 function RectToString(r: Windows.Trect): string;
 begin
-  Result := IntToStr(r.left) + ',' + IntToStr(r.top) + ',' + IntToStr(r.right) +
-    ',' + IntToStr(r.bottom);
+  Result := IntToStr(r.left) + ',' + IntToStr(r.top) + ',' + IntToStr(r.right) + ',' + IntToStr(r.bottom);
 end;
 //------------------------------------------------------------------------------
 function StringToSize(str: string): Windows.TSize;
@@ -369,8 +333,7 @@ begin
   try
     Result.cx := StrToInt(trim(cut(str, ',')));
     Result.cy := StrToInt(trim(cutafter(str, ',')));
-  except
-  end;
+  except end;
 end;
 //------------------------------------------------------------------------------
 function SizeToString(r: Windows.TSize): string;
@@ -384,8 +347,7 @@ begin
   try
     Result.x := StrToInt(trim(cut(str, ',')));
     Result.y := StrToInt(trim(cutafter(str, ',')));
-  except
-  end;
+  except end;
 end;
 //------------------------------------------------------------------------------
 function SetRange(value, min, max: integer): integer;
@@ -503,7 +465,7 @@ var
   reg: Treginifile;
 begin
   reg := Treginifile.Create;
-  reg.RootKey := HKEY_current_user;
+  reg.RootKey := HKEY_CURRENT_USER;
   Result := AnsiUpperCase(reg.ReadString(
     'Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename), '')) = 'RUNASADMIN';
   reg.Free;
@@ -514,11 +476,10 @@ var
   reg: Treginifile;
 begin
   reg := Treginifile.Create;
-  reg.RootKey := HKEY_current_user;
-  reg.lazywrite := False;
+  reg.RootKey := HKEY_CURRENT_USER;
+  reg.lazywrite := false;
   reg.DeleteKey('Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename));
-  if enable then reg.WriteString('Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers',
-      AnsiLowerCase(filename), 'RUNASADMIN');
+  if enable then reg.WriteString('Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename), 'RUNASADMIN');
   reg.Free;
 end;
 //------------------------------------------------------------------------------
@@ -527,8 +488,8 @@ var
   reg: Treginifile;
 begin
   reg := Treginifile.Create;
-  reg.RootKey := HKEY_current_user;
-  result := (reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, '') = ParamStr(0));
+  reg.RootKey := HKEY_CURRENT_USER;
+  result := reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, '') = ParamStr(0);
   reg.Free;
 end;
 //----------------------------------------------------------------------
@@ -537,8 +498,8 @@ var
   reg: Treginifile;
 begin
   reg := Treginifile.Create;
-  reg.RootKey := HKEY_current_user;
-  reg.lazywrite := False;
+  reg.RootKey := HKEY_CURRENT_USER;
+  reg.lazywrite := false;
   if reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, '') <> '' then
     reg.DeleteKey('Software\Microsoft\Windows\CurrentVersion\Run', application.title);
   if enable then reg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, ParamStr(0));
@@ -560,8 +521,7 @@ begin
         VER_PLATFORM_WIN32_NT: Result := 'Windows NT';
       end;
       Result := Result + ' Version ' + IntToStr(dwMajorVersion) + '.' +
-        IntToStr(dwMinorVersion) + ' (Build ' + IntToStr(dwBuildNumber) +
-        ': ' + szCSDVersion + ')';
+        IntToStr(dwMinorVersion) + ' (Build ' + IntToStr(dwBuildNumber) + ': ' + szCSDVersion + ')';
     end;
   end
   else
@@ -588,18 +548,6 @@ begin
   tkp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
   Windows.AdjustTokenPrivileges(hToken, False, tkp, sizeof(TTokenPrivileges), tkpo, rl);
   Result := GetLastError() = 0;
-end;
-//----------------------------------------------------------------------
-function getuser: string;
-var
-  len: uint;
-  charr: array [0..255] of char;
-begin
-  len := 255;
-  if GetUserName(@charr[0], len) then
-    Result := strpas(@charr[0])
-  else
-    Result := '';
 end;
 //----------------------------------------------------------------------
 procedure GetFileVersion(filename: string; var maj, min, Release, build: integer);
@@ -633,20 +581,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure AllowSetForeground(hWnd: HWND);
-var
-  AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
-  dwProcess: dword;
-begin
-  AllowSetForegroundWindow := LinkAPI('USER32.DLL', 'AllowSetForegroundWindow');
-  if assigned(AllowSetForegroundWindow) then
-  begin
-    dwProcess := 0;
-    GetWindowThreadProcessId(hWnd, @dwProcess);
-    AllowSetForegroundWindow(dwProcess);
-  end;
-end;
-//------------------------------------------------------------------------------
 function GetEnvVar(VarName: string): string;
 var
   i: integer;
@@ -669,22 +603,19 @@ var
   HaveExt: boolean;
 begin
   Result := filename;
-  if fileexists(filename) then
-    exit;
+  if fileexists(filename) then exit;
 
   // search evironment vars //
   PathVar := GetEnvVar('path');
   HaveExt := ExtractFileExt(filename) <> '';
-  if not HaveExt then
-    ExtVar := AnsiLowerCase(GetEnvVar('pathext'));
+  if not HaveExt then ExtVar := AnsiLowerCase(GetEnvVar('pathext'));
   while PathVar <> '' do
   begin
     Path := IncludeTrailingPathDelimiter(fetch(PathVar, ';', True));
     if HaveExt then
     begin
       Result := Path + filename;
-      if fileexists(Result) then
-        exit;
+      if fileexists(Result) then exit;
     end
     else
     begin
@@ -693,8 +624,7 @@ begin
       begin
         Ext := fetch(TempExtVar, ';', True);
         Result := Path + filename + Ext;
-        if fileexists(Result) then
-          exit;
+        if fileexists(Result) then exit;
       end;
     end;
   end;
@@ -709,7 +639,7 @@ begin
   if fileexists(filename) then exit;
   list := TStringList.Create;
   searchfilesrecurse(UnzipPath('%pf%'), filename + '.exe', list, 1, 3, 1);
-  searchfilesrecurse(UnzipPath('%pf% (x86)'), filename + '.exe', list, 1, 3, 1);
+  searchfilesrecurse(UnzipPath('%pfx86%'), filename + '.exe', list, 1, 3, 1);
   if list.Count > 0 then Result := list[0];
   list.Free;
 end;
@@ -746,12 +676,8 @@ begin
   Result := ReplaceEx(Result, '%programfiles%', getwindir[1] + ':\Program Files');
 
   // non-path vars //
-
   Result := ReplaceEx(Result, '%date%', formatdatetime('dddddd', now));
   Result := ReplaceEx(Result, '%time%', formatdatetime('tt', now));
-  Result := ReplaceEx(Result, '%win_version%', GetWinVersion);
-  Result := ReplaceEx(Result, '%user%', GetUser);
-  Result := ReplaceEx(Result, '%crlf%', #10#13);
 end;
 //------------------------------------------------------------------------------
 function ZipPath(path: string): string;
@@ -875,27 +801,6 @@ begin
   p := TObject(Obj);
   TObject(Obj) := nil;
   p.Free;
-end;
-//------------------------------------------------------------------------------
-function LinkAPI(const module, functionname: string): pointer;
-var
-  hLib: cardinal;
-begin
-  hLib := GetModuleHandle(PChar(module));
-  if hLib = 0 then hLib := LoadLibrary(PChar(module));
-  if hLib <> 0 then Result := GetProcAddress(hLib, PChar(functionname))
-  else Result := nil;
-end;
-//------------------------------------------------------------------------------
-procedure SetSuspendState(Hibernate: boolean);
-var
-  susp: function(Hibernate, ForceCritical, DisableWakeEvent: bool): bool;
-begin
-  if SetPrivilege('SeShutdownPrivilege') then
-  begin
-    @susp := linkAPI('powrprof.dll', 'SetSuspendState');
-    if assigned(susp) then susp(Hibernate, false, false);
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure SetClipboard(Text: string);

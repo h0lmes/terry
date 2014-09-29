@@ -261,11 +261,5 @@ resourcestring
   // trayController //
   XMsgNotificationAreaIcons = 'After you close this message you will see "Notification area icons" window. To use this function uncheck "Always show all icons" at the bottom of the window and set all behaviors to "Only show notifications".';
 
-
-var
-  CF_SHELLIDLIST: uint;
-
 implementation
-initialization
-  CF_SHELLIDLIST := RegisterClipboardFormat('Shell IDList Array');
 end.

@@ -18,7 +18,7 @@ object frmStackProp: TfrmStackProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -134,8 +134,8 @@ object frmStackProp: TfrmStackProp
         Height = 34
         Top = 115
         Width = 398
-        Frequency = 20
-        Max = 200
+        Frequency = 5
+        Max = 50
         PageSize = 20
         Position = 0
         ScalePos = trLeft

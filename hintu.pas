@@ -221,7 +221,7 @@ begin
       GdipAddPathRectangle(path, aheight div 2, 0, awidth - aheight - 1, aheight);
       GdipAddPathEllipse(path, 0, 0, aheight - 1, aheight - 1);
       GdipAddPathEllipse(path, awidth - aheight - 1, 0, aheight - 1, aheight - 1);
-      GdipCreateSolidFill($c0000000 + font.color_outline and $ffffff, hbrush);
+      GdipCreateSolidFill($d0000000 + font.color_outline and $ffffff, hbrush);
       GdipFillPath(hgdip, hbrush, path);
       GdipDeleteBrush(hbrush);
       GdipDeletePath(path);

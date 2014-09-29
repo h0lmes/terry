@@ -539,6 +539,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TStackItem.ContextMenu(pt: Windows.TPoint): boolean;
+  function IsValidShortcutString(str: string): boolean;
+  begin
+    result := FetchValue(str, 'class="', '";') = 'shortcut';
+  end;
+
 var
   msg: TMessage;
 begin

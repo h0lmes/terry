@@ -156,6 +156,9 @@ begin
     //hHook := 0;
     //if FileExists(theFile) then hHook := LoadLibrary(pchar(theFile));
 
+    // ProcessHelper //
+    ProcessHelper := TProcessHelper.Create;
+
     // Sets //
     AddLog('Init.Sets');
     theFile := UnzipPath('%pp%\sets.ini');
@@ -334,6 +337,7 @@ begin
       if assigned(ahint) then ahint.Free;
       if assigned(theme) then theme.Free;
       if assigned(sets) then sets.Free;
+      if assigned(ProcessHelper) then ProcessHelper.free;
       if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
       LockList.free;
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
@@ -444,6 +448,7 @@ begin
     tcApplyParams: ApplyParams;
     tcQuit:
       begin
+
         AllowClose := true;
         Close;
       end;
@@ -515,7 +520,11 @@ begin
     WM_TIMER : WMTimer(message);
     WM_USER : WMUser(message);
     WM_COMMAND : WMCommand(message);
-    WM_QUERYENDSESSION : message.Result := CloseQuery;
+    WM_QUERYENDSESSION :
+      begin
+        AllowClose := true;
+        message.Result := CloseQuery;
+      end;
     WM_MOUSEWHEEL : WMMouseWheel(TWMMouseWheel(message));
     WM_COPYDATA : WMCopyData(message);
     WM_DISPLAYCHANGE : WMDisplayChange(message);
@@ -601,6 +610,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 function Tfrmterry.GetHMenu(ParentMenu: uint): uint;
+  function IsValidItemString(str: string): boolean;
+  var
+    classname: string;
+  begin
+    classname := FetchValue(str, 'class="', '";');
+    result := (classname = 'shortcut') or (classname = 'separator') or (classname = 'plugin') or (classname = 'stack');
+  end;
+
 var
   i: integer;
 begin
@@ -796,6 +813,7 @@ begin
       WHMouseMove($fffffff);
       UpdateRunning;
       MaintainNotForeground;
+      ItemMgr.CheckDeleted;
     end;
 
     if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
@@ -1528,8 +1546,8 @@ begin
   else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))
   else if cmd = 'shutdown' then toolu.ShutDown(ifthen(params = 'force', 5, 1))
   else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))
-  else if cmd = 'suspend' then toolu.SetSuspendState(false)
-  else if cmd = 'hibernate' then toolu.SetSuspendState(true)
+  else if cmd = 'suspend' then ProcessHelper.SetSuspendState(false)
+  else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
   else if cmd = 'kill' then ProcessHelper.Kill(params)
   else if cmd = 'setdisplaymode' then
   begin

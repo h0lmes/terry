@@ -484,7 +484,7 @@ begin
       GdipAddPathRectangle(path, xBitmap, yBitmap - 1, FCaptionWidth - 3, FCaptionHeight + 1);
       GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
       GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
-      GdipCreateSolidFill(AHintAlpha * 12 div 16 * $1000000 + FFont.color_outline and $ffffff, brush);
+      GdipCreateSolidFill(AHintAlpha * 13 div 16 * $1000000 + FFont.color_outline and $ffffff, brush);
       GdipFillPath(dst, brush, path);
       GdipDeleteBrush(brush);
       GdipDeletePath(path);

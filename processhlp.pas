@@ -36,6 +36,8 @@ type
     FWindowsCount: integer;
     FWindowsCountChanged: boolean;
     hKernel32: HMODULE;
+    hUser32: HMODULE;
+    hPowrprofDll: HMODULE;
     queryFullProcessImageName: __QueryFullProcessImageName;
     // processes //
     RunThread: TRunThread;
@@ -62,6 +64,7 @@ type
     procedure RunAsUser(exename, params, dir: string; showcmd: integer);
     // windows //
     function GetWindowText(h: THandle): string;
+    procedure AllowSetForeground(hWnd: HWND);
     procedure ActivateWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
     procedure EnumAppWindows;
@@ -71,6 +74,8 @@ type
     function GetAppWindowProcessName(h: THandle): string;
     function GetAppWindowProcessFullName(h: THandle): string;
     function GetAppWindowClassName(h: THandle): string;
+    // system //
+    procedure SetSuspendState(Hibernate: boolean);
   end;
 
 var
@@ -96,6 +101,8 @@ begin
     hKernel32 := LoadLibrary('kernel32.dll');
     if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
   end;
+  hUser32 := 0;
+  hPowrprofDll := 0;
 
   FReady := assigned(crsection) and assigned(listProcess) and assigned(listAppWindows);
 end;
@@ -103,6 +110,8 @@ end;
 destructor TProcessHelper.Destroy;
 begin
   FreeLibrary(hKernel32);
+  if hUser32 <> 0 then FreeLibrary(hUser32);
+  if hPowrprofDll <> 0 then FreeLibrary(hPowrprofDll);
   RunThread.terminate;
   listProcess.free;
   listProcessFullName.free;
@@ -377,6 +386,23 @@ begin
   result := strpas(pchar(@win_name[0]));
 end;
 //------------------------------------------------------------------------------
+procedure TProcessHelper.AllowSetForeground(hWnd: HWND);
+var
+  AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
+  dwProcess: dword;
+begin
+  @AllowSetForegroundWindow := nil;
+  if hUser32 = 0 then hUser32 := GetModuleHandle('USER32.DLL');
+  if hUser32 = 0 then hUser32 := LoadLibrary('USER32.DLL');
+  if hUser32 <> 0 then @AllowSetForegroundWindow := GetProcAddress(hUser32, 'AllowSetForegroundWindow');
+  if assigned(AllowSetForegroundWindow) then
+  begin
+    dwProcess := 0;
+    GetWindowThreadProcessId(hWnd, @dwProcess);
+    AllowSetForegroundWindow(dwProcess);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TProcessHelper.ActivateWindow(h: THandle);
 
 function ZOrderIndex(hWnd: uint): integer;
@@ -540,9 +566,27 @@ begin
   result := strpas(pchar(@cls));
 end;
 //------------------------------------------------------------------------------
-initialization
-  ProcessHelper := TProcessHelper.Create;
-finalization
-  ProcessHelper.free;
+//
+//
+//
+//
+//
+//
+//
+//------------------------------------------------------------------------------
+procedure TProcessHelper.SetSuspendState(Hibernate: boolean);
+var
+  susp: function(Hibernate, ForceCritical, DisableWakeEvent: bool): bool;
+begin
+  if SetPrivilege('SeShutdownPrivilege') then
+  begin
+    @susp := nil;
+    if hPowrprofDll = 0 then hPowrprofDll := GetModuleHandle('powrprof.dll');
+    if hPowrprofDll = 0 then hPowrprofDll := LoadLibrary('powrprof.dll');
+    if hPowrprofDll <> 0 then @susp := GetProcAddress(hPowrprofDll, 'SetSuspendState');
+    if assigned(susp) then susp(Hibernate, false, false);
+  end;
+end;
+//------------------------------------------------------------------------------
 end.
 

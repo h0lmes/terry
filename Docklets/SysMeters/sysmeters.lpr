@@ -298,6 +298,7 @@ var
 begin
   KillTimer(data.hWnd, ID_TIMER);
   data.mode := mode;
+  if mode = mmCPU then getCpu(integer(interval)); // exclude first reading, it returns 100%
   CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
   Work(data); // update immediately
   interval := 1000;
