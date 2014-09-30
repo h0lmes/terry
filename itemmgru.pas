@@ -998,7 +998,7 @@ begin
   end;
   if Update then ItemsChanged(true);
   // save settings //
-  if Save then AllItemsSave;
+  if Save then DoSaveSets;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.PluginCallCreate(HWnd: HANDLE);
@@ -1715,7 +1715,6 @@ begin
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
     ItemsChanged;
-    AllItemsSave;
   except
     on e: Exception do err('ItemManager.DockWindowItem', e);
   end;

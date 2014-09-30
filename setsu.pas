@@ -280,7 +280,8 @@ var
 begin
   windows.DeleteFile(PChar(SetsPathFile));
 
-  ini:= TIniFile.Create(SetsPathFile);
+  ini := TIniFile.Create(SetsPathFile);
+  ini.CacheUpdates := true;
   // theme //
   ini.WriteString('theme', 'Name', pchar(@container.ThemeName[0]));
   // base //

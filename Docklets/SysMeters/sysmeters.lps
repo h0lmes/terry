@@ -12,8 +12,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="278"/>
-        <CursorPos X="36" Y="298"/>
+        <TopLine Value="283"/>
+        <CursorPos X="30" Y="284"/>
         <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>

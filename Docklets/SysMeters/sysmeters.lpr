@@ -110,7 +110,7 @@ var
 begin
   GdipCreatePen1(GRAPH_COLOR, 4, UnitPixel, pen);
   if buf.count > 1 then
-    for i := buf.size - buf.count to buf.size - 1 do
+    for i := 0 to buf.size - 1 do
     begin
       CIBuffer_Get(buf, i, value1);
       CIBuffer_Get(buf, i + 1, value2);
@@ -295,12 +295,15 @@ end;
 procedure SetMode(data: PData; mode: TMeterMode);
 var
   interval: cardinal;
+  tmp: integer;
 begin
   KillTimer(data.hWnd, ID_TIMER);
   data.mode := mode;
-  if mode = mmCPU then getCpu(integer(interval)); // exclude first reading, it returns 100%
+
+  if mode = mmCPU then getCpu(tmp); // exclude first reading, it always returns 100%
   CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
   Work(data); // update immediately
+
   interval := 1000;
   if data.mode = mmBattery then interval := 5000
   else if data.mode = mmDrive then interval := 5000;

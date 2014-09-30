@@ -54,7 +54,7 @@ type
     procedure ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
 
-    procedure BaseSaveSettings;
+    procedure SaveSets;
     procedure DoMenu(mit: integer);
     procedure BaseDraw(flags: integer);
   public
@@ -394,7 +394,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.BaseSaveSettings;
+procedure Tfrmterry.SaveSets;
 begin
   if saving then
   begin
@@ -406,9 +406,10 @@ begin
     crsection.Acquire;
     try
       saving := true;
-      sets.SaveEx;
+      //sets.SaveEx;
+      sets.Save;
       ItemMgr.Save(sets.SetsPathFile);
-      sets.SaveEx2;
+      //sets.SaveEx2;
     finally
       saving := false;
       crsection.Leave;
@@ -426,7 +427,7 @@ begin
   case id of
     tcRepaintBase: BaseDraw(param);
     tcMenu: DoMenu(param);
-    tcSaveSets: BaseSaveSettings;
+    tcSaveSets: SaveSets;
     tcZOrder: SetForeground;
     tcThemeChanged:
       begin
