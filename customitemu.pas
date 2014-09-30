@@ -49,6 +49,7 @@ type TCustomItem = class
     FLaunchInterval: integer;
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
+    FMouseDownButton: TMouseButton;
 
     FImage: Pointer;
     FIW: uint; // image width
@@ -59,7 +60,7 @@ type TCustomItem = class
     FAnimationProgress: integer; // animation progress 0..FAnimationEnd
 
     procedure Init; virtual;
-    procedure Redraw;
+    procedure Redraw; // updates item appearance
     procedure SetCaption(value: string);
     procedure UpdateHint(Ax: integer = -1000; Ay: integer = -1000);
     function GetRectFromSize(ASize: integer): windows.TRect;
@@ -92,6 +93,7 @@ type TCustomItem = class
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
     function cmd(id: TGParam; param: integer): integer; virtual;
     procedure Timer; virtual;
+    procedure Configure; virtual;
     function CanOpenFolder: boolean; virtual;
     procedure OpenFolder; virtual;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; virtual;
@@ -301,6 +303,10 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TCustomItem.Configure;
+begin
+end;
+//------------------------------------------------------------------------------
 function TCustomItem.DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 begin
   result := true;
@@ -310,23 +316,20 @@ procedure TCustomItem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: 
 begin
   if not FFreed then
   begin
-    if button = mbLeft then
-      if not FLockMouseEffect then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
+    FMouseDownButton := button;
+    if not FLockMouseEffect then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
     cmd(icSelect, 1);
   end;
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 begin
-  result := false;
+  result := not FFreed;
   KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-
-  if not FFreed then
+  if not FFreed and FSelected then
   begin
-    result := true;
-    if FSelected then MouseClick(button, shift, x, y);
-    try cmd(icSelect, 0);
-    except end;
+    cmd(icSelect, 0);
+    MouseClick(button, shift, x, y);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -335,14 +338,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseHeld(button: TMouseButton);
-var
-  pt: windows.TPoint;
 begin
-  if (button = mbLeft) and not FLockMouseEffect then
-  begin
-    GetCursorPos(pt);
-    if WindowFromPoint(pt) = FHWnd then cmd(icFloat, 1);
-  end;
+  cmd(icSelect, 0);
+  if button = mbLeft then cmd(icFloat, 1); // undock
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseHover(AHover: boolean);
@@ -573,7 +571,8 @@ begin
               if wParam = ID_TIMER_MOUSEHELD then
               begin
                 KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-                MouseHeld(mbLeft);
+                GetCursorPos(wpt);
+                if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
               end;
         end
         else if msg = wm_dropfiles then

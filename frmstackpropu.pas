@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   DefaultTranslator, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, Buttons,
-  GDIPAPI, gdip_gfx, PIDL, stackitemu, themeu;
+  GDIPAPI, gdip_gfx, PIDL, stackitemu, themeu, DividerBevel;
 
 type
   _uproc = procedure(AData: string) of object;
@@ -24,9 +24,11 @@ type
     btnOK: TButton;
     btnApply: TButton;
     btnCancel: TButton;
+    btnProperties: TButton;
     btnSelectColor: TButton;
     cboMode: TComboBox;
     chbPreview: TCheckBox;
+    DividerBevel1: TDividerBevel;
     edImage: TEdit;
     edCaption: TEdit;
     iPic: TPaintBox;
@@ -46,7 +48,6 @@ type
     tbAnimationSpeed: TTrackBar;
     tbDistort: TTrackBar;
     tbOffset: TTrackBar;
-    tsSubitems: TTabSheet;
     tsProperties: TTabSheet;
     tsColor: TTabSheet;
     tbBr: TTrackBar;
@@ -60,6 +61,7 @@ type
     procedure bbIconUpClick(Sender: TObject);
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
+    procedure btnPropertiesClick(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -333,7 +335,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.OpenColor;
 begin
-  pages.ActivePageIndex := 2;
+  pages.ActivePageIndex := 1;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnPropertiesClick(Sender: TObject);
+begin
+  pages.ActivePageIndex := 0;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbHueChange(Sender: TObject);

@@ -509,6 +509,7 @@ msgid "..."
 msgstr ""
 
 #: tfrmitemprop.btnproperties.caption
+msgctxt "tfrmitemprop.btnproperties.caption"
 msgid "Back to properties"
 msgstr ""
 
@@ -979,6 +980,11 @@ msgctxt "TFRMSTACKPROP.BTNOK.CAPTION"
 msgid "OK"
 msgstr ""
 
+#: tfrmstackprop.btnproperties.caption
+msgctxt "TFRMSTACKPROP.BTNPROPERTIES.CAPTION"
+msgid "Back to properties"
+msgstr ""
+
 #: tfrmstackprop.btnselectcolor.caption
 msgctxt "TFRMSTACKPROP.BTNSELECTCOLOR.CAPTION"
 msgid "Select color"
@@ -991,6 +997,11 @@ msgstr ""
 
 #: tfrmstackprop.chbpreview.caption
 msgid "Show subitems overlay"
+msgstr ""
+
+#: tfrmstackprop.dividerbevel1.caption
+msgctxt "TFRMSTACKPROP.DIVIDERBEVEL1.CAPTION"
+msgid "Subitems"
 msgstr ""
 
 #: tfrmstackprop.label2.caption
@@ -1048,10 +1059,6 @@ msgstr ""
 #: tfrmstackprop.tsproperties.caption
 msgctxt "TFRMSTACKPROP.TSPROPERTIES.CAPTION"
 msgid "Properties"
-msgstr ""
-
-#: tfrmstackprop.tssubitems.caption
-msgid "Subitems"
 msgstr ""
 
 #: tfrmterry.caption

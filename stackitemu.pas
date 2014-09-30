@@ -96,6 +96,7 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
+    procedure Configure; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 
@@ -512,6 +513,11 @@ begin
     if (FState = stsOpening) or (FState = stsClosing) then DoStateProgress;
 end;
 //------------------------------------------------------------------------------
+procedure TStackItem.Configure;
+begin
+  TfrmStackProp.Open(ToString, UpdateItem, self);
+end;
+//------------------------------------------------------------------------------
 function TStackItem.ToString: string;
 begin
   result:= Make(FHWnd, FCaption, FImageFile, FSpecialFolder,
@@ -536,6 +542,7 @@ procedure TStackItem.MouseHeld(button: TMouseButton);
 begin
   CloseStack;
   inherited;
+  if button = mbRight then Configure;
 end;
 //------------------------------------------------------------------------------
 function TStackItem.ContextMenu(pt: Windows.TPoint): boolean;
@@ -569,7 +576,7 @@ begin
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
-    $f001: TfrmStackProp.Open(ToString, UpdateItem, self);
+    $f001: Configure;
     $f002: ; // open folder
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;

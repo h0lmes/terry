@@ -1,6 +1,6 @@
 unit DockH;
 
-// modified july 11, 2012 //
+// modified oct 1, 2014 //
 
 interface
 uses Windows;
@@ -12,6 +12,7 @@ type
   _OnSave = procedure(lpData: _PluginData; szIni, szIniGroup: pchar; isForExport: boolean); stdcall;
   _OnDestroy = procedure(lpData: _PluginData; id: uint); stdcall;
   _OnLeftButtonClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
+  _OnLeftButtonHeld = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
   _OnDoubleClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
   _OnRightButtonClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
   _OnConfigure = procedure(lpData: _PluginData); stdcall;

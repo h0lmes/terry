@@ -48,10 +48,12 @@ type
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
+    procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
+    procedure Configure; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
@@ -588,6 +590,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TShortcutItem.Configure;
+begin
+  TfrmItemProp.Open(ToString, UpdateItem);
+end;
+//------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
 begin
   result:= Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
@@ -608,6 +615,12 @@ begin
     windows.GetCursorPos(pt);
     ContextMenu(pt);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.MouseHeld(button: TMouseButton);
+begin
+  inherited;
+  if button = mbRight then Configure;
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ContextMenu(pt: Windows.TPoint): boolean;
@@ -651,7 +664,7 @@ begin
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
-    $f001: TfrmItemProp.Open(ToString, UpdateItem);
+    $f001: Configure;
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;

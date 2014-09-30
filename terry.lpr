@@ -45,7 +45,7 @@ uses
   stackmodeu,
   processhlp,
   dropindicatoru,
-  taskitemu;
+  taskitemu, lazcontrols;
 
 {$R *.res}
 

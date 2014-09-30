@@ -23,6 +23,7 @@ type TPluginItem = class(TCustomItem)
     OnSave: _OnSave;
     OnDestroy: _OnDestroy;
     OnLeftButtonClick: _OnLeftButtonClick;
+    OnLeftButtonHeld: _OnLeftButtonHeld;
     OnDoubleClick: _OnDoubleClick;
     OnRightButtonClick: _OnRightButtonClick;
     OnConfigure: _OnConfigure;
@@ -42,10 +43,12 @@ type TPluginItem = class(TCustomItem)
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
+    procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
+    procedure Configure; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
   end;
 
@@ -366,6 +369,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TPluginItem.Configure;
+begin
+  if assigned(OnConfigure) then OnConfigure(lpData);
+end;
+//------------------------------------------------------------------------------
 function TPluginItem.GetFilename: string;
 begin
   result := PluginFile;
@@ -417,11 +425,28 @@ begin
   begin
     result := false;
     if assigned(OnRightButtonClick) then result := OnRightButtonClick(lpData, @pt, @sz);
-    if not result and assigned(OnConfigure) then
+    if not result then Configure;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TPluginItem.MouseHeld(button: TMouseButton);
+var
+  pt: windows.TPoint;
+  sz: windows.TSize;
+  result: boolean;
+begin
+  inherited;
+  if button = mbRight then
+  begin
+    result := false;
+    if assigned(OnLeftButtonHeld) then
     begin
-      OnConfigure(lpData);
-      result := true;
+      pt := point(MouseDownPoint.x - Rect.Left, MouseDownPoint.y - Rect.Top);
+      sz.cx := FSize;
+      sz.cy := FSize;
+      result := OnLeftButtonHeld(lpData, @pt, @sz);
     end;
+    if not result then Configure;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -467,7 +492,7 @@ begin
   DestroyMenu(FHMenu);
   LME(false);
   case wParam of // f001 to f020
-    $f001: ;
+    $f001: Configure;
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
