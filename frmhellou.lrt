@@ -1,0 +1,11 @@
+TFRMHELLO.CAPTION=Hello
+TFRMHELLO.BTNAUTORUN.CAPTION=Set program to autostart with Windows
+TFRMHELLO.BTNADD.CAPTION=Add shortcuts to installed applications
+TFRMHELLO.LABEL1.CAPTION=Hello!    Almost certain this is the first time to run Terry.
+TFRMHELLO.LABEL2.CAPTION=Here you can do your first setup and learn some basics.
+TFRMHELLO.LABEL3.CAPTION=Choose what you want to do:
+TFRMHELLO.BTNLEARN.CAPTION=Learn some interaction basics
+TFRMHELLO.BTNCLOSE.CAPTION=Thanks. From now I'm on my own
+TFRMHELLO.BTNENOUGH.CAPTION=Thanks, I learned enough
+TFRMHELLO.BTNNEXT.CAPTION=Next
+TFRMHELLO.BTNPREVIOUS.CAPTION=Previous

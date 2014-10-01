@@ -56,7 +56,7 @@ type
 
     procedure SaveSets;
     procedure DoMenu(mit: integer);
-    procedure BaseDraw(flags: integer);
+    procedure BasePaint(flags: integer);
   public
     ItemMgr: _ItemManager;
     DropMgr: _DropManager;
@@ -120,7 +120,7 @@ var frmterry: Tfrmterry;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp;
+  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
@@ -150,6 +150,8 @@ begin
     FWndInstance := MakeObjectInstance(NativeWndProc);
     FPrevWndProc := Pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
     SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
+
+    dwm.ExcludeFromPeek(Handle);
 
     // hook //
     //theFile := UnzipPath('%pp%\hook.dll');
@@ -183,77 +185,74 @@ begin
       halt;
     end;
 
-    // drop indicator //
+    // DropIndicator (not implemented) //
     //AddLog('Init.CreateDropIndicator');
     //TDropIndicator.CreateIndicator;
 
     // create ItemManager (disabled, not visible) //
     AddLog('Init.ItemManager');
     ItemMgr := _ItemManager.Create(false, false, Handle, BaseCmd);
+    ApplyParams;
 
     // load items //
-    AddLog('Init.ApplyParams');
-    ApplyParams;
     AddLog('Init.LoadItems');
     load_err := false;
-    try ItemMgr.Load(sets.SetsPathFile);
-    except load_err := true;
+    try
+      ItemMgr.Load(UnzipPath(sets.SetsPathFile));
+      ItemMgr.Enable(true);
+    except
+      on e: Exception do
+      begin
+        AddLog(e.message);
+        load_err := true;
+      end;
     end;
     if load_err then
     begin
-      AddLog('Init.Restore');
-      if sets.Restore then
-      begin
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored)), 'Terry', MB_ICONEXCLAMATION);
-        AddLog('Halt');
-        halt;
-        AddLog('Init.Restore.SetsLoad');
-        sets.Load;
-        AddLog('Init.Restore.ApplyParams');
-        ApplyParams;
-        AddLog('Init.Restore.LoadItems');
-        ItemMgr.Clear;
-        ItemMgr.Load(sets.SetsPathFile);
-      end else begin
-        AddLog('Init.RestoreFailed');
-        messagebox(handle,
-          pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)),
-          'Terry', MB_ICONERROR);
-      end;
-    end else begin
-      if not sets.Backup then
-      begin
+        if sets.Restore then
+        begin
+          AddLog('Init.Restore.Succeed');
+          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored)), 'Terry', MB_ICONEXCLAMATION);
+          halt;
+        end else begin
+          AddLog('Init.Restore.Failed');
+          messagebox(handle,
+            pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)),
+            'Terry', MB_ICONERROR);
+          halt;
+        end;
+    end
+    else
+    if not sets.Backup then
+    begin
         AddLog('Init.BackupFailed');
         messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), 'Terry', MB_ICONERROR);
-      end;
     end;
-    // loaded, so enable ItemMgr //
-    ItemMgr.Enable(true);
 
-    // timers //
+    // Timers //
     AddLog('Init.Timers');
     SetTimer(handle, ID_TIMER, 10, nil);
     SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
     SetTimer(handle, ID_TIMER_FSA, 2000, nil);
 
-    // tray controller //
+    // TrayController //
     AddLog('Init.TrayController');
     Tray := _TrayController.Create;
 
-    // if needed make it 'RolledDown' on startup
+    // 'RollDown' on startup if set so //
     sets.RollDown;
     sets.wndOffset := sets.wndOffsetTarget;
 
-    // show the panel and items //
+    // show the dock //
     AddLog('Init.ItemMgr.Visible');
     BaseCmd(tcSetVisible, 1);
-    if sets.GetParam(gpStayOnTop) <> 0 then SetParam(gpStayOnTop, 1);
+    if sets.GetParam(gpStayOnTop) = 1 then SetParam(gpStayOnTop, 1);
 
     // RawInput (replacement for hook) //
     AddLog('Init.RegisterRawInput');
     RegisterRawInput;
 
-    // create DropManager //
+    // DropManager //
     AddLog('Init.DropManager');
     DropMgr := _DropManager.Create(Handle);
     DropMgr.OnDrop := OnDrop;
@@ -261,19 +260,10 @@ begin
     DropMgr.OnDragOver := OnDragOver;
     DropMgr.OnDragLeave := OnDragLeave;
 
-    // first time draw items by applying the theme //
+    // apply the theme to do the full repaint //
     BaseCmd(tcThemeChanged, 0);
 
-    // propose to add installed programs onto the dock //
-    if ItemMgr.FirstRun then
-      if idYes = MessageBox(Handle, pchar(UTF8ToAnsi(XMsgFirstRun + ' ' + XMsgAddMorePrograms)), 'Terry', mb_yesno) then
-      begin
-        execute_cmdline('/itemmgr.separator');
-        execute_cmdline('/apps');
-      end;
-
-    dwm.ExcludeFromPeek(Handle);
-
+    if ItemMgr.FirstRun then TfrmHello.Open;
     InitDone := True;
   except
     on e: Exception do err('Base.Init', e);
@@ -342,6 +332,11 @@ begin
       LockList.free;
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       FreeObjectInstance(FWndInstance);
+      if assigned(Notifier) then
+      begin
+        Notifier.Free;
+        Notifier := nil;
+      end;
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
@@ -425,7 +420,7 @@ begin
   Result := 0;
 
   case id of
-    tcRepaintBase: BaseDraw(param);
+    tcRepaintBase: BasePaint(param);
     tcMenu: DoMenu(param);
     tcSaveSets: SaveSets;
     tcZOrder: SetForeground;
@@ -474,8 +469,8 @@ begin
         else ReserveScreenEdge(true, sets.container.ReserveScreenEdgePercent, sets.container.Site);
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
-    gpBaseAlpha:              BaseDraw(1);
-    gpBlur:                   BaseDraw(1);
+    gpBaseAlpha:              BasePaint(1);
+    gpBlur:                   BasePaint(1);
     gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
     gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
   end;
@@ -975,7 +970,7 @@ begin
 	end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.BaseDraw(flags: integer);
+procedure Tfrmterry.BasePaint(flags: integer);
 var
   hgdip, hbrush: Pointer;
   bmp: gdip_gfx._SimpleBitmap;
@@ -1537,6 +1532,7 @@ begin
   else if cmd = 'taskmgr' then frmterry.Run('%sysdir%\taskmgr.exe')
   else if cmd = 'program' then frmterry.AddFile
   else if cmd = 'command' then TfrmAddCommand.Open
+  else if cmd = 'hello' then TfrmHello.Open
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'tray' then frmterry.Tray.Show(sets.container.Site, hwnd)

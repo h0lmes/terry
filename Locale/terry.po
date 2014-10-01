@@ -187,14 +187,6 @@ msgctxt "declu.xmonitor"
 msgid "Monitor"
 msgstr ""
 
-#: declu.xmsgaddmoreprograms
-msgid "Would you like to add shortcuts for installed applications now?"
-msgstr ""
-
-#: declu.xmsgfirstrun
-msgid "Hello. This is the first time to run Terry."
-msgstr ""
-
 #: declu.xmsgnotificationareaicons
 msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
 msgstr ""
@@ -457,6 +449,50 @@ msgstr ""
 
 #: tfrmfont.sbtn_outline.caption
 msgid "Contour"
+msgstr ""
+
+#: tfrmhello.btnadd.caption
+msgid "Add shortcuts to installed applications"
+msgstr ""
+
+#: tfrmhello.btnautorun.caption
+msgid "Set program to autostart with Windows"
+msgstr ""
+
+#: tfrmhello.btnclose.caption
+msgid "Thanks. From now I'm on my own"
+msgstr ""
+
+#: tfrmhello.btnenough.caption
+msgid "Thanks, I learned enough"
+msgstr ""
+
+#: tfrmhello.btnlearn.caption
+msgid "Learn some interaction basics"
+msgstr ""
+
+#: tfrmhello.btnnext.caption
+msgid "Next"
+msgstr ""
+
+#: tfrmhello.btnprevious.caption
+msgid "Previous"
+msgstr ""
+
+#: tfrmhello.caption
+msgid "Hello"
+msgstr ""
+
+#: tfrmhello.label1.caption
+msgid "Hello!    Almost certain this is the first time to run Terry."
+msgstr ""
+
+#: tfrmhello.label2.caption
+msgid "Here you can do your first setup and learn some basics."
+msgstr ""
+
+#: tfrmhello.label3.caption
+msgid "Choose what you want to do:"
 msgstr ""
 
 #: tfrmitemprop.btnapply.caption

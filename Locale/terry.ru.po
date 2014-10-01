@@ -205,14 +205,6 @@ msgctxt "declu.xmonitor"
 msgid "Monitor"
 msgstr "Монитор"
 
-#: declu.xmsgaddmoreprograms
-msgid "Would you like to add shortcuts for installed applications now?"
-msgstr "Хотите добавить ярлыки на установленные приложения?"
-
-#: declu.xmsgfirstrun
-msgid "Hello. This is the first time to run Terry."
-msgstr "Здравствуйте. Это первый запуск Terry."
-
 #: declu.xmsgnotificationareaicons
 msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
 msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
@@ -231,7 +223,6 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#, fuzzy
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка были изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
@@ -483,6 +474,51 @@ msgstr "Курсив"
 #: tfrmfont.sbtn_outline.caption
 msgid "Contour"
 msgstr "Контур"
+
+#: tfrmhello.btnadd.caption
+msgid "Add shortcuts to installed applications"
+msgstr "Добавить ярлыки для установленных программ"
+
+#: tfrmhello.btnautorun.caption
+msgid "Set program to autostart with Windows"
+msgstr "Запускать программу при старте Windows"
+
+#: tfrmhello.btnclose.caption
+msgid "Thanks. From now I'm on my own"
+msgstr "Спасибо! Дальше я сам"
+
+#: tfrmhello.btnenough.caption
+msgid "Thanks, I learned enough"
+msgstr "Спасибо, я узнал достаточно"
+
+#: tfrmhello.btnlearn.caption
+msgid "Learn some interaction basics"
+msgstr "Изучить основы взаимодействия"
+
+#: tfrmhello.btnnext.caption
+#| msgid "Next page, please!"
+msgid "Next"
+msgstr "Дальше"
+
+#: tfrmhello.btnprevious.caption
+msgid "Previous"
+msgstr "Назад"
+
+#: tfrmhello.caption
+msgid "Hello"
+msgstr "Привет"
+
+#: tfrmhello.label1.caption
+msgid "Hello!    Almost certain this is the first time to run Terry."
+msgstr "Привет!    Почти наверняка это Ваш первый запуск Terry."
+
+#: tfrmhello.label2.caption
+msgid "Here you can do your first setup and learn some basics."
+msgstr "Здесь вы можете первично настроить программу и изучить основы."
+
+#: tfrmhello.label3.caption
+msgid "Choose what you want to do:"
+msgstr "Выберите что Вы хотите сделать:"
 
 #: tfrmitemprop.btnapply.caption
 msgctxt "TFRMITEMPROP.BTNAPPLY.CAPTION"

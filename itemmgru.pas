@@ -377,10 +377,11 @@ begin
   if fsets = '' then exit;
   FFirstRun := false;
   Dragging := false;
+  DraggingFile := false;
   DragHWnd := 0;
 
   try
-    SetsFilename := toolu.UnzipPath(fsets);
+    SetsFilename := fsets;
     ini := TIniFile.Create(SetsFilename);
     list := TStringList.Create;
     ini.ReadSections(list);
@@ -396,7 +397,7 @@ begin
       if pos('item', list.strings[i]) = 1 then
       begin
         cls_name := ini.ReadString(list.strings[i], 'class', 'shortcut');
-        data := 'class="' + cls_name + '";inifile="' + fsets + '";inisection="' + list.strings[i] + '";';
+        data := 'class="' + cls_name + '";inifile="' + SetsFilename + '";inisection="' + list.strings[i] + '";';
         AddItem(data, false, false);
       end;
       inc(i);
@@ -411,7 +412,7 @@ begin
     if ItemCount = 0 then
     begin
       // "end session" stack //
-      AddItem(TStackItem.Make(0, 'End session...', ''));
+      AddItem(TStackItem.Make(0, 'End session', ''));
       stack := TStackItem(GetWindowLong(items[ItemCount - 1].h, GWL_USERDATA));
       if stack is TStackItem then
       begin
@@ -422,10 +423,10 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\apps\gnome-session-hibernate-2.png'));
       end;
       AddItem('class="separator";');
-      AddItem(TShortcutItem.Make(0, 'Computer', '::::14001F50E04FD020EA3A6910A2D808002B30309D0000', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Documents', '::::14001F4225481E03947BC34DB131E946B44C8DD5200000001A00EEBBFE23000010007DB10D7BD29C934A973346CC89022E7C00000000', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Control panel', '::::14001F706806EE260AA0D7449371BEB064C986830C0001008421DE390000000000000000', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Trash bin', '::::14001F7840F05F6481501B109F0800AA002F954E0000', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Trash bin', 'CSIDL_BITBUCKET', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Program settings', '/sets', '', '', ICON_SETTINGS));
       FFirstRun := true;
     end;

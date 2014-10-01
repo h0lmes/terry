@@ -165,7 +165,7 @@ type
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
   private
-    AutorunChanged: boolean;
+    AutorunListChanged: boolean;
   public
     PageIndex: integer;
     class procedure StartForm(APageIndex: integer = 0);
@@ -410,7 +410,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btn_okClick(Sender: TObject);
 begin
-  if AutorunChanged then SaveAutorun;
+  if AutorunListChanged then SaveAutorun;
   close;
 end;
 //------------------------------------------------------------------------------
@@ -789,7 +789,7 @@ begin
     inc(i);
   end;
   memAutorun.Lines.EndUpdate;
-  AutorunChanged := false;
+  AutorunListChanged := false;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.SaveAutorun;
@@ -804,7 +804,7 @@ begin
     sets.AutoRunList.Add(UTF8ToAnsi(memAutorun.Lines.strings[i]));
     inc(i);
   end;
-  AutorunChanged := false;
+  AutorunListChanged := false;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnAutoRunAddClick(Sender: TObject);
@@ -819,7 +819,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.memAutorunChange(Sender: TObject);
 begin
-  AutorunChanged := true;
+  AutorunListChanged := true;
 end;
 //------------------------------------------------------------------------------
 //

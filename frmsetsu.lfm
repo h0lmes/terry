@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -34,9 +34,9 @@ object frmsets: Tfrmsets
       ClientWidth = 462
       object lblMouseOverTip: TLabel
         Left = 15
-        Height = 14
+        Height = 13
         Top = 210
-        Width = 344
+        Width = 343
         Caption = 'Move mouse pointer to the edge of screen to bring panel to foreground'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
@@ -117,9 +117,9 @@ object frmsets: Tfrmsets
         end
         object Label6: TLabel
           Left = 10
-          Height = 14
+          Height = 13
           Top = 4
-          Width = 158
+          Width = 157
           Caption = 'Hotkey to completely hide panel:'
           ParentColor = False
         end

@@ -483,27 +483,45 @@ begin
   reg.Free;
 end;
 //------------------------------------------------------------------------------
-function CheckAutoRun: boolean;
+function CheckAutorun: boolean;
 var
-  reg: Treginifile;
+  reg: TRegistry;
 begin
-  reg := Treginifile.Create;
-  reg.RootKey := HKEY_CURRENT_USER;
-  result := reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, '') = ParamStr(0);
-  reg.Free;
+  reg := TRegistry.Create(KEY_READ);
+  try
+    reg.RootKey := HKEY_CURRENT_USER;
+    if reg.OpenKey('Software\\Microsoft\\Windows\\CurrentVersion\\Run', false) then
+    begin
+      if reg.ValueExists(UTF8ToAnsi(application.title)) then
+         result := reg.ReadString(UTF8ToAnsi(application.title)) = ParamStr(0);
+    end else begin
+      raise Exception.Create('CheckAutorun.OpenKey failed');
+    end;
+  finally
+    reg.free;
+  end;
 end;
 //----------------------------------------------------------------------
-procedure SetAutoRun(enable: boolean);
+procedure SetAutorun(enable: boolean);
 var
-  reg: Treginifile;
+  reg: TRegistry;
 begin
-  reg := Treginifile.Create;
-  reg.RootKey := HKEY_CURRENT_USER;
-  reg.lazywrite := false;
-  if reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, '') <> '' then
-    reg.DeleteKey('Software\Microsoft\Windows\CurrentVersion\Run', application.title);
-  if enable then reg.WriteString('Software\Microsoft\Windows\CurrentVersion\Run', application.title, ParamStr(0));
-  reg.Free;
+  reg := TRegistry.Create(KEY_ALL_ACCESS);
+  try
+    reg.RootKey := HKEY_CURRENT_USER;
+    reg.LazyWrite := false;
+    if reg.OpenKey('Software\\Microsoft\\Windows\\CurrentVersion\\Run', false) then
+    begin
+      if enable then reg.WriteString(UTF8ToAnsi(application.title), ParamStr(0))
+      else reg.WriteString(UTF8ToAnsi(application.title), '');
+        //if not reg.DeleteValue(UTF8ToAnsi(application.title)) then
+           //raise Exception.Create('SetAutorun.DeleteValue failed');
+    end else begin
+      raise Exception.Create('SetAutorun.OpenKey failed');
+    end;
+  finally
+    reg.free;
+  end;
 end;
 //----------------------------------------------------------------------
 function GetWinVersion: string;

@@ -45,18 +45,20 @@ uses
   stackmodeu,
   processhlp,
   dropindicatoru,
-  taskitemu, lazcontrols;
+  taskitemu,
+  frmhellou;
 
 {$R *.res}
 
 {$undef DEBUG_EXPORTS}
-{$undef DEBUG_LOADGDIPIMAGE}
 
 //------------------------------------------------------------------------------
+{$ifdef DEBUG_EXPORTS}
 procedure inf(where, data: string);
 begin
   frmterry.notify(where + ':   ' + data);
 end;
+{$endif}
 //------------------------------------------------------------------------------
 function DockletIsVisible(id: HWND): bool; stdcall;
 begin
@@ -143,15 +145,13 @@ begin
     if szImage <> nil then
     begin
       imagefile := UnzipPath(strpas(szImage));
-      {$ifdef DEBUG_LOADGDIPIMAGE} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
       {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
       GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), result);
     end;
   except
     on e: Exception do if assigned(frmterry) then frmterry.err('DockletLoadGDIPlusImage', e);
   end;
-  {$ifdef DEBUG_LOADGDIPIMAGE} inf('DockletLoadGDIPlusImage', '0x' + inttohex(dword(result), 8)); {$endif}
-  {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage2', '0x' + inttohex(dword(result), 8)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage', '0x' + inttohex(dword(result), 8)); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure DockletSetImage(id: HWND; image: Pointer; AutoDelete: bool); stdcall;
@@ -533,7 +533,6 @@ begin
   AddLog('AppRun');
   Application.Run;
 
-  if assigned(Notifier) then Notifier.Free;
   CloseHandle(hMutex);
   AddLog('EndProgram');
 end.

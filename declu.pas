@@ -187,8 +187,6 @@ resourcestring
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';
   XStartButtonText = 'Start';
-  XMsgFirstRun = 'Hello. This is the first time to run Terry.';
-  XMsgAddMorePrograms = 'Would you like to add shortcuts for installed applications now?';
 
   // frmterryu //
   XConfigureIcon = 'Configure icon';

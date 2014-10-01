@@ -362,7 +362,7 @@ begin
     SetsPathFile := ChangeFileExt(SetsPathFile, '.tmpini');
     Save;
   except
-    on e: Exception do raise Exception.Create('Terry.Sets.SaveEx'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.SaveEx'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -377,7 +377,7 @@ begin
     SetsPathFile := ChangeFileExt(SetsPathFile, '.ini');
     windows.MoveFileEx(pchar(tmpini), pchar(SetsPathFile), MOVEFILE_REPLACE_EXISTING + MOVEFILE_WRITE_THROUGH);
   except
-    on e: Exception do raise Exception.Create('Terry.Sets.SaveEx2'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.SaveEx2'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -390,7 +390,7 @@ begin
     if result then
       result := windows.CopyFile(pchar(SetsPathFile), pchar(ChangeFileExt(SetsPathFile, '.bak')), false);
   except
-    on e: Exception do raise Exception.Create('Terry.Sets.Backup'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Backup'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -400,8 +400,9 @@ var
 begin
   result := false;
   try
+    AddLog('Sets.Restore');
     if FileExists(SetsPathFile) then
-      if not windows.DeleteFile(PChar(SetsPathFile)) then raise Exception.Create('Sets.Restore.DeleteSetsFile failed');
+      if not windows.DeleteFile(PChar(SetsPathFile)) then raise Exception.Create('DeleteSetsFile failed');
 
     bakfile := ChangeFileExt(SetsPathFile, '.tmpini');
     if FileExists(bakfile) then
@@ -413,7 +414,7 @@ begin
       if windows.CopyFile(pchar(bakfile), pchar(SetsPathFile), false) then result := true;
     end;
   except
-    on e: Exception do raise Exception.Create('Terry.Sets.Restore'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Restore'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
