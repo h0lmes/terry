@@ -317,7 +317,8 @@ begin
   if not FFreed then
   begin
     FMouseDownButton := button;
-    if not FLockMouseEffect then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
+    if button = mbLeft then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1000, nil)
+    else SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 800, nil);
     cmd(icSelect, 1);
   end;
 end;

@@ -46,7 +46,7 @@ uses
   processhlp,
   dropindicatoru,
   taskitemu,
-  frmhellou;
+  frmhellou, frmtipu;
 
 {$R *.res}
 
@@ -485,24 +485,40 @@ begin
 end;
 //------------------------------------------------------------------------------
 var
+  i: integer;
   WinHandle: THandle;
   hMutex: uint;
+  SetsFilename: string;
+  altSets: boolean;
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
 
-
-  hMutex := CreateMutex(nil, false, 'Global\' + declu.GUID);
-  if GetLastError = ERROR_ALREADY_EXISTS then
+  // settings file //
+  altSets := false;
+  SetsFilename := '';
+  i := 1;
+  while i <= ParamCount do
   begin
-    WinHandle := FindWindow('Window', 'TerryApp');
-    if IsWindow(WinHandle) then
-    begin
-      sendmessage(WinHandle, wm_user, wm_activate, 0);
-      SetForegroundWindow(WinHandle);
-    end;
-    halt;
+    if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then SetsFilename := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
+    inc(i);
   end;
+  if SetsFilename <> '' then altSets := FileExists(SetsFilename);
+  if not altSets then SetsFilename := UnzipPath('%pp%\sets.ini');
+
+  // check for 2nd instance //
+  hMutex := CreateMutex(nil, false, 'Global\' + declu.GUID);
+  if not altSets then
+    if GetLastError = ERROR_ALREADY_EXISTS then
+    begin
+      WinHandle := FindWindow('Window', 'TerryApp');
+      if IsWindow(WinHandle) then
+      begin
+        sendmessage(WinHandle, wm_user, wm_activate, 0);
+        SetForegroundWindow(WinHandle);
+      end;
+      halt;
+    end;
 
   AddLog('--------------------------------------');
   AddLog('AppInitialize');
@@ -525,7 +541,7 @@ begin
   AddLog('Notifier');
   Notifier := _Notifier.Create;
   AddLog('Init');
-  frmterry.Init;
+  frmterry.Init(SetsFilename);
   Application.ShowMainForm := true;
   AddLog('ExecAutorun');
   frmterry.ExecAutorun;

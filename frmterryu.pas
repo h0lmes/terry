@@ -75,10 +75,9 @@ type
     hHook: THandle;
     hMenu, hMenuCreate: uint;
 
-    procedure Init;
+    procedure Init(SetsFilename: string);
     procedure ExecAutorun;
     procedure ApplyParams;
-    procedure Help;
     procedure SetForeground;
     procedure SetNotForeground;
     procedure err(where: string; e: Exception);
@@ -120,11 +119,11 @@ var frmterry: Tfrmterry;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou;
+  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou, frmtipu;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
-procedure Tfrmterry.Init;
+procedure Tfrmterry.Init(SetsFilename: string);
 var
   i: integer;
   load_err: boolean;
@@ -163,16 +162,7 @@ begin
 
     // Sets //
     AddLog('Init.Sets');
-    theFile := UnzipPath('%pp%\sets.ini');
-    i := 1;
-    while i <= ParamCount do
-    begin
-      if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then theFile := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
-      inc(i);
-    end;
-    AddLog('Init.Sets.Create');
-    sets := _Sets.Create(theFile, UnzipPath('%pp%'), Handle, BaseCmd);
-    AddLog('Init.Sets.Load');
+    sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle, BaseCmd);
     sets.Load;
 
     // Theme //
@@ -263,7 +253,7 @@ begin
     // apply the theme to do the full repaint //
     BaseCmd(tcThemeChanged, 0);
 
-    if ItemMgr.FirstRun then TfrmHello.Open;
+    if sets.container.Hello then TfrmHello.Open;
     InitDone := True;
   except
     on e: Exception do err('Base.Init', e);
@@ -718,8 +708,8 @@ procedure Tfrmterry.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftSta
 begin
   if shift = [] then
   begin
-    if key = 112 {F1} then Help;
-    if key = 192 {tilda} then Tfrmcmd.StartForm;
+    if key = 112 {F1} then execute_cmdline('/help');
+    if key = 192 {tilda} then execute_cmdline('/cmd');
   end
   else if shift = [ssAlt] then
   begin
@@ -1046,11 +1036,6 @@ end;
 procedure Tfrmterry.trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   DoMenu(0);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmterry.Help;
-begin
-  if not FileExists(UnzipPath('Help\Help.html')) then notify(UTF8ToAnsi(XErrorHelpNotFound)) else Run('Help\Help.html', '', '', 1);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmterry.err(where: string; e: Exception);
@@ -1533,6 +1518,7 @@ begin
   else if cmd = 'program' then frmterry.AddFile
   else if cmd = 'command' then TfrmAddCommand.Open
   else if cmd = 'hello' then TfrmHello.Open
+  else if cmd = 'help' then TfrmTip.Open
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'tray' then frmterry.Tray.Show(sets.container.Site, hwnd)

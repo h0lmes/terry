@@ -286,18 +286,22 @@ msgid "Normal size"
 msgstr ""
 
 #: declu.xsitebottom
+msgctxt "declu.xsitebottom"
 msgid "Bottom"
 msgstr ""
 
 #: declu.xsiteleft
+msgctxt "declu.xsiteleft"
 msgid "Left"
 msgstr ""
 
 #: declu.xsiteright
+msgctxt "declu.xsiteright"
 msgid "Right"
 msgstr ""
 
 #: declu.xsitetop
+msgctxt "declu.xsitetop"
 msgid "Top"
 msgstr ""
 
@@ -452,31 +456,39 @@ msgid "Contour"
 msgstr ""
 
 #: tfrmhello.btnadd.caption
-msgid "Add shortcuts to installed applications"
+msgid "Add installed applications shortcuts"
 msgstr ""
 
 #: tfrmhello.btnautorun.caption
-msgid "Set program to autostart with Windows"
+msgid "Set the program to start with Windows"
+msgstr ""
+
+#: tfrmhello.btnbottom.caption
+msgctxt "TFRMHELLO.BTNBOTTOM.CAPTION"
+msgid "Bottom"
 msgstr ""
 
 #: tfrmhello.btnclose.caption
-msgid "Thanks. From now I'm on my own"
+msgid "Thanks!  I will manage everything myself"
 msgstr ""
 
-#: tfrmhello.btnenough.caption
-msgid "Thanks, I learned enough"
+#: tfrmhello.btncloseshowtips.caption
+msgid "Thanks!  Is there anything useful to know?"
 msgstr ""
 
-#: tfrmhello.btnlearn.caption
-msgid "Learn some interaction basics"
+#: tfrmhello.btnleft.caption
+msgctxt "TFRMHELLO.BTNLEFT.CAPTION"
+msgid "Left"
 msgstr ""
 
-#: tfrmhello.btnnext.caption
-msgid "Next"
+#: tfrmhello.btnright.caption
+msgctxt "TFRMHELLO.BTNRIGHT.CAPTION"
+msgid "Right"
 msgstr ""
 
-#: tfrmhello.btnprevious.caption
-msgid "Previous"
+#: tfrmhello.btntop.caption
+msgctxt "TFRMHELLO.BTNTOP.CAPTION"
+msgid "Top"
 msgstr ""
 
 #: tfrmhello.caption
@@ -484,15 +496,23 @@ msgid "Hello"
 msgstr ""
 
 #: tfrmhello.label1.caption
-msgid "Hello!    Almost certain this is the first time to run Terry."
+msgid "Hello!    Probably this is the first time you run Terry."
 msgstr ""
 
 #: tfrmhello.label2.caption
-msgid "Here you can do your first setup and learn some basics."
+msgid "Here you can do basic setup."
 msgstr ""
 
 #: tfrmhello.label3.caption
 msgid "Choose what you want to do:"
+msgstr ""
+
+#: tfrmhello.label4.caption
+msgid "You can open the tips window at any time by pressing F1"
+msgstr ""
+
+#: tfrmhello.label5.caption
+msgid "Move the dock to anoher side of the screen"
 msgstr ""
 
 #: tfrmitemprop.btnapply.caption
@@ -1140,5 +1160,21 @@ msgstr ""
 #: tfrmthemeeditor.msave.caption
 msgctxt "TFRMTHEMEEDITOR.MSAVE.CAPTION"
 msgid "Save theme <F2>"
+msgstr ""
+
+#: tfrmtip.btnenough.caption
+msgid "Thanks, I learned enough"
+msgstr ""
+
+#: tfrmtip.btnnext.caption
+msgid "Next"
+msgstr ""
+
+#: tfrmtip.btnprevious.caption
+msgid "Previous"
+msgstr ""
+
+#: tfrmtip.caption
+msgid "Tip"
 msgstr ""
 

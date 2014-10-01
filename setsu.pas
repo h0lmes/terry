@@ -50,6 +50,7 @@ type
     Blur: boolean;
 
     UseShell: boolean;
+    Hello: boolean;
 
     Font: _FontData;
     StackFont: _FontData;
@@ -145,6 +146,7 @@ begin
   container.site := bsBottom;
   container.CloseCmdWindow := true;
   container.BaseAlpha := 255;
+  container.Hello := true;
   SetsPathFile := sets_file;
   progpath := _prog_path;
   PluginsPath := progpath + '\Docklets';
@@ -229,6 +231,7 @@ begin
   container.AutoHideOnFullScreenApp := ini.ReadBool('base', 'AutoHideOnFullScreenApp', true);
   container.UseShellContextMenus := ini.ReadBool('base', 'UseShellContextMenus', true);
   container.StackOpenAnimation := ini.ReadBool('base', 'StackOpenAnimation', true);
+  container.Hello := ini.ReadBool('base', 'Hello', true);
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
@@ -320,6 +323,7 @@ begin
   ini.WriteBool('base', 'HintEffects', container.HintEffects);
   ini.WriteBool('base', 'UseShellContextMenus', container.UseShellContextMenus);
   ini.WriteBool('base', 'StackOpenAnimation', container.StackOpenAnimation);
+  ini.WriteBool('base', 'Hello', false);
   // gfx //
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
   ini.WriteBool('gfx', 'Reflection', container.Reflection);

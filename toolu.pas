@@ -664,7 +664,7 @@ end;
 //------------------------------------------------------------------------------
 function UnzipPath(path: string): string;
 var
-  pp: string;
+  pp, windir: string;
 begin
   Result := path;
   if trim(path) = '' then exit;
@@ -681,17 +681,18 @@ begin
   end;
 
   // path vars //
+  windir := GetWinDir;
   Result := ReplaceEx(Result, '%pp%', pp);
-  Result := ReplaceEx(Result, '%windir%', GetWinDir);
-  Result := ReplaceEx(Result, '%systemroot%', getwindir);
+  Result := ReplaceEx(Result, '%windir%', windir);
+  Result := ReplaceEx(Result, '%systemroot%', windir);
   Result := ReplaceEx(Result, '%sysdir%', getsystemdir);
   Result := ReplaceEx(Result, '%doc%', getsystempath('personal'));
   Result := ReplaceEx(Result, '%desktop%', getsystempath('desktop'));
   Result := ReplaceEx(Result, '%startmenu%', getsystempath('start menu'));
   Result := ReplaceEx(Result, '%commonstartmenu%', getsystempath('common start menu'));
-  Result := ReplaceEx(Result, '%pfx86%', getwindir[1] + ':\Program Files (x86)');
-  Result := ReplaceEx(Result, '%pf%', getwindir[1] + ':\Program Files');
-  Result := ReplaceEx(Result, '%programfiles%', getwindir[1] + ':\Program Files');
+  Result := ReplaceEx(Result, '%pfx86%', windir[1] + ':\Program Files (x86)');
+  Result := ReplaceEx(Result, '%pf%', windir[1] + ':\Program Files');
+  Result := ReplaceEx(Result, '%programfiles%', windir[1] + ':\Program Files');
 
   // non-path vars //
   Result := ReplaceEx(Result, '%date%', formatdatetime('dddddd', now));

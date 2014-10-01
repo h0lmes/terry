@@ -1,133 +1,125 @@
 object frmHello: TfrmHello
-  Left = 500
-  Height = 367
-  Top = 294
-  Width = 560
+  Left = 463
+  Height = 487
+  Top = 234
+  Width = 538
+  BorderStyle = bsSingle
   Caption = 'Hello'
-  ClientHeight = 367
-  ClientWidth = 560
+  ClientHeight = 487
+  ClientWidth = 538
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
-  object p1: TPanel
-    Left = 10
-    Height = 347
-    Top = 10
-    Width = 540
-    Align = alClient
-    BorderSpacing.Around = 10
-    BevelOuter = bvNone
-    ClientHeight = 347
-    ClientWidth = 540
-    TabOrder = 0
-    object btnAutorun: TButton
-      Left = 45
-      Height = 25
-      Top = 145
-      Width = 450
-      Caption = 'Set program to autostart with Windows'
-      OnClick = btnAutorunClick
-      TabOrder = 0
-    end
-    object btnAdd: TButton
-      Left = 45
-      Height = 25
-      Top = 195
-      Width = 450
-      Caption = 'Add shortcuts to installed applications'
-      OnClick = btnAddClick
-      TabOrder = 1
-    end
-    object Label1: TLabel
-      Left = 45
-      Height = 15
-      Top = 25
-      Width = 291
-      Caption = 'Hello!    Almost certain this is the first time to run Terry.'
-      ParentColor = False
-    end
-    object Label2: TLabel
-      Left = 45
-      Height = 15
-      Top = 45
-      Width = 291
-      Caption = 'Here you can do your first setup and learn some basics.'
-      ParentColor = False
-    end
-    object Label3: TLabel
-      Left = 45
-      Height = 15
-      Top = 100
-      Width = 155
-      Caption = 'Choose what you want to do:'
-      ParentColor = False
-    end
-    object btnLearn: TButton
-      Left = 45
-      Height = 25
-      Top = 245
-      Width = 450
-      Caption = 'Learn some interaction basics'
-      OnClick = btnLearnClick
-      TabOrder = 2
-    end
-    object btnClose: TButton
-      Left = 45
-      Height = 25
-      Top = 293
-      Width = 450
-      Caption = 'Thanks. From now I''m on my own'
-      OnClick = btnCloseClick
-      TabOrder = 3
-    end
+  LCLVersion = '1.2.2.0'
+  object Label1: TLabel
+    Left = 45
+    Height = 15
+    Top = 25
+    Width = 270
+    Caption = 'Hello!    Probably this is the first time you run Terry.'
+    ParentColor = False
   end
-  object p2: TPanel
-    Left = 10
-    Height = 347
-    Top = 10
-    Width = 540
-    Align = alClient
-    BorderSpacing.Around = 10
-    BevelOuter = bvNone
-    ClientHeight = 347
-    ClientWidth = 540
+  object Label2: TLabel
+    Left = 45
+    Height = 15
+    Top = 45
+    Width = 152
+    Caption = 'Here you can do basic setup.'
+    ParentColor = False
+  end
+  object Label3: TLabel
+    Left = 45
+    Height = 15
+    Top = 80
+    Width = 155
+    Caption = 'Choose what you want to do:'
+    ParentColor = False
+  end
+  object btnAutorun: TButton
+    Left = 45
+    Height = 25
+    Top = 120
+    Width = 450
+    Caption = 'Set the program to start with Windows'
+    OnClick = btnAutorunClick
+    TabOrder = 0
+  end
+  object btnAdd: TButton
+    Left = 45
+    Height = 25
+    Top = 170
+    Width = 450
+    Caption = 'Add installed applications shortcuts'
+    OnClick = btnAddClick
     TabOrder = 1
-    object btnEnough: TButton
-      Left = 290
-      Height = 25
-      Top = 305
-      Width = 210
-      Caption = 'Thanks, I learned enough'
-      OnClick = btnEnoughClick
-      TabOrder = 0
-    end
-    object btnNext: TButton
-      Left = 150
-      Height = 25
-      Top = 305
-      Width = 105
-      Caption = 'Next'
-      Enabled = False
-      OnClick = btnNextClick
-      TabOrder = 1
-    end
-    object memo: TMemo
-      Left = 20
-      Height = 260
-      Top = 20
-      Width = 500
-      Color = clBtnFace
-      TabOrder = 2
-    end
-    object btnPrevious: TButton
-      Left = 35
-      Height = 25
-      Top = 305
-      Width = 105
-      Caption = 'Previous'
-      Enabled = False
-      OnClick = btnNextClick
-      TabOrder = 3
-    end
+  end
+  object btnClose: TButton
+    Left = 45
+    Height = 25
+    Top = 350
+    Width = 450
+    Caption = 'Thanks!  I will manage everything myself'
+    OnClick = btnCloseClick
+    TabOrder = 2
+  end
+  object Label4: TLabel
+    Left = 50
+    Height = 15
+    Top = 435
+    Width = 300
+    Caption = 'You can open the tips window at any time by pressing F1'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 45
+    Height = 15
+    Top = 223
+    Width = 228
+    Caption = 'Move the dock to anoher side of the screen'
+    ParentColor = False
+  end
+  object btnTop: TButton
+    Left = 350
+    Height = 25
+    Top = 240
+    Width = 70
+    Caption = 'Top'
+    OnClick = btnTopClick
+    TabOrder = 3
+  end
+  object btnLeft: TButton
+    Left = 280
+    Height = 25
+    Top = 265
+    Width = 70
+    Caption = 'Left'
+    OnClick = btnLeftClick
+    TabOrder = 4
+  end
+  object btnRight: TButton
+    Left = 420
+    Height = 25
+    Top = 265
+    Width = 70
+    Caption = 'Right'
+    OnClick = btnRightClick
+    TabOrder = 5
+  end
+  object btnBottom: TButton
+    Left = 350
+    Height = 25
+    Top = 290
+    Width = 70
+    Caption = 'Bottom'
+    OnClick = btnBottomClick
+    TabOrder = 6
+  end
+  object btnCloseShowTips: TButton
+    Left = 45
+    Height = 25
+    Top = 400
+    Width = 450
+    Caption = 'Thanks!  Is there anything useful to know?'
+    OnClick = btnCloseShowTipsClick
+    TabOrder = 7
   end
 end

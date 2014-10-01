@@ -37,6 +37,7 @@ type
     FLaunchInterval: integer;
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
+    FMouseDownButton: TMouseButton;
     FLockDragging: boolean;
 
     FImage: Pointer;
@@ -124,6 +125,7 @@ type
     function SaveToString: string; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
+    procedure MouseHeld(button: TMouseButton); override;
     procedure WMCommand(var msg: TMessage); override;
     procedure Configure; override;
     function cmd(id: TGParam; param: integer): integer; override;
@@ -577,7 +579,6 @@ end;
 procedure TShortcutSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
 begin
   inherited;
-  cmd(icSelect, 1);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
@@ -586,29 +587,36 @@ var
 begin
   inherited;
   result := false;
-  if FFreed then exit;
 
-  if button = mbLeft then
+  if not FFreed and FSelected then
   begin
-    if FSelected and (abs(gettickcount - LastMouseUp) > FLaunchInterval) then
+    cmd(icSelect, 0);
+
+    if button = mbLeft then
     begin
-      Exec;
-      CloseStack;
+      if abs(gettickcount - LastMouseUp) > FLaunchInterval then
+      begin
+        Exec;
+        CloseStack;
+      end;
+      LastMouseUp := gettickcount;
+      result := true;
     end;
-    LastMouseUp := gettickcount;
-    result := true;
-  end;
 
-  if button = mbRight then
-  begin
-    windows.GetCursorPos(pt);
-    result := ContextMenu(pt);
-  end;
+    if button = mbRight then
+    begin
+      windows.GetCursorPos(pt);
+      result := ContextMenu(pt);
+    end;
 
-  // try..except if item was deleted //
-  try cmd(icSelect, 0);
-  except end;
-  SetActiveWindow(FHWndParent);
+    SetActiveWindow(FHWndParent);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.MouseHeld(button: TMouseButton);
+begin
+  inherited;
+  if button = mbRight then Configure;
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.ContextMenu(pt: Windows.TPoint): boolean;
@@ -905,30 +913,25 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
 begin
-  if FFreed then exit;
-  if button = mbLeft then
+  if not FFreed then
   begin
-    SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1200, nil);
+    FMouseDownButton := button;
+    if button = mbLeft then SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 1000, nil)
+    else SetTimer(FHWnd, ID_TIMER_MOUSEHELD, 800, nil);
+    cmd(icSelect, 1);
   end;
 end;
 //------------------------------------------------------------------------------
 function TCustomSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 begin
-  result := false;
-  if FFreed then exit;
-  result := true;
   KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
+  result := not FFreed;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.MouseHeld(button: TMouseButton);
-var
-  pt: windows.TPoint;
 begin
-  if button = mbLeft then
-  begin
-    GetCursorPos(pt);
-    if WindowFromPoint(pt) = FHWnd then BeginDrag;
-  end;
+  FSelected := false;
+  if button = mbLeft then BeginDrag;
 end;
 //------------------------------------------------------------------------------
 function TCustomSubitem.GetRectFromSize(ASize: integer): windows.TRect;
@@ -1015,6 +1018,7 @@ end;
 procedure TCustomSubitem.NativeWndProc(var message: TMessage);
 var
   pos: TSmallPoint;
+  wpt: windows.TPoint;
   ShiftState: TShiftState;
 begin
   try
@@ -1069,7 +1073,8 @@ begin
             if message.wParam = ID_TIMER_MOUSEHELD then
             begin
               KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-              MouseHeld(mbLeft);
+              GetCursorPos(wpt);
+              if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
             end;
       end
       else if (message.msg = wm_close) or (message.msg = wm_quit) then exit;

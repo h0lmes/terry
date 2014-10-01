@@ -46,7 +46,6 @@ type
     FItemArea: windows.TRect; // updates in SetItems1
     LockMouseEffect: boolean;
     SetsFilename: string;
-    FFirstRun: boolean;
     //
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
@@ -105,7 +104,6 @@ type
     ParentHWnd: cardinal;
     BaseCmd: TBaseCmd;
 
-    property FirstRun: boolean read FFirstRun;
     property Visible: boolean read FVisible write SetVisible;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
@@ -375,7 +373,6 @@ var
   stack: TStackItem;
 begin
   if fsets = '' then exit;
-  FFirstRun := false;
   Dragging := false;
   DraggingFile := false;
   DragHWnd := 0;
@@ -418,7 +415,6 @@ begin
       begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\apps\gnome-session-halt.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\apps\gnome-session-reboot-2.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Log out', '/logoff', '', '', 'images\apps\gnome-session-logout.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\apps\gnome-session-suspend-2.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\apps\gnome-session-hibernate-2.png'));
       end;
@@ -426,9 +422,8 @@ begin
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Trash bin', 'CSIDL_BITBUCKET', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Program settings', '/sets', '', '', ICON_SETTINGS));
-      FFirstRun := true;
+      AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', ICON_SETTINGS));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);

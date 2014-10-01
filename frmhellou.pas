@@ -16,22 +16,24 @@ type
     btnAdd: TButton;
     btnAutorun: TButton;
     btnClose: TButton;
-    btnLearn: TButton;
-    btnEnough: TButton;
-    btnNext: TButton;
-    btnPrevious: TButton;
+    btnCloseShowTips: TButton;
+    btnTop: TButton;
+    btnLeft: TButton;
+    btnRight: TButton;
+    btnBottom: TButton;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
-    memo: TMemo;
-    p1: TPanel;
-    p2: TPanel;
+    Label4: TLabel;
+    Label5: TLabel;
     procedure btnAutorunClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
-    procedure btnEnoughClick(Sender: TObject);
-    procedure btnLearnClick(Sender: TObject);
+    procedure btnBottomClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
-    procedure btnNextClick(Sender: TObject);
+    procedure btnCloseShowTipsClick(Sender: TObject);
+    procedure btnLeftClick(Sender: TObject);
+    procedure btnRightClick(Sender: TObject);
+    procedure btnTopClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
   public
@@ -43,14 +45,25 @@ var
 
 implementation
 {$R *.lfm}
-uses toolu, frmterryu;
+uses toolu, frmterryu, frmtipu;
 //------------------------------------------------------------------------------
 class procedure TfrmHello.Open;
 begin
   Application.CreateForm(TfrmHello, frmHello);
   frmHello.Show;
-  frmHello.p1.BringToFront;
   frmHello.btnAutorun.Enabled := not CheckAutorun;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmHello.btnCloseClick(Sender: TObject);
+begin
+  close;
+  frmHello := nil;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmHello.btnCloseShowTipsClick(Sender: TObject);
+begin
+  TfrmTip.Open;
+  btnClose.Click;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnAutorunClick(Sender: TObject);
@@ -64,25 +77,24 @@ begin
   frmterry.execute_cmdline('/apps');
 end;
 //------------------------------------------------------------------------------
-procedure TfrmHello.btnLearnClick(Sender: TObject);
+procedure TfrmHello.btnLeftClick(Sender: TObject);
 begin
-  p2.BringToFront;
+  frmterry.execute_cmdline('/site(left)');
 end;
 //------------------------------------------------------------------------------
-procedure TfrmHello.btnEnoughClick(Sender: TObject);
+procedure TfrmHello.btnRightClick(Sender: TObject);
 begin
-  p1.BringToFront;
+  frmterry.execute_cmdline('/site(right)');
 end;
 //------------------------------------------------------------------------------
-procedure TfrmHello.btnNextClick(Sender: TObject);
+procedure TfrmHello.btnTopClick(Sender: TObject);
 begin
-
+  frmterry.execute_cmdline('/site(top)');
 end;
 //------------------------------------------------------------------------------
-procedure TfrmHello.btnCloseClick(Sender: TObject);
+procedure TfrmHello.btnBottomClick(Sender: TObject);
 begin
-  close;
-  frmHello := nil;
+  frmterry.execute_cmdline('/site(bottom)');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.FormClose(Sender: TObject; var CloseAction: TCloseAction);

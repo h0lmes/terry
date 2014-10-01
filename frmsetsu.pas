@@ -398,7 +398,7 @@ end;
 procedure Tfrmsets.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if (key = 27) and (shift = []) then close;
-  if (key = 112) and (shift = []) then frmterry.Help;
+  if (key = 112) and (shift = []) then frmterry.execute_cmdline('/help');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.FormClose(Sender: TObject; var Action: TCloseAction);
