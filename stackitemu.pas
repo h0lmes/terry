@@ -563,8 +563,8 @@ begin
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
   dockh.DockAddMenu(FHMenu);
-  LME(true);
 
+  LME(true);
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
@@ -573,8 +573,9 @@ end;
 procedure TStackItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 begin
   result := 0;
-  DestroyMenu(FHMenu);
   LME(false);
+  DestroyMenu(FHMenu);
+  FHMenu := 0;
   case wParam of // f001 to f020
     $f001: Configure;
     $f002: ; // open folder
@@ -1135,8 +1136,8 @@ begin
       begin
         FStateProgress := 0;
         FState := stsClosed;
+        if FHMenu = 0 then LME(false);
         FHideHint := false;
-        LME(false);
         CheckDeleteSubitems;
         AllSubitemsCmd(icSelect, 0);
         Redraw;

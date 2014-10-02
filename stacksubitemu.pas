@@ -656,6 +656,7 @@ procedure TShortcutSubitem.WMCommand(var msg: TMessage);
 begin
   try
     DestroyMenu(FHMenu);
+    FHMenu := 0;
     CloseStack;
     msg.Result := 0;
     case msg.wparam of // f001 to f020

@@ -206,8 +206,15 @@ msgid "Monitor"
 msgstr "Монитор"
 
 #: declu.xmsgnotificationareaicons
-msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
-msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
+msgid ""
+"After you close this message you will see \"Notification area icons\" "
+"window. To use this function uncheck \"Always show all icons\" at the bottom "
+"of the window and set all behaviors to \"Only show notifications\"."
+msgstr ""
+"После закрытия данного сообщения вы увидете окно \"Значки области уведомлений"
+"\". Для использования данной функции снимите отметку \"Всегда отображать все "
+"значки\" внизу окна и установите для всех значков поведение \"Показать "
+"только уведомления\"."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
 msgid "Place target file onto dock instead of shortcut?"
@@ -223,9 +230,23 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
-msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
-msgstr "Параметры значка были изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
+#| msgid ""
+#| "Icon parameters changed. If you will proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
+#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
+#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?"
+msgid ""
+"Icon parameters changed. If you choose to proceed all changes will be lost. "
+"Proceed?"
+msgstr ""
+"Параметры значка были изменены. Если вы продолжите все изменения будут "
+"утеряны. Продолжить?"
 
 #: declu.xopenfolderof
 msgctxt "declu.xopenfolderof"
@@ -438,9 +459,9 @@ msgid "Add installed applications shortcuts"
 msgstr "Добавить ярлыки установленных программ"
 
 #: tfrmhello.btnautorun.caption
-#| msgid "Set program to autostart with Windows"
-msgid "Set the program to start with Windows"
-msgstr "Запускать программу при старте Windows"
+#| msgid "Set the program to start with Windows"
+msgid "Set the dock to start with Windows"
+msgstr "Запускать док при старте Windows"
 
 #: tfrmhello.btnbottom.caption
 msgctxt "tfrmhello.btnbottom.caption"
@@ -453,9 +474,9 @@ msgid "Thanks!  I will manage everything myself"
 msgstr "Спасибо!  Дальше я сам разберусь"
 
 #: tfrmhello.btncloseshowtips.caption
-#| msgid "Thanks! And show me some tips"
-msgid "Thanks!  Is there anything useful to know?"
-msgstr "Спасибо!  Есть что-то полезное что можно узнать?"
+#| msgid "Thanks!  Is there anything useful to know?"
+msgid "Is there anything useful to know?"
+msgstr "Есть что-то полезное что можно узнать?"
 
 #: tfrmhello.btnleft.caption
 msgctxt "tfrmhello.btnleft.caption"
@@ -477,9 +498,9 @@ msgid "Hello"
 msgstr "Привет"
 
 #: tfrmhello.label1.caption
-#| msgid "Hello!    Almost certain this is the first time to run Terry."
-msgid "Hello!    Probably this is the first time you run Terry."
-msgstr "Привет!    Возможно это Ваш первый запуск Terry."
+#| msgid "Hello!    Probably this is the first time you run Terry."
+msgid "Hello!  Probably this is the first time you run TDock."
+msgstr "Привет!  Возможно это Ваш первый запуск TDock."
 
 #: tfrmhello.label2.caption
 #| msgid "Here you can do your first setup and learn some basics."
@@ -491,12 +512,14 @@ msgid "Choose what you want to do:"
 msgstr "Выберите что Вы хотите сделать:"
 
 #: tfrmhello.label4.caption
-msgid "You can open the tips window at any time by pressing F1"
-msgstr "Вы можете открыть окно подсказок в любое время нажав F1"
+#| msgid "You can open the tips window at any time by pressing F1"
+msgid "You can view useful tips at any time by pressing F1."
+msgstr "Вы можете посмотреть полезные подсказки в любое время нажав F1."
 
 #: tfrmhello.label5.caption
-msgid "Move the dock to anoher side of the screen"
-msgstr "Переместить док к другом краю экрана"
+#| msgid "Move the dock to anoher side of the screen"
+msgid "Move the dock to anoher side of the screen:"
+msgstr "Переместить док к другом краю экрана:"
 
 #: tfrmitemprop.btnapply.caption
 msgctxt "TFRMITEMPROP.BTNAPPLY.CAPTION"
@@ -869,9 +892,12 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
-#| msgid "Move mouse pointer to the edge of screen to bring panel to foreground"
+#| msgid ""
+#| "Move mouse pointer to the edge of screen to bring panel to foregroundMove "
+#| "mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
-msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
+msgid ""
+"Move mouse pointer to the edge of the screen to put the dock to foreground"
 msgstr "Подведите указатель мыши к краю экрана чтобы активировать док"
 
 #: tfrmsets.lblshowdelay.caption
@@ -903,8 +929,12 @@ msgid "Zoom width"
 msgstr "Ширина увеличения"
 
 #: tfrmsets.stmovedockhint.caption
-msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
-msgstr "Совет: когда док активирован (например, после клика на нем) используйте <Alt>+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
+msgid ""
+"Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows "
+"to move dock to another edge or monitor"
+msgstr ""
+"Совет: когда док активирован (например, после клика на нем) используйте <Alt>"
+"+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
 
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
@@ -1132,4 +1162,3 @@ msgstr "Назад"
 #: tfrmtip.caption
 msgid "Tip"
 msgstr "Подсказка"
-

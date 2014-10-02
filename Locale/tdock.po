@@ -395,7 +395,7 @@ msgid "Add installed applications shortcuts"
 msgstr ""
 
 #: tfrmhello.btnautorun.caption
-msgid "Set the program to start with Windows"
+msgid "Set the dock to start with Windows"
 msgstr ""
 
 #: tfrmhello.btnbottom.caption
@@ -408,7 +408,7 @@ msgid "Thanks!  I will manage everything myself"
 msgstr ""
 
 #: tfrmhello.btncloseshowtips.caption
-msgid "Thanks!  Is there anything useful to know?"
+msgid "Is there anything useful to know?"
 msgstr ""
 
 #: tfrmhello.btnleft.caption
@@ -431,7 +431,7 @@ msgid "Hello"
 msgstr ""
 
 #: tfrmhello.label1.caption
-msgid "Hello!    Probably this is the first time you run Terry."
+msgid "Hello!  Probably this is the first time you run TDock."
 msgstr ""
 
 #: tfrmhello.label2.caption
@@ -443,11 +443,11 @@ msgid "Choose what you want to do:"
 msgstr ""
 
 #: tfrmhello.label4.caption
-msgid "You can open the tips window at any time by pressing F1"
+msgid "You can view useful tips at any time by pressing F1."
 msgstr ""
 
 #: tfrmhello.label5.caption
-msgid "Move the dock to anoher side of the screen"
+msgid "Move the dock to anoher side of the screen:"
 msgstr ""
 
 #: tfrmitemprop.btnapply.caption

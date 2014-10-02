@@ -471,6 +471,22 @@ begin
   Result := True;
 end;
 //------------------------------------------------------------------------------
+procedure TPluginItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
+begin
+  result := 0;
+  LME(false);
+  DestroyMenu(FHMenu);
+  FHMenu := 0;
+  case wParam of // f001 to f020
+    $f001: Configure;
+    $f002: OpenFolder;
+    $f003: toolu.SetClipboard(ToString);
+    $f004: Delete;
+    $f005..$f020: ;
+    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TPluginItem.WndMessage(var msg: TMessage);
 begin
   msg.Result := 0;
@@ -483,21 +499,6 @@ begin
         TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
       end;}
       OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TPluginItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
-begin
-  result := 0;
-  DestroyMenu(FHMenu);
-  LME(false);
-  case wParam of // f001 to f020
-    $f001: Configure;
-    $f002: OpenFolder;
-    $f003: toolu.SetClipboard(ToString);
-    $f004: Delete;
-    $f005..$f020: ;
-    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

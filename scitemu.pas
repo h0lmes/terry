@@ -661,8 +661,9 @@ end;
 procedure TShortcutItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 begin
   result := 0;
-  DestroyMenu(FHMenu);
   LME(false);
+  DestroyMenu(FHMenu);
+  FHMenu := 0;
   case wParam of // f001 to f020
     $f001: Configure;
     $f002: OpenFolder;
