@@ -141,20 +141,14 @@ type
 
 
 const
-  WINITEM_CLASS = 'Terry::WinItem';
+  PROGRAM_NAME = 'TDock';
+  PROGRAM_REGKEY = 'tdock';
+  PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
+  WINITEM_CLASS = 'TDockItemWClass';
   ITEM_BACKGROUND = $2808080;
-  GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
   RollStep = 4;
   NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
   NOT_AN_ITEM = $ffff; // result const in case when item (items[]) not found
-
-  ICON_DRIVE = 'Images\devices\drive-harddisk-8.png';
-  ICON_FOLDER = 'Images\places\crystal-style\folder.png';
-  ICON_COMPUTER = 'Images\places\crystal-style\my_computer.png';
-  ICON_FOLDER_DOCUMENTS = 'Images\places\crystal-style\folder-documents.png';
-  ICON_CONTROL_PANEL = 'Images\categories\preferences-desktop-5.png';
-  ICON_TRASH_BIN = 'Images\places\crystal-style\user-trash.png';
-  ICON_SETTINGS = 'Images\categories\applications-system-3.png';
 
   // private Terry WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
@@ -170,7 +164,6 @@ const
   ID_TIMER_CLOSE            = 5;
   ID_TIMER_MOUSEHELD        = 6;
   ID_TIMER_UPDATE_SHORTCUT  = 7;
-
 
 resourcestring
 

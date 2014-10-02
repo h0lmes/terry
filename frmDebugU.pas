@@ -18,7 +18,7 @@ var
   frmDebug: TfrmDebug;
 
 implementation
-uses frmterryu, toolu;
+uses frmmainu, toolu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmDebug.Open;
@@ -36,7 +36,7 @@ begin
   memo.clear;
   memo.lines.add('<< Fullscreen windows >>');
   memo.lines.add('');
-  memo.lines.add(frmterry.ListFullScreenApps);
+  memo.lines.add(frmmain.ListFullScreenApps);
   memo.lines.add('<< Log >>');
   memo.lines.add('');
   log := TStringList.Create;

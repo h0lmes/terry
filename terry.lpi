@@ -18,8 +18,7 @@
     </i18n>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
-      <MinorVersionNr Value="80"/>
-      <RevisionNr Value="6"/>
+      <MinorVersionNr Value="81"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1" Active="Default">
@@ -47,11 +46,10 @@
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="485"/>
-        <CursorPos X="39" Y="498"/>
+        <TopLine Value="488"/>
+        <CursorPos X="74" Y="509"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -69,10 +67,10 @@
         <Filename Value="declu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="declu"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="126"/>
-        <CursorPos X="50" Y="140"/>
+        <TopLine Value="123"/>
+        <CursorPos X="12" Y="141"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -88,18 +86,19 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
-        <Filename Value="frmterryu.pas"/>
+        <Filename Value="frmmainu.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="frmterry"/>
+        <ComponentName Value="frmmain"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="frmterryu"/>
-        <EditorIndex Value="2"/>
+        <UnitName Value="frmmainu"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="147"/>
-        <CursorPos X="27" Y="160"/>
+        <TopLine Value="1550"/>
+        <CursorPos X="35" Y="1572"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -109,12 +108,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
-        <EditorIndex Value="4"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="383"/>
-        <CursorPos X="12" Y="400"/>
+        <TopLine Value="189"/>
+        <CursorPos X="1" Y="161"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
@@ -125,8 +126,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmitemoptu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="245"/>
-        <CursorPos X="41" Y="255"/>
+        <TopLine Value="77"/>
+        <CursorPos X="37" Y="107"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
@@ -138,8 +139,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmcmdu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="33" Y="53"/>
+        <TopLine Value="5"/>
+        <CursorPos X="25" Y="28"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
@@ -150,10 +151,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFontU"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="6"/>
-        <CursorPos X="46" Y="29"/>
+        <TopLine Value="77"/>
+        <CursorPos X="40" Y="90"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
       <Unit9>
@@ -176,8 +180,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmthemeeditoru"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="86"/>
-        <CursorPos X="28" Y="86"/>
+        <TopLine Value="19"/>
+        <CursorPos X="21" Y="42"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit10>
@@ -209,8 +213,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="setsu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="314"/>
-        <CursorPos X="11" Y="315"/>
+        <TopLine Value="103"/>
+        <CursorPos X="1" Y="1"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
@@ -237,10 +241,10 @@
         <Filename Value="toolu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolu"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="670"/>
-        <CursorPos X="46" Y="681"/>
+        <TopLine Value="1"/>
+        <CursorPos X="89" Y="6"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -258,10 +262,10 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="410"/>
-        <CursorPos X="42" Y="426"/>
+        <TopLine Value="287"/>
+        <CursorPos X="9" Y="309"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -466,11 +470,13 @@
         <Filename Value="EColor.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="EColor"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="16"/>
-        <CursorPos X="29" Y="12"/>
-        <FoldState Value=" T3j4043D44"/>
+        <TopLine Value="251"/>
+        <CursorPos X="29" Y="286"/>
+        <FoldState Value=" T3j1043D4\"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit37>
       <Unit38>
@@ -513,7 +519,7 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="319"/>
         <CursorPos X="38" Y="321"/>
@@ -529,8 +535,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmDebugU"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="9"/>
-        <CursorPos X="12" Y="49"/>
+        <TopLine Value="1"/>
+        <CursorPos X="14" Y="21"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit43>
@@ -538,12 +544,10 @@
         <Filename Value="traycontrolleru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="traycontrolleru"/>
-        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="111"/>
-        <CursorPos X="35" Y="60"/>
+        <TopLine Value="1"/>
+        <CursorPos X="14" Y="24"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit44>
       <Unit45>
@@ -566,8 +570,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmAddCommandU"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="153"/>
-        <CursorPos X="41" Y="161"/>
+        <TopLine Value="25"/>
+        <CursorPos X="28" Y="47"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit46>
@@ -601,8 +605,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmstackpropu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="314"/>
-        <CursorPos X="1" Y="345"/>
+        <TopLine Value="81"/>
+        <CursorPos X="19" Y="118"/>
         <UsageCount Value="202"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit49>
@@ -891,9 +895,9 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmhellou"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="51"/>
-        <CursorPos X="20" Y="58"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="25"/>
+        <CursorPos X="21" Y="48"/>
+        <UsageCount Value="40"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit85>
       <Unit86>
@@ -926,80 +930,141 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmtipu"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="29"/>
-        <CursorPos X="38" Y="49"/>
-        <UsageCount Value="28"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
+        <TopLine Value="1"/>
+        <CursorPos X="28" Y="34"/>
+        <UsageCount Value="35"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit89>
     </Units>
-    <JumpHistory Count="14" HistoryIndex="13">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="1533" Column="18" TopLine="1525"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="111" Column="22" TopLine="97"/>
       </Position1>
       <Position2>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="249" Column="18" TopLine="244"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="15" Column="22" TopLine="1"/>
       </Position2>
       <Position3>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="717" Column="1" TopLine="698"/>
+        <Filename Value="toolu.pas"/>
+        <Caret Line="954" Column="45" TopLine="923"/>
       </Position3>
       <Position4>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="721" Column="52" TopLine="715"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="214" Column="42" TopLine="205"/>
       </Position4>
       <Position5>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="561" Column="48" TopLine="550"/>
+        <Filename Value="toolu.pas"/>
+        <Caret Line="484" Column="51" TopLine="460"/>
       </Position5>
       <Position6>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="402" Column="85" TopLine="397"/>
+        <Filename Value="toolu.pas"/>
+        <Caret Line="4" Column="42" TopLine="1"/>
       </Position6>
       <Position7>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="904" Column="43" TopLine="892"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="1450" Column="1" TopLine="1427"/>
       </Position7>
       <Position8>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="616" Column="27" TopLine="593"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="132" Column="8" TopLine="109"/>
       </Position8>
       <Position9>
-        <Filename Value="terry.lpr"/>
-        <Caret Line="505" Column="6" TopLine="478"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="687" Column="54" TopLine="663"/>
       </Position9>
       <Position10>
-        <Filename Value="terry.lpr"/>
-        <Caret Line="491" Column="6" TopLine="484"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1520" Column="53" TopLine="1498"/>
       </Position10>
       <Position11>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="163" Column="45" TopLine="153"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1557" Column="53" TopLine="1490"/>
       </Position11>
       <Position12>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="123" Column="51" TopLine="105"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1557" Column="53" TopLine="1490"/>
       </Position12>
       <Position13>
-        <Filename Value="terry.lpr"/>
-        <Caret Line="491" Column="11" TopLine="478"/>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="42" Column="24" TopLine="20"/>
       </Position13>
       <Position14>
-        <Filename Value="frmterryu.pas"/>
-        <Caret Line="78" Column="26" TopLine="62"/>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="41" Column="24" TopLine="20"/>
       </Position14>
+      <Position15>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="40" Column="24" TopLine="20"/>
+      </Position15>
+      <Position16>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="42" Column="24" TopLine="21"/>
+      </Position16>
+      <Position17>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="41" Column="24" TopLine="21"/>
+      </Position17>
+      <Position18>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="40" Column="24" TopLine="21"/>
+      </Position18>
+      <Position19>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="42" Column="24" TopLine="21"/>
+      </Position19>
+      <Position20>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="131" Column="27" TopLine="121"/>
+      </Position20>
+      <Position21>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="130" Column="27" TopLine="120"/>
+      </Position21>
+      <Position22>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="129" Column="27" TopLine="119"/>
+      </Position22>
+      <Position23>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="95" Column="39" TopLine="77"/>
+      </Position23>
+      <Position24>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1557" Column="53" TopLine="1490"/>
+      </Position24>
+      <Position25>
+        <Filename Value="frmFontU.pas"/>
+        <Caret Line="85" Column="36" TopLine="78"/>
+      </Position25>
+      <Position26>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="759" Column="16" TopLine="736"/>
+      </Position26>
+      <Position27>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="722" Column="1" TopLine="702"/>
+      </Position27>
+      <Position28>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="609" Column="11" TopLine="598"/>
+      </Position28>
+      <Position29>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="608" Column="11" TopLine="597"/>
+      </Position29>
+      <Position30>
+        <Filename Value="frmsetsu.pas"/>
+        <Caret Line="600" Column="13" TopLine="597"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="terry"/>
+      <Filename Value="tdock"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

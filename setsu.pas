@@ -126,7 +126,7 @@ var
   sets: _Sets;
 
 implementation
-uses frmterryu, toolu, frmsetsu, dockh, dwm_unit;
+uses frmmainu, toolu, frmsetsu, dockh, dwm_unit;
 //------------------------------------------------------------------------------
 constructor _Sets.Create(sets_file, _prog_path: string; Handle: THandle; ABaseCmd: TBaseCmd);
 begin
@@ -187,7 +187,7 @@ begin
   if not FileExists(SetsPathFile) and FileExists(ChangeFileExt(SetsPathFile, '.bak')) then
   begin
     windows.CopyFile(pchar(ChangeFileExt(SetsPathFile, '.bak')), pchar(SetsPathFile), true);
-    frmterry.notify('Settings file not found. Restored from backup.');
+    frmmain.notify('Settings file not found. Restored from backup.');
   end;
 
   // load sets //
@@ -617,7 +617,7 @@ begin
   if IsWindowVisible(ParentHWnd) and IsHiddenDown then
   begin
     wndOffsetTarget := 0;
-    frmterry.ItemMgr.ItemsChanged;
+    frmmain.ItemMgr.ItemsChanged;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -645,7 +645,7 @@ begin
         if wndOffsetTarget > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
       end
       else wndOffset := wndOffsetTarget;
-      frmterry.ItemMgr.ItemsChanged;
+      frmmain.ItemMgr.ItemsChanged;
     end;
 
   KeyPressed:= false;

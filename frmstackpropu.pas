@@ -101,7 +101,7 @@ var
 
 {$t+}
 implementation
-uses declu, toolu, frmterryu, stackmodeu;
+uses declu, toolu, frmmainu, stackmodeu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmStackProp.Open(AData: string; uproc: _uproc; AItem: TStackItem);
@@ -115,9 +115,10 @@ begin
       frmStackProp.item := AItem;
       frmStackProp.ReadSubitems;
       frmStackProp.Show;
+      frmStackProp.edCaption.SetFocus;
     end;
   except
-    on e: Exception do frmterry.notify('frmStackProp.Open'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmStackProp.Open'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -272,7 +273,7 @@ procedure TfrmStackProp.btnOKClick(Sender: TObject);
 begin
   btnApply.Click;
   // save settings !!!
-  frmterry.BaseCmd(tcSaveSets, 0);
+  frmmain.BaseCmd(tcSaveSets, 0);
   Close;
 end;
 //------------------------------------------------------------------------------
@@ -286,7 +287,7 @@ begin
       color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, chbPreview.Checked);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
-    on e: Exception do frmterry.notify('frmStackProp.btnApplyClick'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmStackProp.btnApplyClick'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -297,7 +298,7 @@ begin
   FImage := nil;
   action := cafree;
   frmStackProp := nil;
-  //SetActiveWindow(frmterry.handle);
+  //SetActiveWindow(frmmain.handle);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
@@ -395,7 +396,7 @@ begin
 
     DrawFit;
   except
-    on e: Exception do frmterry.notify('frmStackProp.Draw'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmStackProp.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -442,7 +443,7 @@ begin
     GdipDisposeImageAttributes(hattr);
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmterry.notify('frmStackProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmStackProp.DrawFit'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

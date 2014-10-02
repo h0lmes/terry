@@ -97,7 +97,7 @@ var
 
 {$t+}
 implementation
-uses declu, scitemu, PIDL, toolu, setsu, frmterryu;
+uses declu, scitemu, PIDL, toolu, setsu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmItemProp.Open(AData: string; uproc: _uproc);
@@ -109,9 +109,10 @@ begin
     begin
       frmItemProp.UpdateItemProc := uproc;
       frmItemProp.Show;
+      frmItemProp.edCaption.SetFocus;
     end;
   except
-    on e: Exception do frmterry.notify('TfrmItemProp.Open'#10#13 + e.message);
+    on e: Exception do frmmain.notify('TfrmItemProp.Open'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -208,7 +209,7 @@ procedure TfrmItemProp.btnOKClick(Sender: TObject);
 begin
   btnApply.Click;
   // save settings !!!
-  frmterry.BaseCmd(tcSaveSets, 0);
+  frmmain.BaseCmd(tcSaveSets, 0);
   Close;
 end;
 //------------------------------------------------------------------------------
@@ -230,7 +231,7 @@ begin
 
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
-    on e: Exception do frmterry.notify('TfrmItemProp.btnApplyClick'#10#13 + e.message);
+    on e: Exception do frmmain.notify('TfrmItemProp.btnApplyClick'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -241,7 +242,7 @@ begin
   FImage := nil;
   action := cafree;
   frmItemProp := nil;
-  //SetActiveWindow(frmterry.handle);
+  //SetActiveWindow(frmmain.handle);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnPropertiesClick(Sender: TObject);
@@ -418,7 +419,7 @@ begin
 
     DrawFit;
   except
-    on e: Exception do frmterry.notify('frmItemProp.Draw'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmItemProp.Draw'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -465,7 +466,7 @@ begin
     GdipDisposeImageAttributes(hattr);
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmterry.notify('frmItemProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmItemProp.DrawFit'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

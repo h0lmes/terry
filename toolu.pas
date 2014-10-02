@@ -3,7 +3,7 @@ unit toolu;
 interface
 
 uses Windows, jwaWindows, Messages, SysUtils, Variants, Classes,
-  Graphics, Controls, Forms, Dialogs, ShellAPI, Registry, ComObj, ShlObj, ActiveX;
+  Graphics, Controls, Forms, Dialogs, ShellAPI, Registry, ComObj, ShlObj, ActiveX, declu;
 
 //function AddClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
 //function RemoveClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
@@ -39,8 +39,6 @@ function ReadIniString(IniFile, IniSection, KeyName, Default: string): string;
 function ReadIniInteger(IniFile, IniSection, KeyName: string; Default: integer): integer;
 function CheckAutoRun: boolean;
 procedure SetAutoRun(enable: boolean);
-function CheckRunAsAdmin(filename: string): boolean;
-procedure SetRunAsAdmin(filename: string; enable: boolean);
 function GetWinVersion: string;
 procedure ShutDown(mode: integer);
 function SetPrivilege(Name: string): boolean;
@@ -460,29 +458,6 @@ begin
   except end;
 end;
 //------------------------------------------------------------------------------
-function CheckRunAsAdmin(filename: string): boolean;
-var
-  reg: Treginifile;
-begin
-  reg := Treginifile.Create;
-  reg.RootKey := HKEY_CURRENT_USER;
-  Result := AnsiUpperCase(reg.ReadString(
-    'Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename), '')) = 'RUNASADMIN';
-  reg.Free;
-end;
-//----------------------------------------------------------------------
-procedure SetRunAsAdmin(filename: string; enable: boolean);
-var
-  reg: Treginifile;
-begin
-  reg := Treginifile.Create;
-  reg.RootKey := HKEY_CURRENT_USER;
-  reg.lazywrite := false;
-  reg.DeleteKey('Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename));
-  if enable then reg.WriteString('Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers', AnsiLowerCase(filename), 'RUNASADMIN');
-  reg.Free;
-end;
-//------------------------------------------------------------------------------
 function CheckAutorun: boolean;
 var
   reg: TRegistry;
@@ -492,8 +467,8 @@ begin
     reg.RootKey := HKEY_CURRENT_USER;
     if reg.OpenKey('Software\\Microsoft\\Windows\\CurrentVersion\\Run', false) then
     begin
-      if reg.ValueExists(UTF8ToAnsi(application.title)) then
-         result := reg.ReadString(UTF8ToAnsi(application.title)) = ParamStr(0);
+      if reg.ValueExists(UTF8ToAnsi(PROGRAM_REGKEY)) then
+         result := reg.ReadString(UTF8ToAnsi(PROGRAM_REGKEY)) = ParamStr(0);
     end else begin
       raise Exception.Create('CheckAutorun.OpenKey failed');
     end;
@@ -512,9 +487,9 @@ begin
     reg.LazyWrite := false;
     if reg.OpenKey('Software\\Microsoft\\Windows\\CurrentVersion\\Run', false) then
     begin
-      if enable then reg.WriteString(UTF8ToAnsi(application.title), ParamStr(0))
-      else reg.WriteString(UTF8ToAnsi(application.title), '');
-        //if not reg.DeleteValue(UTF8ToAnsi(application.title)) then
+      if enable then reg.WriteString(UTF8ToAnsi(PROGRAM_REGKEY), ParamStr(0))
+      else reg.WriteString(UTF8ToAnsi(PROGRAM_REGKEY), '');
+        //if not reg.DeleteValue(UTF8ToAnsi(PROGRAM_REGKEY)) then
            //raise Exception.Create('SetAutorun.DeleteValue failed');
     end else begin
       raise Exception.Create('SetAutorun.OpenKey failed');
@@ -962,7 +937,7 @@ begin
     StrPCopy(PStr, LogString);
 
     // open log
-    LogFileName := UnzipPath('%pp%\terry.log');
+    LogFileName := UnzipPath('%pp%\log.log');
     if FileExists(LogFileName) then faccess := fmOpenReadWrite else faccess := fmCreate;
     fs := TFileStream.Create(LogFileName, faccess);
     fs.Position := fs.Size;

@@ -18,7 +18,7 @@ object frmStackProp: TfrmStackProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -96,7 +96,7 @@ object frmStackProp: TfrmStackProp
         DropDownCount = 20
         ItemHeight = 13
         Style = csDropDownList
-        TabOrder = 1
+        TabOrder = 2
       end
       object lblOffset: TLabel
         Tag = 10
@@ -126,7 +126,7 @@ object frmStackProp: TfrmStackProp
         Position = 1
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 3
+        TabOrder = 5
       end
       object tbOffset: TTrackBar
         Left = 10
@@ -139,7 +139,7 @@ object frmStackProp: TfrmStackProp
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 2
+        TabOrder = 4
       end
       object lblDistort: TLabel
         Tag = 10
@@ -160,7 +160,7 @@ object frmStackProp: TfrmStackProp
         Position = 1
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 4
+        TabOrder = 6
       end
       object chbPreview: TCheckBox
         Left = 310
@@ -169,7 +169,7 @@ object frmStackProp: TfrmStackProp
         Width = 200
         AutoSize = False
         Caption = 'Show subitems overlay'
-        TabOrder = 5
+        TabOrder = 3
       end
       object lblImage: TLabel
         Tag = 10
@@ -187,13 +187,13 @@ object frmStackProp: TfrmStackProp
         Width = 428
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
-        TabOrder = 6
+        TabOrder = 1
       end
       object bbAddIcon: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Add shortcut/command'
-        Top = 215
+        Top = 220
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -235,13 +235,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbAddIconClick
         Spacing = 0
-        TabOrder = 7
+        TabOrder = 8
       end
       object bbDelIcon: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Delete icon'
-        Top = 245
+        Top = 250
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -283,13 +283,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbDelIconClick
         Spacing = 0
-        TabOrder = 8
+        TabOrder = 9
       end
       object bbEditIcon: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Configure icon'
-        Top = 275
+        Top = 280
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -330,13 +330,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbEditIconClick
         Spacing = 0
-        TabOrder = 9
+        TabOrder = 10
       end
       object bbIconUp: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Move up'
-        Top = 305
+        Top = 310
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -377,13 +377,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbIconUpClick
         Spacing = 0
-        TabOrder = 10
+        TabOrder = 11
       end
       object bbIconDown: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Move down'
-        Top = 335
+        Top = 340
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -424,28 +424,27 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbIconDownClick
         Spacing = 0
-        TabOrder = 11
+        TabOrder = 12
       end
       object list: TListBox
         Left = 10
-        Height = 168
-        Top = 215
+        Height = 163
+        Top = 220
         Width = 455
         Anchors = [akTop, akLeft, akRight, akBottom]
         ExtendedSelect = False
         ItemHeight = 0
         OnDblClick = listDblClick
-        TabOrder = 12
+        TabOrder = 7
       end
       object DividerBevel1: TDividerBevel
         Left = 10
         Height = 15
         Top = 190
         Width = 513
-        Caption = 'Subitems'
+        Caption = 'Items in this stack'
         Anchors = [akTop, akLeft, akRight]
-        BevelWidth = 0
-        Font.Style = [fsBold]
+        BevelWidth = 1
         ParentFont = False
       end
     end

@@ -15,8 +15,7 @@ type
     procedure Paint;
     procedure Resize; override;
     procedure MouseMove(Shift: TShiftState; x, y: integer); override;
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
-      x, y: integer); override;
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; x, y: integer); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; x, y: integer); override;
     constructor Create(AOwner: TComponent); override;
   protected
@@ -60,12 +59,10 @@ type
     property Saturation: integer read FSaturation write SetSaturation;
     property Color: TColor read FColor write SetColor default clBtnFace;
     property BackColor: TColor read FBackColor write SetBackColor default clBtnFace;
-    property BorderColor: TColor read FBorderColor write SetBorderColor default
-      clBtnFace;
+    property BorderColor: TColor read FBorderColor write SetBorderColor default clBtnFace;
     property VSpace: integer read FVSpace write SetVSpace;
     property HSpace: integer read FHSpace write SetHSpace;
-    property LightnessBarWidth: integer read FLightnessBarWidth
-      write SetLightnessBarWidth default 15;
+    property LightnessBarWidth: integer read FLightnessBarWidth write SetLightnessBarWidth default 15;
     property SplitWidth: integer read FSplitWidth write SetSplitWidth;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
@@ -283,10 +280,10 @@ begin
     FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) /
     240 * FSaturation) + 4);
   pic.canvas.rectangle(
-    FLightnessRect.left,
+    FLightnessRect.left - 2,
     round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) /
     240 * FLightness) - 1,
-    FLightnessRect.right,
+    FLightnessRect.right + 2,
     round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) /
     240 * FLightness) + 2);
 

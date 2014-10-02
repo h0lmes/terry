@@ -39,7 +39,7 @@ var
   frmThemeEditor: TfrmThemeEditor;
 
 implementation
-uses declu, frmterryu;
+uses declu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmThemeEditor.Open;
@@ -121,7 +121,7 @@ procedure TfrmThemeEditor.msaveClick(Sender: TObject);
 begin
   if assigned(theme) then
   try
-    if theme.Save then frmterry.notify(UTF8ToAnsi(XMsgThemeSaved));
+    if theme.Save then frmmain.notify(UTF8ToAnsi(XMsgThemeSaved));
   except
     on e: Exception do messagebox(Handle, pchar(e.message), 'Terry', MB_ICONERROR);
   end;

@@ -14,14 +14,12 @@ type
   TfrmFont = class(TForm)
     btnok: TButton;
     btnCancel: TButton;
+    edFontSize: TEdit;
     rb_text: TRadioButton;
     rb_outline: TRadioButton;
     listFont: TListBox;
-    gbAttributes: TGroupBox;
     sbtn_bold: TSpeedButton;
     sbtn_italic: TSpeedButton;
-    sbtn_outline: TSpeedButton;
-    edFontSize: TEdit;
     ud: TUpDown;
     procedure FormPaint(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -39,19 +37,17 @@ type
     ok_done: boolean;
     callback: TUProc;
   public
-    class function StartForm(var AFont: _FontData; uproc: TUProc): boolean;
+    class function Open(var AFont: _FontData; uproc: TUProc): boolean;
   end;
 
 var
   frmFont: TfrmFont;
 
 implementation
-
-uses toolu, frmterryu;
-
+uses toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class function TfrmFont.StartForm(var AFont: _FontData; uproc: TUProc): boolean;
+class function TfrmFont.Open(var AFont: _FontData; uproc: TUProc): boolean;
 begin
   result := false;
   try
@@ -77,7 +73,6 @@ begin
 
       sbtn_bold.down := AFont.bold;
       sbtn_Italic.down := AFont.Italic;
-      sbtn_Outline.down := AFont.Outline;
 
       rb_textClick(nil);
 
@@ -88,7 +83,7 @@ begin
       if result then CopyFontData(FFont, AFont);
     end;
   except
-    on e: Exception do frmterry.notify('frmFont.StartForm'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmFont.StartForm'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -98,22 +93,22 @@ begin
     cbar := TEColor.Create(self);
     with cbar do
     begin
-      Left := 245;
-      Top := 110;
-      Width := 281;
-      Height := 241;
+      Left := listFont.Left + listFont.Width + 10;
+      Top := listFont.Top;
+      Width := frmFont.ClientWidth - Left - 10;
+      Height := listFont.Height;
       Hue := 0;
       Lightness := 0;
       Saturation := 0;
-      BorderColor := clBlack;
+      BorderColor := clGray;
       VSpace := 8;
       HSpace := 8;
-      SplitWidth := 0;
+      SplitWidth := 10;
       OnChange := cbarChange;
       Parent := frmFont;
     end;
   except
-    on e: Exception do frmterry.notify('frmFont.FormCreate'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmFont.FormCreate'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -130,11 +125,11 @@ begin
     FFont.size := StrToInt(edFontSize.Text);
     FFont.bold := sbtn_bold.down;
     FFont.italic := sbtn_Italic.down;
-    FFont.outline := sbtn_Outline.down;
+    FFont.outline := false;
     if assigned(callback) then callback(FFont);
     Activate;
   except
-    on e: Exception do frmterry.notify('frmFont.ok'#10#13 + e.message);
+    on e: Exception do frmmain.notify('frmFont.ok'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

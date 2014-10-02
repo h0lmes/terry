@@ -1,3 +1,3 @@
-copy .\terry.exe c:\terry\terry.exe
-copy .\Locale\terry.po c:\terry\Locale\terry.po
-copy .\Locale\terry.ru.po c:\terry\Locale\terry.ru.po
+copy .\tdock.exe c:\terry\tdock.exe
+copy .\Locale\tdock.po c:\terry\Locale\tdock.po
+copy .\Locale\tdock.ru.po c:\terry\Locale\tdock.ru.po

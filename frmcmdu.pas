@@ -25,19 +25,17 @@ type
     procedure ShowRecent(step: integer);
     procedure WMNCHitTest(var msg: TWMNCHitTest); message WM_NCHITTEST;
   public
-    class procedure StartForm;
+    class procedure Open;
   end;
 
 var
   frmcmd: Tfrmcmd;
 
 implementation
-
-uses frmterryu, toolu;
-
+uses frmmainu, toolu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure Tfrmcmd.StartForm;
+class procedure Tfrmcmd.Open;
 begin
   if not assigned(frmcmd) then application.CreateForm(self, frmcmd);
   frmcmd.Show;
@@ -50,14 +48,14 @@ begin
     if FileExists(toolu.UnzipPath('%pp%\recent_commands.txt')) then
       recent.LoadFromFile(toolu.UnzipPath('%pp%\recent_commands.txt'));
   except
-    on e: Exception do frmterry.Notify('frmCmd.LoadRecent'#10#13 + e.message);
+    on e: Exception do frmmain.Notify('frmCmd.LoadRecent'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmcmd.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   edcmd.Clear;
-  SetActiveWindow(frmterry.handle);
+  SetActiveWindow(frmmain.handle);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmcmd.WMNCHitTest(var msg: TWMNCHitTest);
@@ -96,7 +94,7 @@ begin
   end;
 
   edcmd.Clear;
-  frmterry.execute_cmdline(cmd);
+  frmmain.execute_cmdline(cmd);
   Close;
 end;
 //------------------------------------------------------------------------------

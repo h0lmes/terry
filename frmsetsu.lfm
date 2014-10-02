@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsStyle
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -36,8 +36,8 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 13
         Top = 210
-        Width = 343
-        Caption = 'Move mouse pointer to the edge of screen to bring panel to foreground'
+        Width = 369
+        Caption = 'Move mouse pointer to the edge of the screen to put the dock to foreground'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clGray
         Font.Height = -11
@@ -49,8 +49,8 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 19
         Top = 190
-        Width = 160
-        Caption = 'Activate panel on mouseover'
+        Width = 156
+        Caption = 'Activate dock on mouseover'
         OnClick = cbActivateOnMouseClick
         TabOrder = 3
       end
@@ -302,8 +302,8 @@ object frmsets: Tfrmsets
           Left = 13
           Height = 19
           Top = 4
-          Width = 290
-          Caption = 'Slide into screen edge when mouse is not over the panel'
+          Width = 286
+          Caption = 'Slide into screen edge when mouse is not over the dock'
           OnClick = cbAutoHideClick
           TabOrder = 0
         end
@@ -356,44 +356,35 @@ object frmsets: Tfrmsets
       Caption = 'Style'
       ClientHeight = 492
       ClientWidth = 462
-      object btnLayersEditor: TBitBtn
-        Left = 415
-        Height = 26
-        Top = 15
-        Width = 31
-        Caption = '...'
-        OnClick = btnLayersEditorClick
-        TabOrder = 0
-      end
       object chbBlur: TCheckBox
-        Left = 15
+        Left = 240
         Height = 19
-        Top = 295
+        Top = 85
         Width = 106
         Caption = 'Enable Aero Glass'
         OnClick = chbBlurClick
-        TabOrder = 1
+        TabOrder = 0
       end
       object lblBackgroundTransparency: TLabel
-        Left = 15
+        Left = 240
         Height = 13
-        Top = 335
+        Top = 20
         Width = 98
         Caption = 'Background opacity:'
         ParentColor = False
       end
       object tbBaseAlpha: TTrackBar
-        Left = 15
+        Left = 240
         Height = 30
-        Top = 355
-        Width = 435
+        Top = 40
+        Width = 200
         Frequency = 20
         Max = 255
         OnChange = tbBaseAlphaChange
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 2
+        TabOrder = 1
       end
       object btnSelectHintFont: TBitBtn
         Left = 15
@@ -402,7 +393,7 @@ object frmsets: Tfrmsets
         Width = 431
         Caption = 'Select hint font'
         OnClick = btnSelectHintFontClick
-        TabOrder = 3
+        TabOrder = 2
       end
       object btnSelectStackFont: TBitBtn
         Left = 15
@@ -411,16 +402,17 @@ object frmsets: Tfrmsets
         Width = 431
         Caption = 'Select stack hint font'
         OnClick = btnSelectStackFontClick
-        TabOrder = 4
+        TabOrder = 3
       end
       object lbTheme: TListBox
         Left = 15
-        Height = 270
+        Height = 371
         Top = 15
-        Width = 390
+        Width = 201
         ItemHeight = 0
+        OnDblClick = lbThemeDblClick
         OnSelectionChange = lbThemeSelectionChange
-        TabOrder = 5
+        TabOrder = 4
       end
     end
     object tsIcons: TTabSheet
@@ -766,7 +758,7 @@ object frmsets: Tfrmsets
         Width = 446
         Alignment = taCenter
         AutoSize = False
-        Caption = 'Terry'
+        Caption = 'TDock'
         ParentColor = False
       end
       object lblCredits: TLabel

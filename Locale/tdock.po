@@ -2,7 +2,6 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8"
 
 #: declu.xaddicon
-msgctxt "declu.xaddicon"
 msgid "Add ..."
 msgstr ""
 
@@ -51,7 +50,6 @@ msgid "Zoom"
 msgstr ""
 
 #: declu.xclosewindow
-msgctxt "declu.xclosewindow"
 msgid "Close window"
 msgstr ""
 
@@ -74,7 +72,6 @@ msgid "Delete separator"
 msgstr ""
 
 #: declu.xemptyicon
-msgctxt "declu.xemptyicon"
 msgid "Empty icon"
 msgstr ""
 
@@ -123,7 +120,6 @@ msgid "Theme object not found"
 msgstr ""
 
 #: declu.xexit
-msgctxt "declu.xexit"
 msgid "Exit"
 msgstr ""
 
@@ -132,27 +128,22 @@ msgid "File"
 msgstr ""
 
 #: declu.xiconcollection
-msgctxt "declu.xiconcollection"
 msgid "Open icon collection"
 msgstr ""
 
 #: declu.xinstalledapplication
-msgctxt "declu.xinstalledapplication"
 msgid "Installed application"
 msgstr ""
 
 #: declu.xlabelcenteroffset
-msgctxt "declu.xlabelcenteroffset"
 msgid "Offset from center: %d %%"
 msgstr ""
 
 #: declu.xlabeledgeoffset
-msgctxt "declu.xlabeledgeoffset"
 msgid "Offset from edge: %d pt"
 msgstr ""
 
 #: declu.xlabeliconsize
-msgctxt "declu.xlabeliconsize"
 msgid "Icon size: %d pt"
 msgstr ""
 
@@ -165,7 +156,6 @@ msgid "Reserve screen edge: %d%%"
 msgstr ""
 
 #: declu.xlabelzoomediconsize
-msgctxt "declu.xlabelzoomediconsize"
 msgid "Icon size max: %d pt"
 msgstr ""
 
@@ -174,7 +164,6 @@ msgid "Zoom time: %d ms"
 msgstr ""
 
 #: declu.xlabelzoomwidth
-msgctxt "declu.xlabelzoomwidth"
 msgid "Zoom width: %d"
 msgstr ""
 
@@ -208,7 +197,6 @@ msgid "Icon parameters changed. If you choose to proceed all changes will be los
 msgstr ""
 
 #: declu.xopenfolderof
-msgctxt "declu.xopenfolderof"
 msgid "Open folder of"
 msgstr ""
 
@@ -218,7 +206,6 @@ msgid "About"
 msgstr ""
 
 #: declu.xpageautorun
-msgctxt "declu.xpageautorun"
 msgid "Autorun"
 msgstr ""
 
@@ -251,7 +238,6 @@ msgid "Paste"
 msgstr ""
 
 #: declu.xprogramsettings
-msgctxt "declu.xprogramsettings"
 msgid "Program settings"
 msgstr ""
 
@@ -264,7 +250,6 @@ msgid "Select working directory"
 msgstr ""
 
 #: declu.xseparator
-msgctxt "declu.xseparator"
 msgid "Separator (space)"
 msgstr ""
 
@@ -281,7 +266,6 @@ msgid "Minimized to taskbar"
 msgstr ""
 
 #: declu.xshowcmdnormal
-msgctxt "declu.xshowcmdnormal"
 msgid "Normal size"
 msgstr ""
 
@@ -314,37 +298,35 @@ msgid "Start"
 msgstr ""
 
 #: declu.xtaskmanager
-msgctxt "declu.xtaskmanager"
 msgid "Task manager"
 msgstr ""
 
 #: tfrmaddcommand.btnadd.caption
-msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"
 msgid "Add icon"
 msgstr ""
 
 #: tfrmcmd.btn_browse.caption
-msgctxt "TFRMCMD.BTN_BROWSE.CAPTION"
+msgctxt "tfrmcmd.btn_browse.caption"
 msgid "..."
 msgstr ""
 
 #: tfrmcmd.caption
-msgctxt "TFRMCMD.CAPTION"
+msgctxt "tfrmcmd.caption"
 msgid "Command"
 msgstr ""
 
 #: tfrmcolor.btncancel.caption
-msgctxt "TFRMCOLOR.BTNCANCEL.CAPTION"
+msgctxt "tfrmcolor.btncancel.caption"
 msgid "Cancel"
 msgstr ""
 
 #: tfrmcolor.btnok.caption
-msgctxt "TFRMCOLOR.BTNOK.CAPTION"
+msgctxt "tfrmcolor.btnok.caption"
 msgid "OK"
 msgstr ""
 
 #: tfrmcolor.frmcolor.caption
-msgctxt "TFRMCOLOR.FRMCOLOR.CAPTION"
+msgctxt "tfrmcolor.frmcolor.caption"
 msgid "Select color"
 msgstr ""
 
@@ -372,48 +354,8 @@ msgstr ""
 msgid "S"
 msgstr ""
 
-#: tfrmcolordata.btncancel.caption
-msgctxt "TFRMCOLORDATA.BTNCANCEL.CAPTION"
-msgid "Cancel"
-msgstr ""
-
-#: tfrmcolordata.btndefault.caption
-msgctxt "TFRMCOLORDATA.BTNDEFAULT.CAPTION"
-msgid "Reset color"
-msgstr ""
-
-#: tfrmcolordata.btnok.caption
-msgctxt "TFRMCOLORDATA.BTNOK.CAPTION"
-msgid "OK"
-msgstr ""
-
-#: tfrmcolordata.frmcolordata.caption
-msgctxt "TFRMCOLORDATA.FRMCOLORDATA.CAPTION"
-msgid "Select color"
-msgstr ""
-
-#: tfrmcolordata.label2.caption
-msgctxt "TFRMCOLORDATA.LABEL2.CAPTION"
-msgid "Hue"
-msgstr ""
-
-#: tfrmcolordata.label3.caption
-msgctxt "TFRMCOLORDATA.LABEL3.CAPTION"
-msgid "Saturation"
-msgstr ""
-
-#: tfrmcolordata.label4.caption
-msgctxt "TFRMCOLORDATA.LABEL4.CAPTION"
-msgid "Brightness"
-msgstr ""
-
-#: tfrmcolordata.label5.caption
-msgctxt "TFRMCOLORDATA.LABEL5.CAPTION"
-msgid "Contrast"
-msgstr ""
-
 #: tfrmdebug.caption
-msgctxt "TFRMDEBUG.CAPTION"
+msgctxt "tfrmdebug.caption"
 msgid "Debug info"
 msgstr ""
 
@@ -427,12 +369,9 @@ msgctxt "TFRMFONT.BTNOK.CAPTION"
 msgid "OK"
 msgstr ""
 
-#: tfrmfont.frmfont.caption
+#: tfrmfont.caption
+msgctxt "TFRMFONT.CAPTION"
 msgid "Font"
-msgstr ""
-
-#: tfrmfont.gbattributes.caption
-msgid "  Font attributes  "
 msgstr ""
 
 #: tfrmfont.rb_outline.caption
@@ -451,10 +390,6 @@ msgstr ""
 msgid "Italic"
 msgstr ""
 
-#: tfrmfont.sbtn_outline.caption
-msgid "Contour"
-msgstr ""
-
 #: tfrmhello.btnadd.caption
 msgid "Add installed applications shortcuts"
 msgstr ""
@@ -464,7 +399,7 @@ msgid "Set the program to start with Windows"
 msgstr ""
 
 #: tfrmhello.btnbottom.caption
-msgctxt "TFRMHELLO.BTNBOTTOM.CAPTION"
+msgctxt "tfrmhello.btnbottom.caption"
 msgid "Bottom"
 msgstr ""
 
@@ -477,17 +412,17 @@ msgid "Thanks!  Is there anything useful to know?"
 msgstr ""
 
 #: tfrmhello.btnleft.caption
-msgctxt "TFRMHELLO.BTNLEFT.CAPTION"
+msgctxt "tfrmhello.btnleft.caption"
 msgid "Left"
 msgstr ""
 
 #: tfrmhello.btnright.caption
-msgctxt "TFRMHELLO.BTNRIGHT.CAPTION"
+msgctxt "tfrmhello.btnright.caption"
 msgid "Right"
 msgstr ""
 
 #: tfrmhello.btntop.caption
-msgctxt "TFRMHELLO.BTNTOP.CAPTION"
+msgctxt "tfrmhello.btntop.caption"
 msgid "Top"
 msgstr ""
 
@@ -516,12 +451,12 @@ msgid "Move the dock to anoher side of the screen"
 msgstr ""
 
 #: tfrmitemprop.btnapply.caption
-msgctxt "TFRMITEMPROP.BTNAPPLY.CAPTION"
+msgctxt "tfrmitemprop.btnapply.caption"
 msgid "Apply"
 msgstr ""
 
 #: tfrmitemprop.btnbrowseimage1.caption
-msgctxt "TFRMITEMPROP.BTNBROWSEIMAGE1.CAPTION"
+msgctxt "tfrmitemprop.btnbrowseimage1.caption"
 msgid "Browse image"
 msgstr ""
 
@@ -531,7 +466,7 @@ msgid "Cancel"
 msgstr ""
 
 #: tfrmitemprop.btnclearimage.caption
-msgctxt "TFRMITEMPROP.BTNCLEARIMAGE.CAPTION"
+msgctxt "tfrmitemprop.btnclearimage.caption"
 msgid "Clear image"
 msgstr ""
 
@@ -540,7 +475,7 @@ msgid "Convert .LNK"
 msgstr ""
 
 #: tfrmitemprop.btndefaultcolor.caption
-msgctxt "TFRMITEMPROP.BTNDEFAULTCOLOR.CAPTION"
+msgctxt "tfrmitemprop.btndefaultcolor.caption"
 msgid "Reset color"
 msgstr ""
 
@@ -575,37 +510,36 @@ msgid "Select color"
 msgstr ""
 
 #: tfrmitemprop.caption
-msgctxt "TFRMITEMPROP.CAPTION"
+msgctxt "tfrmitemprop.caption"
 msgid "Properties"
 msgstr ""
 
 #: tfrmitemprop.chbhide.caption
-msgctxt "TFRMITEMPROP.CHBHIDE.CAPTION"
 msgid "Hide Terry when application runs"
 msgstr ""
 
 #: tfrmitemprop.label2.caption
-msgctxt "TFRMITEMPROP.LABEL2.CAPTION"
+msgctxt "tfrmitemprop.label2.caption"
 msgid "Hue"
 msgstr ""
 
 #: tfrmitemprop.label3.caption
-msgctxt "TFRMITEMPROP.LABEL3.CAPTION"
+msgctxt "tfrmitemprop.label3.caption"
 msgid "Saturation"
 msgstr ""
 
 #: tfrmitemprop.label4.caption
-msgctxt "TFRMITEMPROP.LABEL4.CAPTION"
+msgctxt "tfrmitemprop.label4.caption"
 msgid "Brightness"
 msgstr ""
 
 #: tfrmitemprop.label5.caption
-msgctxt "TFRMITEMPROP.LABEL5.CAPTION"
+msgctxt "tfrmitemprop.label5.caption"
 msgid "Contrast"
 msgstr ""
 
 #: tfrmitemprop.lblcaption.caption
-msgctxt "TFRMITEMPROP.LBLCAPTION.CAPTION"
+msgctxt "tfrmitemprop.lblcaption.caption"
 msgid "Name"
 msgstr ""
 
@@ -620,7 +554,6 @@ msgid "Image"
 msgstr ""
 
 #: tfrmitemprop.lblparams.caption
-msgctxt "TFRMITEMPROP.LBLPARAMS.CAPTION"
 msgid "Parameters"
 msgstr ""
 
@@ -629,7 +562,6 @@ msgid "Use semicolon to separate multiple commands and parameters"
 msgstr ""
 
 #: tfrmitemprop.lblwindowsize.caption
-msgctxt "TFRMITEMPROP.LBLWINDOWSIZE.CAPTION"
 msgid "Window size"
 msgstr ""
 
@@ -638,7 +570,7 @@ msgid "Working directory"
 msgstr ""
 
 #: tfrmitemprop.tscolor.caption
-msgctxt "TFRMITEMPROP.TSCOLOR.CAPTION"
+msgctxt "tfrmitemprop.tscolor.caption"
 msgid "Color"
 msgstr ""
 
@@ -647,53 +579,15 @@ msgctxt "TFRMITEMPROP.TSPROPERTIES.CAPTION"
 msgid "Properties"
 msgstr ""
 
-#: tfrmlayerseditor.caption
-msgctxt "tfrmlayerseditor.caption"
-msgid "Theme parameters"
-msgstr ""
-
-#: tfrmlayerseditor.label1.caption
-msgctxt "tfrmlayerseditor.label1.caption"
-msgid "Items area border"
-msgstr ""
-
-#: tfrmlayerseditor.label14.caption
-msgctxt "tfrmlayerseditor.label14.caption"
-msgid "Blur region"
-msgstr ""
-
-#: tfrmlayerseditor.label15.caption
-msgctxt "tfrmlayerseditor.label15.caption"
-msgid "Separator margins"
-msgstr ""
-
-#: tfrmlayerseditor.label16.caption
-msgctxt "tfrmlayerseditor.label16.caption"
-msgid "Icons reflection size"
-msgstr ""
-
-#: tfrmlayerseditor.label9.caption
-msgctxt "tfrmlayerseditor.label9.caption"
-msgid "Background margins"
-msgstr ""
-
-#: tfrmlayerseditor.mclose.caption
-msgctxt "tfrmlayerseditor.mclose.caption"
-msgid "Close editor <Esc>"
-msgstr ""
-
-#: tfrmlayerseditor.msave.caption
-msgctxt "tfrmlayerseditor.msave.caption"
-msgid "Save theme <F2>"
+#: tfrmmain.caption
+msgid "TerryForm"
 msgstr ""
 
 #: tfrmsets.btnautorunadd.caption
-msgctxt "TFRMSETS.BTNAUTORUNADD.CAPTION"
 msgid "Add program"
 msgstr ""
 
 #: tfrmsets.btnautorunadd.hint
-msgctxt "TFRMSETS.BTNAUTORUNADD.HINT"
 msgid "Add"
 msgstr ""
 
@@ -705,11 +599,6 @@ msgstr ""
 #: tfrmsets.btndebug.caption
 msgctxt "TFRMSETS.BTNDEBUG.CAPTION"
 msgid "Debug info"
-msgstr ""
-
-#: tfrmsets.btnlayerseditor.caption
-msgctxt "TFRMSETS.BTNLAYERSEDITOR.CAPTION"
-msgid "..."
 msgstr ""
 
 #: tfrmsets.btnselecthintfont.caption
@@ -731,12 +620,11 @@ msgid "OK"
 msgstr ""
 
 #: tfrmsets.caption
-msgctxt "TFRMSETS.CAPTION"
 msgid "Settings"
 msgstr ""
 
 #: tfrmsets.cbactivateonmouse.caption
-msgid "Activate panel on mouseover"
+msgid "Activate dock on mouseover"
 msgstr ""
 
 #: tfrmsets.cbalt.caption
@@ -744,7 +632,7 @@ msgid "Alt"
 msgstr ""
 
 #: tfrmsets.cbautohide.caption
-msgid "Slide into screen edge when mouse is not over the panel"
+msgid "Slide into screen edge when mouse is not over the dock"
 msgstr ""
 
 #: tfrmsets.cbautorun.caption
@@ -804,7 +692,6 @@ msgid "Show icons for running tasks (taskbar)"
 msgstr ""
 
 #: tfrmsets.chb_activate_running.caption
-msgctxt "TFRMSETS.CHB_ACTIVATE_RUNNING.CAPTION"
 msgid "Activate program if already running"
 msgstr ""
 
@@ -829,17 +716,14 @@ msgid "Hotkey to completely hide panel:"
 msgstr ""
 
 #: tfrmsets.lblactivaterunningprogramtip.caption
-msgctxt "TFRMSETS.LBLACTIVATERUNNINGPROGRAMTIP.CAPTION"
 msgid "<Ctrl + Click> to run program anyway"
 msgstr ""
 
 #: tfrmsets.lblanimateicons.caption
-msgctxt "TFRMSETS.LBLANIMATEICONS.CAPTION"
 msgid "Animate icons:"
 msgstr ""
 
 #: tfrmsets.lblbackgroundtransparency.caption
-msgctxt "TFRMSETS.LBLBACKGROUNDTRANSPARENCY.CAPTION"
 msgid "Background opacity:"
 msgstr ""
 
@@ -880,7 +764,6 @@ msgid "http://openiconlibrary.sourceforge.net/"
 msgstr ""
 
 #: tfrmsets.lbledge.caption
-msgctxt "TFRMSETS.LBLEDGE.CAPTION"
 msgid "Edge of screen"
 msgstr ""
 
@@ -889,7 +772,6 @@ msgid "Offset from edge"
 msgstr ""
 
 #: tfrmsets.lblhidedelay.caption
-msgctxt "TFRMSETS.LBLHIDEDELAY.CAPTION"
 msgid "Delay before hide down (in milliseconds)"
 msgstr ""
 
@@ -902,36 +784,31 @@ msgid "Icon spacing"
 msgstr ""
 
 #: tfrmsets.lbllaunchinterval.caption
-msgctxt "TFRMSETS.LBLLAUNCHINTERVAL.CAPTION"
 msgid "Minimum time before the next run of the program (milliseconds):"
 msgstr ""
 
 #: tfrmsets.lbllaunchintervaltip.caption
-msgctxt "TFRMSETS.LBLLAUNCHINTERVALTIP.CAPTION"
 msgid "Prevents accidental run of multiple copies of program"
 msgstr ""
 
 #: tfrmsets.lblmonitor.caption
-msgctxt "TFRMSETS.LBLMONITOR.CAPTION"
+msgctxt "tfrmsets.lblmonitor.caption"
 msgid "Monitor"
 msgstr ""
 
 #: tfrmsets.lblmouseovertip.caption
-msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
-msgid "Move mouse pointer to the edge of screen to bring panel to foreground"
+msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
 msgstr ""
 
 #: tfrmsets.lblshowdelay.caption
-msgctxt "TFRMSETS.LBLSHOWDELAY.CAPTION"
 msgid "Delay before show up (in milliseconds)"
 msgstr ""
 
 #: tfrmsets.lbltitle.caption
-msgid "Terry"
+msgid "TDock"
 msgstr ""
 
 #: tfrmsets.lblvisiblepart.caption
-msgctxt "TFRMSETS.LBLVISIBLEPART.CAPTION"
 msgid "Visible part size in pixels"
 msgstr ""
 
@@ -952,57 +829,53 @@ msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrow
 msgstr ""
 
 #: tfrmsets.tsabout.caption
-msgctxt "TFRMSETS.TSABOUT.CAPTION"
+msgctxt "tfrmsets.tsabout.caption"
 msgid "About"
 msgstr ""
 
 #: tfrmsets.tsgeneral.caption
-msgctxt "TFRMSETS.TSGENERAL.CAPTION"
+msgctxt "tfrmsets.tsgeneral.caption"
 msgid "General"
 msgstr ""
 
 #: tfrmsets.tsicons.caption
-msgctxt "TFRMSETS.TSICONS.CAPTION"
+msgctxt "tfrmsets.tsicons.caption"
 msgid "Icons"
 msgstr ""
 
 #: tfrmsets.tsposition.caption
-msgctxt "TFRMSETS.TSPOSITION.CAPTION"
+msgctxt "tfrmsets.tsposition.caption"
 msgid "Position"
 msgstr ""
 
 #: tfrmsets.tsstyle.caption
-msgctxt "TFRMSETS.TSSTYLE.CAPTION"
+msgctxt "tfrmsets.tsstyle.caption"
 msgid "Style"
 msgstr ""
 
 #: tfrmsets.tssystem.caption
-msgctxt "TFRMSETS.TSSYSTEM.CAPTION"
 msgid "System"
 msgstr ""
 
 #: tfrmstackprop.bbaddicon.hint
-msgctxt "TFRMSTACKPROP.BBADDICON.HINT"
 msgid "Add shortcut/command"
 msgstr ""
 
 #: tfrmstackprop.bbdelicon.hint
-msgctxt "TFRMSTACKPROP.BBDELICON.HINT"
+msgctxt "tfrmstackprop.bbdelicon.hint"
 msgid "Delete icon"
 msgstr ""
 
 #: tfrmstackprop.bbediticon.hint
-msgctxt "TFRMSTACKPROP.BBEDITICON.HINT"
+msgctxt "tfrmstackprop.bbediticon.hint"
 msgid "Configure icon"
 msgstr ""
 
 #: tfrmstackprop.bbicondown.hint
-msgctxt "TFRMSTACKPROP.BBICONDOWN.HINT"
 msgid "Move down"
 msgstr ""
 
 #: tfrmstackprop.bbiconup.hint
-msgctxt "TFRMSTACKPROP.BBICONUP.HINT"
 msgid "Move up"
 msgstr ""
 
@@ -1056,8 +929,7 @@ msgid "Show subitems overlay"
 msgstr ""
 
 #: tfrmstackprop.dividerbevel1.caption
-msgctxt "TFRMSTACKPROP.DIVIDERBEVEL1.CAPTION"
-msgid "Subitems"
+msgid "Items in this stack"
 msgstr ""
 
 #: tfrmstackprop.label2.caption
@@ -1103,7 +975,6 @@ msgid "Offset of icons"
 msgstr ""
 
 #: tfrmstackprop.lblstyle.caption
-msgctxt "TFRMSTACKPROP.LBLSTYLE.CAPTION"
 msgid "Mode"
 msgstr ""
 
@@ -1117,48 +988,35 @@ msgctxt "TFRMSTACKPROP.TSPROPERTIES.CAPTION"
 msgid "Properties"
 msgstr ""
 
-#: tfrmterry.caption
-msgctxt "TFRMTERRY.CAPTION"
-msgid "TerryForm"
-msgstr ""
-
 #: tfrmthemeeditor.caption
-msgctxt "TFRMTHEMEEDITOR.CAPTION"
 msgid "Theme parameters"
 msgstr ""
 
 #: tfrmthemeeditor.label1.caption
-msgctxt "TFRMTHEMEEDITOR.LABEL1.CAPTION"
 msgid "Items area border"
 msgstr ""
 
 #: tfrmthemeeditor.label14.caption
-msgctxt "TFRMTHEMEEDITOR.LABEL14.CAPTION"
 msgid "Blur region"
 msgstr ""
 
 #: tfrmthemeeditor.label15.caption
-msgctxt "TFRMTHEMEEDITOR.LABEL15.CAPTION"
 msgid "Separator margins"
 msgstr ""
 
 #: tfrmthemeeditor.label16.caption
-msgctxt "TFRMTHEMEEDITOR.LABEL16.CAPTION"
 msgid "Icons reflection size"
 msgstr ""
 
 #: tfrmthemeeditor.label9.caption
-msgctxt "TFRMTHEMEEDITOR.LABEL9.CAPTION"
 msgid "Background margins"
 msgstr ""
 
 #: tfrmthemeeditor.mclose.caption
-msgctxt "TFRMTHEMEEDITOR.MCLOSE.CAPTION"
 msgid "Close editor <Esc>"
 msgstr ""
 
 #: tfrmthemeeditor.msave.caption
-msgctxt "TFRMTHEMEEDITOR.MSAVE.CAPTION"
 msgid "Save theme <F2>"
 msgstr ""
 

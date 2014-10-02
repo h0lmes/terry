@@ -85,7 +85,6 @@ type
     chbAutoHideOnFullScreenApp: TCheckBox;
     lblMonitor: TLabel;
     cbo_monitor: TComboBox;
-    btnLayersEditor: TBitBtn;
     lblZoomedIconSize: TLabel;
     lblEdgeOffset: TLabel;
     tbEdgeOffset: TTrackBar;
@@ -123,6 +122,7 @@ type
     procedure chb_reflectionClick(Sender: TObject);
     procedure chb_show_running_indicatorClick(Sender: TObject);
     procedure chb_activate_runningClick(Sender: TObject);
+    procedure lbThemeDblClick(Sender: TObject);
     procedure lbThemeSelectionChange(Sender: TObject; User: boolean);
     procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
@@ -158,7 +158,6 @@ type
     procedure tbZoomTimeChange(Sender: TObject);
     procedure tbZoomWidthChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
-    procedure btnLayersEditorClick(Sender: TObject);
     procedure btn_okClick(Sender: TObject);
     procedure chb_use_shell_context_menusClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -168,7 +167,7 @@ type
     AutorunListChanged: boolean;
   public
     PageIndex: integer;
-    class procedure StartForm(APageIndex: integer = 0);
+    class procedure Open(APageIndex: integer = 0);
     procedure UpdateLblCenterOffsetPercent;
     procedure UpdateItemSizeLabels;
     procedure ReadAutorun;
@@ -181,12 +180,12 @@ var
   frmsets: Tfrmsets;
 
 implementation
-uses setsu, themeu, frmterryu, toolu, frmFontU, frmthemeeditoru, frmDebugU;
+uses setsu, themeu, frmmainu, toolu, frmFontU, frmthemeeditoru, frmDebugU;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 procedure err(s: string);
 begin
-  messagebox(frmterry.handle, pchar(s), 'Terry', MB_ICONERROR);
+  messagebox(frmmain.handle, pchar(s), PROGRAM_NAME, MB_ICONERROR);
 end;
 //------------------------------------------------------------------------------
 function ShortCutToTextEx(ShortCut: TShortCut): string;
@@ -201,11 +200,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class procedure Tfrmsets.StartForm(APageIndex: integer);
+class procedure Tfrmsets.Open(APageIndex: integer);
 begin
   if not assigned(sets) then
   begin
-    messagebox(application.mainform.handle, 'Settings container does not exist', 'Terry.frmSets.StartForm', mb_iconexclamation);
+    messagebox(application.mainform.handle, 'Settings container does not exist', 'frmSets.Open', mb_iconexclamation);
     exit;
   end;
 
@@ -264,7 +263,7 @@ begin
   lv.ItemIndex := PageIndex;
 
   toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
-  lblTitle.Caption:= 'Terry  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
+  lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
 
   //
   // поведение //
@@ -398,12 +397,12 @@ end;
 procedure Tfrmsets.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if (key = 27) and (shift = []) then close;
-  if (key = 112) and (shift = []) then frmterry.execute_cmdline('/help');
+  if (key = 112) and (shift = []) then frmmain.execute_cmdline('/help');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  SetActiveWindow(frmterry.handle);
+  SetActiveWindow(frmmain.handle);
   action := cafree;
   frmsets := nil;
 end;
@@ -419,10 +418,10 @@ begin
   try
     sets.RestoreSetsContainer;
     theme.setTheme(pchar(sets.container.ThemeName));
-    frmterry.BaseCmd(tcApplyParams, 0);
+    frmmain.BaseCmd(tcApplyParams, 0);
     close;
   except
-    on e: Exception do frmterry.err('frmSets.Cancel', e);
+    on e: Exception do frmmain.err('frmSets.Cancel', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -471,54 +470,54 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboBaseSiteChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpSite, cboBaseSite.ItemIndex);
+  frmmain.SetParam(gpSite, cboBaseSite.ItemIndex);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbAutoHideClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpAutoHide, integer(cbAutoHide.Checked));
+  frmmain.SetParam(gpAutoHide, integer(cbAutoHide.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edAutoHideTimeChange(Sender: TObject);
 var
   value: integer;
 begin
-  if trystrtoint(edAutoHideTime.Text, value) then frmterry.SetParam(gpAutoHideTime, value);
+  if trystrtoint(edAutoHideTime.Text, value) then frmmain.SetParam(gpAutoHideTime, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edAutoShowTimeChange(Sender: TObject);
 var
   value: integer;
 begin
-  if trystrtoint(edAutoShowTime.Text, value) then frmterry.SetParam(gpAutoShowTime, value);
+  if trystrtoint(edAutoShowTime.Text, value) then frmmain.SetParam(gpAutoShowTime, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edRolledVisiblePixelsChange(Sender: TObject);
 var
   value: integer;
 begin
-  if trystrtoint(edRolledVisiblePixels.Text, value) then frmterry.SetParam(gpAutoHidePixels, value);
+  if trystrtoint(edRolledVisiblePixels.Text, value) then frmmain.SetParam(gpAutoHidePixels, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbActivateOnMouseClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpActivateOnMouse, integer(cbActivateOnMouse.Checked));
+  frmmain.SetParam(gpActivateOnMouse, integer(cbActivateOnMouse.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbStayOnTopClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpStayOnTop, integer(cbStayOnTop.Checked));
+  frmmain.SetParam(gpStayOnTop, integer(cbStayOnTop.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbCenterOffsetPercentChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpCenterOffsetPercent, tbCenterOffsetPercent.Position);
+  frmmain.SetParam(gpCenterOffsetPercent, tbCenterOffsetPercent.Position);
   UpdateLblCenterOffsetPercent;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbEdgeOffsetChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpEdgeOffset, tbEdgeOffset.Position);
+  frmmain.SetParam(gpEdgeOffset, tbEdgeOffset.Position);
   UpdateLblCenterOffsetPercent;
 end;
 //------------------------------------------------------------------------------
@@ -548,33 +547,33 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbAutoHideOnFullScreenAppClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpAutoHideOnFullScreenApp, integer(chbAutoHideOnFullScreenApp.checked));
+  frmmain.SetParam(gpAutoHideOnFullScreenApp, integer(chbAutoHideOnFullScreenApp.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbo_monitorChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpMonitor, integer(cbo_monitor.items.Objects[cbo_monitor.ItemIndex]));
+  frmmain.SetParam(gpMonitor, integer(cbo_monitor.items.Objects[cbo_monitor.ItemIndex]));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbHideTaskBarClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpHideTaskBar, integer(cbHideTaskBar.Checked));
+  frmmain.SetParam(gpHideTaskBar, integer(cbHideTaskBar.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbReserveScreenEdgeClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpReserveScreenEdge, integer(chbReserveScreenEdge.Checked));
+  frmmain.SetParam(gpReserveScreenEdge, integer(chbReserveScreenEdge.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbReserveScreenEdgePercentChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpReserveScreenEdgePercent, tbReserveScreenEdgePercent.Position);
+  frmmain.SetParam(gpReserveScreenEdgePercent, tbReserveScreenEdgePercent.Position);
   chbReserveScreenEdge.Caption := format(XLabelReserveScreenEdgePercent, [sets.container.ReserveScreenEdgePercent]);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
+  frmmain.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
 end;
 //------------------------------------------------------------------------------
 //
@@ -591,23 +590,23 @@ begin
     if lbTheme.ItemIndex > -1 then
        theme.setTheme(UTF8ToAnsi(lbTheme.Items[lbTheme.ItemIndex]));
   except
-    on e: Exception do frmterry.err('Sets.ThemeSelectionChange', e);
+    on e: Exception do frmmain.err('Sets.ThemeSelectionChange', e);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.btnLayersEditorClick(Sender: TObject);
-begin
-  TfrmThemeEditor.Open;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbBlurClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpBlur, integer(chbBlur.checked));
+  frmmain.SetParam(gpBlur, integer(chbBlur.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbBaseAlphaChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpBaseAlpha, tbBaseAlpha.Position);
+  frmmain.SetParam(gpBaseAlpha, tbBaseAlpha.Position);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.lbThemeDblClick(Sender: TObject);
+begin
+  TfrmThemeEditor.Open;
 end;
 //------------------------------------------------------------------------------
 //
@@ -620,31 +619,31 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbIconSizeChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpItemSize, tbIconSize.Position);
+  frmmain.SetParam(gpItemSize, tbIconSize.Position);
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbBigIconSizeChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpBigItemSize, tbBigIconSize.Position);
+  frmmain.SetParam(gpBigItemSize, tbBigIconSize.Position);
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbIconSpacingChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpItemSpacing, tbIconSpacing.Position);
+  frmmain.SetParam(gpItemSpacing, tbIconSpacing.Position);
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbZoomWidthChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpZoomWidth, tbZoomWidth.Position * 2);
+  frmmain.SetParam(gpZoomWidth, tbZoomWidth.Position * 2);
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbZoomTimeChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpZoomTime, tbZoomTime.Position);
+  frmmain.SetParam(gpZoomTime, tbZoomTime.Position);
   UpdateItemSizeLabels;
 end;
 //------------------------------------------------------------------------------
@@ -659,22 +658,22 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbZoomItemsClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpZoomItems, integer(cbZoomItems.checked));
+  frmmain.SetParam(gpZoomItems, integer(cbZoomItems.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_reflectionClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpReflection, integer(chb_reflection.checked));
+  frmmain.SetParam(gpReflection, integer(chb_reflection.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboItemAnimationTypeChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpItemAnimation, cboItemAnimationType.ItemIndex);
+  frmmain.SetParam(gpItemAnimation, cboItemAnimationType.ItemIndex);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbStackOpenAnimationChange(Sender: TObject);
 begin
-  frmterry.SetParam(gpStackOpenAnimation, integer(chbStackOpenAnimation.Checked));
+  frmmain.SetParam(gpStackOpenAnimation, integer(chbStackOpenAnimation.Checked));
 end;
 //------------------------------------------------------------------------------
 //
@@ -711,22 +710,22 @@ procedure Tfrmsets.edLaunchIntervalChange(Sender: TObject);
 var
   value: integer;
 begin
-  if trystrtoint(edLaunchInterval.text, value) then frmterry.SetParam(gpLaunchInterval, value);
+  if trystrtoint(edLaunchInterval.text, value) then frmmain.SetParam(gpLaunchInterval, value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_activate_runningClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpActivateRunning, integer(chb_activate_running.Checked));
+  frmmain.SetParam(gpActivateRunning, integer(chb_activate_running.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_show_running_indicatorClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpShowRunningIndicator, integer(chb_show_running_indicator.Checked));
+  frmmain.SetParam(gpShowRunningIndicator, integer(chb_show_running_indicator.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_use_shell_context_menusClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpUseShellContextMenus, integer(chb_use_shell_context_menus.checked));
+  frmmain.SetParam(gpUseShellContextMenus, integer(chb_use_shell_context_menus.checked));
 end;
 //------------------------------------------------------------------------------
 //
@@ -739,32 +738,32 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbShowHintClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpShowHint, integer(cbShowHint.Checked));
+  frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbHintEffectsClick(Sender: TObject);
 begin
-  frmterry.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
+  frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnSelectHintFontClick(Sender: TObject);
 begin
-  TfrmFont.StartForm(sets.container.font, HintFontCallback);
+  TfrmFont.Open(sets.container.font, HintFontCallback);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.HintFontCallback(font: _FontData);
 begin
-  frmterry.SetFont(font);
+  frmmain.SetFont(font);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnSelectStackFontClick(Sender: TObject);
 begin
-  TfrmFont.StartForm(sets.container.StackFont, StackHintFontCallback);
+  TfrmFont.Open(sets.container.StackFont, StackHintFontCallback);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.StackHintFontCallback(font: _FontData);
 begin
-  frmterry.SetStackFont(font);
+  frmmain.SetStackFont(font);
 end;
 //------------------------------------------------------------------------------
 //
@@ -832,12 +831,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lblMailToClick(Sender: TObject);
 begin
-  frmterry.Run('mailto:roman.holmes@gmail.com?subject=terry');
+  frmmain.Run('mailto:roman.holmes@gmail.com?subject=terry');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lbl_linkClick(Sender: TObject);
 begin
-  frmterry.Run(TLabel(sender).caption);
+  frmmain.Run(TLabel(sender).caption);
 end;
 //------------------------------------------------------------------------------
 end.

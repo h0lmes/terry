@@ -44,7 +44,7 @@ var
   frmAddCommand: TfrmAddCommand;
 
 implementation
-uses declu, toolu, frmterryu, scitemu, stackitemu;
+uses declu, toolu, frmmainu, scitemu, stackitemu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmAddCommand.Open;
@@ -56,7 +56,7 @@ begin
   if not FileExists(tmpFilename) then tmpFilename := UnzipPath('%pp%\locale\commandlist.ini');
   if not FileExists(tmpFilename) then
   begin
-    frmterry.notify(UTF8ToAnsi(XErrorCommandListNotFound));
+    frmmain.notify(UTF8ToAnsi(XErrorCommandListNotFound));
     exit;
   end;
   if not assigned(frmAddCommand) then application.CreateForm(self, frmAddCommand);
@@ -198,7 +198,7 @@ begin
       else
         strItem := TShortcutItem.Make(0, name, cmd, params, '', icon, 1);
 
-      frmterry.ItemMgr.InsertItem(strItem);
+      frmmain.ItemMgr.InsertItem(strItem);
     end;
 end;
 //------------------------------------------------------------------------------

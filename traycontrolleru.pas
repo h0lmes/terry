@@ -21,7 +21,7 @@ type
   end;
 
 implementation
-uses frmterryu;
+uses frmmainu;
 //------------------------------------------------------------------------------
 constructor _TrayController.Create;
 begin
@@ -79,8 +79,8 @@ var
 begin
   if not AutoTrayEnabled then
   begin
-    messagebox(frmterry.handle, pchar(UTF8ToAnsi(XMsgNotificationAreaIcons)), '', MB_ICONEXCLAMATION);
-    frmterry.Run('control.exe', '/name Microsoft.NotificationAreaIcons', '', sw_shownormal);
+    messagebox(frmmain.handle, pchar(UTF8ToAnsi(XMsgNotificationAreaIcons)), '', MB_ICONEXCLAMATION);
+    frmmain.Run('control.exe', '/name Microsoft.NotificationAreaIcons', '', sw_shownormal);
     exit;
   end;
 
@@ -88,7 +88,7 @@ begin
 
   GetCursorPos(pt);
 
-  hwnd := FindWindow('Window', 'TerryApp');
+  hwnd := FindWindow('Window', PROGRAM_NAME);
   GetWindowRect(hwnd, @baseRect);
 
   hwnd := FindWindow('Shell_TrayWnd', nil);

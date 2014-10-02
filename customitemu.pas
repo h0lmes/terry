@@ -110,7 +110,7 @@ end;
 
 
 implementation
-uses dockh, frmterryu, dwm_unit;
+uses dockh, frmmainu, dwm_unit;
 //------------------------------------------------------------------------------
 constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
@@ -384,7 +384,7 @@ begin
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
-      frmterry.DeactivateHint(FHWnd);
+      frmmain.DeactivateHint(FHWnd);
       exit;
     end;
 
@@ -408,7 +408,7 @@ begin
     else
       hy := min(baserect.top - 10, hy - integer(round(FSize / 2) and $ffffffff) - 10);
 
-    frmterry.ActivateHint(FHWnd, FCaption, hx, hy);
+    frmmain.ActivateHint(FHWnd, FCaption, hx, hy);
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
   end;

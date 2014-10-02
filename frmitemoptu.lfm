@@ -17,7 +17,7 @@ object frmItemProp: TfrmItemProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -142,7 +142,7 @@ object frmItemProp: TfrmItemProp
         ItemHeight = 13
         OnChange = cboWindowChange
         Style = csDropDownList
-        TabOrder = 7
+        TabOrder = 8
       end
       object chbHide: TCheckBox
         Left = 115
@@ -150,7 +150,7 @@ object frmItemProp: TfrmItemProp
         Top = 228
         Width = 177
         Caption = 'Hide Terry when application runs'
-        TabOrder = 8
+        TabOrder = 9
       end
       object lblTip1: TLabel
         Left = 115
@@ -222,7 +222,7 @@ object frmItemProp: TfrmItemProp
         Width = 370
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
-        TabOrder = 9
+        TabOrder = 7
       end
     end
     object tsColor: TTabSheet
@@ -354,7 +354,7 @@ object frmItemProp: TfrmItemProp
     Anchors = [akTop, akRight]
     Caption = 'Browse image'
     OnClick = btnBrowseImage1Click
-    TabOrder = 4
+    TabOrder = 5
   end
   object btnClearImage: TButton
     Left = 575
@@ -364,7 +364,7 @@ object frmItemProp: TfrmItemProp
     Anchors = [akTop, akRight]
     Caption = 'Clear image'
     OnClick = btnClearImageClick
-    TabOrder = 5
+    TabOrder = 6
   end
   object btnSelectColor: TButton
     Left = 575
@@ -374,7 +374,7 @@ object frmItemProp: TfrmItemProp
     Anchors = [akTop, akRight]
     Caption = 'Select color'
     OnClick = btnSelectColorClick
-    TabOrder = 6
+    TabOrder = 7
   end
   object btnConvertLink: TButton
     Left = 350
@@ -383,6 +383,6 @@ object frmItemProp: TfrmItemProp
     Width = 194
     Caption = 'Convert .LNK'
     OnClick = btnConvertLinkClick
-    TabOrder = 7
+    TabOrder = 4
   end
 end

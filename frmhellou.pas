@@ -45,7 +45,7 @@ var
 
 implementation
 {$R *.lfm}
-uses toolu, frmterryu, frmtipu;
+uses toolu, frmmainu, frmtipu;
 //------------------------------------------------------------------------------
 class procedure TfrmHello.Open;
 begin
@@ -74,27 +74,27 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnAddClick(Sender: TObject);
 begin
-  frmterry.execute_cmdline('/apps');
+  frmmain.execute_cmdline('/apps');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnLeftClick(Sender: TObject);
 begin
-  frmterry.execute_cmdline('/site(left)');
+  frmmain.execute_cmdline('/site(left)');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnRightClick(Sender: TObject);
 begin
-  frmterry.execute_cmdline('/site(right)');
+  frmmain.execute_cmdline('/site(right)');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnTopClick(Sender: TObject);
 begin
-  frmterry.execute_cmdline('/site(top)');
+  frmmain.execute_cmdline('/site(top)');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnBottomClick(Sender: TObject);
 begin
-  frmterry.execute_cmdline('/site(bottom)');
+  frmmain.execute_cmdline('/site(bottom)');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.FormClose(Sender: TObject; var CloseAction: TCloseAction);

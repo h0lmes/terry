@@ -1,4 +1,4 @@
-object frmterry: Tfrmterry
+object frmmain: Tfrmmain
   Left = 570
   Height = 50
   Top = 258
@@ -15,7 +15,7 @@ object frmterry: Tfrmterry
   OnClose = FormClose
   OnKeyDown = FormKeyDown
   OnMouseUp = FormMouseUp
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object trayicon: TTrayIcon
     Hint = 'Terry'
     Visible = True

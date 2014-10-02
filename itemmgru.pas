@@ -173,7 +173,7 @@ type
 end;
 
 implementation
-uses frmterryu, DockH, toolu;
+uses frmmainu, DockH, toolu;
 //------------------------------------------------------------------------------
 constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
 begin
@@ -223,9 +223,9 @@ begin
   if assigned(e) then where := where + ' '#10#13 + e.Message else where := where + ' '#10#13'Error';
   if Critical then
   begin
-    messagebox(frmterry.handle,
+    messagebox(frmmain.handle,
       pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + #10#13#10#13 + where),
-      'Terry', MB_ICONERROR);
+      PROGRAM_NAME, MB_ICONERROR);
     halt;
   end else
     raise Exception.Create(where);
@@ -233,7 +233,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.notify(message: string);
 begin
-  frmterry.notify(message);
+  frmmain.notify(message);
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetParam(id: TGParam; value: integer);
@@ -285,7 +285,7 @@ begin
       gpMonitor:
         begin
           Monitor := value;
-          MonitorRect := frmterry.GetMonitorBoundsRect;
+          MonitorRect := frmmain.GetMonitorBoundsRect;
           ItemsChanged(true);
         end;
       gpLockMouseEffect: LockMouseEffect := value <> 0;
@@ -307,8 +307,6 @@ begin
       if params = '' then params := sets.SetsPathFile;
       Load(params);
     end;
-    if cmd = 'paste' then InsertItem(GetClipboard);
-
     if cmd = 'shortcut' then AddItem('class="shortcut";', true);
     if cmd = 'separator' then AddItem('class="separator";', true);
     if cmd = 'plugin' then AddItem('class="plugin";file="' + params + '";', true);
@@ -413,17 +411,17 @@ begin
       stack := TStackItem(GetWindowLong(items[ItemCount - 1].h, GWL_USERDATA));
       if stack is TStackItem then
       begin
-        stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\apps\gnome-session-halt.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\apps\gnome-session-reboot-2.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\apps\gnome-session-suspend-2.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\apps\gnome-session-hibernate-2.png'));
+        stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\default\shutdown.png'));
+        stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\default\reboot.png'));
+        stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
+        stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
       end;
       AddItem('class="separator";');
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', ICON_SETTINGS));
+      AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);
@@ -663,7 +661,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetTheme;
 begin
-  MonitorRect := frmterry.GetMonitorBoundsRect;
+  MonitorRect := frmmain.GetMonitorBoundsRect;
   AllItemCmd(tcThemeChanged, 0);
   ItemsChanged(true);
 end;

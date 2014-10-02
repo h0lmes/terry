@@ -1,4 +1,4 @@
-unit frmterryu;
+unit frmmainu;
 
 interface
 
@@ -9,9 +9,9 @@ uses
   itemmgru, DropTgtU, notifieru, setsu, traycontrolleru;
 
 type
-  { Tfrmterry }
+  { Tfrmmain }
 
-  Tfrmterry = class(TForm)
+  Tfrmmain = class(TForm)
     trayicon: TTrayIcon;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
@@ -115,7 +115,7 @@ type
     procedure Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
   end;
 
-var frmterry: Tfrmterry;
+var frmmain: Tfrmmain;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
@@ -123,7 +123,7 @@ uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
-procedure Tfrmterry.Init(SetsFilename: string);
+procedure Tfrmmain.Init(SetsFilename: string);
 var
   i: integer;
   load_err: boolean;
@@ -202,13 +202,12 @@ begin
         if sets.Restore then
         begin
           AddLog('Init.Restore.Succeed');
-          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored)), 'Terry', MB_ICONEXCLAMATION);
+          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored)), PROGRAM_NAME, MB_ICONEXCLAMATION);
           halt;
         end else begin
           AddLog('Init.Restore.Failed');
           messagebox(handle,
-            pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)),
-            'Terry', MB_ICONERROR);
+            pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
           halt;
         end;
     end
@@ -216,7 +215,7 @@ begin
     if not sets.Backup then
     begin
         AddLog('Init.BackupFailed');
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), 'Terry', MB_ICONERROR);
+        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
     end;
 
     // Timers //
@@ -260,7 +259,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.ExecAutorun;
+procedure Tfrmmain.ExecAutorun;
 var
   i: integer;
 begin
@@ -286,7 +285,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.CreateZOrderWindow;
+procedure Tfrmmain.CreateZOrderWindow;
 begin
   try
     ZOrderWindow := CreateWindowEx(WS_EX_TOOLWINDOW, 'tooltips_class32',
@@ -297,7 +296,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.CloseQuery: integer;
+function Tfrmmain.CloseQuery: integer;
 begin
   result := 0;
 
@@ -330,7 +329,7 @@ begin
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
-      on e: Exception do messagebox(handle, PChar(e.message), 'Terry.Base.Close.Free', mb_iconexclamation);
+      on e: Exception do messagebox(handle, PChar(e.message), 'Base.Close.Free', mb_iconexclamation);
     end;
     AddLog('CloseQuery done');
     result := 1;
@@ -340,12 +339,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+procedure Tfrmmain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   if CloseQuery = 0 then CloseAction := caNone else CloseAction := caFree;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.ApplyParams;
+procedure Tfrmmain.ApplyParams;
 begin
   try
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
@@ -379,7 +378,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.SaveSets;
+procedure Tfrmmain.SaveSets;
 begin
   if saving then
   begin
@@ -405,7 +404,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.BaseCmd(id: TGParam; param: integer): integer;
+function Tfrmmain.BaseCmd(id: TGParam; param: integer): integer;
 begin
   Result := 0;
 
@@ -428,7 +427,7 @@ begin
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
-    tcToggleTaskbar: frmterry.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
+    tcToggleTaskbar: frmmain.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
     tcGetVisible: Result := integer(sets.Visible);
     tcGetDragging: if assigned(ItemMgr) then Result := integer(ItemMgr.Dragging);
     tcApplyParams: ApplyParams;
@@ -443,7 +442,7 @@ end;
 //------------------------------------------------------------------------------
 // stores given parameter value and propagates it to subsequent objects       //
 // e.g. ItemManager and all items                                             //
-procedure Tfrmterry.SetParam(id: TGParam; value: integer);
+procedure Tfrmmain.SetParam(id: TGParam; value: integer);
 begin
   value := sets.StoreParam(id, value);
 
@@ -471,7 +470,7 @@ begin
   if id = gpLockMouseEffect then WHMouseMove(0);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.RegisterRawInput;
+procedure Tfrmmain.RegisterRawInput;
 var
   rid: RAWINPUTDEVICE;
 begin
@@ -482,7 +481,7 @@ begin
   if not RegisterRawInputDevices(@Rid, 1, sizeof(Rid)) then notify('RegisterRawInput failed!');
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.NativeWndProc(var message: TMessage);
+procedure Tfrmmain.NativeWndProc(var message: TMessage);
 var
   dwSize: uint;
   ri: RAWINPUT;
@@ -520,12 +519,12 @@ begin
   with message do result := CallWindowProc(FPrevWndProc, Handle, Msg, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WHButtonDown(button: integer);
+procedure Tfrmmain.WHButtonDown(button: integer);
 begin
   if not IsLockedMouseEffect and not MouseOver and not sets.container.StayOnTop then SetNotForeground;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WHMouseMove(LParam: LParam);
+procedure Tfrmmain.WHMouseMove(LParam: LParam);
 var
   pt: Windows.Tpoint;
   mon_rect: Windows.TRect;
@@ -566,7 +565,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.MouseEnter;
+procedure Tfrmmain.MouseEnter;
 begin
   sets.MouseOver := True;
   sets.LastMouseEnterTime := GetTickCount;
@@ -575,19 +574,19 @@ begin
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.MouseLeave;
+procedure Tfrmmain.MouseLeave;
 begin
   sets.MouseOver := False;
   sets.LastMouseLeaveTime := GetTickCount;
   ItemMgr.DragLeave;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
+procedure Tfrmmain.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 begin
   if button = mbRight then DoMenu(0);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.DoMenu;
+procedure Tfrmmain.DoMenu;
 var
   pt: Windows.TPoint;
 begin
@@ -595,7 +594,7 @@ begin
   ContextMenu(pt);
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.GetHMenu(ParentMenu: uint): uint;
+function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
   function IsValidItemString(str: string): boolean;
   var
     classname: string;
@@ -652,7 +651,7 @@ begin
   Result := hMenu;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.ContextMenu(pt: Windows.TPoint): boolean;
+function Tfrmmain.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
 begin
@@ -666,7 +665,7 @@ begin
   Result := True;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMCommand(var msg: TMessage);
+procedure Tfrmmain.WMCommand(var msg: TMessage);
 var
   cmd: string;
 begin
@@ -684,7 +683,7 @@ begin
         $f024: cmd := '/itemmgr.separator';
         $f026: cmd := '/apps';
 
-        $f030: cmd := '/itemmgr.paste';
+        $f030: cmd := '/paste';
         $f031: cmd := '/lockdragging';
         $f032: cmd := '/collection';
         $f033: cmd := '/taskmgr';
@@ -704,7 +703,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
+procedure Tfrmmain.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
 begin
   if shift = [] then
   begin
@@ -726,7 +725,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // moves dock to another edge and/or monitor
-procedure Tfrmterry.MoveDock(iDirection: integer);
+procedure Tfrmmain.MoveDock(iDirection: integer);
 begin
   if iDirection = 0 then
   begin
@@ -760,7 +759,7 @@ begin
   if iDirection = 3 then SetParam(gpSite, 3);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMUser(var msg: TMessage);
+procedure Tfrmmain.WMUser(var msg: TMessage);
 begin
   if (msg.wParam = wm_activate) and (msg.lParam = 0) then
   begin
@@ -769,7 +768,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMTimer(var msg: TMessage);
+procedure Tfrmmain.WMTimer(var msg: TMessage);
 begin
   try
     if msg.WParam = ID_TIMER then TimerMain
@@ -780,7 +779,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.TimerMain;
+procedure Tfrmmain.TimerMain;
 begin
   if assigned(sets) then sets.Timer;
   if IsWindowVisible(Handle) then
@@ -790,7 +789,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.TimerSlow;
+procedure Tfrmmain.TimerSlow;
 begin
   if assigned(ItemMgr) and assigned(sets) then
   try
@@ -809,7 +808,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.TimerFSA;
+procedure Tfrmmain.TimerFSA;
 var
   fsa: boolean;
 begin
@@ -832,7 +831,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.UpdateRunning;
+procedure Tfrmmain.UpdateRunning;
 begin
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
@@ -843,13 +842,13 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.UpdateRunningI;
+procedure Tfrmmain.UpdateRunningI;
 begin
   ProcessHelper.EnumProc;
   ItemMgr.SetParam(icUpdateRunning, 0);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.SetForeground;
+procedure Tfrmmain.SetForeground;
 begin
   if closing then exit;
   SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
@@ -877,7 +876,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.SetNotForeground;
+procedure Tfrmmain.SetNotForeground;
 
 function IsDockWnd(wnd: uint): boolean;
 begin
@@ -942,7 +941,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // keep all items on top of the dock window
-procedure Tfrmterry.MaintainNotForeground;
+procedure Tfrmmain.MaintainNotForeground;
 var
   h: THandle;
 begin
@@ -960,7 +959,7 @@ begin
 	end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.BasePaint(flags: integer);
+procedure Tfrmmain.BasePaint(flags: integer);
 var
   hgdip, hbrush: Pointer;
   bmp: gdip_gfx._SimpleBitmap;
@@ -1033,31 +1032,31 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure Tfrmmain.trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   DoMenu(0);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.err(where: string; e: Exception);
+procedure Tfrmmain.err(where: string; e: Exception);
 begin
   where := UTF8ToAnsi(XErrorIn) + ' ' + where;
   if assigned(e) then where := where + #10#13 + e.message;
   notify(where);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.notify(message: string; silent: boolean = False);
+procedure Tfrmmain.notify(message: string; silent: boolean = False);
 begin
   if assigned(Notifier) then Notifier.Message(message, sets.GetParam(gpMonitor), False, silent)
   else if not silent then messagebox(handle, pchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.alert(message: string);
+procedure Tfrmmain.alert(message: string);
 begin
   if assigned(notifier) then notifier.message(message, sets.GetParam(gpMonitor), True, False)
   else messagebox(handle, pchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
+procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
 var
   monitor: cardinal;
 begin
@@ -1069,22 +1068,22 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.DeactivateHint(hwnd: uint);
+procedure Tfrmmain.DeactivateHint(hwnd: uint);
 begin
   if not closing and assigned(AHint) then AHint.DeactivateHint(hwnd);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AppException(Sender: TObject; e: Exception);
+procedure Tfrmmain.AppException(Sender: TObject; e: Exception);
 begin
   notify('[AppException]'#13#10 + Sender.ClassName + #13#10 + e.message);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AppDeactivate(Sender: TObject);
+procedure Tfrmmain.AppDeactivate(Sender: TObject);
 begin
   ItemMgr.WMDeactivateApp;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.GetMonitorWorkareaRect: Windows.TRect;
+function Tfrmmain.GetMonitorWorkareaRect: Windows.TRect;
 var
   monitor: integer;
 begin
@@ -1094,7 +1093,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.GetMonitorBoundsRect: Windows.TRect;
+function Tfrmmain.GetMonitorBoundsRect: Windows.TRect;
 var
   monitor: integer;
 begin
@@ -1104,7 +1103,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.HideTaskbar(hide: boolean);
+procedure Tfrmmain.HideTaskbar(hide: boolean);
 var
   hwnd: uint;
   r: Windows.TRect;
@@ -1131,7 +1130,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
+procedure Tfrmmain.ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
 var
   Changed: boolean;
   Position: integer;
@@ -1178,7 +1177,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // 0 - left, 1 - top, 2 - right, 3 - bottom
-procedure Tfrmterry.UnreserveScreenEdge(Edge: TBaseSite);
+procedure Tfrmmain.UnreserveScreenEdge(Edge: TBaseSite);
 var
   Changed: boolean;
   WorkArea, Bounds: Windows.TRect;
@@ -1230,22 +1229,22 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnDragEnter(list: TStrings; hWnd: uint);
+procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: uint);
 begin
   ItemMgr.DragEnter;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnDragOver;
+procedure Tfrmmain.OnDragOver;
 begin
   ItemMgr.DragOver;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnDragLeave;
+procedure Tfrmmain.OnDragLeave;
 begin
   ItemMgr.DragLeave;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OnDrop(files: TStrings; hWnd: uint);
+procedure Tfrmmain.OnDrop(files: TStrings; hWnd: uint);
 var
   pt: Windows.TPoint;
 begin
@@ -1262,7 +1261,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.DropFiles(files: TStrings);
+procedure Tfrmmain.DropFiles(files: TStrings);
 var
   i: integer;
 begin
@@ -1270,7 +1269,7 @@ begin
   ItemMgr.InsertItems(files);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMCopyData(var Message: TMessage);
+procedure Tfrmmain.WMCopyData(var Message: TMessage);
 var
   pcds: PCOPYDATASTRUCT;
   ppd: PProgramData;
@@ -1291,7 +1290,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AddFile;
+procedure Tfrmmain.AddFile;
 begin
   with TOpenDialog.Create(self) do
   begin
@@ -1300,14 +1299,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.AddFile(Filename: string);
+procedure Tfrmmain.AddFile(Filename: string);
 begin
   if assigned(ItemMgr) then
     ItemMgr.InsertItem(TShortcutItem.Make(0, ChangeFileExt(ExtractFilename(Filename), ''),
       toolu.ZipPath(Filename), '', toolu.ZipPath(ExtractFilePath(Filename)), '', 1));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.LockMouseEffect(hWnd: HWND; lock: boolean);
+procedure Tfrmmain.LockMouseEffect(hWnd: HWND; lock: boolean);
 var
   index: integer;
 begin
@@ -1326,24 +1325,24 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.IsLockedMouseEffect: boolean;
+function Tfrmmain.IsLockedMouseEffect: boolean;
 begin
   result := LockList.Count > 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.SetFont(var Value: _FontData);
+procedure Tfrmmain.SetFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.Font);
   SetParam(gpShowHint, integer(sets.container.ShowHint));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.SetStackFont(var Value: _FontData);
+procedure Tfrmmain.SetStackFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.StackFont);
   SetParam(gpShowHint, integer(sets.container.ShowHint));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.OpenWith(filename: string);
+procedure Tfrmmain.OpenWith(filename: string);
 var
   _file: string;
 begin
@@ -1352,12 +1351,12 @@ begin
   ShellExecute(application.mainform.handle, nil, 'rundll32.exe', pchar('shell32.dll,OpenAs_RunDLL ' + _file), nil, 1);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMMouseWheel(var msg: TWMMouseWheel);
+procedure Tfrmmain.WMMouseWheel(var msg: TWMMouseWheel);
 begin
   if msg.WheelDelta < 0 then wacmd(40059) else if msg.WheelDelta > 0 then wacmd(40058);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMDisplayChange(var Message: TMessage);
+procedure Tfrmmain.WMDisplayChange(var Message: TMessage);
 begin
   screen.UpdateMonitors;
   sets.StoreParam(gpMonitor, sets.GetParam(gpMonitor));
@@ -1365,19 +1364,19 @@ begin
   message.Result := 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMSettingChange(var Message: TMessage);
+procedure Tfrmmain.WMSettingChange(var Message: TMessage);
 begin
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.WMCompositionChanged(var Message: TMessage);
+procedure Tfrmmain.WMCompositionChanged(var Message: TMessage);
 begin
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.FullScreenAppActive(HWnd: HWND): boolean;
+function Tfrmmain.FullScreenAppActive(HWnd: HWND): boolean;
 const
   clsPM = 'Progman';
   clsWW = 'WorkerW';
@@ -1409,7 +1408,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function Tfrmterry.ListFullScreenApps: string;
+function Tfrmmain.ListFullScreenApps: string;
 var
   wnd: hWnd;
   rc, rMonitor: windows.TRect;
@@ -1443,7 +1442,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
+procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
 var
   acmd, aparams, adir: string;
 begin
@@ -1462,7 +1461,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.execute_cmdline(cmd: string; showcmd: integer = 1);
+procedure Tfrmmain.execute_cmdline(cmd: string; showcmd: integer = 1);
 var
   params: string;
 begin
@@ -1478,7 +1477,7 @@ begin
   execute(cmd, params, '', showcmd);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
+procedure Tfrmmain.execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
 var
   cmd2: string;
   i, i1, i2, i3, i4: integer;
@@ -1490,7 +1489,7 @@ begin
 
   if cmd[1] <> '/' then
   begin
-    frmterry.Run(cmd, params, dir, showcmd);
+    frmmain.Run(cmd, params, dir, showcmd);
     exit;
   end;
 
@@ -1499,33 +1498,34 @@ begin
   params := toolu.UnzipPath(params);
   cmd2 := cutafter(cmd, '.');
 
-  if cut(cmd, '.') = 'itemmgr' then frmterry.ItemMgr.command(cmd2, params)
-  else if cmd = 'quit' then frmterry.BaseCmd(tcQuit, 0)
-  else if cmd = 'hide' then frmterry.BaseCmd(tcSetVisible, 0)
-  else if cmd = 'say' then frmterry.notify(toolu.UnzipPath(params))
-  else if cmd = 'alert' then frmterry.alert(toolu.UnzipPath(params))
-  else if cmd = 'togglevisible' then frmterry.BaseCmd(tcToggleVisible, 0)
-  else if cmd = 'togglesystaskbar' then frmterry.BaseCmd(tcToggleTaskbar, 0)
+  if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cmd2, params)
+  else if cmd = 'quit' then frmmain.BaseCmd(tcQuit, 0)
+  else if cmd = 'hide' then frmmain.BaseCmd(tcSetVisible, 0)
+  else if cmd = 'say' then frmmain.notify(toolu.UnzipPath(params))
+  else if cmd = 'alert' then frmmain.alert(toolu.UnzipPath(params))
+  else if cmd = 'togglevisible' then frmmain.BaseCmd(tcToggleVisible, 0)
+  else if cmd = 'togglesystaskbar' then frmmain.BaseCmd(tcToggleTaskbar, 0)
   else if cmd = 'sets' then
   begin
     if not trystrtoint(params, i) then i := 0;
-    Tfrmsets.StartForm(i);
+    Tfrmsets.Open(i);
   end
-  else if cmd = 'cmd' then Tfrmcmd.StartForm
-  else if cmd = 'collection' then frmterry.Run('%pp%\collection.exe')
-  else if cmd = 'apps' then frmterry.Run('%pp%\apps.exe')
-  else if cmd = 'taskmgr' then frmterry.Run('%sysdir%\taskmgr.exe')
-  else if cmd = 'program' then frmterry.AddFile
+  else if cmd = 'cmd' then Tfrmcmd.Open
+  else if cmd = 'collection' then Run('%pp%\collection.exe')
+  else if cmd = 'apps' then Run('%pp%\apps.exe')
+  else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
+  else if cmd = 'program' then AddFile
   else if cmd = 'command' then TfrmAddCommand.Open
   else if cmd = 'hello' then TfrmHello.Open
   else if cmd = 'help' then TfrmTip.Open
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
-  else if cmd = 'tray' then frmterry.Tray.Show(sets.container.Site, hwnd)
-  else if cmd = 'autotray' then frmterry.Tray.SwitchAutoTray
+  else if cmd = 'paste' then ItemMgr.InsertItem(GetClipboard)
+  else if cmd = 'tray' then Tray.Show(sets.container.Site, hwnd)
+  else if cmd = 'autotray' then Tray.SwitchAutoTray
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open
-  else if cmd = 'lockdragging' then frmterry.SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
-  else if cmd = 'site' then frmterry.SetParam(gpSite, integer(sets.StringToSite(params)))
+  else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
+  else if cmd = 'site' then SetParam(gpSite, integer(sets.StringToSite(params)))
   else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))
   else if cmd = 'shutdown' then toolu.ShutDown(ifthen(params = 'force', 5, 1))
   else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))
@@ -1547,11 +1547,11 @@ begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i3) then i3 := 0;
     bsm(i1, i2, i3);
   end
-  else if cmd = 'windowfrompoint' then
+  else if cmd = 'wfp' then
   begin
-    windows.GetCursorPos(pt);
-    uint(inta) := windows.WindowFromPoint(pt);
-    SetClipboard(inttostr(inta));
+    GetCursorPos(pt);
+    inta := WindowFromPoint(pt);
+    SetClipboard(inttohex(inta, 8));
   end
   else if cmd = 'findwindow' then
   begin
@@ -1559,8 +1559,8 @@ begin
     str2 := Trim(fetch(params, ',', true));
     if str1 = '' then lpsz1 := nil else lpsz1 := pchar(str1);
     if str2 = '' then lpsz2 := nil else lpsz2 := pchar(str2);
-    uint(inta) := findwindow(lpsz1, lpsz2);
-    SetClipboard(inttostr(inta));
+    inta := findwindow(lpsz1, lpsz2);
+    SetClipboard(inttohex(inta, 8));
   end
   else if cmd = 'findwindowex' then
   begin
@@ -1568,17 +1568,10 @@ begin
     str2 := Trim(fetch(params, ',', true));
     if str1 = '' then lpsz1 := nil else lpsz1 := pchar(str1);
     if str2 = '' then lpsz2 := nil else lpsz2 := pchar(str2);
-    uint(inta) := findwindowex(inta, 0, lpsz1, lpsz2);
-    SetClipboard(inttostr(inta));
+    inta := findwindowex(inta, 0, lpsz1, lpsz2);
+    SetClipboard(inttohex(inta, 8));
   end
   else if cmd = 'showwindow' then showwindow(uint(inta), strtoint(params))
-  else if cmd = 'setwindowtext' then setwindowtext(uint(inta), pchar(params))
-  else if cmd = 'setwindowpos' then
-  begin
-    if not trystrtoint(Trim(fetch(params, ',', true)), i2) then i2 := 0;
-    if not trystrtoint(Trim(fetch(params, ',', true)), i3) then i3 := 0;
-    setwindowpos(uint(inta), 0, i2, i3, 0, 0, swp_nomove + swp_noactivate + swp_nozorder + swp_noreposition);
-  end
   else if cmd = 'sendmessage' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i2) then i2 := 0;
@@ -1603,11 +1596,11 @@ begin
     if SameText(params, 'start_of_playlist') then toolu.wacmd(40154);
     if SameText(params, 'end_of_playlist') then toolu.wacmd(40158);
   end
-  else if cmd = 'play' then sndPlaySound(pchar(params), SND_ASYNC or SND_FILENAME)
+  else if cmd = 'play' then sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
   else if cmd = 'guid' then SetClipboard(CreateClassId);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmterry.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
+procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   shell: string;
 begin
