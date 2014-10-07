@@ -1484,6 +1484,7 @@ var
   str1, str2: string;
   lpsz1, lpsz2: pchar;
   pt: windows.TPoint;
+  baseRect: windows.TRect;
 begin
   if cmd = '' then exit;
 
@@ -1521,7 +1522,14 @@ begin
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'paste' then ItemMgr.InsertItem(GetClipboard)
-  else if cmd = 'tray' then Tray.Show(sets.container.Site, hwnd)
+  else if cmd = 'tray' then
+  begin
+    baseRect.Left := ItemMgr.BaseWindowRect.X + ItemMgr.X;
+    baseRect.Top := ItemMgr.BaseWindowRect.Y + ItemMgr.Y;
+    baseRect.Right := ItemMgr.BaseWindowRect.X + ItemMgr.X + frmmain.ItemMgr.width;
+    baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
+    Tray.Show(sets.container.Site, hwnd, baseRect);
+  end
   else if cmd = 'autotray' then Tray.SwitchAutoTray
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))

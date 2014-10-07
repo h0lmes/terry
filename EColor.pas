@@ -63,7 +63,7 @@ type
     property VSpace: integer read FVSpace write SetVSpace;
     property HSpace: integer read FHSpace write SetHSpace;
     property LightnessBarWidth: integer read FLightnessBarWidth write SetLightnessBarWidth default 15;
-    property SplitWidth: integer read FSplitWidth write SetSplitWidth;
+    property SplitWidth: integer read FSplitWidth write SetSplitWidth default 10;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -77,6 +77,7 @@ begin
   Height := 200;
   FVSpace := 8;
   FHSpace := 8;
+  FSplitWidth := 10;
   valuetype := 0;
   FColor := clBtnFace;
   FBackColor := clBtnFace;
@@ -256,36 +257,29 @@ begin
   for y := FLightnessRect.top to FLightnessRect.bottom do
   begin
     pic.canvas.pen.color :=
-      HLStoRGB(FHue, 240 - round(240 /
-      max(1, FLightnessRect.bottom - FLightnessRect.top) *
-      (y - FLightnessRect.top)), FSaturation);
-    pic.canvas.moveto(FLightnessRect.left, y);
-    pic.canvas.lineto(FLightnessRect.right, y);
+      HLStoRGB(FHue, 240 - round(240 / max(1, FLightnessRect.bottom - FLightnessRect.top) * (y - FLightnessRect.top)), FSaturation);
+    pic.canvas.line(FLightnessRect.left, y, FLightnessRect.right, y);
   end;
 
   pic.canvas.brush.style := bsClear;
   pic.canvas.pen.color := clBlack;
-  pic.canvas.moveto(
+  // marker at the color field
+  pic.canvas.line(
     round((FColorRect.right - FColorRect.left) / 240 * FHue) + FColorRect.left - 3,
-    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) / 240 * FSaturation));
-  pic.canvas.lineto(
+    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) / 240 * FSaturation),
     round((FColorRect.right - FColorRect.left) / 240 * FHue) + FColorRect.left + 4,
     FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) / 240 * FSaturation));
-  pic.canvas.moveto(
+  pic.canvas.line(
     round((FColorRect.right - FColorRect.left) / 240 * FHue) + FColorRect.left,
-    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) /
-    240 * FSaturation) - 3);
-  pic.canvas.lineto(
+    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) / 240 * FSaturation) - 3,
     round((FColorRect.right - FColorRect.left) / 240 * FHue) + FColorRect.left,
-    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) /
-    240 * FSaturation) + 4);
+    FColorRect.bottom - round((FColorRect.bottom - FColorRect.top) / 240 * FSaturation) + 4);
+  // marker at the lightness bar
   pic.canvas.rectangle(
     FLightnessRect.left - 2,
-    round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) /
-    240 * FLightness) - 1,
+    round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) / 240 * FLightness) - 1,
     FLightnessRect.right + 2,
-    round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) /
-    240 * FLightness) + 2);
+    round(FLightnessRect.bottom - (FLightnessRect.bottom - FLightnessRect.top) / 240 * FLightness) + 2);
 
   BitBlt(GetDC(handle), 0, 0, Width, Height, pic.Canvas.Handle, 0, 0, SRCCOPY);
   pic.Free;

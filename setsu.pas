@@ -192,9 +192,8 @@ begin
 
   // load sets //
   ini:= TIniFile.Create(SetsPathFile);
-  // theme //
-  StrCopy(container.ThemeName, pchar(ini.ReadString('theme', 'name', 'Aero')));
   // base //
+  StrCopy(container.ThemeName, pchar(ini.ReadString('base', 'Theme', 'Aero')));
   container.site := StringToSite(ini.ReadString('base', 'site', 'top'));
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', 'explorer.exe')));
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
@@ -285,9 +284,8 @@ begin
 
   ini := TIniFile.Create(SetsPathFile);
   ini.CacheUpdates := true;
-  // theme //
-  ini.WriteString('theme', 'Name', pchar(@container.ThemeName[0]));
   // base //
+  ini.WriteString('base', 'Theme', pchar(@container.ThemeName[0]));
   ini.WriteString('base', 'Site', SiteToString);
   ini.WriteString('base', 'Shell', pchar(@container.Shell[0]));
   ini.WriteBool('base', 'AutoHide', container.autohide);

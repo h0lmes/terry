@@ -5,6 +5,7 @@ program terry;
 uses
   Windows,
   Messages,
+  Classes,
   SysUtils,
   Interfaces,
   Forms,
@@ -493,27 +494,46 @@ end;
 
 var
   i: integer;
-  altSets: boolean;
+  setsFiles: TStrings;
   SetsFilename: string;
+  multiDock: boolean;
+  dockIndex: integer;
   hMutex: uint;
   WinHandle: THandle;
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
 
-  // settings file //
-  altSets := false;
-  SetsFilename := '';
-  i := 1;
-  while i <= ParamCount do
-  begin
-    if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then SetsFilename := UnzipPath(copy(ParamStr(i), 3, MAX_PATH));
-    inc(i);
-  end;
-  if SetsFilename <> '' then altSets := FileExists(SetsFilename);
-  if not altSets then SetsFilename := UnzipPath('%pp%\sets.ini');
+  // multi-dock support //
+  SetsFilename := AnsiLowerCase(UnzipPath('%pp%\sets.ini'));
+  setsFiles := TStringList.Create;
+  searchfiles(UnzipPath('%pp%'), 'sets*.ini', setsFiles);
+  setsFiles.Delete(setsFiles.IndexOf(SetsFilename));
+  qSortStrings(setsFiles);
+  multiDock := setsFiles.Count > 0;
 
-  // check for running instance //
+  dockIndex := 0;
+  if multiDock then
+  begin
+    // read dock index (if specified)
+    i := 1;
+    while i <= ParamCount do
+    begin
+      if strlicomp(pchar(ParamStr(i)), '-dock', 5) = 0 then
+        if not TryStrToInt(copy(ParamStr(i), 6, 1), dockIndex) then dockIndex := 0;
+      inc(i);
+    end;
+    // read settings file name
+    if dockIndex = 0 then
+    else
+    if dockIndex <= setsFiles.Count then
+       SetsFilename := setsFiles.strings[dockIndex - 1]
+    else halt;
+  end;
+  setsFiles.free;
+
+  // check running instances //
+
   hMutex := CreateMutex(nil, false, pchar('Global\' + PROGRAM_GUID + encodePath(SetsFilename)));
   if GetLastError = ERROR_ALREADY_EXISTS then
   begin
@@ -524,6 +544,14 @@ begin
       SetForegroundWindow(WinHandle);
     end;
     halt;
+  end;
+
+  // run next dock //
+
+  if multiDock then
+  begin
+    inc(dockIndex);
+    ShellExecute(0, nil, pchar(Paramstr(0)), pchar(UTF8ToAnsi('-dock' + inttostr(dockIndex))), pchar(ExtractFilePath(Paramstr(0))), SW_SHOWNORMAL);
   end;
 
   AddLog('--------------------------------------');

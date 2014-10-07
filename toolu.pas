@@ -31,6 +31,7 @@ function SizeToString(r: Windows.TSize): string;
 function StringToPoint(str: string): Windows.Tpoint;
 function SetRange(value, min, max: integer): integer;
 function IsDriveIdent(ident: string): boolean;
+procedure qSortStrings(list: TStrings);
 procedure searchfiles(path, mask: string; list: TStrings);
 procedure searchfolders(path: string; list: TStrings);
 procedure searchfilesrecurse(path, mask: string; list: TStrings;
@@ -364,6 +365,35 @@ begin
   if length(ident) = 3 then Result := Result and (ident[2] = ':') and (ident[3] = '\');
 end;
 //------------------------------------------------------------------------------
+procedure qSortStrings(list: TStrings);
+  procedure sort(list: TStrings; low, high: integer);
+  var
+    i, j: integer;
+    median, temp: string;
+  begin
+    i := low;
+    j := high;
+    median := AnsiUpperCase(ExtractFileName(list.Strings[(i+j) div 2]));
+    repeat
+      while AnsiUpperCase(ExtractFileName(list.Strings[i])) < median do inc(i);
+      while AnsiUpperCase(ExtractFileName(list.Strings[j])) > median do dec(j);
+      if i <= j then
+      begin
+        temp := list.Strings[i];
+        list.Strings[i] := list.Strings[j];
+        list.Strings[j] := temp;
+        inc(i);
+        dec(j);
+      end;
+    until i > j;
+
+    if low < j then sort(list, low, j);
+    if i < high then sort(list, i, high);
+  end;
+begin
+  sort(list, 0, list.Count - 1);
+end;
+//------------------------------------------------------------------------------
 procedure searchfiles(path, mask: string; list: TStrings);
 var
   fhandle: HANDLE;
@@ -373,9 +403,9 @@ begin
   path := IncludeTrailingPathDelimiter(path);
   fhandle := FindFirstFile(PChar(path + mask), f);
   if fhandle = INVALID_HANDLE_VALUE then exit;
-  if (f.dwFileAttributes and $18) = 0 then list.addobject(f.cFileName, tobject(0));
+  if (f.dwFileAttributes and $18) = 0 then list.addobject(AnsiLowerCase(path + f.cFileName), tobject(0));
   while FindNextFile(fhandle, f) do
-    if (f.dwFileAttributes and $18) = 0 then list.addobject(f.cFileName, tobject(0));
+    if (f.dwFileAttributes and $18) = 0 then list.addobject(AnsiLowerCase(path + f.cFileName), tobject(0));
   if not (fhandle = INVALID_HANDLE_VALUE) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------

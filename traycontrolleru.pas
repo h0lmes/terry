@@ -16,7 +16,7 @@ type
     procedure SwitchAutoTray;
     procedure EnableAutoTray;
     procedure DisableAutoTray;
-    procedure Show(site: TBaseSite; host_wnd: cardinal = 0);
+    procedure Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
     procedure Timer;
   end;
 
@@ -71,10 +71,10 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.Show(site: TBaseSite; host_wnd: cardinal = 0);
+procedure _TrayController.Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
 var
   HWnd: cardinal;
-  baseRect, wRect, hostRect: windows.TRect;
+  wRect, hostRect: windows.TRect;
   pt: windows.TPoint;
 begin
   if not AutoTrayEnabled then
@@ -87,9 +87,6 @@ begin
   FSite := site;
 
   GetCursorPos(pt);
-
-  hwnd := FindWindow('Window', PROGRAM_NAME);
-  GetWindowRect(hwnd, @baseRect);
 
   hwnd := FindWindow('Shell_TrayWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
