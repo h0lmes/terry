@@ -106,6 +106,7 @@ type
     procedure DropFiles(files: TStrings);
     procedure AddFile; overload;
     procedure AddFile(Filename: string); overload;
+    procedure AddDock;
     procedure OpenWith(filename: string);
     function FullScreenAppActive(HWnd: HWND): boolean;
     function ListFullScreenApps: string;
@@ -119,7 +120,8 @@ var frmmain: Tfrmmain;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou, frmtipu;
+  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou,
+  frmtipu, multidocku;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
@@ -326,6 +328,9 @@ begin
         Notifier.Free;
         Notifier := nil;
       end;
+      // close other instances
+      multidock.Enum;
+      multidock.CloseAll;
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
@@ -600,7 +605,7 @@ function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
     classname: string;
   begin
     classname := FetchValue(str, 'class="', '";');
-    result := (classname = 'shortcut') or (classname = 'separator') or (classname = 'plugin') or (classname = 'stack');
+    result := (classname = 'shortcut') or (classname = 'plugin') or (classname = 'stack');
   end;
 
 var
@@ -625,6 +630,8 @@ begin
   AppendMenu(hMenuCreate, MF_STRING, $f026, pchar(UTF8ToAnsi(XInstalledApplication)));
   AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
+  AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
+  AppendMenu(hMenuCreate, MF_STRING, $f025, pchar(UTF8ToAnsi(XDock)));
   if sets.GetPluginCount = -1 then sets.ScanPlugins;
   if sets.GetPluginCount > 0 then
   begin
@@ -640,13 +647,13 @@ begin
   // insert all menu items //
   if ParentMenu <> 0 then AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenu, MF_STRING + MF_POPUP, hMenuCreate, pchar(UTF8ToAnsi(XAddIcon)));
-  AppendMenu(hMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), $f031, pchar(UTF8ToAnsi(XLockIcons)));
-  AppendMenu(hMenu, MF_STRING, $f032, pchar(UTF8ToAnsi(XIconCollection)));
+  AppendMenu(hMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), IDM_LOCKICONS, pchar(UTF8ToAnsi(XLockIcons)));
+  AppendMenu(hMenu, MF_STRING, IDM_COLLECTION, pchar(UTF8ToAnsi(XIconCollection)));
   AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(hMenu, MF_STRING, $f033, pchar(UTF8ToAnsi(XTaskManager)));
+  AppendMenu(hMenu, MF_STRING, IDM_TASKMGR, pchar(UTF8ToAnsi(XTaskManager)));
   AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(hMenu, MF_STRING, $f034, pchar(UTF8ToAnsi(XProgramSettings)));
-  AppendMenu(hMenu, MF_STRING, $f035, pchar(UTF8ToAnsi(XExit)));
+  AppendMenu(hMenu, MF_STRING, IDM_SETS, pchar(UTF8ToAnsi(XProgramSettings)));
+  AppendMenu(hMenu, MF_STRING, IDM_QUIT, pchar(UTF8ToAnsi(XExit)));
 
   Result := hMenu;
 end;
@@ -681,6 +688,7 @@ begin
         $f022: cmd := '/program';
         $f023: cmd := '/command';
         $f024: cmd := '/itemmgr.separator';
+        $f025: cmd := '/dock';
         $f026: cmd := '/apps';
 
         $f030: cmd := '/paste';
@@ -1306,17 +1314,21 @@ begin
       toolu.ZipPath(Filename), '', toolu.ZipPath(ExtractFilePath(Filename)), '', 1));
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.AddDock;
+begin
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmmain.LockMouseEffect(hWnd: HWND; lock: boolean);
 var
   index: integer;
 begin
   crsection.Acquire;
   try
-    index := LockList.IndexOf(pointer(hWnd));
     if lock then
     begin
-      if index < 0 then LockList.Add(pointer(hWnd));
+      LockList.Add(pointer(hWnd));
     end else begin
+      index := LockList.IndexOf(pointer(hWnd));
       if index >= 0 then LockList.Delete(index);
     end;
     SetParam(gpLockMouseEffect, integer(LockList.Count > 0));
@@ -1516,6 +1528,7 @@ begin
   else if cmd = 'apps' then Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
   else if cmd = 'program' then AddFile
+  else if cmd = 'dock' then AddDock
   else if cmd = 'command' then TfrmAddCommand.Open
   else if cmd = 'hello' then TfrmHello.Open
   else if cmd = 'help' then TfrmTip.Open

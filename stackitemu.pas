@@ -84,6 +84,7 @@ type
     property ItemCount: integer read FItemCount;
 
     procedure UpdateItem(AData: string);
+    function ToStringFullCopy: string;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -169,6 +170,7 @@ var
   ini: TIniFile;
   i: integer;
   data: string;
+  list: TStrings;
 begin
   if FFreed then exit;
 
@@ -208,6 +210,10 @@ begin
       end
       else
       begin
+        list := TStringList.Create;
+        list.AddText(AData);
+        if list.count > 1 then AData := list.strings[0];
+
         caption := FetchValue(AData, 'caption="', '";');
         FImageFile := FetchValue(AData, 'image="', '";');
         FColorData := DEFAULT_COLOR_DATA;
@@ -230,6 +236,18 @@ begin
         except end;
         FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
         UpdateSpecialFolder;
+
+        if list.count > 1 then
+        begin
+          i := 1;
+          while i < list.Count do
+          begin
+            if list.strings[i] <> '' then AddSubitem(list.strings[i]);
+            inc(i);
+          end;
+        end;
+
+        list.free
       end;
 
     finally
@@ -520,8 +538,20 @@ end;
 //------------------------------------------------------------------------------
 function TStackItem.ToString: string;
 begin
-  result:= Make(FHWnd, FCaption, FImageFile, FSpecialFolder,
+  result := Make(FHWnd, FCaption, FImageFile, FSpecialFolder,
     FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview);
+end;
+//------------------------------------------------------------------------------
+function TStackItem.ToStringFullCopy: string;
+var
+  i: integer;
+begin
+  result := ToString;
+  if (FItemCount > 0) and (FSpecialFolder = '') then
+  begin
+    for i := 0 to FItemCount - 1 do
+      result := result + #10 + items[i].item.SaveToString;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -579,7 +609,7 @@ begin
   case wParam of // f001 to f020
     $f001: Configure;
     $f002: ; // open folder
-    $f003: toolu.SetClipboard(ToString);
+    $f003: toolu.SetClipboard(ToStringFullCopy);
     $f004: Delete;
     $f005: AddSubitem(GetClipboard);
     $f006..$f020: ;
@@ -1166,7 +1196,7 @@ begin
     exit;
   end;
 
-  // calc base point //
+  // calc base point (center of icon) //
   wr := ScreenRect;
   wr.left += FSize div 2;
   wr.top += FSize div 2;

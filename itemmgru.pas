@@ -1017,7 +1017,6 @@ begin
   Inst := nil;
   try
     class_name := AnsiLowerCase(FetchValue(data, 'class="', '"'));
-    if (class_name = 'plugin') and (data = '') then exit;
 
     icp.ItemSize := sets.container.ItemSize;
     icp.BigItemSize := sets.container.BigItemSize;

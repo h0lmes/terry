@@ -31,7 +31,7 @@ function SizeToString(r: Windows.TSize): string;
 function StringToPoint(str: string): Windows.Tpoint;
 function SetRange(value, min, max: integer): integer;
 function IsDriveIdent(ident: string): boolean;
-procedure qSortStrings(list: TStrings);
+procedure qSortStrings(var list: TStrings);
 procedure searchfiles(path, mask: string; list: TStrings);
 procedure searchfolders(path: string; list: TStrings);
 procedure searchfilesrecurse(path, mask: string; list: TStrings;
@@ -365,8 +365,8 @@ begin
   if length(ident) = 3 then Result := Result and (ident[2] = ':') and (ident[3] = '\');
 end;
 //------------------------------------------------------------------------------
-procedure qSortStrings(list: TStrings);
-  procedure sort(list: TStrings; low, high: integer);
+procedure qSortStrings(var list: TStrings);
+  procedure sort(var list: TStrings; low, high: integer);
   var
     i, j: integer;
     median, temp: string;
@@ -391,7 +391,7 @@ procedure qSortStrings(list: TStrings);
     if i < high then sort(list, i, high);
   end;
 begin
-  sort(list, 0, list.Count - 1);
+  if list.Count > 0 then sort(list, 0, list.Count - 1);
 end;
 //------------------------------------------------------------------------------
 procedure searchfiles(path, mask: string; list: TStrings);

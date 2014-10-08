@@ -63,7 +63,7 @@ type
     procedure Run(exename, params, dir: string; showcmd: integer);
     procedure RunAsUser(exename, params, dir: string; showcmd: integer);
     // windows //
-    function GetWindowText(h: THandle): string;
+    class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
     procedure ActivateWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
@@ -378,7 +378,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetWindowText(h: THandle): string;
+class function TProcessHelper.GetWindowText(h: THandle): string;
 var
   win_name: array [0..255] of char;
 begin

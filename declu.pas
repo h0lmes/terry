@@ -153,6 +153,13 @@ const
   // private Terry WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
 
+  // popup menu command IDs //
+  IDM_LOCKICONS = $f031;
+  IDM_COLLECTION = $f032;
+  IDM_TASKMGR = $f033;
+  IDM_SETS = $f034;
+  IDM_QUIT = $f035;
+
   // WM_COPYDATA CDS.dwType
   DATA_PROGRAM = $f001; // TProgramData struct
 
@@ -191,6 +198,7 @@ resourcestring
   XDeleteSeparator = 'Delete separator';
   XEmptyIcon = 'Empty icon';
   XSeparator = 'Separator (space)';
+  XDock = 'New dock';
   XInstalledApplication = 'Installed application';
   XAddIcon = 'Add ...';
   XSpecificIcons = 'Specific icons';

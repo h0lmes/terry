@@ -68,7 +68,7 @@ begin
         FCaption := '';
       end else begin
         LoadImageFromHWnd(FAppHWnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
-        Caption := ProcessHelper.GetWindowText(FAppHWnd);
+        Caption := TProcessHelper.GetWindowText(FAppHWnd);
       end;
     finally
       FUpdating:= false;
@@ -257,7 +257,7 @@ begin
   // update application title //
   if (msg.msg = WM_TIMER) and (msg.wParam = ID_TIMER) then
   begin
-    Caption := ProcessHelper.GetWindowText(FAppHWnd);
+    Caption := TProcessHelper.GetWindowText(FAppHWnd);
   end;
 end;
 //------------------------------------------------------------------------------

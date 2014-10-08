@@ -8,6 +8,7 @@ uses
   Classes,
   SysUtils,
   Interfaces,
+  interfacebase,
   Forms,
   ShellAPI,
   Dialogs,
@@ -47,7 +48,7 @@ uses
   processhlp,
   dropindicatoru,
   taskitemu,
-  frmhellou, frmtipu;
+  frmhellou, frmtipu, multidocku;
 
 {$R *.res}
 
@@ -499,22 +500,28 @@ var
   multiDock: boolean;
   dockIndex: integer;
   hMutex: uint;
-  WinHandle: THandle;
+  h: THandle;
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
 
+
   // multi-dock support //
-  SetsFilename := AnsiLowerCase(UnzipPath('%pp%\sets.ini'));
+
+  AddLog('--------------------------------------');
+  AddLog('MultiDock');
+  TMultiDock.CreateMD;
+  SetsFilename := UnzipPath('%pp%\sets.ini');
   setsFiles := TStringList.Create;
   searchfiles(UnzipPath('%pp%'), 'sets*.ini', setsFiles);
-  setsFiles.Delete(setsFiles.IndexOf(SetsFilename));
-  qSortStrings(setsFiles);
+  i := setsFiles.IndexOf(AnsiLowerCase(SetsFilename));
+  if i >= 0 then setsFiles.Delete(i);
   multiDock := setsFiles.Count > 0;
 
   dockIndex := 0;
   if multiDock then
   begin
+    qSortStrings(setsFiles);
     // read dock index (if specified)
     i := 1;
     while i <= ParamCount do
@@ -526,45 +533,39 @@ begin
     // read settings file name
     if dockIndex = 0 then
     else
-    if dockIndex <= setsFiles.Count then
-       SetsFilename := setsFiles.strings[dockIndex - 1]
+    if dockIndex <= setsFiles.Count then SetsFilename := setsFiles.strings[dockIndex - 1]
     else halt;
+    // run next dock if exists
+    inc(dockIndex);
+    if dockIndex <= setsFiles.Count then
+      ShellExecute(0, nil, pchar(Paramstr(0)), pchar(UTF8ToAnsi('-dock' + inttostr(dockIndex))), pchar(ExtractFilePath(Paramstr(0))), SW_SHOWNORMAL);
   end;
   setsFiles.free;
 
+
   // check running instances //
 
+  AddLog('Mutex');
   hMutex := CreateMutex(nil, false, pchar('Global\' + PROGRAM_GUID + encodePath(SetsFilename)));
   if GetLastError = ERROR_ALREADY_EXISTS then
   begin
-    WinHandle := FindWindow('Window', PROGRAM_NAME);
-    if IsWindow(WinHandle) then
+    h := FindWindow('Window', PROGRAM_NAME);
+    if IsWindow(h) then
     begin
-      sendmessage(WinHandle, wm_user, wm_activate, 0);
-      SetForegroundWindow(WinHandle);
+      sendmessage(h, wm_user, wm_activate, 0);
+      SetForegroundWindow(h);
     end;
     halt;
   end;
 
-  // run next dock //
+  // application //
 
-  if multiDock then
-  begin
-    inc(dockIndex);
-    ShellExecute(0, nil, pchar(Paramstr(0)), pchar(UTF8ToAnsi('-dock' + inttostr(dockIndex))), pchar(ExtractFilePath(Paramstr(0))), SW_SHOWNORMAL);
-  end;
-
-  AddLog('--------------------------------------');
-  AddLog('AppInitialize');
+  AddLog('Application');
   Application.Initialize;
+  h := WidgetSet.AppHandle; //FindWindow('Window', 'tdock');
+  SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
 
-  AddLog('AppWindowStyle');
-  WinHandle := FindWindow('Window', 'tdock');
-  if IsWindow(WinHandle) then
-    SetWindowLong(WinHandle, GWL_EXSTYLE,
-      GetWindowLong(WinHandle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
-
-  AddLog('MainWindowStyle');
+  AddLog('MainWindow');
   Application.ShowMainForm := false;
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
@@ -584,5 +585,6 @@ begin
   Application.Run;
 
   CloseHandle(hMutex);
+  TMultiDock.DestroyMD;
   AddLog('EndProgram');
 end.

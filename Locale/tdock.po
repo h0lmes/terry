@@ -71,6 +71,10 @@ msgstr ""
 msgid "Delete separator"
 msgstr ""
 
+#: declu.xdock
+msgid "New dock"
+msgstr ""
+
 #: declu.xemptyicon
 msgid "Empty icon"
 msgstr ""
