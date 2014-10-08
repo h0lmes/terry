@@ -4,7 +4,7 @@ interface
 uses Windows, DefaultTranslator;
 
 type
-  TBaseSite = (bsLeft, bsTop, bsRight, bsBottom);
+  TBaseSite = (bsLeft = 0, bsTop, bsRight, bsBottom);
   TBaseOrientation = (boHorizontal, boVertical);
 
   TGParam = (
@@ -154,6 +154,7 @@ const
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
 
   // popup menu command IDs //
+  IDM_PASTE = $f030;
   IDM_LOCKICONS = $f031;
   IDM_COLLECTION = $f032;
   IDM_TASKMGR = $f033;
@@ -260,5 +261,26 @@ resourcestring
   // trayController //
   XMsgNotificationAreaIcons = 'After you close this message you will see "Notification area icons" window. To use this function uncheck "Always show all icons" at the bottom of the window and set all behaviors to "Only show notifications".';
 
+
+  function SiteToString(site: TBaseSite): string;
+  function StringToSite(str: string): TBaseSite;
+
 implementation
+//------------------------------------------------------------------------------
+function SiteToString(site: TBaseSite): string;
+begin
+  result := 'left';
+  if site = bsTop then result := 'top'
+  else if site = bsRight then result := 'right'
+  else if site = bsBottom then result := 'bottom';
+end;
+//------------------------------------------------------------------------------
+function StringToSite(str: string): TBaseSite;
+begin
+  result := bsLeft;
+  if str = 'top' then result := bsTop
+  else if str = 'right' then result := bsRight
+  else if str = 'bottom' then result := bsBottom;
+end;
+//------------------------------------------------------------------------------
 end.

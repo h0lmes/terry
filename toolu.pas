@@ -403,9 +403,9 @@ begin
   path := IncludeTrailingPathDelimiter(path);
   fhandle := FindFirstFile(PChar(path + mask), f);
   if fhandle = INVALID_HANDLE_VALUE then exit;
-  if (f.dwFileAttributes and $18) = 0 then list.addobject(AnsiLowerCase(path + f.cFileName), tobject(0));
+  if (f.dwFileAttributes and $18) = 0 then list.addobject(f.cFileName, tobject(0));
   while FindNextFile(fhandle, f) do
-    if (f.dwFileAttributes and $18) = 0 then list.addobject(AnsiLowerCase(path + f.cFileName), tobject(0));
+    if (f.dwFileAttributes and $18) = 0 then list.addobject(f.cFileName, tobject(0));
   if not (fhandle = INVALID_HANDLE_VALUE) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------

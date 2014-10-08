@@ -105,8 +105,6 @@ type
     procedure StoreSetsContainer;
     procedure RestoreSetsContainer;
     procedure CopySetsContainer(var dst: _SetsContainer; var src: _SetsContainer);
-    function SiteToString: string;
-    function StringToSite(str: string): TBaseSite;
     function getBaseOrientation: TBaseOrientation;
     procedure RollDown;
     procedure RollUp;
@@ -286,7 +284,7 @@ begin
   ini.CacheUpdates := true;
   // base //
   ini.WriteString('base', 'Theme', pchar(@container.ThemeName[0]));
-  ini.WriteString('base', 'Site', SiteToString);
+  ini.WriteString('base', 'Site', SiteToString(container.site));
   ini.WriteString('base', 'Shell', pchar(@container.Shell[0]));
   ini.WriteBool('base', 'AutoHide', container.autohide);
   ini.WriteInteger('base', 'AutoHideTime', container.autohidetime);
@@ -566,22 +564,6 @@ begin
   CopyFontData(src.StackFont, dst.StackFont);
   StrCopy(dst.Shell, pchar(@src.Shell));
   StrCopy(dst.ThemeName, pchar(@src.ThemeName));
-end;
-//------------------------------------------------------------------------------
-function _Sets.SiteToString: string;
-begin
-  result := 'left';
-  if container.site = bsTop then result := 'top'
-  else if container.site = bsRight then result := 'right'
-  else if container.site = bsBottom then result := 'bottom';
-end;
-//------------------------------------------------------------------------------
-function _Sets.StringToSite(str: string): TBaseSite;
-begin
-  result := bsLeft;
-  if str = 'top' then result := bsTop
-  else if str = 'right' then result := bsRight
-  else if str = 'bottom' then result := bsBottom;
 end;
 //------------------------------------------------------------------------------
 function _Sets.getBaseOrientation: TBaseOrientation;

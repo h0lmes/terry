@@ -329,8 +329,8 @@ begin
         Notifier := nil;
       end;
       // close other instances
-      multidock.Enum;
-      multidock.CloseAll;
+      docks.Enum;
+      docks.CloseAll;
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
@@ -619,7 +619,7 @@ begin
   if IsValidItemString(GetClipboard) then
   begin
     //AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
-    AppendMenu(hMenu, MF_STRING, $f030, pchar(UTF8ToAnsi(XPaste)));
+    AppendMenu(hMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
   end;
 
   // create submenu 'Add...' //
@@ -691,12 +691,12 @@ begin
         $f025: cmd := '/dock';
         $f026: cmd := '/apps';
 
-        $f030: cmd := '/paste';
-        $f031: cmd := '/lockdragging';
-        $f032: cmd := '/collection';
-        $f033: cmd := '/taskmgr';
-        $f034: cmd := '/sets';
-        $f035: cmd := '/quit';
+        IDM_PASTE: cmd := '/paste';
+        IDM_LOCKICONS: cmd := '/lockdragging';
+        IDM_COLLECTION: cmd := '/collection';
+        IDM_TASKMGR: cmd := '/taskmgr';
+        IDM_SETS: cmd := '/sets';
+        IDM_QUIT: cmd := '/quit';
       end;
       execute_cmdline(cmd);
     end
@@ -1316,6 +1316,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AddDock;
 begin
+  if assigned(docks) then
+  begin
+    docks.Enum;
+    if docks.Count < 8 then
+      if docks.HaveFreeSite then docks.NewDock;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.LockMouseEffect(hWnd: HWND; lock: boolean);
@@ -1546,7 +1552,7 @@ begin
   else if cmd = 'autotray' then Tray.SwitchAutoTray
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
-  else if cmd = 'site' then SetParam(gpSite, integer(sets.StringToSite(params)))
+  else if cmd = 'site' then SetParam(gpSite, integer(StringToSite(params)))
   else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))
   else if cmd = 'shutdown' then toolu.ShutDown(ifthen(params = 'force', 5, 1))
   else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))

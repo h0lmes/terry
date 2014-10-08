@@ -496,9 +496,7 @@ end;
 var
   i: integer;
   setsFiles: TStrings;
-  SetsFilename: string;
-  multiDock: boolean;
-  dockIndex: integer;
+  SetsFilename, ProgramPath: string;
   hMutex: uint;
   h: THandle;
 begin
@@ -510,37 +508,38 @@ begin
 
   AddLog('--------------------------------------');
   AddLog('MultiDock');
-  TMultiDock.CreateMD;
-  SetsFilename := UnzipPath('%pp%\sets.ini');
-  setsFiles := TStringList.Create;
-  searchfiles(UnzipPath('%pp%'), 'sets*.ini', setsFiles);
-  i := setsFiles.IndexOf(AnsiLowerCase(SetsFilename));
-  if i >= 0 then setsFiles.Delete(i);
-  multiDock := setsFiles.Count > 0;
+  TMultiDock.CreateMD();
 
-  dockIndex := 0;
-  if multiDock then
+  // read sets filename from params
+  ProgramPath := IncludeTrailingPathDelimiter(ExtractFilePath(Paramstr(0)));
+  SetsFilename := '';
+  i := 1;
+  while i <= ParamCount do
   begin
-    qSortStrings(setsFiles);
-    // read dock index (if specified)
-    i := 1;
-    while i <= ParamCount do
-    begin
-      if strlicomp(pchar(ParamStr(i)), '-dock', 5) = 0 then
-        if not TryStrToInt(copy(ParamStr(i), 6, 1), dockIndex) then dockIndex := 0;
-      inc(i);
-    end;
-    // read settings file name
-    if dockIndex = 0 then
-    else
-    if dockIndex <= setsFiles.Count then SetsFilename := setsFiles.strings[dockIndex - 1]
-    else halt;
-    // run next dock if exists
-    inc(dockIndex);
-    if dockIndex <= setsFiles.Count then
-      ShellExecute(0, nil, pchar(Paramstr(0)), pchar(UTF8ToAnsi('-dock' + inttostr(dockIndex))), pchar(ExtractFilePath(Paramstr(0))), SW_SHOWNORMAL);
+    if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then
+      SetsFilename := ProgramPath + copy(ParamStr(i), 3, MAX_PATH - 1);
+    inc(i);
   end;
-  setsFiles.free;
+
+  // if it was not specified
+  if SetsFilename = '' then
+  begin
+    // list all sets files in program folder
+    setsFiles := TStringList.Create;
+    searchfiles(ProgramPath, 'sets*.ini', setsFiles);
+    qSortStrings(setsFiles);
+    // take 1st one
+    if setsFiles.Count > 0 then SetsFilename := ProgramPath + setsFiles.Strings[0];
+    // or the default one
+    if not FileExists(SetsFilename) then SetsFilename := ProgramPath + 'sets.ini';
+    // run instances for all other files
+    if setsFiles.Count > 1 then
+    begin
+      for i := 1 to setsFiles.Count - 1 do
+        ShellExecute(0, nil, pchar(Paramstr(0)), pchar('-s' + setsFiles.Strings[i]), pchar(ProgramPath), SW_SHOWNORMAL);
+    end;
+    setsFiles.free;
+  end;
 
 
   // check running instances //
