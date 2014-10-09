@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsStyle
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -181,6 +181,27 @@ object frmsets: Tfrmsets
         Caption = 'Enable hint effects'
         OnClick = chbHintEffectsClick
         TabOrder = 8
+      end
+      object Panel1: TPanel
+        Left = 15
+        Height = 45
+        Top = 385
+        Width = 428
+        BevelOuter = bvNone
+        ClientHeight = 45
+        ClientWidth = 428
+        Color = clMaroon
+        ParentColor = False
+        TabOrder = 9
+        object btnRemoveDock: TButton
+          Left = 12
+          Height = 25
+          Top = 10
+          Width = 169
+          Caption = 'Remove this dock'
+          OnClick = btnRemoveDockClick
+          TabOrder = 0
+        end
       end
     end
     object tsPosition: TTabSheet

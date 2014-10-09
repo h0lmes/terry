@@ -9,7 +9,7 @@ object frmHello: TfrmHello
   ClientWidth = 538
   OnClose = FormClose
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object Label1: TLabel
     Left = 45
     Height = 15

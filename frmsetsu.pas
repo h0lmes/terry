@@ -14,6 +14,7 @@ type
   Tfrmsets = class(TForm)
     btnAutoRunAdd: TSpeedButton;
     btnDebug: TButton;
+    btnRemoveDock: TButton;
     btnRunNow: TButton;
     btnSelectHintFont: TBitBtn;
     btnSelectStackFont: TBitBtn;
@@ -42,6 +43,7 @@ type
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
+    Panel1: TPanel;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
@@ -109,6 +111,7 @@ type
     lv: TListView;
     images: TImageList;
     procedure btnDebugClick(Sender: TObject);
+    procedure btnRemoveDockClick(Sender: TObject);
     procedure btnSelectStackFontClick(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
@@ -453,6 +456,11 @@ end;
 procedure Tfrmsets.btnDebugClick(Sender: TObject);
 begin
   TfrmDebug.Open;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.btnRemoveDockClick(Sender: TObject);
+begin
+  frmmain.execute_cmdline('/removedock');
 end;
 //------------------------------------------------------------------------------
 //

@@ -605,6 +605,10 @@ msgctxt "TFRMSETS.BTNDEBUG.CAPTION"
 msgid "Debug info"
 msgstr ""
 
+#: tfrmsets.btnremovedock.caption
+msgid "Remove this dock"
+msgstr ""
+
 #: tfrmsets.btnselecthintfont.caption
 msgid "Select hint font"
 msgstr ""
@@ -1030,10 +1034,6 @@ msgstr ""
 
 #: tfrmtip.btnnext.caption
 msgid "Next"
-msgstr ""
-
-#: tfrmtip.btnprevious.caption
-msgid "Previous"
 msgstr ""
 
 #: tfrmtip.caption

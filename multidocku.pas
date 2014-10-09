@@ -15,6 +15,8 @@ type
     FCount: integer;
     FFreeMonitor: integer;
     FFreeSite: TBaseSite;
+    FRemoveDock: boolean;
+    FSetsFilename: string;
     ProgramPath: string;
     ProgramExe: string;
     function GetWindowText(h: THandle): string;
@@ -24,27 +26,33 @@ type
     property Count: integer read FCount;
     property FreeMonitor: integer read FFreeMonitor;
     property FreeSite: TBaseSite read FFreeSite;
-    class procedure CreateMD;
-    class procedure DestroyMD;
+    property RemoveDock: boolean read FRemoveDock;
+
+    class procedure Create_;
+    class procedure Destroy_;
+
     constructor Create;
     destructor Destroy; override;
     procedure Enum;
     procedure CloseAll;
     function HaveFreeSite: boolean;
     procedure NewDock;
+    procedure RunDock(ASetsFilename: string);
+    procedure RequestRemoveDock(ASetsFilename: string);
   end;
 
 var
   docks: TMultiDock;
 
 implementation
+uses toolu;
 //------------------------------------------------------------------------------
-class procedure TMultiDock.CreateMD;
+class procedure TMultiDock.Create_;
 begin
   if not assigned(docks) then docks := TMultiDock.Create;
 end;
 //------------------------------------------------------------------------------
-class procedure TMultiDock.DestroyMD;
+class procedure TMultiDock.Destroy_;
 begin
   if assigned(docks) then docks.Free;
 end;
@@ -65,6 +73,14 @@ destructor TMultiDock.Destroy;
 begin
   listWindows.free;
   listSites.free;
+
+  if FRemoveDock then
+  begin
+    windows.DeleteFile(pchar(FSetsFilename));
+    FSetsFilename := ChangeFileExt(FSetsFilename, '.bak');
+    windows.DeleteFile(pchar(FSetsFilename));
+  end;
+
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -144,12 +160,13 @@ begin
 
   for m := 0 to screen.MonitorCount - 1 do
     for s := 0 to 3 do
-      if listSites.IndexOf(pointer(s + m shl 8)) < 0 then
-      begin
-        result := true;
-        FFreeMonitor := m;
-        FFreeSite := TBaseSite(s);
-      end;
+      if not result then
+        if listSites.IndexOf(pointer(s + m shl 8)) < 0 then
+        begin
+          result := true;
+          FFreeMonitor := m;
+          FFreeSite := TBaseSite(s);
+        end;
 end;
 //------------------------------------------------------------------------------
 function TMultiDock.GetNewSetsFilename: string;
@@ -172,7 +189,19 @@ begin
   newSets := GetNewSetsFilename;
   WritePrivateProfileString('base', 'Monitor', pchar(inttostr(FFreeMonitor)), pchar(ProgramPath + newSets));
   WritePrivateProfileString('base', 'Site', pchar(SiteToString(FFreeSite)), pchar(ProgramPath + newSets));
-  ShellExecute(0, nil, pchar(ProgramExe), pchar('-s' + newSets), pchar(ProgramPath), SW_SHOWNORMAL);
+  WritePrivateProfileString('base', 'Hello', '0', pchar(ProgramPath + newSets));
+  RunDock(newSets);
+end;
+//------------------------------------------------------------------------------
+procedure TMultiDock.RunDock(ASetsFilename: string);
+begin
+  ShellExecute(0, nil, pchar(ProgramExe), pchar('-i' + ASetsFilename), pchar(ProgramPath), SW_SHOWNORMAL);
+end;
+//------------------------------------------------------------------------------
+procedure TMultiDock.RequestRemoveDock(ASetsFilename: string);
+begin
+  FRemoveDock := true;
+  FSetsFilename := ASetsFilename;
 end;
 //------------------------------------------------------------------------------
 end.

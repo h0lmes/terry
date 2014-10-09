@@ -52,6 +52,8 @@ begin
   Application.CreateForm(TfrmHello, frmHello);
   frmHello.Show;
   frmHello.btnAutorun.Enabled := not CheckAutorun;
+  frmHello.font.size := toolu.GetFontSize;
+  frmHello.font.name := toolu.GetFont;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnCloseClick(Sender: TObject);

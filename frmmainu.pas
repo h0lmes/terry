@@ -22,6 +22,7 @@ type
     closing: boolean;
     saving: boolean;
     AllowClose: boolean;
+    FRemoveDock: boolean;
     PrevBlur: boolean;
     ZOrderWindow: uint;
     FWndInstance: TFarProc;
@@ -106,7 +107,8 @@ type
     procedure DropFiles(files: TStrings);
     procedure AddFile; overload;
     procedure AddFile(Filename: string); overload;
-    procedure AddDock;
+    procedure NewDock;
+    procedure RemoveDock;
     procedure OpenWith(filename: string);
     function FullScreenAppActive(HWnd: HWND): boolean;
     function ListFullScreenApps: string;
@@ -135,6 +137,7 @@ begin
     closing := False;
     saving := False;
     AllowClose := false;
+    FRemoveDock := false;
     PrevBlur := False;
     InitDone := False;
     Application.OnException := AppException;
@@ -329,8 +332,11 @@ begin
         Notifier := nil;
       end;
       // close other instances
-      docks.Enum;
-      docks.CloseAll;
+      if not docks.RemoveDock then
+      begin
+        docks.Enum;
+        docks.CloseAll;
+      end;
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
     except
@@ -688,7 +694,7 @@ begin
         $f022: cmd := '/program';
         $f023: cmd := '/command';
         $f024: cmd := '/itemmgr.separator';
-        $f025: cmd := '/dock';
+        $f025: cmd := '/newdock';
         $f026: cmd := '/apps';
 
         IDM_PASTE: cmd := '/paste';
@@ -1314,13 +1320,22 @@ begin
       toolu.ZipPath(Filename), '', toolu.ZipPath(ExtractFilePath(Filename)), '', 1));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.AddDock;
+procedure Tfrmmain.NewDock;
 begin
   if assigned(docks) then
   begin
     docks.Enum;
     if docks.Count < 8 then
       if docks.HaveFreeSite then docks.NewDock;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.RemoveDock;
+begin
+  if assigned(docks) then
+  begin
+    docks.RequestRemoveDock(sets.SetsPathFile);
+    execute_cmdline('/quit');
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1534,7 +1549,8 @@ begin
   else if cmd = 'apps' then Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
   else if cmd = 'program' then AddFile
-  else if cmd = 'dock' then AddDock
+  else if cmd = 'newdock' then NewDock
+  else if cmd = 'removedock' then RemoveDock
   else if cmd = 'command' then TfrmAddCommand.Open
   else if cmd = 'hello' then TfrmHello.Open
   else if cmd = 'help' then TfrmTip.Open

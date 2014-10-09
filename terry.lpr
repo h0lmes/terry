@@ -492,7 +492,7 @@ begin
   if length(result) > MAX_PATH - 1 - length(PROGRAM_GUID) - 7 then
      result := copy(result, length(result) - (MAX_PATH - 1 - length(PROGRAM_GUID) - 7), MAX_PATH);
 end;
-
+//------------------------------------------------------------------------------
 var
   i: integer;
   setsFiles: TStrings;
@@ -508,7 +508,7 @@ begin
 
   AddLog('--------------------------------------');
   AddLog('MultiDock');
-  TMultiDock.CreateMD();
+  TMultiDock.Create_();
 
   // read sets filename from params
   ProgramPath := IncludeTrailingPathDelimiter(ExtractFilePath(Paramstr(0)));
@@ -516,7 +516,7 @@ begin
   i := 1;
   while i <= ParamCount do
   begin
-    if strlicomp(pchar(ParamStr(i)), '-s', 2) = 0 then
+    if strlicomp(pchar(ParamStr(i)), '-i', 2) = 0 then
       SetsFilename := ProgramPath + copy(ParamStr(i), 3, MAX_PATH - 1);
     inc(i);
   end;
@@ -535,8 +535,7 @@ begin
     // run instances for all other files
     if setsFiles.Count > 1 then
     begin
-      for i := 1 to setsFiles.Count - 1 do
-        ShellExecute(0, nil, pchar(Paramstr(0)), pchar('-s' + setsFiles.Strings[i]), pchar(ProgramPath), SW_SHOWNORMAL);
+      for i := 1 to setsFiles.Count - 1 do docks.RunDock(setsFiles.Strings[i]);
     end;
     setsFiles.free;
   end;
@@ -584,6 +583,6 @@ begin
   Application.Run;
 
   CloseHandle(hMutex);
-  TMultiDock.DestroyMD;
+  TMultiDock.Destroy_;
   AddLog('EndProgram');
 end.

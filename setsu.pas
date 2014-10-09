@@ -42,7 +42,6 @@ type
     LockDragging: boolean;
     UseShellContextMenus: boolean;
     StackOpenAnimation: boolean;
-
     AutoHideOnFullScreenApp: boolean;
 
     Reflection: boolean;
@@ -192,7 +191,8 @@ begin
   ini:= TIniFile.Create(SetsPathFile);
   // base //
   StrCopy(container.ThemeName, pchar(ini.ReadString('base', 'Theme', 'Aero')));
-  container.site := StringToSite(ini.ReadString('base', 'site', 'top'));
+  container.Monitor := ini.ReadInteger('base', 'Monitor', 0);
+  container.Site := StringToSite(ini.ReadString('base', 'Site', 'top'));
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', 'explorer.exe')));
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
@@ -210,7 +210,6 @@ begin
   container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
   container.DropDistance := container.ItemSize;
   container.HideKeys := ini.ReadInteger('base', 'HideKeys', 16490);
-  container.Monitor := ini.ReadInteger('base', 'Monitor', 0);
   container.useShell := ini.ReadBool('base', 'UseShell', false);
   container.autohide := ini.ReadBool('base', 'AutoHide', false);
   container.LaunchInThread := ini.ReadBool('base', 'LaunchInThread', true);
@@ -283,10 +282,11 @@ begin
   ini := TIniFile.Create(SetsPathFile);
   ini.CacheUpdates := true;
   // base //
-  ini.WriteString('base', 'Theme', pchar(@container.ThemeName[0]));
-  ini.WriteString('base', 'Site', SiteToString(container.site));
-  ini.WriteString('base', 'Shell', pchar(@container.Shell[0]));
-  ini.WriteBool('base', 'AutoHide', container.autohide);
+  ini.WriteString ('base', 'Theme', pchar(@container.ThemeName[0]));
+  ini.WriteInteger('base', 'Monitor', container.Monitor);
+  ini.WriteString ('base', 'Site', SiteToString(container.Site));
+  ini.WriteString ('base', 'Shell', pchar(@container.Shell[0]));
+  ini.WriteBool   ('base', 'AutoHide', container.autohide);
   ini.WriteInteger('base', 'AutoHideTime', container.autohidetime);
   ini.WriteInteger('base', 'AutoShowTime', container.autoshowtime);
   ini.WriteInteger('base', 'AutoHidePixels', container.AutoHidePixels);
@@ -302,44 +302,43 @@ begin
   ini.WriteInteger('base', 'CenterOffsetPercent', container.CenterOffsetPercent);
   ini.WriteInteger('base', 'EdgeOffset', container.EdgeOffset);
   ini.WriteInteger('base', 'HideKeys', container.HideKeys);
-  ini.WriteInteger('base', 'Monitor', container.Monitor);
-  ini.WriteBool('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
-  ini.WriteBool('base', 'UseShell', container.useShell);
-  ini.WriteBool('base', 'ZoomItems', container.ZoomItems);
-  ini.WriteBool('base', 'LaunchInThread', container.launchInThread);
-  ini.WriteBool('base', 'ActivateOnMouse', container.ActivateOnMouse);
-  ini.WriteBool('base', 'CloseCmdWindow', container.CloseCmdWindow);
-  ini.WriteBool('base', 'HideTaskBar', container.HideTaskBar);
-  ini.WriteBool('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
+  ini.WriteBool   ('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
+  ini.WriteBool   ('base', 'UseShell', container.useShell);
+  ini.WriteBool   ('base', 'ZoomItems', container.ZoomItems);
+  ini.WriteBool   ('base', 'LaunchInThread', container.launchInThread);
+  ini.WriteBool   ('base', 'ActivateOnMouse', container.ActivateOnMouse);
+  ini.WriteBool   ('base', 'CloseCmdWindow', container.CloseCmdWindow);
+  ini.WriteBool   ('base', 'HideTaskBar', container.HideTaskBar);
+  ini.WriteBool   ('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
   ini.WriteInteger('base', 'ReserveScreenEdgePercent', container.ReserveScreenEdgePercent);
-  ini.WriteBool('base', 'Taskbar', container.Taskbar);
-  ini.WriteBool('base', 'StayOnTop', container.StayOnTop);
-  ini.WriteBool('base', 'LockDragging', container.LockDragging);
-  ini.WriteBool('base', 'ShowHint', container.ShowHint);
-  ini.WriteBool('base', 'HintEffects', container.HintEffects);
-  ini.WriteBool('base', 'UseShellContextMenus', container.UseShellContextMenus);
-  ini.WriteBool('base', 'StackOpenAnimation', container.StackOpenAnimation);
-  ini.WriteBool('base', 'Hello', false);
+  ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
+  ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
+  ini.WriteBool   ('base', 'LockDragging', container.LockDragging);
+  ini.WriteBool   ('base', 'ShowHint', container.ShowHint);
+  ini.WriteBool   ('base', 'HintEffects', container.HintEffects);
+  ini.WriteBool   ('base', 'UseShellContextMenus', container.UseShellContextMenus);
+  ini.WriteBool   ('base', 'StackOpenAnimation', container.StackOpenAnimation);
+  ini.WriteBool   ('base', 'Hello', false);
   // gfx //
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
-  ini.WriteBool('gfx', 'Reflection', container.Reflection);
-  ini.WriteBool('gfx', 'Blur', container.Blur);
+  ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
+  ini.WriteBool   ('gfx', 'Blur', container.Blur);
   // font //
-  ini.WriteString('Font', 'name', pchar(@container.Font.name[0]));
+  ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
   ini.WriteInteger('Font', 'color', container.Font.color);
   ini.WriteInteger('Font', 'color_o', container.Font.color_outline);
-  ini.WriteBool('Font', 'bold', container.Font.bold);
-  ini.WriteBool('Font', 'italic', container.Font.italic);
-  ini.WriteBool('Font', 'outline', container.Font.outline);
+  ini.WriteBool   ('Font', 'bold', container.Font.bold);
+  ini.WriteBool   ('Font', 'italic', container.Font.italic);
+  ini.WriteBool   ('Font', 'outline', container.Font.outline);
   // stack font //
-  ini.WriteString('StackFont', 'name', pchar(@container.StackFont.name[0]));
+  ini.WriteString ('StackFont', 'name', pchar(@container.StackFont.name[0]));
   ini.WriteInteger('StackFont', 'size', container.StackFont.size);
   ini.WriteInteger('StackFont', 'color', container.StackFont.color);
   ini.WriteInteger('StackFont', 'color_o', container.StackFont.color_outline);
-  ini.WriteBool('StackFont', 'bold', container.StackFont.bold);
-  ini.WriteBool('StackFont', 'italic', container.StackFont.italic);
-  ini.WriteBool('StackFont', 'outline', container.StackFont.outline);
+  ini.WriteBool   ('StackFont', 'bold', container.StackFont.bold);
+  ini.WriteBool   ('StackFont', 'italic', container.StackFont.italic);
+  ini.WriteBool   ('StackFont', 'outline', container.StackFont.outline);
 
   // autoruns //
   i:= 0;

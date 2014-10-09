@@ -662,6 +662,10 @@ msgctxt "TFRMSETS.BTNDEBUG.CAPTION"
 msgid "Debug info"
 msgstr "Отладочная информация"
 
+#: tfrmsets.btnremovedock.caption
+msgid "Remove this dock"
+msgstr "Удалить этот док"
+
 #: tfrmsets.btnselecthintfont.caption
 msgid "Select hint font"
 msgstr "Выбрать шрифт подсказок"
@@ -1129,11 +1133,6 @@ msgstr "Спасибо, я узнал достаточно"
 msgctxt "tfrmtip.btnnext.caption"
 msgid "Next"
 msgstr "Дальше"
-
-#: tfrmtip.btnprevious.caption
-msgctxt "tfrmtip.btnprevious.caption"
-msgid "Previous"
-msgstr "Назад"
 
 #: tfrmtip.caption
 msgid "Tip"
