@@ -379,6 +379,7 @@ var
   hx, hy: integer;
   wrect, baserect: windows.TRect;
   do_show: boolean;
+  {hint_offset: integer;}
 begin
   try
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
@@ -399,14 +400,15 @@ begin
       hy := wRect.top + integer(round(FSize / 2) and $ffffffff);
     end;
 
+    {hint_offset := 0;}
     baserect := dockh.DockGetRect;
-    if FSite = 0 then hx := max(baserect.right + 10, hx + integer(round(FSize / 2) and $ffffffff) + 10)
+    if FSite = 0 then hx := max(baserect.right {+ hint_offset}, hx + integer(round(FSize / 2) and $ffffffff) {+ hint_offset})
     else
-    if FSite = 1 then hy := max(baserect.bottom + 10, hy + integer(round(FSize / 2) and $ffffffff) + 10)
+    if FSite = 1 then hy := max(baserect.bottom {+ hint_offset}, hy + integer(round(FSize / 2) and $ffffffff) {+ hint_offset})
     else
-    if FSite = 2 then hx := min(baserect.left - 10, hx - integer(round(FSize / 2) and $ffffffff) - 10)
+    if FSite = 2 then hx := min(baserect.left {- hint_offset}, hx - integer(round(FSize / 2) and $ffffffff) {- hint_offset})
     else
-      hy := min(baserect.top - 10, hy - integer(round(FSize / 2) and $ffffffff) - 10);
+      hy := min(baserect.top {- hint_offset}, hy - integer(round(FSize / 2) and $ffffffff) {- hint_offset});
 
     frmmain.ActivateHint(FHWnd, FCaption, hx, hy);
   except

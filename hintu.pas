@@ -121,6 +121,8 @@ var
   wa: Windows.TRect;
   bmp: _SimpleBitmap;
   mi: MONITORINFO;
+  points: array [0..4] of GDIPAPI.TPoint;
+  border: integer;
 begin
   if IsWindow(hWnd) then
   try
@@ -128,41 +130,24 @@ begin
     try
       wnd_owner := hwndOwner;
       Caption := caption_;
-
       CopyFontData(sets.container.Font, font);
+      border := 5;
 
+      // measure string //
       bmp.dc := CreateCompatibleDC(0);
-      if bmp.dc = 0 then
-      begin
-        err('Hint.ActivateHint. Device context is null', nil);
-        exit;
-      end;
+      if bmp.dc = 0 then raise Exception.Create('Hint.ActivateHint. CreateCompatibleDC failed');
       GdipCreateFromHDC(bmp.dc, hgdip);
-      try
-        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@font.Name))), nil, hfontfamily);
-      except
-        on e: Exception do
-        begin
-          err('Hint.ActivateHint.CreateFontFamily', e);
-          exit;
-        end;
-      end;
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@font.Name))), nil, hfontfamily);
       GdipCreateFont(hfontfamily, font.size, integer(font.bold) + integer(font.italic) * 2, 2, hfont);
       rect.x := 0;
       rect.y := 0;
       rect.Width := 0;
       rect.Height := 0;
-      try GdipMeasureString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, @rect, nil, nil);
-      except
-        on e: Exception do
-        begin
-          err('Hint.ActivateHint.MeasureString', e);
-          exit;
-        end;
-      end;
+      GdipMeasureString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, @rect, nil, nil);
       GdipDeleteGraphics(hgdip);
       DeleteDC(bmp.dc);
 
+      // calc hint dimensions and position //
       aheight := round(rect.Height) + 2;
       awidth := round(rect.Width) + aheight - 4;
       awidth := max(awidth, aheight * 3 div 2);
@@ -207,28 +192,77 @@ begin
     // background //
 
     try
-      bmp.topleft.x := ax;
-      bmp.topleft.y := ay;
-      bmp.Width := awidth;
-      bmp.Height := aheight;
+      bmp.topleft.x := ax - border;
+      bmp.topleft.y := ay - border;
+      bmp.Width := awidth + border * 2;
+      bmp.Height := aheight + border * 2;
       gdip_gfx.CreateBitmap(bmp);
       GdipCreateFromHDC(bmp.dc, hgdip);
       GdipGraphicsClear(hgdip, 0);
       GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+      GdipTranslateWorldTransform(hgdip, border, border, MatrixOrderPrepend);
 
       GdipCreatePath(FillModeWinding, path);
-      GdipAddPathRectangle(path, aheight div 2, 0, awidth - aheight - 1, aheight);
-      GdipAddPathEllipse(path, 0, 0, aheight - 1, aheight - 1);
-      GdipAddPathEllipse(path, awidth - aheight - 1, 0, aheight - 1, aheight - 1);
-      GdipCreateSolidFill($d0000000 + font.color_outline and $ffffff, hbrush);
+      GdipAddPathRectangleI(path, aheight div 2, 0, awidth - aheight - 1, aheight);
+      if ASite = bsLeft then
+      begin
+        points[0].x := -border;
+        points[0].y := aheight div 2;
+        points[1].x := aheight div 2 - border;
+        points[1].y := 0;
+        points[2].x := aheight div 2;
+        points[2].y := 0;
+        points[3].x := aheight div 2;
+        points[3].y := aheight;
+        points[4].x := aheight div 2 - border;
+        points[4].y := aheight;
+        GdipAddPathPolygonI(path, @points, 5);
+      end
+      else GdipAddPathEllipse(path, -2, -0.3, aheight - 1, aheight);
+      if ASite = bsRight then
+      begin
+        points[0].x := awidth + border;
+        points[0].y := aheight div 2;
+        points[1].x := awidth - aheight div 2 - 1 + border;
+        points[1].y := 0;
+        points[2].x := awidth - aheight div 2 - 1;
+        points[2].y := 0;
+        points[3].x := awidth - aheight div 2 - 1;
+        points[3].y := aheight;
+        points[4].x := awidth - aheight div 2 - 1 + border;
+        points[4].y := aheight;
+        GdipAddPathPolygonI(path, @points, 5);
+      end
+      else GdipAddPathEllipse(path, awidth - aheight + 1, -0.3, aheight - 1, aheight);
+      if ASite = bsBottom then
+      begin
+        points[0].x := awidth div 2;
+        points[0].y := aheight + 4;
+        points[1].x := awidth div 2 - 6;
+        points[1].y := aheight;
+        points[2].x := awidth div 2 + 6;
+        points[2].y := aheight;
+        GdipAddPathPolygonI(path, @points, 3);
+      end;
+      if ASite = bsTop then
+      begin
+        points[0].x := awidth div 2;
+        points[0].y := -4;
+        points[1].x := awidth div 2 - 6;
+        points[1].y := 0;
+        points[2].x := awidth div 2 + 6;
+        points[2].y := 0;
+        GdipAddPathPolygonI(path, @points, 3);
+      end;
+      GdipCreateSolidFill($e0000000 + font.color_outline and $ffffff, hbrush);
       GdipFillPath(hgdip, hbrush, path);
       GdipDeleteBrush(hbrush);
       GdipDeletePath(path);
     except
       on e: Exception do
       begin
-        err('Hint.ActivateHint.backgroud', e);
+        err('Hint.ActivateHint.Background', e);
         FActivating := False;
         exit;
       end;

@@ -14,6 +14,7 @@ type
   TfrmFont = class(TForm)
     btnok: TButton;
     btnCancel: TButton;
+    btnExchange: TButton;
     edFontSize: TEdit;
     rb_text: TRadioButton;
     rb_outline: TRadioButton;
@@ -21,6 +22,7 @@ type
     sbtn_bold: TSpeedButton;
     sbtn_italic: TSpeedButton;
     ud: TUpDown;
+    procedure btnExchangeClick(Sender: TObject);
     procedure FormPaint(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure ok(Sender: TObject);
@@ -161,6 +163,17 @@ begin
   if rb_text.Checked then cbar.Color := gdip_gfx.SwapColor(FFont.color)
   else cbar.Color := gdip_gfx.SwapColor(FFont.color_outline);
   cbar.OnChange := cbarChange;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmFont.btnExchangeClick(Sender: TObject);
+var
+  tmp: cardinal;
+begin
+  tmp := FFont.color;
+  FFont.color := FFont.color_outline;
+  FFont.color_outline := tmp;
+  rb_textClick(nil);
+  ok(nil);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmFont.cbarChange(Sender: TObject);

@@ -78,10 +78,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.btnNextClick(Sender: TObject);
 begin
+  memo.Clear;
   if FIndex >= list.Count then FIndex := 0;
   while list.strings[FIndex] <> '' do
   begin
-    memo.text := AnsiToUTF8(list.strings[FIndex]);
+    memo.lines.add(AnsiToUTF8(list.strings[FIndex]));
     inc(FIndex);
     if FIndex >= list.Count then break;
   end;

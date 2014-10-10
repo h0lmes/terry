@@ -368,6 +368,10 @@ msgctxt "TFRMFONT.BTNCANCEL.CAPTION"
 msgid "Cancel"
 msgstr ""
 
+#: tfrmfont.btnexchange.caption
+msgid "< - >"
+msgstr ""
+
 #: tfrmfont.btnok.caption
 msgctxt "TFRMFONT.BTNOK.CAPTION"
 msgid "OK"

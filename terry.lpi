@@ -67,7 +67,7 @@
         <Filename Value="declu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="declu"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="241"/>
         <CursorPos X="3" Y="267"/>
@@ -92,10 +92,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="313"/>
-        <CursorPos X="31" Y="327"/>
+        <TopLine Value="1046"/>
+        <CursorPos X="1" Y="1070"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -148,8 +148,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmFontU"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="77"/>
-        <CursorPos X="40" Y="90"/>
+        <TopLine Value="121"/>
+        <CursorPos X="41" Y="167"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
@@ -253,11 +253,10 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1005"/>
-        <CursorPos X="5" Y="1020"/>
+        <TopLine Value="1529"/>
+        <CursorPos X="24" Y="1541"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -266,7 +265,7 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="788"/>
         <CursorPos X="62" Y="795"/>
@@ -278,10 +277,12 @@
         <Filename Value="hintu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hintu"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="200"/>
-        <CursorPos X="17" Y="203"/>
+        <TopLine Value="137"/>
+        <CursorPos X="13" Y="203"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit20>
       <Unit21>
@@ -308,7 +309,7 @@
         <Filename Value="plgitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="plgitemu"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="469"/>
         <CursorPos X="21" Y="483"/>
@@ -331,7 +332,7 @@
         <Filename Value="sepitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sepitemu"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="227"/>
         <CursorPos X="1" Y="254"/>
@@ -427,7 +428,7 @@
         <Filename Value="taskitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="taskitemu"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="229"/>
         <CursorPos X="17" Y="260"/>
@@ -508,10 +509,10 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="292"/>
-        <CursorPos X="34" Y="327"/>
+        <TopLine Value="373"/>
+        <CursorPos X="26" Y="382"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -578,10 +579,10 @@
         <Filename Value="stackitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackitemu"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="204"/>
-        <CursorPos X="67" Y="216"/>
+        <TopLine Value="570"/>
+        <CursorPos X="1" Y="578"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -603,7 +604,7 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="730"/>
         <CursorPos X="29" Y="745"/>
@@ -789,9 +790,9 @@
         <Filename Value="GDIPAPI.pas"/>
         <UnitName Value="GDIPAPI"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4769"/>
-        <CursorPos X="36" Y="4684"/>
-        <UsageCount Value="6"/>
+        <TopLine Value="3516"/>
+        <CursorPos X="26" Y="3543"/>
+        <UsageCount Value="11"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit73>
       <Unit74>
@@ -886,7 +887,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="25"/>
         <CursorPos X="16" Y="51"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="75"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit85>
       <Unit86>
@@ -919,10 +920,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmtipu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="27"/>
-        <CursorPos X="10" Y="28"/>
-        <UsageCount Value="67"/>
+        <TopLine Value="47"/>
+        <CursorPos X="14" Y="81"/>
+        <UsageCount Value="70"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit89>
       <Unit90>
@@ -990,9 +995,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="multidocku"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="163"/>
-        <CursorPos X="47" Y="186"/>
-        <UsageCount Value="34"/>
+        <TopLine Value="8"/>
+        <CursorPos X="42" Y="33"/>
+        <UsageCount Value="37"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit98>
       <Unit99>
@@ -1033,7 +1038,7 @@
         <UsageCount Value="9"/>
       </Unit103>
     </Units>
-    <JumpHistory Count="10" HistoryIndex="9">
+    <JumpHistory Count="14" HistoryIndex="13">
       <Position1>
         <Filename Value="terry.lpr"/>
         <Caret Line="511" Column="24" TopLine="503"/>
@@ -1074,6 +1079,22 @@
         <Filename Value="frmmainu.pas"/>
         <Caret Line="1337" Column="18" TopLine="1306"/>
       </Position10>
+      <Position11>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="619" Column="110" TopLine="602"/>
+      </Position11>
+      <Position12>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="325" Column="35" TopLine="313"/>
+      </Position12>
+      <Position13>
+        <Filename Value="stackitemu.pas"/>
+        <Caret Line="1081" Column="42" TopLine="1059"/>
+      </Position13>
+      <Position14>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="637" Column="22" TopLine="629"/>
+      </Position14>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -1007,6 +1007,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// create item and return its window handle
+// item should be defined by a string. example:
+// class="shortcut";caption="Cmd";command="cmd.exe";
+//
+// if class = stack there could be more than 1 string
+// in this case each one starting from the 2nd should be of shortcut class
 function _ItemManager.CreateItem(data: string): THandle;
 var
   class_name: string;

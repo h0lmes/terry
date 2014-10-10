@@ -335,7 +335,7 @@ begin
       if not docks.RemoveDock then
       begin
         docks.Enum;
-        docks.CloseAll;
+        docks.Close;
       end;
       //if hHook <> 0 then FreeLibrary(hHook);
       //TDropIndicator.DestroyIndicator;
@@ -611,7 +611,7 @@ function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
     classname: string;
   begin
     classname := FetchValue(str, 'class="', '";');
-    result := (classname = 'shortcut') or (classname = 'plugin') or (classname = 'stack');
+    result := (classname = 'shortcut') or (classname = 'stack');
   end;
 
 var
@@ -622,11 +622,8 @@ begin
   hMenuCreate := CreatePopupMenu;
 
   if ParentMenu = 0 then
-  if IsValidItemString(GetClipboard) then
-  begin
-    //AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
-    AppendMenu(hMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
-  end;
+    if IsValidItemString(GetClipboard) then
+      AppendMenu(hMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
 
   // create submenu 'Add...' //
 

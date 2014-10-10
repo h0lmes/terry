@@ -34,7 +34,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure Enum;
-    procedure CloseAll;
+    procedure Close;
     function HaveFreeSite: boolean;
     procedure NewDock;
     procedure RunDock(ASetsFilename: string);
@@ -139,7 +139,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TMultiDock.CloseAll;
+procedure TMultiDock.Close;
 var
   i: integer;
 begin
