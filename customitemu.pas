@@ -379,7 +379,7 @@ var
   hx, hy: integer;
   wrect, baserect: windows.TRect;
   do_show: boolean;
-  {hint_offset: integer;}
+  hint_offset: integer;
 begin
   try
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
@@ -392,23 +392,23 @@ begin
     if (Ax <> -1000) and (Ay <> -1000) then
     begin
       wRect := Rect;
-      hx := Ax + wRect.Left + integer(round(FSize / 2) and $ffffffff);
-      hy := Ay + wRect.Top + integer(round(FSize / 2) and $ffffffff);
+      hx := Ax + wRect.Left + FSize div 2;
+      hy := Ay + wRect.Top + FSize div 2;
     end else begin
       wRect := ScreenRect;
-      hx := wRect.left + integer(round(FSize / 2) and $ffffffff);
-      hy := wRect.top + integer(round(FSize / 2) and $ffffffff);
+      hx := wRect.left + FSize div 2;
+      hy := wRect.top + FSize div 2;
     end;
 
-    {hint_offset := 0;}
+    hint_offset := 10;
     baserect := dockh.DockGetRect;
-    if FSite = 0 then hx := max(baserect.right {+ hint_offset}, hx + integer(round(FSize / 2) and $ffffffff) {+ hint_offset})
+    if FSite = 0 then hx := max(baserect.right, hx + FSize div 2 + hint_offset)
     else
-    if FSite = 1 then hy := max(baserect.bottom {+ hint_offset}, hy + integer(round(FSize / 2) and $ffffffff) {+ hint_offset})
+    if FSite = 1 then hy := max(baserect.bottom, hy + FSize div 2 + hint_offset)
     else
-    if FSite = 2 then hx := min(baserect.left {- hint_offset}, hx - integer(round(FSize / 2) and $ffffffff) {- hint_offset})
+    if FSite = 2 then hx := min(baserect.left, hx - FSize div 2 - hint_offset)
     else
-      hy := min(baserect.top {- hint_offset}, hy - integer(round(FSize / 2) and $ffffffff) {- hint_offset});
+      hy := min(baserect.top, hy - FSize div 2 - hint_offset);
 
     frmmain.ActivateHint(FHWnd, FCaption, hx, hy);
   except
