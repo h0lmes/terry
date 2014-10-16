@@ -255,7 +255,8 @@ begin
     DropMgr.OnDragLeave := OnDragLeave;
 
     // apply the theme to do the full repaint //
-    BaseCmd(tcThemeChanged, 0);
+    ApplyParams;
+    //BaseCmd(tcThemeChanged, 0);
 
     if sets.container.Hello then TfrmHello.Open;
     InitDone := True;
@@ -317,8 +318,7 @@ begin
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
       if assigned(DropMgr) then DropMgr.Destroy;
-      // since ItemMgr is interfaced object - no call to Free
-      //if assigned(ItemMgr) then ItemMgr.Free;
+      if assigned(ItemMgr) then ItemMgr.Free;
       if assigned(ahint) then ahint.Free;
       if assigned(theme) then theme.Free;
       if assigned(sets) then sets.Free;
@@ -381,8 +381,10 @@ begin
     ItemMgr.SetParam(gpActivateRunning, integer(sets.container.ActivateRunning));
     ItemMgr.SetParam(gpItemAnimation, sets.container.ItemAnimation);
     ItemMgr.SetParam(gpLockDragging, integer(sets.container.LockDragging));
-    ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
+
+    ItemMgr.SetStackFont(sets.container.StackFont);
+    ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
 
     ItemMgr.SetTheme;
   except
@@ -1370,6 +1372,7 @@ end;
 procedure Tfrmmain.SetStackFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.StackFont);
+  if assigned(ItemMgr) then ItemMgr.SetStackFont(Value);
   SetParam(gpShowHint, integer(sets.container.ShowHint));
 end;
 //------------------------------------------------------------------------------

@@ -45,13 +45,16 @@ procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer);
 function DockAddMenu(hMenu: HWND): uint;
 function EdgeFromSDK(edge: integer): integer;
 function EdgeToSDK(edge: integer): integer;
-procedure Undock(id: uint);
-procedure Dock(id: uint);
-function DockCreateItem(data: pchar): uint;
-procedure DockDeleteItem(id: uint);
-function DockAddProgram(data: pchar): uint;
-function FullScreenAppActive(id: uint): bool;
-procedure Notify(id: uint; Message: PAnsiChar);
+procedure Undock(id: HWND);
+procedure Dock(id: HWND);
+function DockCreateItem(data: pchar): HWND;
+procedure DockDeleteItem(id: HWND);
+function DockAddProgram(data: pchar): HWND;
+function FullScreenAppActive(id: HWND): bool;
+procedure Notify(id: HWND; Message: PAnsiChar);
+procedure ActivateHint(id: HWND; ACaption: pchar; x, y: integer);
+procedure DeactivateHint(id: HWND);
+procedure ExcludeFromPeek(id: HWND);
 
 implementation
 //------------------------------------------------------------------------------
@@ -283,8 +286,8 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Undock(id: uint);
-type dtype = procedure(id: uint); stdcall;
+procedure Undock(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
 var
   proc: dtype;
 begin
@@ -292,8 +295,8 @@ begin
 	if assigned(proc) then proc(id);
 end;
 //------------------------------------------------------------------------------
-procedure Dock(id: uint);
-type dtype = procedure(id: uint); stdcall;
+procedure Dock(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
 var
   proc: dtype;
 begin
@@ -301,8 +304,8 @@ begin
 	if assigned(proc) then proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockCreateItem(data: pchar): uint;
-type dtype = function(data: pchar): uint; stdcall;
+function DockCreateItem(data: pchar): HWND;
+type dtype = function(data: pchar): HWND; stdcall;
 var
   proc: dtype;
 begin
@@ -310,8 +313,8 @@ begin
 	if not assigned(proc) then result := 0 else result := proc(data);
 end;
 //------------------------------------------------------------------------------
-procedure DockDeleteItem(id: uint);
-type dtype = procedure(id: uint); stdcall;
+procedure DockDeleteItem(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
 var
   proc: dtype;
 begin
@@ -319,8 +322,8 @@ begin
 	if assigned(proc) then proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockAddProgram(data: pchar): uint;
-type dtype = function(data: pchar): uint; stdcall;
+function DockAddProgram(data: pchar): HWND;
+type dtype = function(data: pchar): HWND; stdcall;
 var
   proc: dtype;
 begin
@@ -328,7 +331,7 @@ begin
 	if not assigned(proc) then result := 0 else result := proc(data);
 end;
 //------------------------------------------------------------------------------
-function FullScreenAppActive(id: uint): bool;
+function FullScreenAppActive(id: HWND): bool;
 type dtype = function(id: HWND): bool; stdcall;
 var
   proc: dtype;
@@ -337,13 +340,40 @@ begin
 	if not assigned(proc) then result := false else result := proc(id);
 end;
 //------------------------------------------------------------------------------
-procedure Notify(id: uint; Message: PAnsiChar);
-type dtype = procedure(id: uint; Message: PAnsiChar); stdcall;
+procedure Notify(id: HWND; Message: PAnsiChar);
+type dtype = procedure(id: HWND; Message: PAnsiChar); stdcall;
 var
   proc: dtype;
 begin
 	@proc:= GetProcAddress(GetModuleHandle(nil), 'Notify');
 	if assigned(proc) then proc(id, Message);
+end;
+//------------------------------------------------------------------------------
+procedure ActivateHint(id: HWND; ACaption: pchar; x, y: integer);
+type dtype = procedure(id: HWND; ACaption: pchar; x, y: integer); stdcall;
+var
+  proc: dtype;
+begin
+	@proc:= GetProcAddress(GetModuleHandle(nil), 'ActivateHint');
+	if assigned(proc) then proc(id, ACaption, x, y);
+end;
+//------------------------------------------------------------------------------
+procedure DeactivateHint(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
+var
+  proc: dtype;
+begin
+	@proc:= GetProcAddress(GetModuleHandle(nil), 'DeactivateHint');
+	if assigned(proc) then proc(id);
+end;
+//------------------------------------------------------------------------------
+procedure ExcludeFromPeek(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
+var
+  proc: dtype;
+begin
+	@proc:= GetProcAddress(GetModuleHandle(nil), 'ExcludeFromPeek');
+	if assigned(proc) then proc(id);
 end;
 //------------------------------------------------------------------------------
 end.

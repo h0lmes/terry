@@ -9,7 +9,7 @@ type
 
   TGParam = (
     // general parameters //
-    gpMin,
+    gpMin = 0,
     gpItemSize,
     gpBigItemSize,
     gpZoomWidth,
@@ -53,7 +53,7 @@ type
     gpBlur,
     gpMax,
     // terry commands //
-    tcMin,
+    tcMin = $1000,
     tcRepaintBase,
     tcMenu,
     tcSaveSets,
@@ -68,7 +68,7 @@ type
     tcQuit,
     tcMax,
     // item commands //
-    icMin,
+    icMin = $2000,
     icSelect, // informs item that user pressed mouse button on it //
     icFloat, // informs item that user draging this item //
     icFree, // marks item as freed //

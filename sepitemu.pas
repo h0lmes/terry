@@ -2,7 +2,7 @@ unit sepitemu;
 
 interface
 uses Windows, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gdip_gfx, iitemmgru, themeu, declu, customitemu, dockh, toolu;
+  GDIPAPI, gdip_gfx, themeu, declu, dockh, customitemu, toolu;
 
 type TSeparatorItem = class(TCustomItem)
   private
@@ -10,7 +10,7 @@ type TSeparatorItem = class(TCustomItem)
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
@@ -23,7 +23,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
+constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
   FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';

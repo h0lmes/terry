@@ -5,7 +5,7 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles,
-  GDIPAPI, PIDL, gdip_gfx, iitemmgru, declu, customitemu, stacksubitemu, stackmodeu;
+  GDIPAPI, PIDL, gdip_gfx, declu, dockh, toolu, customitemu, stacksubitemu, stackmodeu;
 
 const
   MAX_SUBITEMS = 64;
@@ -57,6 +57,7 @@ type
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
+    FStackFont: _FontData;
     procedure UpdateItemInternal;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer);
@@ -85,8 +86,9 @@ type
 
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
+    procedure SetStackFont(var Value: _FontData);
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
@@ -117,9 +119,9 @@ type
   end;
 
 implementation
-uses dockh, themeu, toolu, frmstackpropu;
+uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
+constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -148,6 +150,13 @@ begin
   FSpecialFolder := '';
   FPreview := true;
   FPreviewImage := nil;
+
+  strcopy(pchar(@FStackFont.name), 'tahoma');
+  FStackFont.size := 12;
+  FStackFont.color := $fff0f0f0;
+  FStackFont.color_outline := $ff202020;
+  FStackFont.bold := false;
+  FStackFont.italic := false;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -554,6 +563,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TStackItem.SetStackFont(var Value: _FontData);
+var
+  i: integer;
+begin
+  CopyFontData(Value, FStackFont);
+  if FItemCount > 0 then
+  begin
+    for i := 0 to FItemCount - 1 do items[i].item.SetFont(FStackFont);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TStackItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
 var
   pt: windows.TPoint;
@@ -916,8 +936,13 @@ begin
     upd := FUpdating;
     FUpdating := true;
     items[FItemCount - 1].item := TShortcutSubitem.Create(data, FHWnd, MakeICP);
-    if items[FItemCount - 1].item.Freed then DeleteSubitem(FItemCount - 1)
+    if items[FItemCount - 1].item.Freed then
+    begin
+      DeleteSubitem(FItemCount - 1);
+      dec(FItemCount);
+    end
     else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
+    items[FItemCount - 1].item.SetFont(FStackFont);
     FUpdating := upd;
 
     UpdatePreview;

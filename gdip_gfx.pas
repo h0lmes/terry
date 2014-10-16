@@ -44,7 +44,7 @@ type
 
   TStretchStyle = (ssNone, ssStretch, ssTile);
 
-  _SimpleBitmap = record
+  _SimpleBitmap = packed record
     topleft: windows.TPoint;
     width: integer;
     height: integer;
@@ -55,11 +55,12 @@ type
     BufferBitmap: HBitmap;
   end;
 
-  _FontData = record
+  PFontData = ^_FontData;
+  _FontData = packed record
     name: array [0..255] of char;
     size: integer;
-    color: uint;
-    color_outline: uint;
+    color: cardinal;
+    color_outline: cardinal;
     bold: boolean;
     italic: boolean;
     outline: boolean;
@@ -73,7 +74,7 @@ type
     a: byte;
   end;
 
-  _BLENDFUNCTION = record
+  _BLENDFUNCTION = packed record
     BlendOp: BYTE;
     BlendFlags: BYTE;
     SourceConstantAlpha: BYTE;

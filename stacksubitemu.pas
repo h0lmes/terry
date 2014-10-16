@@ -4,7 +4,7 @@ unit stacksubitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, customitemu, processhlp;
+  GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp;
 
 type
   TCustomSubitem = class
@@ -52,6 +52,7 @@ type
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
     procedure CloseStack;
+    procedure UpdateItemMeasureCaption;
     procedure NativeWndProc(var message: TMessage);
   public
     property Freed: boolean read FFreed write FFreed;
@@ -89,7 +90,11 @@ type
     function DropFile(pt: windows.TPoint; filename: string): boolean; virtual; abstract;
     procedure Delete(AllowUndo: boolean = true); virtual;
     procedure BeginDrag; virtual;
+
+    procedure SetFont(var Value: _FontData);
   end;
+
+  { TShortcutSubitem }
 
   TShortcutSubitem = class(TCustomSubitem)
   private
@@ -108,7 +113,6 @@ type
     apidl: PITEMIDLIST;
     LastMouseUp: cardinal;
     procedure UpdateItemI;
-    procedure UpdateItemMeasureCaption;
     procedure UpdateItemRunningState;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
@@ -132,6 +136,7 @@ type
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
+
     class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
     class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
@@ -140,7 +145,7 @@ type
   end;
 
 implementation
-uses dockh, themeu, setsu, toolu, frmitemoptu;
+uses themeu, frmitemoptu;
 //------------------------------------------------------------------------------
 constructor TShortcutSubitem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
@@ -286,43 +291,6 @@ begin
     sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
     on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateItemMeasureCaption;
-var
-  hgdip, hfont, hfontfamily: Pointer;
-  rect: TRectF;
-  dc: HDC;
-begin
-  FBorder := 8;
-  FCaptionWidth := 0;
-  FCaptionHeight := 0;
-  if FShowHint and (length(FCaption) > 0) then
-  begin
-    CopyFontData(sets.container.StackFont, FFont);
-    dc := CreateCompatibleDC(0);
-    if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
-    GdipCreateFromHDC(dc, hgdip);
-    try
-      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-    except
-      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
-    end;
-    GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
-    rect.x := 0;
-    rect.y := 0;
-    rect.Width := 0;
-    rect.Height := 0;
-    try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
-    except
-      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
-    end;
-    GdipDeleteGraphics(hgdip);
-    DeleteDC(dc);
-    FCaptionWidth := min(ceil(rect.Width), 150);
-    FCaptionHeight := ceil(rect.Height);
-    FBorder := FCaptionWidth + FCaptionHeight + 8;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -869,6 +837,12 @@ begin
   FImage := nil;
   FIW := 32;
   FIH := 32;
+  strcopy(pchar(@FFont.name), 'tahoma');
+  FFont.size := 12;
+  FFont.color := $fff0f0f0;
+  FFont.color_outline := $ff202020;
+  FFont.bold := false;
+  FFont.italic := false;
 end;
 //------------------------------------------------------------------------------
 destructor TCustomSubitem.Destroy;
@@ -1014,6 +988,48 @@ begin
   end;
   Delete(false);
   dockh.Undock(wnd);
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.SetFont(var Value: _FontData);
+begin
+  CopyFontData(Value, FFont);
+  UpdateItemMeasureCaption;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.UpdateItemMeasureCaption;
+var
+  hgdip, hfont, hfontfamily: Pointer;
+  rect: TRectF;
+  dc: HDC;
+begin
+  FBorder := 8;
+  FCaptionWidth := 0;
+  FCaptionHeight := 0;
+  if FShowHint and (length(FCaption) > 0) then
+  begin
+    dc := CreateCompatibleDC(0);
+    if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
+    GdipCreateFromHDC(dc, hgdip);
+    try
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
+    except
+      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
+    end;
+    GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+    rect.x := 0;
+    rect.y := 0;
+    rect.Width := 0;
+    rect.Height := 0;
+    try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
+    except
+      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
+    end;
+    GdipDeleteGraphics(hgdip);
+    DeleteDC(dc);
+    FCaptionWidth := min(ceil(rect.Width), 150);
+    FCaptionHeight := ceil(rect.Height);
+    FBorder := FCaptionWidth + FCaptionHeight + 8;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.NativeWndProc(var message: TMessage);

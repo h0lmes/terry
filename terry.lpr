@@ -48,7 +48,7 @@ uses
   processhlp,
   dropindicatoru,
   taskitemu,
-  frmhellou, frmtipu, multidocku, iitemmgru;
+  frmhellou, frmtipu, multidocku;
 
 {$R *.res}
 
@@ -425,6 +425,21 @@ begin
   if assigned(frmmain) then frmmain.Notify(strpas(Message));
 end;
 //------------------------------------------------------------------------------
+procedure ActivateHint(id: HWND; Caption: pchar; x, y: integer);
+begin
+  if assigned(frmmain) then frmmain.ActivateHint(id, Caption, x, y);
+end;
+//------------------------------------------------------------------------------
+procedure DeactivateHint(id: HWND);
+begin
+  if assigned(frmmain) then frmmain.DeactivateHint(id);
+end;
+//------------------------------------------------------------------------------
+procedure ExcludeFromPeek(id: HWND);
+begin
+  if assigned(dwm) then dwm.ExcludeFromPeek(id);
+end;
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 exports
@@ -456,7 +471,10 @@ exports
   DockDeleteItem,
   DockAddProgram,
   FullScreenAppActive,
-  Notify;
+  Notify,
+  ActivateHint,
+  DeactivateHint,
+  ExcludeFromPeek;
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

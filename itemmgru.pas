@@ -3,7 +3,7 @@ unit itemmgru;
 interface
 uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math, GDIPAPI,
   declu, gdip_gfx, themeu, setsu, processhlp,
-  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu, iitemmgru;
+  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
 
 const
   MAX_ITEM_COUNT = 128;
@@ -22,7 +22,7 @@ type
 
   { _ItemManager }
 
-  _ItemManager = class(TInterfacedObject, IItemManager)
+  _ItemManager = class
   private
     ItemSize: integer;
     BigItemSize: integer;
@@ -114,10 +114,6 @@ type
     function GetRect: windows.TRect;
     function GetZoomEdge: integer;
 
-    // IItemManager
-    procedure ActivateHint(hwnd: cardinal; Caption: string; x, y: integer);
-    procedure DeactivateHint(hwnd: cardinal);
-
     procedure Timer;
     procedure SetTheme;
     procedure ItemsChanged(FullUpdate: boolean = false);
@@ -163,6 +159,7 @@ type
     function ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
     function ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
     function AllItemCmd(id: TGParam; param: integer): integer;
+    procedure SetStackFont(var Value: _FontData);
     procedure PluginCallCreate(HWnd: HANDLE);
     function GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
@@ -357,24 +354,6 @@ begin
     bsRight: result := BaseWindowRect.X + x + width - widthZoomed;
     bsBottom: result := BaseWindowRect.Y + y + height - heightZoomed;
   end;
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
-//   IItemManager
-//
-//
-//
-//------------------------------------------------------------------------------
-procedure _ItemManager.ActivateHint(hwnd: cardinal; Caption: string; x, y: integer);
-begin
-  if assigned(frmmain) then frmmain.ActivateHint(HWnd, Caption, x, y);
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.DeactivateHint(hwnd: cardinal);
-begin
-  if assigned(frmmain) then frmmain.DeactivateHint(HWnd);
 end;
 //------------------------------------------------------------------------------
 //
@@ -1061,15 +1040,15 @@ begin
     icp.LockDragging := sets.container.LockDragging;
     icp.StackOpenAnimation := sets.container.StackOpenAnimation;
 
-    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, self, icp)
+    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
     else
-    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, ParentHWnd, self, icp)
+    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, ParentHWnd, icp)
     else
-    if class_name = 'plugin' then Inst := TPluginItem.Create(data, ParentHWnd, self, icp)
+    if class_name = 'plugin' then Inst := TPluginItem.Create(data, ParentHWnd, icp)
     else
-    if class_name = 'stack' then Inst := TStackItem.Create(data, ParentHWnd, self, icp)
+    if class_name = 'stack' then Inst := TStackItem.Create(data, ParentHWnd, icp)
     else
-    if class_name = 'task' then Inst := TTaskItem.Create(data, ParentHWnd, self, icp);
+    if class_name = 'task' then Inst := TTaskItem.Create(data, ParentHWnd, icp);
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + class_name + #10#13 + e.message);
   end;
@@ -1845,6 +1824,24 @@ begin
     end;
   except
     on e: Exception do err('ItemManager.AllItemCmd', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.SetStackFont(var Value: _FontData);
+var
+  item: integer;
+  Inst: TCustomItem;
+begin
+  try
+    item := 0;
+    while item < ItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
+      if Inst is TStackItem then (Inst as TStackItem).SetStackFont(Value);
+      inc(item);
+    end;
+  except
+    on e: Exception do err('ItemManager.SetStackFont', e);
   end;
 end;
 //------------------------------------------------------------------------------
