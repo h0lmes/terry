@@ -2,7 +2,7 @@ unit plgitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Dialogs,
-    IniFiles, GDIPAPI, gdip_gfx, math, dynlibs, declu, customitemu, DockH;
+    IniFiles, GDIPAPI, gdip_gfx, iitemmgru, math, dynlibs, declu, customitemu, DockH;
 
 type TPluginItem = class(TCustomItem)
   private
@@ -36,7 +36,7 @@ type TPluginItem = class(TCustomItem)
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
     function GetFilename: string;
     //
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
@@ -55,7 +55,7 @@ type TPluginItem = class(TCustomItem)
 implementation
 uses toolu;
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TPluginItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
 begin
   FFreed := true;
   inherited;

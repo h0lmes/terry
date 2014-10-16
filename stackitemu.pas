@@ -5,7 +5,7 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles,
-  GDIPAPI, PIDL, gdip_gfx, declu, customitemu, stacksubitemu, stackmodeu;
+  GDIPAPI, PIDL, gdip_gfx, iitemmgru, declu, customitemu, stacksubitemu, stackmodeu;
 
 const
   MAX_SUBITEMS = 64;
@@ -86,7 +86,7 @@ type
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
@@ -119,7 +119,7 @@ type
 implementation
 uses dockh, themeu, toolu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;

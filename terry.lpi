@@ -42,7 +42,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="104">
+    <Units Count="106">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -67,7 +67,7 @@
         <Filename Value="declu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="declu"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="241"/>
         <CursorPos X="3" Y="267"/>
@@ -92,10 +92,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1046"/>
-        <CursorPos X="1" Y="1070"/>
+        <TopLine Value="299"/>
+        <CursorPos X="44" Y="312"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -253,10 +253,10 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1529"/>
-        <CursorPos X="24" Y="1541"/>
+        <TopLine Value="492"/>
+        <CursorPos X="26" Y="504"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -277,6 +277,7 @@
         <Filename Value="hintu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hintu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="137"/>
@@ -374,8 +375,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwm_unit"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="71"/>
-        <CursorPos X="37" Y="90"/>
+        <TopLine Value="27"/>
+        <CursorPos X="6" Y="28"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit29>
@@ -509,11 +510,10 @@
         <Filename Value="customitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="373"/>
-        <CursorPos X="21" Y="403"/>
+        <TopLine Value="99"/>
+        <CursorPos X="13" Y="114"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -583,7 +583,7 @@
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="570"/>
-        <CursorPos X="1" Y="578"/>
+        <CursorPos X="30" Y="584"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -888,7 +888,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="25"/>
         <CursorPos X="16" Y="51"/>
-        <UsageCount Value="75"/>
+        <UsageCount Value="76"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit85>
       <Unit86>
@@ -921,13 +921,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmtipu"/>
-        <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
         <TopLine Value="47"/>
         <CursorPos X="14" Y="81"/>
-        <UsageCount Value="70"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
+        <UsageCount Value="71"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit89>
       <Unit90>
@@ -997,7 +994,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="8"/>
         <CursorPos X="42" Y="33"/>
-        <UsageCount Value="37"/>
+        <UsageCount Value="38"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit98>
       <Unit99>
@@ -1037,8 +1034,27 @@
         <CursorPos X="13" Y="203"/>
         <UsageCount Value="9"/>
       </Unit103>
+      <Unit104>
+        <Filename Value="iitemmgru.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="iitemmgru"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="1"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit104>
+      <Unit105>
+        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\inc\objpash.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="268"/>
+        <CursorPos X="21" Y="291"/>
+        <UsageCount Value="10"/>
+      </Unit105>
     </Units>
-    <JumpHistory Count="14" HistoryIndex="13">
+    <JumpHistory Count="17" HistoryIndex="16">
       <Position1>
         <Filename Value="terry.lpr"/>
         <Caret Line="511" Column="24" TopLine="503"/>
@@ -1095,6 +1111,18 @@
         <Filename Value="frmmainu.pas"/>
         <Caret Line="637" Column="22" TopLine="629"/>
       </Position14>
+      <Position15>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="508" Column="40" TopLine="493"/>
+      </Position15>
+      <Position16>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1065" Column="52" TopLine="1046"/>
+      </Position16>
+      <Position17>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="325" Column="28" TopLine="299"/>
+      </Position17>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -3,7 +3,7 @@ unit itemmgru;
 interface
 uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math, GDIPAPI,
   declu, gdip_gfx, themeu, setsu, processhlp,
-  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
+  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu, iitemmgru;
 
 const
   MAX_ITEM_COUNT = 128;
@@ -22,7 +22,7 @@ type
 
   { _ItemManager }
 
-  _ItemManager = class
+  _ItemManager = class(TInterfacedObject, IItemManager)
   private
     ItemSize: integer;
     BigItemSize: integer;
@@ -113,6 +113,10 @@ type
     procedure command(cmd, params: string);
     function GetRect: windows.TRect;
     function GetZoomEdge: integer;
+
+    // IItemManager
+    procedure ActivateHint(hwnd: cardinal; Caption: string; x, y: integer);
+    procedure DeactivateHint(hwnd: cardinal);
 
     procedure Timer;
     procedure SetTheme;
@@ -211,6 +215,7 @@ begin
   Clear;
   ClearDeleted;
   itemsDeleted.Free;
+  inherited;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Enable(value: boolean);
@@ -357,6 +362,24 @@ end;
 //
 //
 //
+//   IItemManager
+//
+//
+//
+//------------------------------------------------------------------------------
+procedure _ItemManager.ActivateHint(hwnd: cardinal; Caption: string; x, y: integer);
+begin
+  if assigned(frmmain) then frmmain.ActivateHint(HWnd, Caption, x, y);
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.DeactivateHint(hwnd: cardinal);
+begin
+  if assigned(frmmain) then frmmain.DeactivateHint(HWnd);
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
 //   LOAD AND SAVE
 //
 //
@@ -481,15 +504,15 @@ end;
 procedure _ItemManager.Clear;
 var
   i: integer;
-  ItemInstance: TCustomItem;
+  Inst: TCustomItem;
 begin
   if ItemCount > 0 then
   try
     for i := 0 to ItemCount - 1 do
     begin
-      ItemInstance := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
-      FreeAndNil(ItemInstance);
-      DestroyWindow(items[i].h);
+      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      Inst.Freed := true;
+      FreeAndNil(Inst);
       items[i].h := 0;
     end;
     ItemCount := 0;
@@ -511,6 +534,7 @@ begin
     for i := 0 to itemsDeleted.Count - 1 do
     begin
       Inst := TCustomItem(GetWindowLong(THandle(itemsDeleted.Items[i]), GWL_USERDATA));
+      Inst.Freed := true;
       FreeAndNil(Inst);
     end;
     itemsDeleted.Clear;
@@ -1037,15 +1061,15 @@ begin
     icp.LockDragging := sets.container.LockDragging;
     icp.StackOpenAnimation := sets.container.StackOpenAnimation;
 
-    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
+    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, self, icp)
     else
-    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, ParentHWnd, icp)
+    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, ParentHWnd, self, icp)
     else
-    if class_name = 'plugin' then Inst := TPluginItem.Create(data, ParentHWnd, icp)
+    if class_name = 'plugin' then Inst := TPluginItem.Create(data, ParentHWnd, self, icp)
     else
-    if class_name = 'stack' then Inst := TStackItem.Create(data, ParentHWnd, icp)
+    if class_name = 'stack' then Inst := TStackItem.Create(data, ParentHWnd, self, icp)
     else
-    if class_name = 'task' then Inst := TTaskItem.Create(data, ParentHWnd, icp);
+    if class_name = 'task' then Inst := TTaskItem.Create(data, ParentHWnd, self, icp);
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + class_name + #10#13 + e.message);
   end;

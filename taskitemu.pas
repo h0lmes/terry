@@ -4,7 +4,7 @@ unit taskitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ComObj,
-  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, processhlp;
+  Math, GDIPAPI, gdip_gfx, iitemmgru, declu, dockh, customitemu, processhlp;
 
 type
   TTaskItem = class(TCustomItem)
@@ -15,7 +15,7 @@ type
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
     property AppHWnd: THandle read FAppHWnd;
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure UpdateTaskItem(h: THandle);
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
@@ -30,7 +30,7 @@ type
 implementation
 uses toolu;
 //------------------------------------------------------------------------------
-constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
 begin
   inherited;
   FCanDrag := false;

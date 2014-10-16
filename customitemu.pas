@@ -3,7 +3,7 @@ unit customitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, GDIPAPI, declu, gdip_gfx;
+uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, GDIPAPI, declu, gdip_gfx, iitemmgru;
 
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
@@ -11,6 +11,7 @@ const
 
 type TCustomItem = class
   protected
+    FIItemManager: IItemManager;
     FFreed: boolean;
     FHWnd: uint;
     FHWndParent: uint;
@@ -60,7 +61,7 @@ type TCustomItem = class
     FAnimationProgress: integer; // animation progress 0..FAnimationEnd
 
     procedure Init; virtual;
-    procedure Redraw; // updates item appearance
+    procedure Redraw(Force: boolean = true); // updates item appearance
     procedure SetCaption(value: string);
     procedure UpdateHint(Ax: integer = -1000; Ay: integer = -1000);
     function GetRectFromSize(ASize: integer): windows.TRect;
@@ -79,7 +80,7 @@ type TCustomItem = class
     property ScreenRect: windows.TRect read GetScreenRect;
     property DontSave: boolean read FDontSave;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
+    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
     function ToString: string; virtual; abstract;
@@ -110,9 +111,9 @@ end;
 
 
 implementation
-uses dockh, frmmainu, dwm_unit;
+uses dockh, dwm_unit;
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
 begin
   inherited Create;
   Init;
@@ -125,7 +126,8 @@ begin
     exit;
   end;
 
-  dwm.ExcludeFromPeek(FHWnd);
+  FIItemManager := AParentIntf;
+  dwm.ExcludeFromPeek(FHWnd); // INTF
   SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
   // change window proc
   FWndInstance := MakeObjectInstance(WindowProc);
@@ -147,6 +149,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TCustomItem.Destroy;
 begin
+  FIItemManager := nil;
   // restore window proc
   SetWindowLong(FHWnd, GWL_WNDPROC, PtrInt(FPrevWndProc));
   FreeObjectInstance(FWndInstance);
@@ -156,6 +159,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Init;
 begin
+  FIItemManager := nil;
   FPrevWndProc := nil;
   FFreed := false;
   FEnabled := true;
@@ -284,9 +288,9 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.Redraw;
+procedure TCustomItem.Redraw(Force: boolean = true);
 begin
-  Draw(Fx, Fy, FSize, true, 0, FShowItem);
+  Draw(Fx, Fy, FSize, Force, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Timer;
@@ -298,7 +302,7 @@ begin
     FDockingProgress += 0.05;
     FxDocking := FxDockFrom + round((Fx - FxDockFrom) * FDockingProgress);
     FyDocking := FyDockFrom + round((Fy - FyDockFrom) * FDockingProgress);
-    Draw(Fx, Fy, FSize, false, 0, FShowItem);
+    Redraw(false);
     if FDockingProgress >= 1 then need_dock := false;
   end;
 end;
@@ -381,11 +385,12 @@ var
   do_show: boolean;
   hint_offset: integer;
 begin
+  if not FFreed then
   try
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
-      frmmain.DeactivateHint(FHWnd);
+      if assigned(FIItemManager) then FIItemManager.DeactivateHint(FHWnd); // INTF
       exit;
     end;
 
@@ -410,7 +415,7 @@ begin
     else
       hy := min(baserect.top, hy - FSize div 2 - hint_offset);
 
-    frmmain.ActivateHint(FHWnd, FCaption, hx, hy);
+    if assigned(FIItemManager) then FIItemManager.ActivateHint(FHWnd, FCaption, hx, hy); // INTF
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
   end;
@@ -468,14 +473,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.LME(lock: boolean);
 begin
-  dockh.DockletLockMouseEffect(FHWnd, lock);
+  dockh.DockletLockMouseEffect(FHWnd, lock); // INTF
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Delete;
 begin
   FFreed := true;
   ShowWindow(FHWnd, SW_HIDE);
-  dockh.DockDeleteItem(FHWnd);
+  dockh.DockDeleteItem(FHWnd); // INTF
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.WindowProc(var message: TMessage);
@@ -548,21 +553,21 @@ begin
                 if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
                 begin
                   cmd(icFloat, 1);
-                  dockh.Undock(FHWnd);
+                  dockh.Undock(FHWnd); // INTF
                 end;
               end;
-              // dock item //
+              {// dock item //
               if FFloating and (wParam and MK_LBUTTON = 0) then
               begin
                 cmd(icFloat, 0);
-                dockh.Dock(FHWnd);
-              end;
+                dockh.Dock(FHWnd); // INTF
+              end;}
         end
         else if msg = wm_exitsizemove then
         begin
-              // dock item //
+              // dock item (the only place to dock) //
               cmd(icFloat, 0);
-              dockh.Dock(FHWnd);
+              dockh.Dock(FHWnd); // INTF
         end
         else if msg = wm_command then
         begin

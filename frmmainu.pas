@@ -317,7 +317,8 @@ begin
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
       if assigned(DropMgr) then DropMgr.Destroy;
-      if assigned(ItemMgr) then ItemMgr.Free;
+      // since ItemMgr is interfaced object - no call to Free
+      //if assigned(ItemMgr) then ItemMgr.Free;
       if assigned(ahint) then ahint.Free;
       if assigned(theme) then theme.Free;
       if assigned(sets) then sets.Free;

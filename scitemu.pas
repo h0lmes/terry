@@ -4,7 +4,7 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, customitemu, processhlp;
+  IniFiles, GDIPAPI, gdip_gfx, iitemmgru, PIDL, ShContextU, declu, customitemu, processhlp;
 
 type
 
@@ -43,7 +43,7 @@ type
   public
     procedure UpdateItem(AData: string);
     //
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
@@ -67,7 +67,7 @@ type
 implementation
 uses dockh, themeu, toolu, frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParentIntf: IItemManager; AParams: _ItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;

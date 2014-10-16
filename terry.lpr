@@ -48,7 +48,7 @@ uses
   processhlp,
   dropindicatoru,
   taskitemu,
-  frmhellou, frmtipu, multidocku;
+  frmhellou, frmtipu, multidocku, iitemmgru;
 
 {$R *.res}
 
