@@ -31,7 +31,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure ActivateHint(hwndOwner: uint; caption_: string; x, y, monitor: integer; ASite: TBaseSite);
+    procedure ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
     procedure DeactivateHint(hwnd_: uint);
     procedure Timer;
     procedure UnregisterWindowClass;
@@ -114,7 +114,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.ActivateHint(hwndOwner: uint; caption_: string; x, y, monitor: integer; ASite: TBaseSite);
+procedure _Hint.ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
 var
   hgdip, hfont, hfontfamily, hbrush, path: Pointer;
   rect: TRectF;
@@ -143,7 +143,7 @@ begin
       rect.y := 0;
       rect.Width := 0;
       rect.Height := 0;
-      GdipMeasureString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, @rect, nil, nil);
+      GdipMeasureString(hgdip, PWideChar(Caption), -1, hfont, @rect, nil, @rect, nil, nil);
       GdipDeleteGraphics(hgdip);
       DeleteDC(bmp.dc);
 
@@ -276,7 +276,7 @@ begin
       rect.X := rect.X + aheight div 4;
 
       GdipCreateSolidFill(font.color, hbrush);
-      GdipDrawString(hgdip, PWideChar(WideString(Caption)), -1, hfont, @rect, nil, hbrush);
+      GdipDrawString(hgdip, PWideChar(Caption), -1, hfont, @rect, nil, hbrush);
       GdipDeleteBrush(hbrush);
 
       UpdateLWindow(hWnd, bmp, alpha);

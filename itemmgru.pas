@@ -51,7 +51,6 @@ type
     procedure notify(message: string);
     procedure DoSetForeground;
     procedure DoBaseDraw(flags: integer);
-    procedure DoSaveSets;
     procedure SetVisible(value: boolean);
 
     // load/save //
@@ -73,7 +72,7 @@ type
     // items //
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
-    function AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
+    function AddItem(data: string; Update: boolean = false): THandle;
     procedure CopyItemDescriptor(pFrom, pTo: PItem);
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
@@ -287,7 +286,6 @@ begin
       gpMonitor:
         begin
           Monitor := value;
-          MonitorRect := frmmain.GetMonitorBoundsRect;
           ItemsChanged(true);
         end;
       gpLockMouseEffect: LockMouseEffect := value <> 0;
@@ -333,11 +331,6 @@ begin
   if assigned(BaseCmd) then BaseCmd(tcRepaintBase, flags);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DoSaveSets;
-begin
-  if assigned(BaseCmd) then BaseCmd(tcSaveSets, 0);
-end;
-//------------------------------------------------------------------------------
 function _ItemManager.GetRect: windows.TRect;
 begin
   result.Left := x;
@@ -366,7 +359,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Load(fsets: string);
 var
-  i: integer;
+  idx: integer;
   cls_name, data: string;
   ini: TIniFile;
   list: TStrings;
@@ -388,16 +381,16 @@ begin
 
   // read items //
   try
-    i := 0;
-    while i < list.count do
+    idx := 0;
+    while idx < list.count do
     begin
-      if pos('item', list.strings[i]) = 1 then
+      if pos('item', list.strings[idx]) = 1 then
       begin
-        cls_name := ini.ReadString(list.strings[i], 'class', 'shortcut');
-        data := 'class="' + cls_name + '";inifile="' + SetsFilename + '";inisection="' + list.strings[i] + '";';
-        AddItem(data, false, false);
+        cls_name := ini.ReadString(list.strings[idx], 'class', 'shortcut');
+        data := 'class="' + cls_name + '";inifile="' + SetsFilename + '";inisection="' + list.strings[idx] + '";';
+        AddItem(data, false);
       end;
-      inc(i);
+      inc(idx);
     end;
     ini.free;
   except
@@ -444,16 +437,16 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.AllItemsSave;
 var
-  i: integer;
+  idx: integer;
 begin
   if Enabled and (ItemCount > 0) then
   try
-    for i := 0 to ItemCount - 1 do
+    for idx := 0 to ItemCount - 1 do
     begin
-      if items[i].h <> 0 then TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA)).Save(pchar(SetsFilename), pchar('item' + inttostr(i + 1)));
+      if items[idx].h <> 0 then TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA)).Save(pchar(SetsFilename), pchar('item' + inttostr(idx + 1)));
     end;
   except
-    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(i) + #10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + #10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -482,17 +475,17 @@ end;
 // clears the entire items array //
 procedure _ItemManager.Clear;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   if ItemCount > 0 then
   try
-    for i := 0 to ItemCount - 1 do
+    for idx := 0 to ItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
       Inst.Freed := true;
       FreeAndNil(Inst);
-      items[i].h := 0;
+      items[idx].h := 0;
     end;
     ItemCount := 0;
     TaskItemCount := 0;
@@ -505,14 +498,14 @@ end;
 // clears the "deleted items" array //
 procedure _ItemManager.ClearDeleted;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   if itemsDeleted.Count > 0 then
   try
-    for i := 0 to itemsDeleted.Count - 1 do
+    for idx := 0 to itemsDeleted.Count - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(THandle(itemsDeleted.Items[i]), GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(THandle(itemsDeleted.Items[idx]), GWL_USERDATA));
       Inst.Freed := true;
       FreeAndNil(Inst);
     end;
@@ -524,10 +517,6 @@ end;
 //------------------------------------------------------------------------------
 // restores deleted items //
 procedure _ItemManager.UnDelete;
-var
-  h: THandle;
-  i: integer;
-  Inst: TCustomItem;
 begin
   try
     CheckDeleted;
@@ -548,20 +537,20 @@ end;
 procedure _ItemManager.CheckDeleted;
 var
   h: THandle;
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   try
     // clear task items //
     if itemsDeleted.Count > 0 then
-      for i := itemsDeleted.Count - 1 downto 0 do
+      for idx := itemsDeleted.Count - 1 downto 0 do
       begin
-        h := THandle(itemsDeleted.Items[i]);
+        h := THandle(itemsDeleted.Items[idx]);
         Inst := TCustomItem(GetWindowLong(h, GWL_USERDATA));
         if Inst is TTaskItem then
         begin
           FreeAndNil(Inst);
-          itemsDeleted.Delete(i);
+          itemsDeleted.Delete(idx);
         end;
       end;
   except
@@ -571,17 +560,17 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.ItemIndex(HWnd: HANDLE): integer;
 var
-  i: integer;
+  idx: integer;
 begin
   try
     result := NOT_AN_ITEM;
     if (HWnd = 0) or (ItemCount <= 0) then exit;
 
-    for i := 0 to ItemCount - 1 do
+    for idx := 0 to ItemCount - 1 do
     begin
-      if items[i].h = HWnd then
+      if items[idx].h = HWnd then
       begin
-        result := i;
+        result := idx;
         break;
       end;
     end;
@@ -598,17 +587,17 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.ZOrder(InsertAfter: uint): uint;
 var
-  i: integer;
+  idx: integer;
 begin
   result := 0;
   if Enabled then
   try
     if ItemCount > 0 then result := ItemHWnd(0);
-    i := 0;
-    while i < ItemCount do
+    idx := 0;
+    while idx < ItemCount do
     begin
-      SetWindowPos(ItemHWnd(i), InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
-      inc(i);
+      SetWindowPos(ItemHWnd(idx), InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
+      inc(idx);
     end;
   except
     on e: Exception do err('ItemManager.ZOrder', e);
@@ -664,7 +653,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetTheme;
 begin
-  MonitorRect := frmmain.GetMonitorBoundsRect;
+  //MonitorRect := frmmain.GetMonitorBoundsRect;
   AllItemCmd(tcThemeChanged, 0);
   ItemsChanged(true);
 end;
@@ -923,25 +912,25 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetItems2(force_draw: boolean);
 var
-  i: integer;
+  idx: integer;
   wpi, show_items: uint;
 begin
   if Enabled then
   try
-    i := ItemCount;
-    wpi := BeginDeferWindowPos(i);
+    idx := ItemCount;
+    wpi := BeginDeferWindowPos(idx);
     show_items := swp_hidewindow;
     if FVisible then show_items := swp_showwindow;
 
     // draw items //
-    i := 0;
-    while i < ItemCount do
+    idx := 0;
+    while idx < ItemCount do
     begin
-      if items[i].h <> 0 then
-        TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA)).Draw(
-          BaseWindowRect.X + items[i].x, BaseWindowRect.Y + items[i].y,
-          items[i].s, force_draw, wpi, show_items);
-      inc(i);
+      if items[idx].h <> 0 then
+        TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA)).Draw(
+          BaseWindowRect.X + items[idx].x, BaseWindowRect.Y + items[idx].y,
+          items[idx].s, force_draw, wpi, show_items);
+      inc(idx);
     end;
 
     EndDeferWindowPos(wpi);
@@ -976,11 +965,11 @@ end;
 // or at the end if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
 procedure _ItemManager.InsertItem(AData: string);
 begin
-  if Enabled then AddItem(AData, true, true);
+  if Enabled then AddItem(AData, true);
 end;
 //------------------------------------------------------------------------------
 // create an item and put it onto dock
-function _ItemManager.AddItem(data: string; Update: boolean = false; Save: boolean = true): THandle;
+function _ItemManager.AddItem(data: string; Update: boolean = false): THandle;
 begin
   result := 0;
   if ItemCount > MAX_ITEM_COUNT then exit;
@@ -994,8 +983,6 @@ begin
     PluginCallCreate(result);
   end;
   if Update then ItemsChanged(true);
-  // save settings //
-  if Save then DoSaveSets;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.PluginCallCreate(HWnd: HANDLE);
@@ -1065,29 +1052,27 @@ end;
 // item can call this using DockH.DockDeleteItem from TCustomItem.Delete
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
-  i: integer;
+  idx: integer;
 begin
   if Enabled then
   try
-    i := ItemIndex(HWnd);
+    idx := ItemIndex(HWnd);
     enabled := false;
     // add to "deleted" list //
     itemsDeleted.Add(Pointer(HWnd));
     // erase it from "items" list //
-    if i <> NOT_AN_ITEM then
+    if idx <> NOT_AN_ITEM then
     begin
-      while i < ItemCount - 1 do
+      while idx < ItemCount - 1 do
       begin
-        CopyItemDescriptor(@items[i + 1], @items[i]);
-        inc(i);
+        CopyItemDescriptor(@items[idx + 1], @items[idx]);
+        inc(idx);
       end;
       dec(ItemCount);
     end;
     // update dock //
     enabled := true;
     ItemsChanged;
-    // save settings !!!
-    DoSaveSets;
   except
     on e: Exception do raise Exception.Create('ItemManager.DeleteItem'#10#13 + e.message);
   end;
@@ -1361,7 +1346,7 @@ end;
 // calculate item index based on mouse position and items positions
 function _ItemManager.ItemRectFromPoint(Ax, Ay: integer): integer;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   result := NOT_AN_ITEM;
@@ -1376,13 +1361,13 @@ begin
 
     // calc position relative to the beginning of the first item //
 
-    for i := 0 to ItemCount - 1 do
+    for idx := 0 to ItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then
         if PtInRect(Inst.ScreenRect, classes.Point(Ax, Ay)) then
         begin
-          result := i;
+          result := idx;
           break;
         end;
     end;
@@ -1557,7 +1542,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.WMDeactivateApp;
 var
-  i: integer;
+  idx: integer;
 begin
   if not CheckMouseOn then
   begin
@@ -1567,11 +1552,11 @@ begin
 
   if Enabled then
   try
-    i := 0;
-    while i < ItemCount do
+    idx := 0;
+    while idx < ItemCount do
     begin
-      if items[i].h <> 0 then sendmessage(items[i].h, WM_ACTIVATEAPP, 0, 0);
-      inc(i);
+      if items[idx].h <> 0 then sendmessage(items[idx].h, WM_ACTIVATEAPP, 0, 0);
+      inc(idx);
     end;
   except
     on e: Exception do err('ItemManager.WMDeactivate', e);
@@ -1639,7 +1624,7 @@ end;
 // if necessary create a new stack or put into existing one
 procedure _ItemManager.Dock(HWnd: HANDLE);
 var
-  i: integer;
+  idx: integer;
   DragInst, Inst, NewInst: TCustomItem;
   NewItemHWnd: THandle;
   pt: windows.TPoint;
@@ -1676,11 +1661,11 @@ begin
       // stack to stack //
       if (DragInst is TStackItem) and (Inst is TStackItem) then
       begin
-        i := 0;
-        while i < TStackItem(DragInst).ItemCount do
+        idx := 0;
+        while idx < TStackItem(DragInst).ItemCount do
         begin
-          TStackItem(Inst).AddSubitem(TStackItem(DragInst).SubitemToString(i));
-          inc(i);
+          TStackItem(Inst).AddSubitem(TStackItem(DragInst).SubitemToString(idx));
+          inc(idx);
         end;
         DragInst.Delete;
       end else
@@ -1728,25 +1713,25 @@ end;
 // if no match found result is 0
 function _ItemManager.IsItem(HWnd: HANDLE): HANDLE;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   result := THandle(0);
   if Enabled then
   try
-    i := 0;
-    while i < ItemCount do
+    idx := 0;
+    while idx < ItemCount do
     begin
-      if items[i].h = HWnd then
+      if items[idx].h = HWnd then
       begin
         result := HWnd;
         break;
       end;
 
-      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.cmd(icIsItem, integer(HWnd));
       if result <> 0 then break;
-      inc(i);
+      inc(idx);
     end;
   except
     on e: Exception do err('ItemManager.IsItem', e);
@@ -1774,7 +1759,7 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
   HWndChild: HANDLE;
 begin
@@ -1786,8 +1771,8 @@ begin
     begin
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TCustomItem then
-        for i := 0 to files.Count - 1 do
-          result := result or Inst.DropFile(HWndChild, pt, files.strings[i]);
+        for idx := 0 to files.Count - 1 do
+          result := result or Inst.DropFile(HWndChild, pt, files.strings[idx]);
     end;
   except
     on e: Exception do err('ItemManager.ItemDrop', e);
@@ -1975,27 +1960,27 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Taskbar;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
   index: integer;
   HWndTask, HWndItem: THandle;
 begin
   // add items //
-  i := 0;
-  while i < ProcessHelper.GetAppWindowsCount do
+  idx := 0;
+  while idx < ProcessHelper.GetAppWindowsCount do
   begin
-    HWndTask := ProcessHelper.GetAppWindowHandle(i);
+    HWndTask := ProcessHelper.GetAppWindowHandle(idx);
     index := GetTaskItemIndex(HWndTask);
     if index = -1 then // there is no item for the window
     begin
       if TaskItemCount = 0 then // if there is no task items yet - add separator
       begin
-        AddItem('class="separator";dontsave="1";candrag="0";', true, false);
+        AddItem('class="separator";dontsave="1";candrag="0";', true);
         inc(TaskItemCount);
       end;
       // add task item at the end of list //
       SetDropPlace(NOT_AN_ITEM);
-      HWndItem := AddItem('class="task";', true, false);
+      HWndItem := AddItem('class="task";', true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then
       begin
@@ -2003,15 +1988,15 @@ begin
         TTaskItem(Inst).UpdateTaskItem(HWndTask);
       end;
     end;
-    inc(i);
+    inc(idx);
   end;
 
 
   // remove items //
-  i := ItemCount - 1;
-  while i >= 0 do
+  idx := ItemCount - 1;
+  while idx >= 0 do
   begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
     if Inst is TTaskItem then
       if TTaskItem(Inst).AppHWnd <> THandle(0) then
         if ProcessHelper.GetAppWindowIndex(TTaskItem(Inst).AppHWnd) < 0 then
@@ -2019,23 +2004,23 @@ begin
           Inst.Delete;
           if TaskItemCount > 0 then dec(TaskItemCount);
         end;
-    dec(i);
+    dec(idx);
   end;
 
   // if not task items left on the dock - delete task items separator //
   if TaskItemCount = 1 then
   begin
-    i := ItemCount - 1;
-    while (i >= 0) and (TaskItemCount > 0) do
+    idx := ItemCount - 1;
+    while (idx >= 0) and (TaskItemCount > 0) do
     begin
-      Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
       if Inst is TSeparatorItem then
         if Inst.DontSave then
         begin
           Inst.Delete;
           if TaskItemCount > 0 then dec(TaskItemCount);
         end;
-      dec(i);
+      dec(idx);
     end;
   end;
 
@@ -2043,38 +2028,38 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.GetTaskItemIndex(h: THandle): integer;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   result := -1;
-  i := 0;
-  while i < ItemCount do
+  idx := 0;
+  while idx < ItemCount do
   begin
-    Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
     if Inst is TTaskItem then
       if TTaskItem(Inst).AppHWnd = h then
       begin
-        result := i;
+        result := idx;
         break;
       end;
-    inc(i);
+    inc(idx);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.ClearTaskbar;
 var
-  i: integer;
+  idx: integer;
   Inst: TCustomItem;
 begin
   if TaskItemCount > 0 then
   begin
-      i := ItemCount - 1;
-      while i >= 0 do
+      idx := ItemCount - 1;
+      while idx >= 0 do
       begin
-        Inst := TCustomItem(GetWindowLong(items[i].h, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
         if Inst is TTaskItem then Inst.Delete;
         if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
-        dec(i);
+        dec(idx);
       end;
       TaskItemCount := 0;
   end;

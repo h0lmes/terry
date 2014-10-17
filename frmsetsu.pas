@@ -421,7 +421,7 @@ begin
   try
     sets.RestoreSetsContainer;
     theme.setTheme(pchar(sets.container.ThemeName));
-    frmmain.BaseCmd(tcApplyParams, 0);
+    frmmain.ApplyParams;
     close;
   except
     on e: Exception do frmmain.err('frmSets.Cancel', e);
@@ -784,16 +784,16 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.ReadAutorun;
 var
-  i: integer;
+  idx: integer;
 begin
   if sets.AutoRunList = nil then exit;
   memAutorun.Lines.BeginUpdate;
   memAutorun.Clear;
-  i := 0;
-  while i < sets.AutoRunList.Count do
+  idx := 0;
+  while idx < sets.AutoRunList.Count do
   begin
-    memAutorun.Lines.Add(AnsiToUTF8(sets.AutoRunList.strings[i]));
-    inc(i);
+    memAutorun.Lines.Add(AnsiToUTF8(sets.AutoRunList.strings[idx]));
+    inc(idx);
   end;
   memAutorun.Lines.EndUpdate;
   AutorunListChanged := false;
@@ -801,15 +801,15 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.SaveAutorun;
 var
-  i: integer;
+  idx: integer;
 begin
   if sets.AutoRunList = nil then exit;
   sets.AutoRunList.Clear;
-  i := 0;
-  while i < memAutorun.Lines.Count do
+  idx := 0;
+  while idx < memAutorun.Lines.Count do
   begin
-    sets.AutoRunList.Add(UTF8ToAnsi(memAutorun.Lines.strings[i]));
-    inc(i);
+    sets.AutoRunList.Add(UTF8ToAnsi(memAutorun.Lines.strings[idx]));
+    inc(idx);
   end;
   AutorunListChanged := false;
 end;

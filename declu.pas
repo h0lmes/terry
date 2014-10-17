@@ -60,12 +60,9 @@ type
     tcThemeChanged,
     tcSetVisible,
     tcGetVisible,
-    tcGetDragging,
     tcZOrder,
     tcToggleVisible,
     tcToggleTaskbar,
-    tcApplyParams,
-    tcQuit,
     tcMax,
     // item commands //
     icMin = $2000,

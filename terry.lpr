@@ -425,17 +425,17 @@ begin
   if assigned(frmmain) then frmmain.Notify(strpas(Message));
 end;
 //------------------------------------------------------------------------------
-procedure ActivateHint(id: HWND; Caption: pchar; x, y: integer);
+procedure ActivateHint(id: HWND; Caption: PWideChar; x, y: integer); stdcall;
 begin
   if assigned(frmmain) then frmmain.ActivateHint(id, Caption, x, y);
 end;
 //------------------------------------------------------------------------------
-procedure DeactivateHint(id: HWND);
+procedure DeactivateHint(id: HWND); stdcall;
 begin
   if assigned(frmmain) then frmmain.DeactivateHint(id);
 end;
 //------------------------------------------------------------------------------
-procedure ExcludeFromPeek(id: HWND);
+procedure ExcludeFromPeek(id: HWND); stdcall;
 begin
   if assigned(dwm) then dwm.ExcludeFromPeek(id);
 end;
@@ -512,7 +512,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 var
-  i: integer;
+  idx: integer;
   setsFiles: TStrings;
   SetsFilename, ProgramPath: string;
   hMutex: uint;
@@ -531,12 +531,12 @@ begin
   // read sets filename from params
   ProgramPath := IncludeTrailingPathDelimiter(ExtractFilePath(Paramstr(0)));
   SetsFilename := '';
-  i := 1;
-  while i <= ParamCount do
+  idx := 1;
+  while idx <= ParamCount do
   begin
-    if strlicomp(pchar(ParamStr(i)), '-i', 2) = 0 then
-      SetsFilename := ProgramPath + copy(ParamStr(i), 3, MAX_PATH - 1);
-    inc(i);
+    if strlicomp(pchar(ParamStr(idx)), '-i', 2) = 0 then
+      SetsFilename := ProgramPath + copy(ParamStr(idx), 3, MAX_PATH - 1);
+    inc(idx);
   end;
 
   // if it was not specified
@@ -553,7 +553,7 @@ begin
     // run instances for all other files
     if setsFiles.Count > 1 then
     begin
-      for i := 1 to setsFiles.Count - 1 do docks.RunDock(setsFiles.Strings[i]);
+      for idx := 1 to setsFiles.Count - 1 do docks.RunDock(setsFiles.Strings[idx]);
     end;
     setsFiles.free;
   end;

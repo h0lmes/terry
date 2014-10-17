@@ -1,7 +1,7 @@
 object frmsets: Tfrmsets
   Left = 511
   Height = 561
-  Top = 161
+  Top = 191
   Width = 588
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
@@ -184,19 +184,19 @@ object frmsets: Tfrmsets
       end
       object Panel1: TPanel
         Left = 15
-        Height = 45
-        Top = 385
-        Width = 428
+        Height = 35
+        Top = 445
+        Width = 178
         BevelOuter = bvNone
-        ClientHeight = 45
-        ClientWidth = 428
-        Color = clMaroon
+        ClientHeight = 35
+        ClientWidth = 178
+        Color = 176
         ParentColor = False
         TabOrder = 9
         object btnRemoveDock: TButton
-          Left = 12
+          Left = 5
           Height = 25
-          Top = 10
+          Top = 5
           Width = 169
           Caption = 'Remove this dock'
           OnClick = btnRemoveDockClick

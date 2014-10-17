@@ -141,13 +141,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TMultiDock.Close;
 var
-  i: integer;
+  idx: integer;
 begin
-  i := 0;
-  while i < listWindows.Count do
+  idx := 0;
+  while idx < listWindows.Count do
   begin
-    postmessage(HANDLE(listWindows.items[i]), WM_COMMAND, IDM_QUIT, 0);
-    inc(i);
+    postmessage(HANDLE(listWindows.items[idx]), WM_COMMAND, IDM_QUIT, 0);
+    inc(idx);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -171,14 +171,14 @@ end;
 //------------------------------------------------------------------------------
 function TMultiDock.GetNewSetsFilename: string;
 var
-  i: integer;
+  idx: integer;
 begin
   result := 'sets.ini';
-  i := 2;
-  while FileExists(ProgramPath + result) and (i <= 8) do
+  idx := 2;
+  while FileExists(ProgramPath + result) and (idx <= 8) do
   begin
-    result := 'sets' + inttostr(i) + '.ini';
-    inc(i);
+    result := 'sets' + inttostr(idx) + '.ini';
+    inc(idx);
   end;
 end;
 //------------------------------------------------------------------------------

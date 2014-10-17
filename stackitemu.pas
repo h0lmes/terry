@@ -177,7 +177,7 @@ procedure TStackItem.UpdateItem(AData: string);
 var
   IniFile, IniSection: string;
   ini: TIniFile;
-  i: integer;
+  idx: integer;
   data: string;
   list: TStrings;
 begin
@@ -209,12 +209,12 @@ begin
         FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
         UpdateSpecialFolder;
 
-        i := 1;
+        idx := 1;
         repeat
-          data := ini.ReadString(IniSection, 'subitem' + inttostr(i), '');
+          data := ini.ReadString(IniSection, 'subitem' + inttostr(idx), '');
           if data <> '' then AddSubitem(data);
-          inc(i);
-        until (data = '') or (i > MAX_SUBITEMS);
+          inc(idx);
+        until (data = '') or (idx > MAX_SUBITEMS);
         ini.free;
       end
       else
@@ -248,11 +248,11 @@ begin
 
         if list.count > 1 then
         begin
-          i := 1;
-          while i < list.Count do
+          idx := 1;
+          while idx < list.Count do
           begin
-            if list.strings[i] <> '' then AddSubitem(list.strings[i]);
-            inc(i);
+            if list.strings[idx] <> '' then AddSubitem(list.strings[idx]);
+            inc(idx);
           end;
         end;
 
@@ -314,7 +314,7 @@ function TStackItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
   temp: uint;
-  i: integer;
+  idx: integer;
 begin
   try
     result := inherited cmd(id, param);
@@ -356,12 +356,12 @@ begin
       icUpdateRunning:
         begin
           b := false;
-          i := 0;
-          while i < FItemCount do
+          idx := 0;
+          while idx < FItemCount do
           begin
-            items[i].item.cmd(icUpdateRunning, 0);
-            if items[i].item.Running then b := true;
-            inc(i);
+            items[idx].item.cmd(icUpdateRunning, 0);
+            if items[idx].item.Running then b := true;
+            inc(idx);
           end;
           if b and (FIndicator = nil) then UpdateIndicator;
           if b <> FRunning then
@@ -378,8 +378,8 @@ begin
           result := 0;
           if (FItemCount > 0) and (FState = stsOpen) then
           begin
-            for i := 0 to FItemCount - 1 do
-              if items[i].hWnd = HANDLE(param) then result := FHWnd;
+            for idx := 0 to FItemCount - 1 do
+              if items[idx].hWnd = HANDLE(param) then result := FHWnd;
           end;
         end;
     end;
@@ -388,7 +388,7 @@ begin
       (id = gpLaunchInterval) or (id = gpActivateRunning) or (id = gpLockDragging) or (id = tcThemeChanged);
     if (FItemCount > 0) and b then
     begin
-      for i := 0 to FItemCount - 1 do items[i].item.cmd(id, param);
+      for idx := 0 to FItemCount - 1 do items[idx].item.cmd(id, param);
     end;
 
   except
@@ -553,24 +553,24 @@ end;
 //------------------------------------------------------------------------------
 function TStackItem.ToStringFullCopy: string;
 var
-  i: integer;
+  idx: integer;
 begin
   result := ToString;
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
-    for i := 0 to FItemCount - 1 do
-      result := result + #10 + items[i].item.SaveToString;
+    for idx := 0 to FItemCount - 1 do
+      result := result + #10 + items[idx].item.SaveToString;
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.SetStackFont(var Value: _FontData);
 var
-  i: integer;
+  idx: integer;
 begin
   CopyFontData(Value, FStackFont);
   if FItemCount > 0 then
   begin
-    for i := 0 to FItemCount - 1 do items[i].item.SetFont(FStackFont);
+    for idx := 0 to FItemCount - 1 do items[idx].item.SetFont(FStackFont);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -639,7 +639,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.WndMessage(var msg: TMessage);
 var
-  i: integer;
+  idx: integer;
   found: boolean;
 begin
   if FFreed then exit;
@@ -656,8 +656,8 @@ begin
       begin
         found := false;
         if FItemCount > 0 then
-          for i := 0 to FItemCount - 1 do
-            if items[i].hWnd = HANDLE(lParam) then found := true;
+          for idx := 0 to FItemCount - 1 do
+            if items[idx].hWnd = HANDLE(lParam) then found := true;
         if not found then CloseStack;
       end;
 
@@ -757,7 +757,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Save(szIni: pchar; szIniGroup: pchar);
 var
-  i: integer;
+  idx: integer;
 begin
   if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
 
@@ -774,8 +774,8 @@ begin
   if not FPreview then WritePrivateProfileString(szIniGroup, 'preview', '0', szIni);
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
-    for i := 0 to FItemCount - 1 do
-      WritePrivateProfileString(szIniGroup, pchar('subitem' + inttostr(i + 1)), pchar(items[i].item.SaveToString), szIni);
+    for idx := 0 to FItemCount - 1 do
+      WritePrivateProfileString(szIniGroup, pchar('subitem' + inttostr(idx + 1)), pchar(items[idx].item.SaveToString), szIni);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -953,16 +953,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.CheckDeleteSubitems;
 var
-  i: integer;
+  idx: integer;
 begin
   if FFreed then exit;
 
   if FItemCount > 0 then
   try
-    i := 0;
-    while i < FItemCount do
+    idx := 0;
+    while idx < FItemCount do
     begin
-      if items[i].item.QueryDelete then DeleteSubitem(i) else inc(i);
+      if items[idx].item.QueryDelete then DeleteSubitem(idx) else inc(idx);
     end;
   except
     on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
@@ -991,17 +991,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.DeleteSubitems;
 var
-  i: integer;
+  idx: integer;
 begin
   if FFreed then exit;
 
   if FItemCount > 0 then
   try
-    for i := 0 to FItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      items[i].item.Free;
-      items[i].item := nil;
-      items[i].hWnd := 0;
+      items[idx].item.Free;
+      items[idx].item := nil;
+      items[idx].hWnd := 0;
     end;
     FItemCount := 0;
 
@@ -1084,17 +1084,17 @@ end;
 //------------------------------------------------------------------------------
 function TStackItem.ItemIndex(HWnd: HANDLE): integer;
 var
-  i: integer;
+  idx: integer;
 begin
   try
     result := NOT_AN_ITEM;
     if (HWnd = 0) or (FItemCount <= 0) then exit;
 
-    for i := 0 to FItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      if items[i].hWnd = hWnd then
+      if items[idx].hWnd = hWnd then
       begin
-        result := i;
+        result := idx;
         break;
       end;
     end;
@@ -1105,13 +1105,13 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.AllSubitemsCmd(id: TGParam; param: integer);
 var
-  i: integer;
+  idx: integer;
 begin
   if FFreed then exit;
 
   if FItemCount > 0 then
   try
-    for i := 0 to FItemCount - 1 do items[i].item.cmd(id, param);
+    for idx := 0 to FItemCount - 1 do items[idx].item.cmd(id, param);
   except
     on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
   end;
@@ -1146,7 +1146,7 @@ end;
 procedure TStackItem.DoStateProgress;
 var
   step: extended;
-  i: integer;
+  idx: integer;
   wpi: uint;
   showItems: boolean;
 begin
@@ -1177,7 +1177,7 @@ begin
       if showItems then
       begin
         wpi := BeginDeferWindowPos(FItemCount);
-        for i := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[i].hWnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
+        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
         EndDeferWindowPos(wpi);
       end;
   end
@@ -1202,7 +1202,7 @@ begin
       if FState = stsClosed then
       begin
         wpi := BeginDeferWindowPos(FItemCount);
-        for i := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[i].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
+        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
         EndDeferWindowPos(wpi);
       end;
   end;
@@ -1210,7 +1210,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.ShowStackState;
 var
-  i: integer;
+  idx: integer;
   wpi: uint;
   wr: windows.TRect;
   xyaa: TStackItemData;
@@ -1227,25 +1227,26 @@ begin
   wr.top += FSize div 2;
 
   // get item params //
-  for i := 0 to FItemCount - 1 do
+  for idx := 0 to FItemCount - 1 do
   begin
-    xyaa := mc.GetItemData(FMode, (FState = stsOpening) or (FState = stsOpen), i, FStateProgress,
+    xyaa := mc.GetItemData(FMode, (FState = stsOpening) or (FState = stsOpen), idx, FStateProgress,
       FItemCount, FSite, FItemSize, FOffset + (FSize - FItemSize) div 2, FDistort);
-    //items[i].draw := (items[i].alpha > 0) or (xyaa.alpha > 0);
-    items[i].draw := true;
-    items[i].x := wr.left + xyaa.x;
-    items[i].y := wr.top + xyaa.y;
-    items[i].s := xyaa.s;
-    items[i].alpha := xyaa.alpha;
-    items[i].angle := xyaa.angle;
-    items[i].hint_align := xyaa.hint_align;
-    items[i].hint_alpha := xyaa.hint_alpha;
+    //items[idx].draw := (items[idx].alpha > 0) or (xyaa.alpha > 0);
+    items[idx].draw := true;
+    items[idx].x := wr.left + xyaa.x;
+    items[idx].y := wr.top + xyaa.y;
+    items[idx].s := xyaa.s;
+    items[idx].alpha := xyaa.alpha;
+    items[idx].angle := xyaa.angle;
+    items[idx].hint_align := xyaa.hint_align;
+    items[idx].hint_alpha := xyaa.hint_alpha;
   end;
 
   // draw items //
-  for i := 0 to FItemCount - 1 do
+  for idx := 0 to FItemCount - 1 do
   begin
-    if items[i].draw then items[i].item.Draw(items[i].x, items[i].y, items[i].s, items[i].alpha, items[i].angle, items[i].hint_align, items[i].hint_alpha, false);
+    if items[idx].draw then items[idx].item.Draw(items[idx].x, items[idx].y, items[idx].s,
+      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, false);
   end;
 end;
 //------------------------------------------------------------------------------

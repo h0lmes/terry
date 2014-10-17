@@ -134,7 +134,7 @@ end;
 //------------------------------------------------------------------------------
 function TfrmItemProp.SetData(AData: string): boolean;
 var
-  i: integer;
+  scmd: integer;
 begin
   result := false;
   if FChanged then
@@ -176,13 +176,13 @@ begin
   tbBr.OnChange := tbHueChange;
   tbCont.OnChange := tbHueChange;
 
-  i := 0;
-  try i := StrToInt(FetchValue(AData, 'showcmd="', '";'));
+  scmd := 0;
+  try scmd := StrToInt(FetchValue(AData, 'showcmd="', '";'));
   except
   end;
   cboWindow.ItemIndex := 0;
-  if i = sw_showminimized then cboWindow.ItemIndex := 1
-  else if i = sw_showmaximized then cboWindow.ItemIndex := 2;
+  if scmd = sw_showminimized then cboWindow.ItemIndex := 1
+  else if scmd = sw_showmaximized then cboWindow.ItemIndex := 2;
 
   Draw;
   iPic.OnPaint := iPicPaint;

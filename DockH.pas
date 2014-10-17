@@ -1,6 +1,6 @@
 unit DockH;
 
-// modified oct 1, 2014 //
+// modified oct 17, 2014 //
 
 interface
 uses Windows;
@@ -52,7 +52,7 @@ procedure DockDeleteItem(id: HWND);
 function DockAddProgram(data: pchar): HWND;
 function FullScreenAppActive(id: HWND): bool;
 procedure Notify(id: HWND; Message: PAnsiChar);
-procedure ActivateHint(id: HWND; ACaption: pchar; x, y: integer);
+procedure ActivateHint(id: HWND; ACaption: PWideChar; x, y: integer);
 procedure DeactivateHint(id: HWND);
 procedure ExcludeFromPeek(id: HWND);
 
@@ -349,8 +349,8 @@ begin
 	if assigned(proc) then proc(id, Message);
 end;
 //------------------------------------------------------------------------------
-procedure ActivateHint(id: HWND; ACaption: pchar; x, y: integer);
-type dtype = procedure(id: HWND; ACaption: pchar; x, y: integer); stdcall;
+procedure ActivateHint(id: HWND; ACaption: PWideChar; x, y: integer);
+type dtype = procedure(id: HWND; ACaption: PWideChar; x, y: integer); stdcall;
 var
   proc: dtype;
 begin

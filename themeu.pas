@@ -58,12 +58,11 @@ type
 
     constructor Create(ABaseCmd: TBaseCmd);
     destructor Destroy; override;
+
     procedure Clear;
     procedure ClearGraphics;
     procedure DoThemeChanged;
-    procedure DoBaseDraw;
     function Load: boolean;
-
     procedure ReloadGraphics;
     function Save: boolean;
     procedure ImageAdjustRotate(image: Pointer);
@@ -158,11 +157,6 @@ end;
 procedure _Theme.DoThemeChanged;
 begin
   BaseCmd(tcThemeChanged, 0);
-end;
-//------------------------------------------------------------------------------
-procedure _Theme.DoBaseDraw;
-begin
-  BaseCmd(tcRepaintBase, 1);
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.SetTheme(aTheme: string);
@@ -306,23 +300,23 @@ end;
 //------------------------------------------------------------------------------
 procedure _Theme.SetBlurRegion(value: string);
 var
-  i: integer;
+  idx: integer;
   str: string;
 begin
   FBlurRegion := value;
   FBlurRegionPointsCount := 0;
   str := FBlurRegion;
-  i := 0;
+  idx := 0;
   try
-    while (str <> '') and (i < 1024) do
+    while (str <> '') and (idx < 1024) do
     begin
-      FBlurRegionPoints[i].x := strtoint(trim( fetch(str, ',', true) ));
-      FBlurRegionPoints[i].y := strtoint(trim( fetch(str, ',', true) ));
-      inc(i);
+      FBlurRegionPoints[idx].x := strtoint(trim( fetch(str, ',', true) ));
+      FBlurRegionPoints[idx].y := strtoint(trim( fetch(str, ',', true) ));
+      inc(idx);
     end;
   except
   end;
-  FBlurRegionPointsCount := i;
+  FBlurRegionPointsCount := idx;
 
   if FBlurRegionPointsCount = 3 then
   begin
@@ -526,7 +520,7 @@ var
   ba: windows.TRect;
   br: windows.TSize;
   pts: array [0..MAX_REGION_POINTS - 1] of windows.TPoint;
-  i: integer;
+  idx: integer;
 begin
   result := 0;
   if not BlurEnabled then exit;
@@ -538,24 +532,24 @@ begin
     result := CreateRoundRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom, br.cx, br.cy);
   end else begin
     bm := CorrectMargins(Background.Margins);
-    i := 0;
-    while i < FBlurRegionPointsCount do
+    idx := 0;
+    while idx < FBlurRegionPointsCount do
     begin
-      pts[i] := CorrectCoords(FBlurRegionPoints[i], Background.W, Background.H);
+      pts[idx] := CorrectCoords(FBlurRegionPoints[idx], Background.W, Background.H);
 
-      if pts[i].x <= bm.Left then pts[i].x := r.x + pts[i].x
+      if pts[idx].x <= bm.Left then pts[idx].x := r.x + pts[idx].x
       else
-      if pts[i].x >= Background.W - bm.Right then pts[i].x := r.x + r.Width - (Background.W - pts[i].x)
+      if pts[idx].x >= Background.W - bm.Right then pts[idx].x := r.x + r.Width - (Background.W - pts[idx].x)
       else
-        pts[i].x := r.x + round((pts[i].x - bm.Left) * (r.Width - bm.Left - bm.Right) / (Background.W - bm.Left - bm.Right)) + bm.Left;
+        pts[idx].x := r.x + round((pts[idx].x - bm.Left) * (r.Width - bm.Left - bm.Right) / (Background.W - bm.Left - bm.Right)) + bm.Left;
 
-      if pts[i].y <= bm.Top then pts[i].y := r.y + pts[i].y
+      if pts[idx].y <= bm.Top then pts[idx].y := r.y + pts[idx].y
       else
-      if pts[i].y >= Background.H - bm.Bottom then pts[i].y := r.y + r.Height - (Background.H - pts[i].y)
+      if pts[idx].y >= Background.H - bm.Bottom then pts[idx].y := r.y + r.Height - (Background.H - pts[idx].y)
       else
-        pts[i].y := r.y + round((pts[i].y - bm.Top) * (r.Height - bm.Top - bm.Bottom) / (Background.H - bm.Top - bm.Bottom)) + bm.Top;
+        pts[idx].y := r.y + round((pts[idx].y - bm.Top) * (r.Height - bm.Top - bm.Bottom) / (Background.H - bm.Top - bm.Bottom)) + bm.Top;
 
-      inc(i);
+      inc(idx);
     end;
     result := CreatePolygonRgn(pts, FBlurRegionPointsCount, WINDING);
   end;
@@ -605,7 +599,7 @@ var
   ThemesDir: string;
   fhandle: HANDLE;
   f: TWin32FindData;
-  i: integer;
+  idx: integer;
 begin
   ThemesDir := toolu.UnzipPath('%pp%\themes\');
   lb.items.BeginUpdate;
@@ -619,13 +613,13 @@ begin
     if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
   if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
 
-  i := 0;
-  while i < lb.items.Count do
-    if (lb.items.strings[i] = '.') or (lb.items.strings[i] = '..') or
-      not FileExists(ThemesDir + UTF8ToAnsi(lb.items.strings[i]) + '\background.ini') then
-      lb.items.Delete(i)
+  idx := 0;
+  while idx < lb.items.Count do
+    if (lb.items.strings[idx] = '.') or (lb.items.strings[idx] = '..') or
+      not FileExists(ThemesDir + UTF8ToAnsi(lb.items.strings[idx]) + '\background.ini') then
+      lb.items.Delete(idx)
     else
-      Inc(i);
+      Inc(idx);
 
   lb.ItemIndex := lb.items.indexof(AnsiToUTF8(ThemeName));
   lb.items.EndUpdate;

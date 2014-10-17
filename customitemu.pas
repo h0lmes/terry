@@ -63,7 +63,7 @@ type TCustomItem = class
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
     procedure SetCaption(value: string);
-    procedure UpdateHint(Ax: integer = -1000; Ay: integer = -1000);
+    procedure UpdateHint(Ax: integer = -100000; Ay: integer = -100000);
     function GetRectFromSize(ASize: integer): windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
@@ -160,8 +160,8 @@ begin
   FEnabled := true;
   FCanDrag := true;
   FCaption := '';
-  Fx:= -1000;
-  Fy:= -1000;
+  Fx:= -100000;
+  Fy:= -100000;
   FSize:= 32;
   FCaption := '';
   FUpdating:= false;
@@ -373,7 +373,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.UpdateHint(Ax: integer = -1000; Ay: integer = -1000);
+procedure TCustomItem.UpdateHint(Ax: integer = -100000; Ay: integer = -100000);
 var
   hx, hy: integer;
   wrect, baserect: windows.TRect;
@@ -389,7 +389,7 @@ begin
       exit;
     end;
 
-    if (Ax <> -1000) and (Ay <> -1000) then
+    if (Ax <> -100000) and (Ay <> -100000) then
     begin
       wRect := Rect;
       hx := Ax + wRect.Left + FSize div 2;
@@ -410,7 +410,7 @@ begin
     else
       hy := min(baserect.top, hy - FSize div 2 - hint_offset);
 
-    dockh.ActivateHint(FHWnd, pchar(FCaption), hx, hy);
+    dockh.ActivateHint(FHWnd, PWideChar(WideString(FCaption)), hx, hy);
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
   end;
@@ -480,7 +480,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.WindowProc(var message: TMessage);
 var
-  i: integer;
+  idx: integer;
   ShiftState: classes.TShiftState;
   pos: windows.TSmallPoint;
   wpt: windows.TPoint;
@@ -582,12 +582,12 @@ begin
         begin
               filecount := DragQueryFile(wParam, $ffffffff, nil, 0);
               GetCursorPos(wpt);
-              i := 0;
-              while i < filecount do
+              idx := 0;
+              while idx < filecount do
               begin
-                windows.dragQueryFile(wParam, i, pchar(filename), MAX_PATH);
+                windows.dragQueryFile(wParam, idx, pchar(filename), MAX_PATH);
                 if ScreenHitTest(wpt.x, wpt.y) then DropFile(FHWnd, wpt, pchar(filename));
-                inc(i);
+                inc(idx);
               end;
         end
         else if (msg = wm_close) or (msg = wm_quit) then exit;

@@ -606,15 +606,15 @@ end;
 //------------------------------------------------------------------------------
 function GetEnvVar(VarName: string): string;
 var
-  i: integer;
+  idx: integer;
 begin
   Result := '';
   try
-    i := Windows.GetEnvironmentVariable(PChar(VarName), nil, 0);
-    if i > 0 then
+    idx := Windows.GetEnvironmentVariable(PChar(VarName), nil, 0);
+    if idx > 0 then
     begin
-      SetLength(Result, i);
-      Windows.GetEnvironmentVariable(PChar(VarName), PChar(Result), i);
+      SetLength(Result, idx);
+      Windows.GetEnvironmentVariable(PChar(VarName), PChar(Result), idx);
     end;
   except
   end;
@@ -768,7 +768,7 @@ var
   ipf: IPersistFile;
   fda: Windows.TWin32FindDataA;
   s: string;
-  i: integer;
+  iIcon: integer;
 begin
   obj := CreateComObject(CLSID_ShellLink);
   isl := obj as IShellLink;
@@ -789,7 +789,7 @@ begin
     dir := PChar(s);
 
     SetLength(s, MAX_PATH);
-    isl.GetIconLocation(PChar(s), length(s), i);
+    isl.GetIconLocation(PChar(s), length(s), iIcon);
     icon := PChar(s);
   end;
 end;
@@ -1035,10 +1035,10 @@ end;
 //------------------------------------------------------------------------------
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
 var
-  i: integer;
+  recip: integer;
 begin
-  i := BSM_APPLICATIONS;
-  BroadcastSystemMessage(BSF_IGNORECURRENTTASK + BSF_FORCEIFHUNG + BSF_POSTMESSAGE, @i, msg, wparam, lparam);
+  recip := BSM_APPLICATIONS;
+  BroadcastSystemMessage(BSF_IGNORECURRENTTASK + BSF_FORCEIFHUNG + BSF_POSTMESSAGE, @recip, msg, wparam, lparam);
 end;
 //------------------------------------------------------------------------------
 end.

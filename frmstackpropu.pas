@@ -124,7 +124,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.FormCreate(Sender: TObject);
 var
-  i: integer;
+  idx: integer;
 begin
   FChanged := false;
 
@@ -135,7 +135,7 @@ begin
   constraints.maxheight := Height;
   constraints.minwidth := Width;
 
-  for i := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(i));
+  for idx := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(idx));
 end;
 //------------------------------------------------------------------------------
 function TfrmStackProp.SetData(AData: string): boolean;
@@ -201,36 +201,36 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.ReadSubitems;
 var
-  i: integer;
+  idx: integer;
 begin
   list.Items.BeginUpdate;
   list.Clear;
   if item.ItemCount > 0 then
-    for i := 0 to item.ItemCount - 1 do
-      list.Items.Add(AnsiToUTF8(item.GetSubitemCaption(i)));
+    for idx := 0 to item.ItemCount - 1 do
+      list.Items.Add(AnsiToUTF8(item.GetSubitemCaption(idx)));
   list.Items.EndUpdate;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbIconUpClick(Sender: TObject);
 var
-  i: integer;
+  idx: integer;
 begin
-  i := list.ItemIndex;
-  item.SubitemMoveUp(i);
+  idx := list.ItemIndex;
+  item.SubitemMoveUp(idx);
   ReadSubitems;
-  if i > 0 then dec(i);
-  list.ItemIndex := i;
+  if idx > 0 then dec(idx);
+  list.ItemIndex := idx;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbIconDownClick(Sender: TObject);
 var
-  i: integer;
+  idx: integer;
 begin
-  i := list.ItemIndex;
-  item.SubitemMoveDown(i);
+  idx := list.ItemIndex;
+  item.SubitemMoveDown(idx);
   ReadSubitems;
-  if i < list.Items.Count - 1 then inc(i);
-  list.ItemIndex := i;
+  if idx < list.Items.Count - 1 then inc(idx);
+  list.ItemIndex := idx;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbAddIconClick(Sender: TObject);

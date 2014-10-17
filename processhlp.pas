@@ -133,7 +133,7 @@ var
   snap: HANDLE;
   f: bool;
   lp: TProcessEntry32;
-  i: integer;
+  idx: integer;
 begin
   crsection.Acquire;
   try
@@ -153,11 +153,11 @@ begin
     CloseHandle(snap);
 
     // delete non-existing //
-    i := listProcessFullName.Count - 1;
-    while i >= 0 do
+    idx := listProcessFullName.Count - 1;
+    while idx >= 0 do
     begin
-      if listProcess.IndexOfObject(listProcessFullName.Objects[i]) < 0 then listProcessFullName.Delete(i);
-      dec(i);
+      if listProcess.IndexOfObject(listProcessFullName.Objects[idx]) < 0 then listProcessFullName.Delete(idx);
+      dec(idx);
     end;
   finally
     crsection.Leave;
@@ -466,7 +466,7 @@ end;
 // Edge - edge of screen the item is docked at
 function TProcessHelper.ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
 var
-  i: integer;
+  idx, cmd: integer;
   hMenu, menu_align: cardinal;
   wnd: THandle;
   wtpid: dword;
@@ -481,13 +481,13 @@ begin
 
     EnumAppWindows;
     wlist := TFPList.Create;
-    i := 0;
-    while i < listAppWindows.count do
+    idx := 0;
+    while idx < listAppWindows.count do
     begin
-      wnd := THandle(listAppWindows.items[i]);
+      wnd := THandle(listAppWindows.items[idx]);
       GetWindowThreadProcessId(wnd, @wtpid);
       if GetFullName(IndexOfPIDFullName(wtpid)) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
-      inc(i);
+      inc(idx);
     end;
     result := wlist.Count > 0;
 
@@ -499,11 +499,11 @@ begin
     begin
 
       hMenu := CreatePopupMenu;
-      i := 0;
-      while i < wlist.Count do
+      idx := 0;
+      while idx < wlist.Count do
       begin
-        AppendMenu(hMenu, MF_STRING, $100 + i, pchar(GetWindowText(THandle(wlist.items[i]))));
-        inc(i);
+        AppendMenu(hMenu, MF_STRING, $100 + idx, pchar(GetWindowText(THandle(wlist.items[idx]))));
+        inc(idx);
       end;
       AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
       AppendMenu(hMenu, MF_STRING, $2, 'Run program');
@@ -515,11 +515,11 @@ begin
         2: menu_align := TPM_RIGHTALIGN + TPM_TOPALIGN;
         3: menu_align := TPM_LEFTALIGN + TPM_BOTTOMALIGN;
       end;
-      i := integer(TrackPopupMenuEx(hMenu, menu_align + TPM_RIGHTBUTTON + TPM_RETURNCMD, ItemRect.Left, ItemRect.Top, h, nil));
+      cmd := integer(TrackPopupMenuEx(hMenu, menu_align + TPM_RIGHTBUTTON + TPM_RETURNCMD, ItemRect.Left, ItemRect.Top, h, nil));
       DestroyMenu(hMenu);
 
-      if i = $2 then result := false
-      else if i >= $100 then ActivateWindow(THandle(wlist.items[i - $100]));
+      if cmd = $2 then result := false
+      else if cmd >= $100 then ActivateWindow(THandle(wlist.items[cmd - $100]));
 
     end; // end case of several windows //
 

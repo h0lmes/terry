@@ -5,8 +5,8 @@ interface
 uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, Math, Syncobjs, MMSystem, LMessages,
-  declu, GDIPAPI, gdip_gfx, dwm_unit, hintu,
-  itemmgru, DropTgtU, notifieru, setsu, traycontrolleru;
+  declu, GDIPAPI, gdip_gfx, dwm_unit, hintu, notifieru,
+  itemmgru, DropTgtU, setsu, traycontrolleru;
 
 type
   { Tfrmmain }
@@ -22,7 +22,6 @@ type
     closing: boolean;
     saving: boolean;
     AllowClose: boolean;
-    FRemoveDock: boolean;
     PrevBlur: boolean;
     ZOrderWindow: uint;
     FWndInstance: TFarProc;
@@ -78,13 +77,14 @@ type
 
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
+    procedure CloseProgram;
     procedure ApplyParams;
     procedure SetForeground;
     procedure SetNotForeground;
     procedure err(where: string; e: Exception);
     procedure notify(message: string; silent: boolean = False);
     procedure alert(message: string);
-    procedure ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
+    procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     function BaseCmd(id: TGParam; param: integer): integer;
     procedure SetParam(id: TGParam; Value: integer);
@@ -94,8 +94,8 @@ type
     procedure SetStackFont(var Value: _FontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
     function IsLockedMouseEffect: boolean;
-    function GetMonitorWorkareaRect: Windows.TRect;
-    function GetMonitorBoundsRect: Windows.TRect;
+    function GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
+    function GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
     procedure MoveDock(iDirection: integer);
     procedure TimerMain;
     procedure TimerSlow;
@@ -129,15 +129,13 @@ uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Init(SetsFilename: string);
 var
-  i: integer;
   load_err: boolean;
-  theFile: string;
+  //theFile: string;
 begin
   try
     closing := False;
     saving := False;
     AllowClose := false;
-    FRemoveDock := false;
     PrevBlur := False;
     InitDone := False;
     Application.OnException := AppException;
@@ -267,23 +265,23 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ExecAutorun;
 var
-  i: integer;
+  idx: integer;
 begin
   try
       if assigned(sets.AutoRunList) then
       begin
-          i := 0;
-          while i < sets.AutoRunList.Count do
+          idx := 0;
+          while idx < sets.AutoRunList.Count do
           begin
-              if sets.AutoRunList.strings[i] <> '' then
+              if sets.AutoRunList.strings[idx] <> '' then
               begin
-                  if copy(sets.AutoRunList.strings[i], 1, 1) = '#' then
-                    execute_cmdline(copy(sets.AutoRunList.strings[i], 2, length(sets.AutoRunList.strings[i])), SW_MINIMIZE)
+                  if copy(sets.AutoRunList.strings[idx], 1, 1) = '#' then
+                    execute_cmdline(copy(sets.AutoRunList.strings[idx], 2, length(sets.AutoRunList.strings[idx])), SW_MINIMIZE)
                   else
-                    execute_cmdline(sets.AutoRunList.strings[i]);
+                    execute_cmdline(sets.AutoRunList.strings[idx]);
               end;
               application.processmessages;
-              inc(i);
+              inc(idx);
           end;
       end;
   except
@@ -302,6 +300,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.CloseProgram;
+begin
+  AllowClose := true;
+  Close;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+begin
+  if CloseQuery = 0 then CloseAction := caNone else CloseAction := caFree;
+end;
+//------------------------------------------------------------------------------
+// check if program can close and, if yes, free all resources
 function Tfrmmain.CloseQuery: integer;
 begin
   result := 0;
@@ -318,28 +328,30 @@ begin
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
       if assigned(DropMgr) then DropMgr.Destroy;
+      DropMgr := nil;
       if assigned(ItemMgr) then ItemMgr.Free;
+      ItemMgr := nil;
       if assigned(ahint) then ahint.Free;
+      ahint := nil;
       if assigned(theme) then theme.Free;
+      theme := nil;
       if assigned(sets) then sets.Free;
+      sets := nil;
       if assigned(ProcessHelper) then ProcessHelper.free;
+      ProcessHelper := nil;
+      if assigned(Notifier) then Notifier.Free;
+      Notifier := nil;
       if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
       LockList.free;
+      // reset window proc
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       FreeObjectInstance(FWndInstance);
-      if assigned(Notifier) then
-      begin
-        Notifier.Free;
-        Notifier := nil;
-      end;
       // close other instances
       if not docks.RemoveDock then
       begin
         docks.Enum;
         docks.Close;
       end;
-      //if hHook <> 0 then FreeLibrary(hHook);
-      //TDropIndicator.DestroyIndicator;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Base.Close.Free', mb_iconexclamation);
     end;
@@ -349,11 +361,6 @@ begin
     crsection.Leave;
     crsection.free;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
-begin
-  if CloseQuery = 0 then CloseAction := caNone else CloseAction := caFree;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ApplyParams;
@@ -428,9 +435,11 @@ begin
     tcSaveSets: SaveSets;
     tcZOrder: SetForeground;
     tcThemeChanged:
+      if assigned(ItemMgr) then
       begin
+        ItemMgr.MonitorRect := GetMonitorBoundsRect;
         ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
-        if assigned(ItemMgr) then ItemMgr.SetTheme;
+        ItemMgr.SetTheme;
       end;
     tcSetVisible:
       begin
@@ -443,14 +452,6 @@ begin
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
     tcToggleTaskbar: frmmain.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
     tcGetVisible: Result := integer(sets.Visible);
-    tcGetDragging: if assigned(ItemMgr) then Result := integer(ItemMgr.Dragging);
-    tcApplyParams: ApplyParams;
-    tcQuit:
-      begin
-
-        AllowClose := true;
-        Close;
-      end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -476,6 +477,7 @@ begin
     gpBlur:                   BasePaint(1);
     gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
     gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
+    gpMonitor:                if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
@@ -618,7 +620,7 @@ function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
   end;
 
 var
-  i: integer;
+  idx: integer;
 begin
   if IsMenu(hMenu) then DestroyMenu(hMenu);
   if ParentMenu = 0 then hMenu := CreatePopupMenu else hMenu := ParentMenu;
@@ -642,11 +644,11 @@ begin
   if sets.GetPluginCount > 0 then
   begin
     AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
-    i := 0;
-    while i < sets.GetPluginCount do
+    idx := 0;
+    while idx < sets.GetPluginCount do
     begin
-      AppendMenu(hMenuCreate, MF_STRING, $f041 + i, PChar(sets.GetPluginName(i)));
-      Inc(i);
+      AppendMenu(hMenuCreate, MF_STRING, $f041 + idx, PChar(sets.GetPluginName(idx)));
+      Inc(idx);
     end;
   end;
 
@@ -1070,7 +1072,7 @@ begin
   else messagebox(handle, pchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: string; x, y: integer);
+procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
 var
   monitor: cardinal;
 begin
@@ -1097,22 +1099,24 @@ begin
   ItemMgr.WMDeactivateApp;
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.GetMonitorWorkareaRect: Windows.TRect;
+// returns DesktopRect for monitor indexes < 0
+function Tfrmmain.GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
 var
   monitor: integer;
 begin
   result := screen.DesktopRect;
-  monitor := sets.GetParam(gpMonitor);
+  if assigned(pMonitor) then monitor := pMonitor^ else monitor := sets.GetParam(gpMonitor);
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.GetMonitorBoundsRect: Windows.TRect;
+// returns DesktopRect for monitor indexes < 0
+function Tfrmmain.GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
 var
   monitor: integer;
 begin
   result := screen.DesktopRect;
-  monitor := sets.GetParam(gpMonitor);
+  if assigned(pMonitor) then monitor := pMonitor^ else monitor := sets.GetParam(gpMonitor);
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
@@ -1121,23 +1125,35 @@ procedure Tfrmmain.HideTaskbar(hide: boolean);
 var
   hwnd: uint;
   r: Windows.TRect;
+  pt: windows.TPoint;
+  monitor: integer; // a monitor on which the taskbar is
 begin
   try
     hwnd := FindWindow('Shell_TrayWnd', nil);
+
+    // get taskbar monitor
+    monitor := 0;
+    if GetWindowRect(hwnd, r) then
+    begin
+      pt.x := (r.Left + r.Right) div 2;
+      pt.y := (r.Top + r.Bottom) div 2;
+      monitor := screen.MonitorFromPoint(pt).MonitorNum;
+    end;
+
     if hide and IsWindowVisible(hwnd) then
     begin
       showwindow(hwnd, 0);
       showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), 0);
       r := ItemMgr.MonitorRect;
-      if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
+      if not EqualRect(r, GetMonitorWorkareaRect(@monitor)) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
     end
     else
     if not hide and not IsWindowVisible(hwnd) then
     begin
       showwindow(hwnd, SW_SHOW);
       showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), SW_SHOW);
-      r := ItemMgr.MonitorRect;
-      if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
+      //r := ItemMgr.MonitorRect;
+      //if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
     end;
   except
     on e: Exception do raise Exception.Create('Base.HideTaskbar'#10#13 + e.message);
@@ -1277,9 +1293,9 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.DropFiles(files: TStrings);
 var
-  i: integer;
+  idx: integer;
 begin
-  for i := 0 to files.Count - 1 do files.strings[i] := TShortcutItem.FromFile(files.strings[i]);
+  for idx := 0 to files.Count - 1 do files.strings[idx] := TShortcutItem.FromFile(files.strings[idx]);
   ItemMgr.InsertItems(files);
 end;
 //------------------------------------------------------------------------------
@@ -1534,7 +1550,7 @@ begin
   cmd2 := cutafter(cmd, '.');
 
   if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cmd2, params)
-  else if cmd = 'quit' then frmmain.BaseCmd(tcQuit, 0)
+  else if cmd = 'quit' then frmmain.CloseProgram
   else if cmd = 'hide' then frmmain.BaseCmd(tcSetVisible, 0)
   else if cmd = 'say' then frmmain.notify(toolu.UnzipPath(params))
   else if cmd = 'alert' then frmmain.alert(toolu.UnzipPath(params))

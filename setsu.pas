@@ -89,7 +89,6 @@ type
     constructor Create(sets_file, _prog_path: string; Handle: THandle; ABaseCmd: TBaseCmd);
     destructor Destroy; override;
     procedure DoSetBaseVisible(param: boolean);
-    function DoGetDragging: boolean;
     //
     procedure Load; overload;
     procedure Load(sets_file: string); overload;
@@ -162,12 +161,6 @@ begin
   if assigned(BaseCmd) then BaseCmd(tcSetVisible, integer(param));
 end;
 //------------------------------------------------------------------------------
-function _Sets.DoGetDragging: boolean;
-begin
-  result:= false;
-  if assigned(BaseCmd) then result:= boolean(BaseCmd(tcGetDragging, 0));
-end;
-//------------------------------------------------------------------------------
 procedure _Sets.Load(sets_file: string);
 begin
   SetsPathFile := sets_file;
@@ -176,7 +169,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.Load;
 var
-  i: integer;
+  idx: integer;
   ini: TIniFile;
   tmplist: TStrings;
 begin
@@ -254,11 +247,11 @@ begin
   ini.ReadSection('autorun', tmpList);
   if not assigned(AutoRunList) then AutoRunList := TStringList.Create;
   AutoRunList.clear;
-  i := 0;
-  while i < tmpList.Count do
+  idx := 0;
+  while idx < tmpList.Count do
   begin
-    AutoRunList.Add(ini.ReadString('autorun', tmplist.strings[i], ''));
-    inc(i);
+    AutoRunList.Add(ini.ReadString('autorun', tmplist.strings[idx], ''));
+    inc(idx);
   end;
   tmpList.free;
 
@@ -274,7 +267,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.Save;
 var
-  i: integer;
+  idx: integer;
   ini: TIniFile;
 begin
   windows.DeleteFile(PChar(SetsPathFile));
@@ -341,14 +334,14 @@ begin
   ini.WriteBool   ('StackFont', 'outline', container.StackFont.outline);
 
   // autoruns //
-  i:= 0;
+  idx:= 0;
   if assigned(AutoRunList) then
     if AutoRunList.Count > 0 then
-      while i < AutoRunList.count do
+      while idx < AutoRunList.count do
       begin
-        if AutoRunList.strings[i] <> '' then
-          ini.WriteString('autorun', 'command' + inttostr(i), '"' + AutoRunList.strings[i] + '"');
-        inc(i);
+        if AutoRunList.strings[idx] <> '' then
+          ini.WriteString('autorun', 'command' + inttostr(idx), '"' + AutoRunList.strings[idx] + '"');
+        inc(idx);
       end;
 
   ini.UpdateFile;
@@ -582,7 +575,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.RollDown;
 begin
-  if DoGetDragging then exit;
+  if frmmain.ItemMgr.Dragging then exit;
   if container.AutoHide and not IsHiddenDown then
   begin
     if getBaseOrientation = boVertical then wndOffsetTarget := width - container.AutoHidePixels
@@ -596,7 +589,7 @@ begin
   if IsWindowVisible(ParentHWnd) and IsHiddenDown then
   begin
     wndOffsetTarget := 0;
-    frmmain.ItemMgr.ItemsChanged;
+    //frmmain.ItemMgr.ItemsChanged;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -685,7 +678,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.ScanPlugins;
 var
-  i: integer;
+  idx: integer;
   hLib: uint;
   OnGetInformation: _OnGetInformation;
   szName, szAuthor, szNotes: array [0..255] of char;
@@ -700,21 +693,21 @@ begin
     PluginFilesList.clear;
     toolu.SearchFilesRecurse(PluginsPath, '*.dll', PluginFilesList);
 
-    i := 0;
-    while i < PluginFilesList.Count do
+    idx := 0;
+    while idx < PluginFilesList.Count do
     begin
-      SetCurrentDir(ExtractFilePath(PluginFilesList.strings[i]));
-      hLib := LoadLibrary(pchar(PluginFilesList.strings[i]));
-      if hLib < 33 then PluginFilesList.Delete(i)
+      SetCurrentDir(ExtractFilePath(PluginFilesList.strings[idx]));
+      hLib := LoadLibrary(pchar(PluginFilesList.strings[idx]));
+      if hLib < 33 then PluginFilesList.Delete(idx)
       else begin
         @OnGetInformation := GetProcAddress(hLib, 'OnGetInformation');
-        if not assigned(OnGetInformation) then PluginFilesList.Delete(i)
+        if not assigned(OnGetInformation) then PluginFilesList.Delete(idx)
         else
         begin
           try OnGetInformation(@szName, @szAuthor, @lpiVersion, @szNotes);
           except end;
           PluginsList.add(strpas(@szName));
-          inc(i);
+          inc(idx);
         end;
         FreeLibrary(hLib);
       end;

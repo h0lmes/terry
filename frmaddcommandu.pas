@@ -71,15 +71,15 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmAddCommand.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 var
-  i: integer;
+  idx: integer;
   item: PItem;
 begin
-  i := 0;
-  while i < tree.Items.Count do
+  idx := 0;
+  while idx < tree.Items.Count do
   begin
-    item := tree.Items.Item[i].Data;
+    item := tree.Items.Item[idx].Data;
     if assigned(item) then Dispose(item);
-    inc(i);
+    inc(idx);
   end;
 
   CloseAction := cafree;
@@ -90,7 +90,7 @@ procedure TfrmAddCommand.FormShow(Sender: TObject);
 var
   ini: TIniFile;
   list: TStrings;
-  g, i: integer;
+  groupIdx, itemIdx: integer;
   node: TTreeNode;
   group, groupName, classname, name, command, params, icon, description: string;
 begin
@@ -105,26 +105,26 @@ begin
     list := TStringList.Create;
     ini.ReadSections(list);
 
-    g := 1;
+    groupIdx := 1;
     repeat
-      group := 'group' + inttostr(g);
+      group := 'group' + inttostr(groupIdx);
       groupName := ini.ReadString(group, 'groupname', '');
       if groupName <> '' then node := AddGroup(groupName);
 
-      i := 1;
+      itemIdx := 1;
       repeat
-        classname := ini.ReadString(group, 'class' + inttostr(i), 'shortcut');
-        name := ini.ReadString(group, 'name' + inttostr(i), '');
-        command := ini.ReadString(group, 'command' + inttostr(i), '');
-        params := ini.ReadString(group, 'params' + inttostr(i), '');
-        icon := ini.ReadString(group, 'icon' + inttostr(i), '');
-        description := ini.ReadString(group, 'description' + inttostr(i), '');
+        classname := ini.ReadString(group, 'class' + inttostr(itemIdx), 'shortcut');
+        name := ini.ReadString(group, 'name' + inttostr(itemIdx), '');
+        command := ini.ReadString(group, 'command' + inttostr(itemIdx), '');
+        params := ini.ReadString(group, 'params' + inttostr(itemIdx), '');
+        icon := ini.ReadString(group, 'icon' + inttostr(itemIdx), '');
+        description := ini.ReadString(group, 'description' + inttostr(itemIdx), '');
         if (name <> '') and (command <> '') then AddItem(node, classname, name, command, params, icon, description);
-        inc(i);
+        inc(itemIdx);
       until (name = '') and (command = '');
 
       node.Expand(true);
-      inc(g);
+      inc(groupIdx);
     until (groupName = '');
 
 
