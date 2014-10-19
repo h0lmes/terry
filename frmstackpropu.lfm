@@ -1,7 +1,7 @@
 object frmStackProp: TfrmStackProp
-  Left = 292
+  Left = 334
   Height = 461
-  Top = 259
+  Top = 220
   Width = 735
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
@@ -18,7 +18,7 @@ object frmStackProp: TfrmStackProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -135,6 +135,7 @@ object frmStackProp: TfrmStackProp
         Width = 160
         Frequency = 5
         Max = 50
+        Min = -20
         PageSize = 20
         Position = 0
         ScalePos = trLeft
@@ -155,9 +156,10 @@ object frmStackProp: TfrmStackProp
         Height = 34
         Top = 140
         Width = 160
-        Min = 1
+        Frequency = 2
+        Min = -10
         PageSize = 1
-        Position = 1
+        Position = 0
         ScalePos = trLeft
         ShowSelRange = False
         TabOrder = 6

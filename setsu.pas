@@ -68,17 +68,8 @@ type
     cancel_container: _SetsContainer;
 
     ParentHWnd: THandle;
-    BaseCmd: TBaseCmd;
-    width: integer;
-    height: integer;
     visible: boolean;
-    wndOffset: integer;
-    wndOffsetTarget: integer;
-    LastMouseEnterTime: integer;
-    LastMouseLeaveTime: integer;
     MouseOnEdge: boolean;
-    MouseOver: boolean;
-    HideKeysPressed: boolean;
     WasOnEdge: boolean;
     progpath: string;
     SetsPathFile: string;
@@ -86,9 +77,8 @@ type
 
     AutoRunList: TStrings;
 
-    constructor Create(sets_file, _prog_path: string; Handle: THandle; ABaseCmd: TBaseCmd);
+    constructor Create(sets_file, _prog_path: string; Handle: THandle);
     destructor Destroy; override;
-    procedure DoSetBaseVisible(param: boolean);
     //
     procedure Load; overload;
     procedure Load(sets_file: string); overload;
@@ -104,10 +94,6 @@ type
     procedure RestoreSetsContainer;
     procedure CopySetsContainer(var dst: _SetsContainer; var src: _SetsContainer);
     function getBaseOrientation: TBaseOrientation;
-    procedure RollDown;
-    procedure RollUp;
-    function IsHiddenDown: boolean;
-    procedure Timer;
     function GetMonitorCount: integer;
     function GetMonitorName(index: integer): string;
     //
@@ -124,17 +110,13 @@ var
 implementation
 uses frmmainu, toolu, frmsetsu, dockh, dwm_unit;
 //------------------------------------------------------------------------------
-constructor _Sets.Create(sets_file, _prog_path: string; Handle: THandle; ABaseCmd: TBaseCmd);
+constructor _Sets.Create(sets_file, _prog_path: string; Handle: THandle);
 begin
   inherited Create;
   ParentHWnd := Handle;
-  BaseCmd := ABaseCmd;
   StrCopy(container.ThemeName, 'Aero');
   visible := true;
-  wndOffset := 0;
   MouseOnEdge := false;
-  MouseOver := false;
-  wndOffsetTarget := 0;
   container.AutoHidePixels := 0;
   container.CenterOffsetPercent := 50;
   container.EdgeOffset := 0;
@@ -154,11 +136,6 @@ begin
   if assigned(PluginsList) then PluginsList.free;
   if assigned(PluginFilesList) then PluginFilesList.free;
   if assigned(AutoRunList) then AutoRunList.free;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.DoSetBaseVisible(param: boolean);
-begin
-  if assigned(BaseCmd) then BaseCmd(tcSetVisible, integer(param));
 end;
 //------------------------------------------------------------------------------
 procedure _Sets.Load(sets_file: string);
@@ -567,81 +544,6 @@ end;
 //
 //
 //
-//------------------------------------------------------------------------------
-function _Sets.IsHiddenDown: boolean;
-begin
-  result := wndOffsetTarget > 0;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.RollDown;
-begin
-  if frmmain.ItemMgr.Dragging then exit;
-  if container.AutoHide and not IsHiddenDown then
-  begin
-    if getBaseOrientation = boVertical then wndOffsetTarget := width - container.AutoHidePixels
-    else wndOffsetTarget := height - container.AutoHidePixels;
-    if wndOffsetTarget < 0 then wndOffsetTarget := 0;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.RollUp;
-begin
-  if IsWindowVisible(ParentHWnd) and IsHiddenDown then
-  begin
-    wndOffsetTarget := 0;
-    //frmmain.ItemMgr.ItemsChanged;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.Timer;
-var
-  KeyPressed: boolean;
-  key, KeySet: integer;
-  sets_visible: boolean;
-begin
-  sets_visible := false;
-  try if frmsets <> nil then sets_visible := frmsets.visible;
-  except end;
-
-  if not MouseOver and not sets_visible then
-    if GetTickCount - LastMouseLeaveTime > container.AutoHideTime then RollDown;
-
-  if MouseOver then
-    if GetTickCount - LastMouseEnterTime > container.AutoShowTime then RollUp;
-
-  if container.AutoHide then
-    if wndoffset <> wndOffsetTarget then
-    begin
-      if abs(wndOffsetTarget - WndOffset) > RollStep then
-      begin
-        if wndOffsetTarget > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
-      end
-      else wndOffset := wndOffsetTarget;
-      frmmain.ItemMgr.ItemsChanged;
-    end;
-
-  KeyPressed:= false;
-  KeySet:= scNone;
-  Key:= sets.container.HideKeys and not (scShift + scCtrl + scAlt);
-  if key > 0 then
-    if getasynckeystate(key) < 0 then KeyPressed:= true;
-  if getasynckeystate(16) < 0 then inc(KeySet, scShift);
-  if getasynckeystate(17) < 0 then inc(KeySet, scCtrl);
-  if getasynckeystate(18) < 0 then inc(KeySet, scAlt);
-  if sets.container.HideKeys and (scShift + scCtrl + scAlt) = KeySet then
-    KeyPressed:= KeyPressed and true
-  else
-    KeyPressed:= false;
-
-  if KeyPressed then
-  begin
-    if not HideKeysPressed then
-    begin
-      DoSetBaseVisible(not visible);
-      HideKeysPressed:= true;
-    end;
-  end else HideKeysPressed:= false;
-end;
 //------------------------------------------------------------------------------
 function _Sets.GetMonitorCount: integer;
 begin

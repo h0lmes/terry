@@ -29,6 +29,10 @@ type
     HiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
     LockList: TList; // disables zoom and related. stores hadles of windows that have requested a lock //
     crsection: TCriticalSection;
+    wndOffsetTarget: integer;
+    LastMouseEnterTime: integer;
+    LastMouseLeaveTime: integer;
+    HideKeysPressed: boolean;
     function CloseQuery: integer;
     procedure MaintainNotForeground;
     procedure RegisterRawInput;
@@ -50,6 +54,10 @@ type
     procedure MouseLeave;
     procedure UpdateRunning;
     procedure UpdateRunningI;
+    function IsHiddenDown: boolean;
+    procedure RollDown;
+    procedure RollUp;
+    procedure RollNHideTimer;
     procedure HideTaskbar(Hide: boolean);
     procedure ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
@@ -63,9 +71,9 @@ type
     AHint: _Hint;
     Tray: _TrayController;
 
+    wndOffset: integer;
     OldBaseWindowRect: GDIPAPI.TRect;
     OldBaseImageRect: GDIPAPI.TRect;
-
     MonitorRect: Windows.TRect;
 
     LastMouseHookPoint: Windows.TPoint;
@@ -165,7 +173,7 @@ begin
 
     // Sets //
     AddLog('Init.Sets');
-    sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle, BaseCmd);
+    sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
 
     // Theme //
@@ -232,8 +240,9 @@ begin
     Tray := _TrayController.Create;
 
     // 'RollDown' on startup if set so //
-    sets.RollDown;
-    sets.wndOffset := sets.wndOffsetTarget;
+    wndOffsetTarget := 0;
+    RollDown;
+    wndOffset := wndOffsetTarget;
 
     // show the dock //
     AddLog('Init.ItemMgr.Visible');
@@ -465,7 +474,7 @@ begin
     gpSite:                   if assigned(theme) then theme.ReloadGraphics;
     gpCenterOffsetPercent:    ItemMgr.ItemsChanged;
     gpEdgeOffset:             ItemMgr.ItemsChanged;
-    gpAutoHide:               if value = 0 then sets.Rollup;
+    gpAutoHide:               if value = 0 then Rollup;
     gpHideTaskBar:            HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
@@ -554,7 +563,7 @@ begin
     begin
       LastMouseHookPoint.x := pt.x;
       LastMouseHookPoint.y := pt.y;
-      ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not sets.IsHiddenDown);
+      ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not IsHiddenDown);
 
       // detect mouse enter/leave //
       OldMouseOver := MouseOver;
@@ -583,17 +592,14 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.MouseEnter;
 begin
-  sets.MouseOver := True;
-  sets.LastMouseEnterTime := GetTickCount;
-
+  LastMouseEnterTime := GetTickCount;
   // set foreground if 'activate' option selected //
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.MouseLeave;
 begin
-  sets.MouseOver := False;
-  sets.LastMouseLeaveTime := GetTickCount;
+  LastMouseLeaveTime := GetTickCount;
   ItemMgr.DragLeave;
 end;
 //------------------------------------------------------------------------------
@@ -780,7 +786,7 @@ begin
   if (msg.wParam = wm_activate) and (msg.lParam = 0) then
   begin
     BaseCmd(tcSetVisible, 1);
-    sets.RollUp;
+    RollUp;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -797,7 +803,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.TimerMain;
 begin
-  if assigned(sets) then sets.Timer;
+  RollNHideTimer;
   if IsWindowVisible(Handle) then
   begin
     if assigned(ItemMgr) then ItemMgr.Timer;
@@ -862,6 +868,77 @@ procedure Tfrmmain.UpdateRunningI;
 begin
   ProcessHelper.EnumProc;
   ItemMgr.SetParam(icUpdateRunning, 0);
+end;
+//------------------------------------------------------------------------------
+function Tfrmmain.IsHiddenDown: boolean;
+begin
+  result := wndOffsetTarget > 0;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.RollDown;
+begin
+  if ItemMgr.Dragging then exit;
+  if sets.container.AutoHide and not IsHiddenDown then
+  begin
+    if sets.getBaseOrientation = boVertical then wndOffsetTarget := ItemMgr.BaseWindowRect.Width - sets.container.AutoHidePixels
+    else wndOffsetTarget := ItemMgr.BaseWindowRect.Height - sets.container.AutoHidePixels;
+    if wndOffsetTarget < 0 then wndOffsetTarget := 0;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.RollUp;
+begin
+  wndOffsetTarget := 0;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.RollNHideTimer;
+var
+  KeyPressed: boolean;
+  key, KeySet: integer;
+  sets_visible: boolean;
+begin
+  sets_visible := false;
+  try if frmsets <> nil then sets_visible := frmsets.visible;
+  except end;
+
+  if not MouseOver and not sets_visible then
+    if GetTickCount - LastMouseLeaveTime > sets.container.AutoHideTime then RollDown;
+
+  if MouseOver then
+    if GetTickCount - LastMouseEnterTime > sets.container.AutoShowTime then RollUp;
+
+  if sets.container.AutoHide then
+    if wndoffset <> wndOffsetTarget then
+    begin
+      if abs(wndOffsetTarget - WndOffset) > RollStep then
+      begin
+        if wndOffsetTarget > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
+      end
+      else wndOffset := wndOffsetTarget;
+      ItemMgr.ItemsChanged;
+    end;
+
+  KeyPressed:= false;
+  KeySet:= scNone;
+  Key:= sets.container.HideKeys and not (scShift + scCtrl + scAlt);
+  if key > 0 then
+    if getasynckeystate(key) < 0 then KeyPressed:= true;
+  if getasynckeystate(16) < 0 then inc(KeySet, scShift);
+  if getasynckeystate(17) < 0 then inc(KeySet, scCtrl);
+  if getasynckeystate(18) < 0 then inc(KeySet, scAlt);
+  if sets.container.HideKeys and (scShift + scCtrl + scAlt) = KeySet then
+    KeyPressed:= KeyPressed and true
+  else
+    KeyPressed:= false;
+
+  if KeyPressed then
+  begin
+    if not HideKeysPressed then
+    begin
+      BaseCmd(tcToggleVisible, 0);
+      HideKeysPressed:= true;
+    end;
+  end else HideKeysPressed:= false;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.SetForeground;
@@ -1076,7 +1153,7 @@ procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer)
 var
   monitor: cardinal;
 begin
-  if not closing and not sets.IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.Dragging then
+  if not closing and not IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.Dragging then
   begin
     if InitDone and not assigned(AHint) then AHint := _Hint.Create;
     if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);

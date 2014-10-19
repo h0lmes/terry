@@ -889,10 +889,10 @@ begin
     // main form rect //
     BaseWindowRect.x := MonitorRect.Left;
     BaseWindowRect.y := MonitorRect.Top;
-    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - sets.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - sets.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width + sets.wndoffset - sets.container.EdgeOffset
-    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height + sets.wndoffset - sets.container.EdgeOffset;
+    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - frmmain.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - frmmain.wndoffset + sets.container.EdgeOffset
+    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width + frmmain.wndoffset - sets.container.EdgeOffset
+    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height + frmmain.wndoffset - sets.container.EdgeOffset;
     if BaseSiteVertical then
     begin
       BaseWindowRect.Width := Width;
@@ -901,10 +901,6 @@ begin
       BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
       BaseWindowRect.Height := Height;
     end;
-
-    // finally //
-    sets.Width := BaseWindowRect.Width;
-    sets.Height := BaseWindowRect.Height;
   except
     on e: Exception do raise Exception.Create('ItemManager.RecalcDock'#10#13 + e.message);
   end;

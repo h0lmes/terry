@@ -108,27 +108,21 @@ end;
 //------------------------------------------------------------------------------
 function TStackModeController.GetItemData(Mode: integer; Opening: boolean; Index: integer; Progress: extended;
     ItemCount: integer; site: integer; ItemSize: integer; Offset: integer; Distort: integer): TStackItemData;
-var
-  cols, rows: integer;
-  x, y, d, r, a, s, fin: extended;
 begin
   if Mode = 0 then
   begin
     if ItemCount > 15 then Mode := DEFMODE_BIG else Mode := DEFMODE_SMALL;
   end;
 
-  if Distort < 1 then Distort := 1;
-  if Distort > 10 then Distort := 10;
-
   case Mode of
-    1: result := GetFan(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    2: result := GetFanAlt(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    3: result := GetTable(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    4: result := GetCards(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    5: result := GetLine(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    6: result := GetSun(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    1: result := GetFan         (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    2: result := GetFanAlt      (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    3: result := GetTable       (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    4: result := GetCards       (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    5: result := GetLine        (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    6: result := GetSun         (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
     7: result := GetParallelWave(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
-    8: result := GetParallel(Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
+    8: result := GetParallel    (Opening, Index, Progress, ItemCount, site, ItemSize, Offset, Distort);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -241,7 +235,7 @@ begin
   result.alpha := round(255 * progress);
   result.hint_alpha := 255;
   result.hint_align := 0;
-  d := Distort * 3 - 3;
+  d := Distort * 3;
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
   rows := ceil(ItemCount / cols);
@@ -294,7 +288,7 @@ begin
   result.hint_alpha := round(510 * progress) - 255;
   if result.hint_alpha < 0 then result.hint_alpha := 0;
   result.hint_align := 0;
-  d := Distort * 3 - 3;
+  d := Distort * 3;
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
   rows := ceil(ItemCount / cols);

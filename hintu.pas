@@ -5,6 +5,9 @@ interface
 uses Windows, Messages, SysUtils, Forms, Math,
   declu, toolu, GDIPAPI, gdip_gfx, setsu, dockh;
 
+const
+  BORDER = 7;
+
 type
   _Hint = class
   private
@@ -122,7 +125,6 @@ var
   bmp: _SimpleBitmap;
   mi: MONITORINFO;
   points: array [0..2] of GDIPAPI.TPoint;
-  border: integer;
 begin
   if IsWindow(hWnd) then
   try
@@ -131,11 +133,10 @@ begin
       wnd_owner := hwndOwner;
       Caption := caption_;
       CopyFontData(sets.container.Font, font);
-      border := 7;
 
       // measure string //
       bmp.dc := CreateCompatibleDC(0);
-      if bmp.dc = 0 then raise Exception.Create('Hint.ActivateHint. CreateCompatibleDC failed');
+      if bmp.dc = 0 then raise Exception.Create('Hint.ActivateHint.CreateCompatibleDC failed');
       GdipCreateFromHDC(bmp.dc, hgdip);
       GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@font.Name))), nil, hfontfamily);
       GdipCreateFont(hfontfamily, font.size, integer(font.bold) + integer(font.italic) * 2, 2, hfont);
@@ -192,29 +193,29 @@ begin
     // background //
 
     try
-      bmp.topleft.x := ax - border;
-      bmp.topleft.y := ay - border;
-      bmp.Width := awidth + border * 2;
-      bmp.Height := aheight + border * 2;
+      bmp.topleft.x := ax - BORDER;
+      bmp.topleft.y := ay - BORDER;
+      bmp.Width := awidth + BORDER * 2;
+      bmp.Height := aheight + BORDER * 2;
       gdip_gfx.CreateBitmap(bmp);
       GdipCreateFromHDC(bmp.dc, hgdip);
       GdipGraphicsClear(hgdip, 0);
       GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-      GdipTranslateWorldTransform(hgdip, border, border, MatrixOrderPrepend);
+      GdipTranslateWorldTransform(hgdip, BORDER, BORDER, MatrixOrderPrepend);
 
       GdipCreatePath(FillModeWinding, path);
       GdipAddPathRectangleI(path, 0, 0, awidth, aheight);
       if (ASite = bsLeft) or (ASite = bsRight) then
       begin
-        points[0].x := -border;
+        points[0].x := -BORDER;
         points[0].y := aheight div 2;
         points[1].x := 0;
         points[1].y := 0;
         points[2].x := 0;
         points[2].y := aheight;
         GdipAddPathPolygonI(path, @points, 3);
-        points[0].x := awidth + border;
+        points[0].x := awidth + BORDER;
         points[0].y := aheight div 2;
         points[1].x := awidth;
         points[1].y := 0;
@@ -225,7 +226,7 @@ begin
       if ASite = bsBottom then
       begin
         points[0].x := awidth div 2;
-        points[0].y := aheight + border - 1;
+        points[0].y := aheight + BORDER - 1;
         points[1].x := awidth div 2 - 2;
         points[1].y := aheight;
         points[2].x := awidth div 2 + min(15, awidth div 2);
@@ -235,7 +236,7 @@ begin
       if ASite = bsTop then
       begin
         points[0].x := awidth div 2;
-        points[0].y := -border + 1;
+        points[0].y := -BORDER + 1;
         points[1].x := awidth div 2 - 2;
         points[1].y := 0;
         points[2].x := awidth div 2 + min(15, awidth div 2);
@@ -315,7 +316,7 @@ begin
       else if need_y > ay then ay := ay + ifthen(delta < STEP, STEP, delta)
       else if need_y < ay then ay := ay - ifthen(delta < STEP, STEP, delta);
 
-      UpdateLWindowPosAlpha(hWnd, ax, ay, alpha);
+      UpdateLWindowPosAlpha(hWnd, ax - BORDER, ay - BORDER, alpha);
 
       if not Visible and (alpha = 0) then
       begin
