@@ -450,14 +450,14 @@ begin
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       //
-      GdipCreatePath(FillModeWinding, path);
-      GdipAddPathRectangle(path, xBitmap, yBitmap - 1, FCaptionWidth - 3, FCaptionHeight + 1);
-      GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
-      GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
+      //GdipCreatePath(FillModeWinding, path);
       GdipCreateSolidFill(AHintAlpha * 13 div 16 * $1000000 + FFont.color_outline and $ffffff, brush);
-      GdipFillPath(dst, brush, path);
+      GdipFillRectangle(dst, brush, xBitmap - FCaptionHeight div 4, yBitmap - 1, FCaptionWidth - 3 + FCaptionHeight div 2, FCaptionHeight + 1);
+      //GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
+      //GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
+      //GdipFillPath(dst, brush, path);
       GdipDeleteBrush(brush);
-      GdipDeletePath(path);
+      //GdipDeletePath(path);
       //
       rect.X := xBitmap;
       rect.Y := yBitmap;
@@ -1008,22 +1008,16 @@ begin
   if FShowHint and (length(FCaption) > 0) then
   begin
     dc := CreateCompatibleDC(0);
-    if dc = 0 then raise Exception.Create('StackSubitem.UpdateItemInternal.Measure. Device context is null');
+    if dc = 0 then raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateCompatibleDC failed');
     GdipCreateFromHDC(dc, hgdip);
-    try
-      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-    except
-      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.CreateFontFamily'#10#13 + e.message);
-    end;
+    if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
+      raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
     GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
     rect.x := 0;
     rect.y := 0;
     rect.Width := 0;
     rect.Height := 0;
-    try GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
-    except
-      on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal.Measure.MeasureString'#10#13 + e.message);
-    end;
+    GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
     GdipDeleteGraphics(hgdip);
     DeleteDC(dc);
     FCaptionWidth := min(ceil(rect.Width), 150);

@@ -121,7 +121,7 @@ var
   wa: Windows.TRect;
   bmp: _SimpleBitmap;
   mi: MONITORINFO;
-  points: array [0..4] of GDIPAPI.TPoint;
+  points: array [0..2] of GDIPAPI.TPoint;
   border: integer;
 begin
   if IsWindow(hWnd) then
@@ -131,7 +131,7 @@ begin
       wnd_owner := hwndOwner;
       Caption := caption_;
       CopyFontData(sets.container.Font, font);
-      border := 5;
+      border := 7;
 
       // measure string //
       bmp.dc := CreateCompatibleDC(0);
@@ -149,8 +149,8 @@ begin
 
       // calc hint dimensions and position //
       aheight := round(rect.Height) + 2;
-      awidth := round(rect.Width) + aheight - 4;
-      awidth := max(awidth, aheight * 3 div 2);
+      awidth := round(rect.Width) + aheight div 2 + 1;
+      awidth := max(awidth, aheight);
 
       if ASite = bsLeft then dec(y, aheight div 2)
       else if ASite = bsTop then dec(x, awidth div 2)
@@ -204,54 +204,41 @@ begin
       GdipTranslateWorldTransform(hgdip, border, border, MatrixOrderPrepend);
 
       GdipCreatePath(FillModeWinding, path);
-      GdipAddPathRectangleI(path, aheight div 2, 0, awidth - aheight - 1, aheight);
-      if ASite = bsLeft then
+      GdipAddPathRectangleI(path, 0, 0, awidth, aheight);
+      if (ASite = bsLeft) or (ASite = bsRight) then
       begin
         points[0].x := -border;
         points[0].y := aheight div 2;
-        points[1].x := aheight div 2 - border;
+        points[1].x := 0;
         points[1].y := 0;
-        points[2].x := aheight div 2;
-        points[2].y := 0;
-        points[3].x := aheight div 2;
-        points[3].y := aheight;
-        points[4].x := aheight div 2 - border;
-        points[4].y := aheight;
-        GdipAddPathPolygonI(path, @points, 5);
-      end
-      else GdipAddPathEllipse(path, -2, -0.3, aheight - 1, aheight);
-      if ASite = bsRight then
-      begin
+        points[2].x := 0;
+        points[2].y := aheight;
+        GdipAddPathPolygonI(path, @points, 3);
         points[0].x := awidth + border;
         points[0].y := aheight div 2;
-        points[1].x := awidth - aheight div 2 - 1 + border;
+        points[1].x := awidth;
         points[1].y := 0;
-        points[2].x := awidth - aheight div 2 - 1;
-        points[2].y := 0;
-        points[3].x := awidth - aheight div 2 - 1;
-        points[3].y := aheight;
-        points[4].x := awidth - aheight div 2 - 1 + border;
-        points[4].y := aheight;
-        GdipAddPathPolygonI(path, @points, 5);
-      end
-      else GdipAddPathEllipse(path, awidth - aheight + 1, -0.3, aheight - 1, aheight);
+        points[2].x := awidth;
+        points[2].y := aheight;
+        GdipAddPathPolygonI(path, @points, 3);
+      end;
       if ASite = bsBottom then
       begin
         points[0].x := awidth div 2;
-        points[0].y := aheight + 4;
-        points[1].x := awidth div 2 - 6;
+        points[0].y := aheight + border - 1;
+        points[1].x := awidth div 2 - 2;
         points[1].y := aheight;
-        points[2].x := awidth div 2 + 6;
+        points[2].x := awidth div 2 + min(15, awidth div 2);
         points[2].y := aheight;
         GdipAddPathPolygonI(path, @points, 3);
       end;
       if ASite = bsTop then
       begin
         points[0].x := awidth div 2;
-        points[0].y := -4;
-        points[1].x := awidth div 2 - 6;
+        points[0].y := -border + 1;
+        points[1].x := awidth div 2 - 2;
         points[1].y := 0;
-        points[2].x := awidth div 2 + 6;
+        points[2].x := awidth div 2 + min(15, awidth div 2);
         points[2].y := 0;
         GdipAddPathPolygonI(path, @points, 3);
       end;
@@ -271,10 +258,8 @@ begin
     // text //
 
     try
-      rect.X := rect.X + font.size div 3 - 1;
-      rect.Y := rect.Y + 1;
-      rect.X := rect.X + aheight div 4;
-
+      rect.Y := 1;
+      rect.X := aheight div 4 + 1;
       GdipCreateSolidFill(font.color, hbrush);
       GdipDrawString(hgdip, PWideChar(Caption), -1, hfont, @rect, nil, hbrush);
       GdipDeleteBrush(hbrush);
