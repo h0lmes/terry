@@ -31,6 +31,7 @@ type
     crsection: TCriticalSection;
     wndOffsetTarget: integer;
     HideKeysPressed: boolean;
+    SavedWorkarea: windows.TRect;
     function CloseQuery: integer;
     procedure MaintainNotForeground;
     procedure RegisterRawInput;
@@ -61,6 +62,7 @@ type
     procedure RollUp;
     procedure RollNHideTimer;
     procedure HideTaskbar(Hide: boolean);
+    procedure SetWorkarea(rect: windows.TRect);
     procedure ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
 
@@ -814,12 +816,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.TimerMain;
 begin
-  RollNHideTimer;
   if IsWindowVisible(Handle) then
   begin
     if assigned(ItemMgr) then ItemMgr.Timer;
     if assigned(Tray) then Tray.Timer;
   end;
+  RollNHideTimer;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.TimerSlow;
@@ -834,7 +836,9 @@ begin
       ItemMgr.CheckDeleted;
     end;
 
+    // maintain visibility
     if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
+    // maintain taskbar visibility
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
     on e: Exception do raise Exception.Create('Base.OnSlowTimer'#10#13 + e.message);
@@ -846,8 +850,10 @@ var
   fsa: boolean;
 begin
   try
+    // keep the edge of the screen reserved if set so
     ReserveScreenEdge(sets.container.ReserveScreenEdge, sets.container.ReserveScreenEdgePercent, sets.container.Site);
 
+    // hide/show the dock by fullscreen apps
     if HiddenByFSA and Visible then HiddenByFSA := false;
     fsa := FullScreenAppActive(0);
     if sets.container.AutoHideOnFullScreenApp then
@@ -1220,15 +1226,17 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
 //------------------------------------------------------------------------------
+// hide/show taskbar and start button
 procedure Tfrmmain.HideTaskbar(hide: boolean);
 var
-  hwnd: uint;
+  hwnd, hwndButton: uint;
   r: Windows.TRect;
   pt: windows.TPoint;
   monitor: integer; // a monitor on which the taskbar is
 begin
   try
     hwnd := FindWindow('Shell_TrayWnd', nil);
+    hwndButton := FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText)));
 
     // get taskbar monitor
     monitor := 0;
@@ -1239,24 +1247,60 @@ begin
       monitor := screen.MonitorFromPoint(pt).MonitorNum;
     end;
 
-    if hide and IsWindowVisible(hwnd) then
+    if hide and (IsWindowVisible(hwnd) or IsWindowVisible(hwndButton)) then
     begin
+      // save workarea of the monitor with the taskbar
+      SavedWorkarea := GetMonitorWorkareaRect(@monitor);
+      // set workarea = entire monitor area
+      SetWorkarea(GetMonitorBoundsRect(@monitor));
+      // hide taskbar and button
       showwindow(hwnd, 0);
-      showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), 0);
-      r := ItemMgr.MonitorRect;
-      if not EqualRect(r, GetMonitorWorkareaRect(@monitor)) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
+      showwindow(hwndButton, 0);
     end
     else
-    if not hide and not IsWindowVisible(hwnd) then
+    if not hide and (not IsWindowVisible(hwnd) or not IsWindowVisible(hwndButton)) then
     begin
+      // show taskbar and button
       showwindow(hwnd, SW_SHOW);
-      showwindow(FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText))), SW_SHOW);
-      //r := ItemMgr.MonitorRect;
-      //if not EqualRect(r, GetMonitorWorkareaRect) then SystemParametersInfo(SPI_SETWORKAREA, 0, @r, SPIF_SENDCHANGE);
+      showwindow(hwndButton, SW_SHOW);
+      // restore workarea to previously saved state
+      SetWorkarea(SavedWorkarea);
     end;
   except
     on e: Exception do raise Exception.Create('Base.HideTaskbar'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.SetWorkarea(rect: windows.TRect);
+var
+  h: HANDLE;
+  wp: WINDOWPLACEMENT;
+  monitor: integer; // a monitor of given workarea
+  bounds: windows.TRect;
+begin
+  SystemParametersInfo(SPI_SETWORKAREA, 0, @rect, SPIF_SENDCHANGE);
+  monitor := screen.MonitorFromPoint(rect.TopLeft).MonitorNum;
+  bounds := GetMonitorBoundsRect(@monitor);
+
+  // re-maximize maximized windows to make them match new workarea
+  wp.length := sizeof(wp);
+  h := FindWindow('Progman', nil);
+  h := GetWindow(h, GW_HWNDPREV);
+	while h <> 0 do
+	begin
+    GetWindowPlacement(h, wp);
+    if wp.showCmd = SW_SHOWMAXIMIZED then
+    begin
+      if PtInRect(bounds, wp.ptMaxPosition) then
+      begin
+        //SetWindowPos(handle, h, rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top,
+          //SWP_NOACTIVATE + SWP_NOZORDER + SWP_FRAMECHANGED);
+        ShowWindow(h, SW_SHOWNORMAL);
+        ShowWindow(h, SW_SHOWMAXIMIZED);
+      end;
+    end;
+    h := GetWindow(h, GW_HWNDPREV);
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
@@ -1299,7 +1343,7 @@ begin
       Changed := true;
     end;
 
-    if Changed then SystemParametersInfo(SPI_SETWORKAREA, 0, @WorkArea, SPIF_SENDCHANGE);
+    if Changed then SetWorkarea(WorkArea);
   except
     on e: Exception do raise Exception.Create('Base.ReserveScreenEdge'#10#13 + e.message);
   end;
@@ -1352,7 +1396,7 @@ begin
       end;
     end;
 
-    if Changed then SystemParametersInfo(SPI_SETWORKAREA, 0, @WorkArea, SPIF_SENDCHANGE);
+    if Changed then SetWorkarea(WorkArea);
   except
     on e: Exception do raise Exception.Create('Base.UnreserveScreenEdge'#10#13 + e.message);
   end;

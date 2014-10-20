@@ -608,6 +608,16 @@ msgid "Add program"
 msgstr ""
 
 #: tfrmsets.btnautorunadd.hint
+msgctxt "tfrmsets.btnautorunadd.hint"
+msgid "Add"
+msgstr ""
+
+#: tfrmsets.btnautorunaddminimized.caption
+msgid "Add (run minimized)"
+msgstr ""
+
+#: tfrmsets.btnautorunaddminimized.hint
+msgctxt "TFRMSETS.BTNAUTORUNADDMINIMIZED.HINT"
 msgid "Add"
 msgstr ""
 

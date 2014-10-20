@@ -13,6 +13,7 @@ type
 
   Tfrmsets = class(TForm)
     btnAutoRunAdd: TSpeedButton;
+    btnAutoRunAddMinimized: TSpeedButton;
     btnDebug: TButton;
     btnRemoveDock: TButton;
     btnRunNow: TButton;
@@ -110,6 +111,7 @@ type
     btn_cancel: TBitBtn;
     lv: TListView;
     images: TImageList;
+    procedure btnAutoRunAddMinimizedClick(Sender: TObject);
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
     procedure btnSelectStackFontClick(Sender: TObject);
@@ -819,6 +821,16 @@ begin
   with TOpenDialog.Create(self) do
   try
     if execute then memAutorun.Lines.Add('"' + AnsiToUTF8(toolu.ZipPath(FileName)) + '"');
+  finally
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.btnAutoRunAddMinimizedClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(self) do
+  try
+    if execute then memAutorun.Lines.Add('#"' + AnsiToUTF8(toolu.ZipPath(FileName)) + '"');
   finally
     free;
   end;

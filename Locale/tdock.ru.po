@@ -669,6 +669,15 @@ msgctxt "TFRMSETS.BTNAUTORUNADD.HINT"
 msgid "Add"
 msgstr "Добавить"
 
+#: tfrmsets.btnautorunaddminimized.caption
+msgid "Add (run minimized)"
+msgstr ""
+
+#: tfrmsets.btnautorunaddminimized.hint
+msgctxt "tfrmsets.btnautorunaddminimized.hint"
+msgid "Add"
+msgstr "Добавить"
+
 #: tfrmsets.btnbrowseshell.caption
 msgctxt "TFRMSETS.BTNBROWSESHELL.CAPTION"
 msgid "..."

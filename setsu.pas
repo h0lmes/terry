@@ -154,7 +154,8 @@ begin
   StrCopy(container.ThemeName, pchar(ini.ReadString('base', 'Theme', 'Aero')));
   container.Monitor := ini.ReadInteger('base', 'Monitor', 0);
   container.Site := StringToSite(ini.ReadString('base', 'Site', 'top'));
-  StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
+  container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
+  container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
   container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 500), 0, 9999);
@@ -167,11 +168,8 @@ begin
   container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 4, 10);
   container.ZoomTime := SetRange(ini.ReadInteger('base', 'ZoomTime', 120), 0, 600);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
-  container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
-  container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
   container.DropDistance := container.ItemSize;
   container.HideKeys := ini.ReadInteger('base', 'HideKeys', 16490);
-  container.useShell := ini.ReadBool('base', 'UseShell', false);
   container.autohide := ini.ReadBool('base', 'AutoHide', false);
   container.LaunchInThread := ini.ReadBool('base', 'LaunchInThread', true);
   container.ZoomItems := ini.ReadBool('base', 'ZoomItems', true);
@@ -189,22 +187,22 @@ begin
   container.UseShellContextMenus := ini.ReadBool('base', 'UseShellContextMenus', true);
   container.StackOpenAnimation := ini.ReadBool('base', 'StackOpenAnimation', true);
   container.Hello := ini.ReadBool('base', 'Hello', true);
+  container.useShell := ini.ReadBool('base', 'UseShell', false);
+  StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
   container.Font.color:= uint(ini.ReadInteger('Font', 'color', integer($ffffffff)));
-  container.Font.color_outline:= uint(ini.ReadInteger('Font', 'color_o', integer($ff101010)));
+  container.Font.color_outline:= uint(ini.ReadInteger('Font', 'backcolor', integer($ff202020)));
   container.Font.bold:= ini.ReadBool('Font', 'bold', true);
   container.Font.italic:= ini.ReadBool('Font', 'italic', false);
-  container.Font.outline:= ini.ReadBool('Font', 'outline', false);
   // stack font //
   StrCopy(container.StackFont.name, pchar(ini.ReadString('StackFont', 'name', toolu.GetFont)));
-  container.StackFont.size:= SetRange(ini.ReadInteger('StackFont', 'size', 12), 6, 72);
+  container.StackFont.size:= SetRange(ini.ReadInteger('StackFont', 'size', 14), 6, 72);
   container.StackFont.color:= uint(ini.ReadInteger('StackFont', 'color', integer($ffffffff)));
-  container.StackFont.color_outline:= uint(ini.ReadInteger('StackFont', 'color_o', integer($ff101010)));
+  container.StackFont.color_outline:= uint(ini.ReadInteger('StackFont', 'backcolor', integer($ff202020)));
   container.StackFont.bold:= ini.ReadBool('StackFont', 'bold', true);
   container.StackFont.italic:= ini.ReadBool('StackFont', 'italic', false);
-  container.StackFont.outline:= ini.ReadBool('StackFont', 'outline', false);
   // gfx //
   container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 0, 255);
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
@@ -246,6 +244,8 @@ begin
   ini.WriteString ('base', 'Theme', pchar(@container.ThemeName[0]));
   ini.WriteInteger('base', 'Monitor', container.Monitor);
   ini.WriteString ('base', 'Site', SiteToString(container.Site));
+  ini.WriteInteger('base', 'CenterOffsetPercent', container.CenterOffsetPercent);
+  ini.WriteInteger('base', 'EdgeOffset', container.EdgeOffset);
   ini.WriteString ('base', 'Shell', pchar(@container.Shell[0]));
   ini.WriteBool   ('base', 'AutoHide', container.autohide);
   ini.WriteInteger('base', 'AutoHideTime', container.autohidetime);
@@ -260,8 +260,6 @@ begin
   ini.WriteInteger('base', 'ItemSpacing', container.ItemSpacing);
   ini.WriteInteger('base', 'ZoomWidth', container.ZoomWidth);
   ini.WriteInteger('base', 'ZoomTime', container.ZoomTime);
-  ini.WriteInteger('base', 'CenterOffsetPercent', container.CenterOffsetPercent);
-  ini.WriteInteger('base', 'EdgeOffset', container.EdgeOffset);
   ini.WriteInteger('base', 'HideKeys', container.HideKeys);
   ini.WriteBool   ('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
   ini.WriteBool   ('base', 'UseShell', container.useShell);
@@ -288,18 +286,16 @@ begin
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
   ini.WriteInteger('Font', 'color', container.Font.color);
-  ini.WriteInteger('Font', 'color_o', container.Font.color_outline);
+  ini.WriteInteger('Font', 'backcolor', container.Font.color_outline);
   ini.WriteBool   ('Font', 'bold', container.Font.bold);
   ini.WriteBool   ('Font', 'italic', container.Font.italic);
-  ini.WriteBool   ('Font', 'outline', container.Font.outline);
   // stack font //
   ini.WriteString ('StackFont', 'name', pchar(@container.StackFont.name[0]));
   ini.WriteInteger('StackFont', 'size', container.StackFont.size);
   ini.WriteInteger('StackFont', 'color', container.StackFont.color);
-  ini.WriteInteger('StackFont', 'color_o', container.StackFont.color_outline);
+  ini.WriteInteger('StackFont', 'backcolor', container.StackFont.color_outline);
   ini.WriteBool   ('StackFont', 'bold', container.StackFont.bold);
   ini.WriteBool   ('StackFont', 'italic', container.StackFont.italic);
-  ini.WriteBool   ('StackFont', 'outline', container.StackFont.outline);
 
   // autoruns //
   idx:= 0;
