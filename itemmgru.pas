@@ -1,8 +1,8 @@
 unit itemmgru;
 
 interface
-uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math, GDIPAPI,
-  declu, gdip_gfx, themeu, setsu, processhlp,
+uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math,
+  declu, DockH, toolu, gdip_gfx, GDIPAPI, processhlp,
   customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
 
 const
@@ -33,6 +33,12 @@ type
     ZoomStartTime: integer; // timestamp when zoming in or out has begun
     Reflection: boolean;
     ReflectionSize: integer;
+    ItemAnimation: integer;
+    LaunchInterval: integer;
+    ActivateRunning: boolean;
+    UseShellContextMenus: boolean;
+    ShowHint: boolean;
+    StackOpenAnimation: boolean;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
@@ -40,16 +46,18 @@ type
     Monitor: integer;
     BaseSite: TBaseSite;
     BaseSiteVertical: boolean;
+    FCenterOffsetPercent: integer;
+    FEdgeOffset: integer;
+    FWndOffset: integer;
     // Wnd Item Vars //
     FVisible: boolean;
     Enabled: boolean;
-    FItemArea: windows.TRect; // updates in SetItems1
+    FItemArea: windows.TRect;
     LockMouseEffect: boolean;
     SetsFilename: string;
-    //
+
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
-    procedure DoSetForeground;
     procedure DoBaseDraw(flags: integer);
     procedure SetVisible(value: boolean);
 
@@ -57,14 +65,10 @@ type
     procedure AllItemsSave;
     procedure ItemSave(HWnd: uint);
 
-    function GetTaskItemIndex(h: THandle): integer;
-
-    //
     procedure SetItems1;
     procedure RecalcDock;
     procedure SetItems2(force_draw: boolean);
 
-    //
     function IASize: integer;
     function ItemFromPoint(Ax, Ay, distance: integer): extended;
     function ItemRectFromPoint(Ax, Ay: integer): integer;
@@ -74,6 +78,7 @@ type
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
     procedure CopyItemDescriptor(pFrom, pTo: PItem);
+    function GetTaskItemIndex(h: THandle): integer;
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
@@ -104,6 +109,8 @@ type
     BaseCmd: TBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;
+    property ItemArea: windows.TRect read FItemArea write FItemArea;
+    property WndOffset: integer read FWndOffset write FWndOffset;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
     destructor Destroy; override;
@@ -173,7 +180,6 @@ type
 end;
 
 implementation
-uses frmmainu, DockH, toolu;
 //------------------------------------------------------------------------------
 constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
 begin
@@ -202,6 +208,9 @@ begin
   Dragging := false;
   DragHWnd := 0;
   LockMouseEffect := false;
+  FCenterOffsetPercent := 50;
+  FEdgeOffset := 0;
+  FWndOffset := 0;
   itemsDeleted := TFPList.Create;
 end;
 //------------------------------------------------------------------------------
@@ -224,7 +233,7 @@ begin
   if assigned(e) then where := where + ' '#10#13 + e.Message else where := where + ' '#10#13'Error';
   if Critical then
   begin
-    messagebox(frmmain.handle,
+    messagebox(ParentHWnd,
       pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + #10#13#10#13 + where),
       PROGRAM_NAME, MB_ICONERROR);
     halt;
@@ -234,7 +243,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.notify(message: string);
 begin
-  frmmain.notify(message);
+  dockh.notify(0, pchar(message));
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetParam(id: TGParam; value: integer);
@@ -264,11 +273,26 @@ begin
           ZoomItems := boolean(value);
           ItemsChanged(true);
         end;
+      gpMonitor:
+        begin
+          Monitor := value;
+          ItemsChanged(true);
+        end;
       gpSite:
         begin
           BaseSite := TBaseSite(value);
           BaseSiteVertical := (BaseSite = bsLeft) or (BaseSite = bsRight);
           ItemsChanged(true);
+        end;
+      gpCenterOffsetPercent:
+        begin
+          FCenterOffsetPercent := value;
+          ItemsChanged;
+        end;
+      gpEdgeOffset:
+        begin
+          FEdgeOffset := value;
+          ItemsChanged;
         end;
       gpDropDistance: DropDistance := value;
       gpLockDragging: LockDragging := boolean(value);
@@ -282,12 +306,13 @@ begin
           ReflectionSize := value;
           ItemsChanged(true);
         end;
+      gpItemAnimation: ItemAnimation := value;
+      gpLaunchInterval: LaunchInterval := value;
+      gpActivateRunning: ActivateRunning := value <> 0;
+      gpUseShellContextMenus: UseShellContextMenus := value <> 0;
+      gpShowHint: ShowHint := value <> 0;
+      gpStackOpenAnimation: StackOpenAnimation := value <> 0;
       gpZoomTime: ZoomTime := value;
-      gpMonitor:
-        begin
-          Monitor := value;
-          ItemsChanged(true);
-        end;
       gpLockMouseEffect: LockMouseEffect := value <> 0;
     end;
   except
@@ -304,8 +329,7 @@ begin
     if cmd = 'clear' then Clear;
     if cmd = 'load' then
     begin
-      if params = '' then params := sets.SetsPathFile;
-      Load(params);
+      if params <> '' then Load(params);
     end;
     if cmd = 'shortcut' then AddItem('class="shortcut";', true);
     if cmd = 'separator' then AddItem('class="separator";', true);
@@ -319,11 +343,6 @@ begin
   except
     on e: Exception do err('ItemManager.Command::' + cmd + '(' + params + ')', e);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.DoSetForeground;
-begin
-  if assigned(BaseCmd) then BaseCmd(tcZOrder, 0);
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DoBaseDraw(flags: integer);
@@ -606,7 +625,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Timer;
 var
-  elapsed, xstep: integer;
+  elapsed: integer;
   doUpdate: boolean;
   item: integer;
   Inst: TCustomItem;
@@ -653,7 +672,6 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.SetTheme;
 begin
-  //MonitorRect := frmmain.GetMonitorBoundsRect;
   AllItemCmd(tcThemeChanged, 0);
   ItemsChanged(true);
 end;
@@ -704,15 +722,14 @@ var
   sizeInc: extended;
   offset: extended;
 begin
-  if not Enabled or not assigned(theme) then exit;
+  if not Enabled then exit;
 
   try
-    FItemArea := theme.CorrectMargins(theme.ItemsArea);
     if BaseSiteVertical then
     begin
-      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
+      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
     end else begin
-      x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
+      x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
     end;
 
     // zoomed bubble additional size //
@@ -825,11 +842,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.RecalcDock;
-var
-  zi_int: integer;
-  zi_frac: extended;
 begin
-  if Enabled and assigned(theme) then
+  if Enabled then
   try
     // width and height //
     width := 0;
@@ -854,7 +868,7 @@ begin
       if ItemCount = 0 then
       begin
         width := ItemSize + FItemArea.Left + FItemArea.Right;
-        x := (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100
+        x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100
           - FItemArea.Left + (IASize - width + FItemArea.Left + FItemArea.Right - ItemSpacing) div 2;
       end
       else
@@ -870,7 +884,7 @@ begin
       if ItemCount = 0 then
       begin
         height := ItemSize + FItemArea.Top + FItemArea.Bottom;
-        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100
+        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100
           - FItemArea.Top + (IASize - height + FItemArea.Top + FItemArea.Bottom - ItemSpacing) div 2;
       end
       else
@@ -889,10 +903,10 @@ begin
     // main form rect //
     BaseWindowRect.x := MonitorRect.Left;
     BaseWindowRect.y := MonitorRect.Top;
-    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - frmmain.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - frmmain.wndoffset + sets.container.EdgeOffset
-    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width + frmmain.wndoffset - sets.container.EdgeOffset
-    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height + frmmain.wndoffset - sets.container.EdgeOffset;
+    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - FWndOffset + FEdgeOffset
+    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - FWndOffset + FEdgeOffset
+    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - Width + FWndOffset - FEdgeOffset
+    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - Height + FWndOffset - FEdgeOffset;
     if BaseSiteVertical then
     begin
       BaseWindowRect.Width := Width;
@@ -1010,18 +1024,18 @@ begin
   try
     class_name := AnsiLowerCase(FetchValue(data, 'class="', '"'));
 
-    icp.ItemSize := sets.container.ItemSize;
-    icp.BigItemSize := sets.container.BigItemSize;
-    icp.LaunchInterval := sets.container.LaunchInterval;
-    icp.ActivateRunning := sets.container.ActivateRunning;
-    icp.UseShellContextMenus := sets.container.UseShellContextMenus;
+    icp.ItemSize := ItemSize;
+    icp.BigItemSize := BigItemSize;
+    icp.LaunchInterval := LaunchInterval;
+    icp.ActivateRunning := ActivateRunning;
+    icp.UseShellContextMenus := UseShellContextMenus;
     icp.Site := integer(BaseSite);
-    icp.Reflection := sets.container.Reflection;
-    icp.ReflectionSize := theme.ReflectionSize;
-    icp.ShowHint := sets.container.ShowHint;
-    icp.Animation := sets.container.ItemAnimation;
-    icp.LockDragging := sets.container.LockDragging;
-    icp.StackOpenAnimation := sets.container.StackOpenAnimation;
+    icp.Reflection := Reflection;
+    icp.ReflectionSize := ReflectionSize;
+    icp.ShowHint := ShowHint;
+    icp.Animation := ItemAnimation;
+    icp.LockDragging := LockDragging;
+    icp.StackOpenAnimation := StackOpenAnimation;
 
     if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
     else
@@ -1285,10 +1299,10 @@ begin
 
     if BaseSiteVertical then
     begin
-      BasePoint := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * sets.container.CenterOffsetPercent div 100;
+      BasePoint := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
       result := (Ay - BasePoint) / (ItemSize + ItemSpacing);
     end else begin
-      BasePoint := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * sets.container.CenterOffsetPercent div 100;
+      BasePoint := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
       result := (Ax - BasePoint) / (ItemSize + ItemSpacing);
     end;
     if result < -1 then result := NOT_AN_ITEM;
@@ -1869,8 +1883,7 @@ var
 begin
   try
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if (Inst is TCustomItem) and (sets.container.ItemAnimation > 0) then
-      Inst.Animate(sets.container.ItemAnimation);
+    if (Inst is TCustomItem) and (ItemAnimation > 0) then Inst.Animate(ItemAnimation);
   except
     on e: Exception do err('ItemManager.PluginAnimate', e);
   end;

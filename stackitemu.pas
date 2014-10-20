@@ -198,11 +198,11 @@ begin
         FColorData := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
         try FMode := SetRange(strtoint(ini.ReadString(IniSection, 'mode', '0')), 0, 1000);
         except end;
-        try FOffset := SetRange(strtoint(ini.ReadString(IniSection, 'offset', '0')), 0, 200);
+        try FOffset := SetRange(strtoint(ini.ReadString(IniSection, 'offset', '0')), -20, 50);
         except end;
         try FAnimationSpeed := SetRange(strtoint(ini.ReadString(IniSection, 'animation_speed', inttostr(DEFAULT_ANIM_SPEED))), 1, 10);
         except end;
-        try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), 1, 10);
+        try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), -10, 10);
         except end;
         try FPreview := not (ini.ReadString(IniSection, 'preview', '') = '0');
         except end;
@@ -1130,7 +1130,7 @@ begin
     FState := stsOpening; // further progress is being done by timer //
     FHideHint := true;
     Redraw;
-    if FDragOver then LME(true);
+    LME(true);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1191,7 +1191,7 @@ begin
       begin
         FStateProgress := 0;
         FState := stsClosed;
-        if FHMenu = 0 then LME(false);
+        LME(false);
         FHideHint := false;
         CheckDeleteSubitems;
         AllSubitemsCmd(icSelect, 0);

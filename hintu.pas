@@ -5,9 +5,6 @@ interface
 uses Windows, Messages, SysUtils, Forms, Math,
   declu, toolu, GDIPAPI, gdip_gfx, setsu, dockh;
 
-const
-  BORDER = 7;
-
 type
   _Hint = class
   private
@@ -29,6 +26,7 @@ type
     need_y: integer;
     need_w: integer;
     need_h: integer;
+    FBorder: integer;
     procedure err(where: string; e: Exception);
   public
     constructor Create;
@@ -87,7 +85,7 @@ begin
     wndClass.hCursor        := LoadCursor(0, IDC_ARROW);
     wndClass.hbrBackground  := 0;
     wndClass.lpszMenuName   := nil;
-    wndClass.lpszClassName  := 'Terry::Hint';
+    wndClass.lpszClassName  := 'TDock::Hint';
     WindowClassInstance := Windows.RegisterClass(wndClass);
     if WindowClassInstance < 33 then err('Can not register hint window class', nil);
   except
@@ -99,7 +97,7 @@ begin
   end;
 
   try
-    hWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, 'Terry::Hint', '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    hWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, 'TDock::Hint', '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
     if IsWindow(hWnd) then SetWindowLong(hWnd, GWL_USERDATA, cardinal(self))
     else err('Hint.Create.CreateWindowEx failed', nil);
   except
@@ -133,6 +131,8 @@ begin
       wnd_owner := hwndOwner;
       Caption := caption_;
       CopyFontData(sets.container.Font, font);
+      FBorder := 0;
+      if (ASite = bsTop) or (ASite = bsBottom) then FBorder := 7;
 
       // measure string //
       bmp.dc := CreateCompatibleDC(0);
@@ -193,40 +193,23 @@ begin
     // background //
 
     try
-      bmp.topleft.x := ax - BORDER;
-      bmp.topleft.y := ay - BORDER;
-      bmp.Width := awidth + BORDER * 2;
-      bmp.Height := aheight + BORDER * 2;
+      bmp.topleft.x := ax - FBorder;
+      bmp.topleft.y := ay - FBorder;
+      bmp.Width := awidth + FBorder * 2;
+      bmp.Height := aheight + FBorder * 2;
       gdip_gfx.CreateBitmap(bmp);
       GdipCreateFromHDC(bmp.dc, hgdip);
       GdipGraphicsClear(hgdip, 0);
       GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-      GdipTranslateWorldTransform(hgdip, BORDER, BORDER, MatrixOrderPrepend);
+      GdipTranslateWorldTransform(hgdip, FBorder, FBorder, MatrixOrderPrepend);
 
       GdipCreatePath(FillModeWinding, path);
       GdipAddPathRectangleI(path, 0, 0, awidth, aheight);
-      if (ASite = bsLeft) or (ASite = bsRight) then
-      begin
-        points[0].x := -BORDER;
-        points[0].y := aheight div 2;
-        points[1].x := 0;
-        points[1].y := 0;
-        points[2].x := 0;
-        points[2].y := aheight;
-        GdipAddPathPolygonI(path, @points, 3);
-        points[0].x := awidth + BORDER;
-        points[0].y := aheight div 2;
-        points[1].x := awidth;
-        points[1].y := 0;
-        points[2].x := awidth;
-        points[2].y := aheight;
-        GdipAddPathPolygonI(path, @points, 3);
-      end;
       if ASite = bsBottom then
       begin
         points[0].x := awidth div 2;
-        points[0].y := aheight + BORDER - 1;
+        points[0].y := aheight + FBorder - 1;
         points[1].x := awidth div 2 - 2;
         points[1].y := aheight;
         points[2].x := awidth div 2 + min(15, awidth div 2);
@@ -236,14 +219,14 @@ begin
       if ASite = bsTop then
       begin
         points[0].x := awidth div 2;
-        points[0].y := -BORDER + 1;
+        points[0].y := -FBorder + 1;
         points[1].x := awidth div 2 - 2;
         points[1].y := 0;
         points[2].x := awidth div 2 + min(15, awidth div 2);
         points[2].y := 0;
         GdipAddPathPolygonI(path, @points, 3);
       end;
-      GdipCreateSolidFill($e0000000 + font.color_outline and $ffffff, hbrush);
+      GdipCreateSolidFill($ff000000 + font.color_outline and $ffffff, hbrush);
       GdipFillPath(hgdip, hbrush, path);
       GdipDeleteBrush(hbrush);
       GdipDeletePath(path);
@@ -316,7 +299,7 @@ begin
       else if need_y > ay then ay := ay + ifthen(delta < STEP, STEP, delta)
       else if need_y < ay then ay := ay - ifthen(delta < STEP, STEP, delta);
 
-      UpdateLWindowPosAlpha(hWnd, ax - BORDER, ay - BORDER, alpha);
+      UpdateLWindowPosAlpha(hWnd, ax - FBorder, ay - FBorder, alpha);
 
       if not Visible and (alpha = 0) then
       begin

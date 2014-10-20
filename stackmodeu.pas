@@ -242,14 +242,14 @@ begin
   inc(Offset, 10 + HSPACE);
   case Site of
     0: begin
-        x := (Offset + ItemSize) + (ItemSize + HSPACE + d) * (index mod cols);
+        x := (Offset + ItemSize div 2) + (ItemSize + HSPACE + d) * (index mod cols);
         if (index div cols = rows - 1) and (ItemCount mod cols <> 0) then x := x + (ItemSize + HSPACE + d) * (cols - ItemCount mod cols) / 2;
         y := (ItemSize + VSPACE) * (index div cols) - (ItemSize + VSPACE) * (rows - 1) / 2;
         result.x := round(x * s);
         result.y := round(y * s);
       end;
     2: begin
-        x := progress * (Offset + ItemSize) + (ItemSize + HSPACE + d) * (cols - 1 - index mod cols);
+        x := progress * (Offset + ItemSize div 2) + (ItemSize + HSPACE + d) * (cols - 1 - index mod cols);
         if (index div cols = rows - 1) and (ItemCount mod cols <> 0) then x := x + (ItemSize + HSPACE + d) * (cols - ItemCount mod cols) / 2;
         y := (ItemSize + VSPACE) * (index div cols) - (ItemSize + VSPACE) * (rows - 1) / 2;
         result.x := -round(x * s);
@@ -258,14 +258,14 @@ begin
     1: begin
         x := (ItemSize + HSPACE + d) * (index mod cols) - (ItemSize + HSPACE + d) * (cols - 1) / 2;
         if (index div cols = rows - 1) and (ItemCount mod cols <> 0) then x := x + (ItemSize + HSPACE + d) * (cols - ItemCount mod cols) / 2;
-        y := (Offset + ItemSize) + (ItemSize + VSPACE) * (index div cols);
+        y := (Offset + ItemSize div 2) + (ItemSize + VSPACE) * (index div cols);
         result.x := round(x * s);
         result.y := round(y * s);
       end;
     3: begin
         x := (ItemSize + HSPACE + d) * (index mod cols) - (ItemSize + HSPACE + d) * (cols - 1) / 2;
         if (index div cols = rows - 1) and (ItemCount mod cols <> 0) then x := x + (ItemSize + HSPACE + d) * (cols - ItemCount mod cols) / 2;
-        y := (Offset + ItemSize) + (ItemSize + VSPACE) * (rows - 1 - index div cols);
+        y := (Offset + ItemSize div 2) + (ItemSize + VSPACE) * (rows - 1 - index div cols);
         result.x := round(x * s);
         result.y := -round(y * s);
       end;
@@ -297,26 +297,26 @@ begin
     0: begin
         y := (ItemSize + VSPACE) * (index div cols) * progress - (ItemSize + VSPACE) * (rows - 1) * progress / 2;
         y := y * (1 - power(cos(progress * PI / 2), 2 / 3));
-        result.x := round(progress * (Offset + ItemSize) + (ItemSize + VSPACE + d) * (index mod cols) * progress);
+        result.x := round(progress * (Offset + ItemSize div 2) + (ItemSize + VSPACE + d) * (index mod cols) * progress);
         result.y := round(y);
       end;
     2: begin
         y := (ItemSize + VSPACE) * (index div cols) * progress - (ItemSize + VSPACE) * (rows - 1) * progress / 2;
         y := y * (1 - power(cos(progress * PI / 2), 1 / 2));
-        result.x := -round(progress * (Offset + ItemSize) + (ItemSize + VSPACE + d) * (cols - 1 - index mod cols) * progress);
+        result.x := -round(progress * (Offset + ItemSize div 2) + (ItemSize + VSPACE + d) * (cols - 1 - index mod cols) * progress);
         result.y := round(y);
       end;
     1: begin
         x := (ItemSize + HSPACE + d) * (index mod cols) * progress - (ItemSize + HSPACE + d) * (cols - 1) * progress / 2;
         x := x * (1 - power(cos(progress * PI / 2), 1 / 2));
         result.x := round(x);
-        result.y := round(progress * (Offset + ItemSize) + (ItemSize + VSPACE) * (index div cols) * progress);
+        result.y := round(progress * (Offset + ItemSize div 2) + (ItemSize + VSPACE) * (index div cols) * progress);
       end;
     3: begin
         x := (ItemSize + HSPACE + d) * (index mod cols) * progress - (ItemSize + HSPACE + d) * (cols - 1) * progress / 2;
         x := x * (1 - power(cos(progress * PI / 2), 1 / 2));
         result.x := round(x);
-        result.y := -round(progress * (Offset + ItemSize) + (ItemSize + VSPACE) * (rows - 1 - index div cols) * progress);
+        result.y := -round(progress * (Offset + ItemSize div 2) + (ItemSize + VSPACE) * (rows - 1 - index div cols) * progress);
       end;
   end;
 end;

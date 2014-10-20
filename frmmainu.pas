@@ -30,8 +30,6 @@ type
     LockList: TList; // disables zoom and related. stores hadles of windows that have requested a lock //
     crsection: TCriticalSection;
     wndOffsetTarget: integer;
-    LastMouseEnterTime: integer;
-    LastMouseLeaveTime: integer;
     HideKeysPressed: boolean;
     function CloseQuery: integer;
     procedure MaintainNotForeground;
@@ -52,6 +50,10 @@ type
     procedure WHButtonDown(button: integer);
     procedure MouseEnter;
     procedure MouseLeave;
+    procedure TimerMain;
+    procedure TimerSlow;
+    procedure TimerFSA;
+    procedure TimerRoll;
     procedure UpdateRunning;
     procedure UpdateRunningI;
     function IsHiddenDown: boolean;
@@ -94,6 +96,7 @@ type
     procedure alert(message: string);
     procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
+    procedure SetTheme(ATheme: string);
     function BaseCmd(id: TGParam; param: integer): integer;
     procedure SetParam(id: TGParam; Value: integer);
     function GetHMenu(ParentMenu: uint): uint;
@@ -105,9 +108,6 @@ type
     function GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
     function GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
     procedure MoveDock(iDirection: integer);
-    procedure TimerMain;
-    procedure TimerSlow;
-    procedure TimerFSA;
     procedure OnDragEnter(list: TStrings; hWnd: uint);
     procedure OnDragOver;
     procedure OnDragLeave;
@@ -178,17 +178,13 @@ begin
 
     // Theme //
     AddLog('Init.Theme');
-    theme := _Theme.Create(BaseCmd);
+    theme := _Theme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
     if not theme.Load then
     begin
       notify(UTF8ToAnsi(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
       AddLog('Halt');
       halt;
     end;
-
-    // DropIndicator (not implemented) //
-    //AddLog('Init.CreateDropIndicator');
-    //TDropIndicator.CreateIndicator;
 
     // create ItemManager (disabled, not visible) //
     AddLog('Init.ItemManager');
@@ -213,7 +209,7 @@ begin
         if sets.Restore then
         begin
           AddLog('Init.Restore.Succeed');
-          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
           halt;
         end else begin
           AddLog('Init.Restore.Failed');
@@ -235,14 +231,11 @@ begin
     SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
     SetTimer(handle, ID_TIMER_FSA, 2000, nil);
 
+    if sets.Restored then notify(UTF8ToAnsi(XMsgSetsRestored));
+
     // TrayController //
     AddLog('Init.TrayController');
     Tray := _TrayController.Create;
-
-    // 'RollDown' on startup if set so //
-    wndOffsetTarget := 0;
-    RollDown;
-    wndOffset := wndOffsetTarget;
 
     // show the dock //
     AddLog('Init.ItemMgr.Visible');
@@ -264,6 +257,11 @@ begin
     // apply the theme to do the full repaint //
     ApplyParams;
     //BaseCmd(tcThemeChanged, 0);
+
+    // 'RollDown' on startup if set so //
+    wndOffsetTarget := 0;
+    wndOffset := 0;
+    RollDown;
 
     if sets.container.Hello then TfrmHello.Open;
     InitDone := True;
@@ -395,14 +393,16 @@ begin
     ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
     ItemMgr.SetParam(gpLaunchInterval, sets.container.LaunchInterval);
     ItemMgr.SetParam(gpActivateRunning, integer(sets.container.ActivateRunning));
+    ItemMgr.SetParam(gpUseShellContextMenus, integer(sets.container.UseShellContextMenus));
     ItemMgr.SetParam(gpItemAnimation, sets.container.ItemAnimation);
     ItemMgr.SetParam(gpLockDragging, integer(sets.container.LockDragging));
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
+    ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
 
     ItemMgr.SetStackFont(sets.container.StackFont);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
 
-    ItemMgr.SetTheme;
+    BaseCmd(tcThemeChanged, 0);
   except
     on e: Exception do err('Base.ApplyParams', e);
   end;
@@ -434,6 +434,13 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.SetTheme(ATheme: string);
+begin
+  StrCopy(sets.container.ThemeName, PChar(aTheme));
+  theme.setTheme(ATheme);
+  BaseCmd(tcThemeChanged, 0);
+end;
+//------------------------------------------------------------------------------
 function Tfrmmain.BaseCmd(id: TGParam; param: integer): integer;
 begin
   Result := 0;
@@ -446,6 +453,7 @@ begin
     tcThemeChanged:
       if assigned(ItemMgr) then
       begin
+        ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
         ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
         ItemMgr.SetTheme;
@@ -453,14 +461,13 @@ begin
     tcSetVisible:
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
-        sets.Visible := boolean(param);
         Visible := boolean(param);
         if boolean(param) then SetForeground;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
     tcToggleTaskbar: frmmain.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
-    tcGetVisible: Result := integer(sets.Visible);
+    tcGetVisible: Result := integer(ItemMgr.Visible);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -471,9 +478,12 @@ begin
   value := sets.StoreParam(id, value);
 
   case id of
-    gpSite:                   if assigned(theme) then theme.ReloadGraphics;
-    gpCenterOffsetPercent:    ItemMgr.ItemsChanged;
-    gpEdgeOffset:             ItemMgr.ItemsChanged;
+    gpMonitor:                if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
+    gpSite:
+      begin
+        if assigned(theme) then theme.Site := sets.container.Site;
+        if assigned(ItemMgr) then ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
+      end;
     gpAutoHide:               if value = 0 then Rollup;
     gpHideTaskBar:            HideTaskbar(value <> 0);
     gpReserveScreenEdge:
@@ -486,7 +496,6 @@ begin
     gpBlur:                   BasePaint(1);
     gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
     gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
-    gpMonitor:                if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
@@ -592,14 +601,15 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.MouseEnter;
 begin
-  LastMouseEnterTime := GetTickCount;
+  SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoShowTime, nil);
   // set foreground if 'activate' option selected //
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.MouseLeave;
 begin
-  LastMouseLeaveTime := GetTickCount;
+  SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoHideTime, nil);
+  // just to be sure
   ItemMgr.DragLeave;
 end;
 //------------------------------------------------------------------------------
@@ -795,7 +805,8 @@ begin
   try
     if msg.WParam = ID_TIMER then TimerMain
     else if msg.WParam = ID_TIMER_SLOW then TimerSlow
-    else if msg.WParam = ID_TIMER_FSA then TimerFSA;
+    else if msg.WParam = ID_TIMER_FSA then TimerFSA
+    else if msg.WParam = ID_TIMER_ROLL then TimerRoll;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
@@ -823,7 +834,7 @@ begin
       ItemMgr.CheckDeleted;
     end;
 
-    if sets.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
+    if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
     on e: Exception do raise Exception.Create('Base.OnSlowTimer'#10#13 + e.message);
@@ -850,6 +861,27 @@ begin
     end;
   except
     on e: Exception do raise Exception.Create('Base.OnFSATimer'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.TimerRoll;
+var
+  sets_visible: boolean;
+begin
+  if MouseOver then
+  begin
+    KillTimer(Handle, ID_TIMER_ROLL);
+    RollUp;
+  end
+  else
+  begin
+    sets_visible := false;
+    if assigned(frmsets) then sets_visible := frmsets.visible;
+    if not sets_visible then
+    begin
+      KillTimer(Handle, ID_TIMER_ROLL);
+      RollDown;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -895,18 +927,7 @@ procedure Tfrmmain.RollNHideTimer;
 var
   KeyPressed: boolean;
   key, KeySet: integer;
-  sets_visible: boolean;
 begin
-  sets_visible := false;
-  try if frmsets <> nil then sets_visible := frmsets.visible;
-  except end;
-
-  if not MouseOver and not sets_visible then
-    if GetTickCount - LastMouseLeaveTime > sets.container.AutoHideTime then RollDown;
-
-  if MouseOver then
-    if GetTickCount - LastMouseEnterTime > sets.container.AutoShowTime then RollUp;
-
   if sets.container.AutoHide then
     if wndoffset <> wndOffsetTarget then
     begin
@@ -915,30 +936,31 @@ begin
         if wndOffsetTarget > WndOffset then inc(wndOffset, RollStep) else dec(wndOffset, RollStep);
       end
       else wndOffset := wndOffsetTarget;
-      ItemMgr.ItemsChanged;
+      if assigned(ItemMgr) then
+      begin
+        ItemMgr.WndOffset := wndOffset;
+        ItemMgr.ItemsChanged;
+      end;
     end;
 
-  KeyPressed:= false;
-  KeySet:= scNone;
-  Key:= sets.container.HideKeys and not (scShift + scCtrl + scAlt);
-  if key > 0 then
-    if getasynckeystate(key) < 0 then KeyPressed:= true;
+  // hide/show
+  KeyPressed := false;
+  Key := sets.container.HideKeys and not (scShift + scCtrl + scAlt);
+  if Key > 0 then KeyPressed := getasynckeystate(Key) < 0;
+  KeySet := scNone;
   if getasynckeystate(16) < 0 then inc(KeySet, scShift);
   if getasynckeystate(17) < 0 then inc(KeySet, scCtrl);
   if getasynckeystate(18) < 0 then inc(KeySet, scAlt);
-  if sets.container.HideKeys and (scShift + scCtrl + scAlt) = KeySet then
-    KeyPressed:= KeyPressed and true
-  else
-    KeyPressed:= false;
-
+  if sets.container.HideKeys and (scShift + scCtrl + scAlt) <> KeySet then KeyPressed := false;
   if KeyPressed then
   begin
     if not HideKeysPressed then
     begin
       BaseCmd(tcToggleVisible, 0);
-      HideKeysPressed:= true;
+      HideKeysPressed := true;
     end;
-  end else HideKeysPressed:= false;
+  end
+  else HideKeysPressed := false;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.SetForeground;

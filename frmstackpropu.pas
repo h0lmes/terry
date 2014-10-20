@@ -73,7 +73,9 @@ type
     procedure btnApplyClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure listDblClick(Sender: TObject);
+    procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
+    procedure tbOffsetChange(Sender: TObject);
   private
     cancel_data: string;
     UpdateItemProc: _uproc;
@@ -177,9 +179,11 @@ begin
   try cboMode.ItemIndex := strtoint(FetchValue(AData, 'mode="', '";'));
   except end;
 
-  tbOffset.Position := tbOffset.Min;
+  tbOffset.Position := -1;
+  tbOffset.Position := 0;
   tbAnimationSpeed.Position := tbAnimationSpeed.Min;
-  tbDistort.Position := tbDistort.Min;
+  tbDistort.Position := -1;
+  tbDistort.Position := 0;
   try tbOffset.Position := strtoint(FetchValue(AData, 'offset="', '";'));
   except end;
   try tbAnimationSpeed.Position := strtoint(FetchValue(AData, 'animation_speed="', '";'));
@@ -322,6 +326,16 @@ procedure TfrmStackProp.edImageChange(Sender: TObject);
 begin
   FChanged := true;
   Draw;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
+begin
+  lblOffset.Caption := Format(XOffsetOfIcons, [tbOffset.Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbDistortChange(Sender: TObject);
+begin
+  lblDistort.Caption := Format(XDistort, [tbDistort.Position]);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnClearImageClick(Sender: TObject);

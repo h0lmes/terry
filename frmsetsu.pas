@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
   Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, LCLType, LCLProc,
-  declu, gdip_gfx, dwm_unit;
+  declu, toolu, gdip_gfx, dwm_unit;
 
 type
 
@@ -183,7 +183,7 @@ var
   frmsets: Tfrmsets;
 
 implementation
-uses setsu, themeu, frmmainu, toolu, frmFontU, frmthemeeditoru, frmDebugU;
+uses setsu, themeu, frmmainu, frmFontU, frmthemeeditoru, frmDebugU;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 procedure err(s: string);
@@ -596,7 +596,7 @@ procedure Tfrmsets.lbThemeSelectionChange(Sender: TObject; User: boolean);
 begin
   try
     if lbTheme.ItemIndex > -1 then
-       theme.setTheme(UTF8ToAnsi(lbTheme.Items[lbTheme.ItemIndex]));
+       frmmain.setTheme(UTF8ToAnsi(lbTheme.Items[lbTheme.ItemIndex]));
   except
     on e: Exception do frmmain.err('Sets.ThemeSelectionChange', e);
   end;

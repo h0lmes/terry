@@ -34,7 +34,7 @@ var
 
 implementation
 {$R *.lfm}
-uses toolu, setsu, frmmainu;
+uses toolu, setsu;
 //------------------------------------------------------------------------------
 class procedure TfrmTip.Open;
 begin

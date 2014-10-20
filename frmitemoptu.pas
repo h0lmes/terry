@@ -255,7 +255,7 @@ begin
   with TOpenDialog.Create(self) do
   try
     if edCmd.Text = '' then
-      InitialDir := AnsiToUTF8(sets.progpath)
+      InitialDir := AnsiToUTF8(UnzipPath('%pp%'))
     else
       InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
     if Execute then

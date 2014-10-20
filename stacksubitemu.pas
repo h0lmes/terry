@@ -451,7 +451,7 @@ begin
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       //
       //GdipCreatePath(FillModeWinding, path);
-      GdipCreateSolidFill(AHintAlpha * 13 div 16 * $1000000 + FFont.color_outline and $ffffff, brush);
+      GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.color_outline and $ffffff, brush);
       GdipFillRectangle(dst, brush, xBitmap - FCaptionHeight div 4, yBitmap - 1, FCaptionWidth - 3 + FCaptionHeight div 2, FCaptionHeight + 1);
       //GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
       //GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);

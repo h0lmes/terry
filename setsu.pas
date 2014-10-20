@@ -2,7 +2,7 @@ unit setsu;
 
 interface
 uses Windows, Controls, Forms, Classes, SysUtils, Dialogs,
-      Menus, StdCtrls, IniFiles, gdip_gfx, declu;
+      Menus, StdCtrls, IniFiles, gdip_gfx, declu, toolu, dockh;
 
 type
   _SetsContainer = record
@@ -63,27 +63,23 @@ type
     PluginsPath: string;
     PluginsList: TStrings;
     PluginFilesList: TStrings;
+    FRestored: boolean;
   public
     container: _SetsContainer;
     cancel_container: _SetsContainer;
-
     ParentHWnd: THandle;
-    visible: boolean;
-    MouseOnEdge: boolean;
-    WasOnEdge: boolean;
-    progpath: string;
     SetsPathFile: string;
     ThemesPath: string;
-
     AutoRunList: TStrings;
 
-    constructor Create(sets_file, _prog_path: string; Handle: THandle);
+    property Restored: boolean read FRestored;
+
+    constructor Create(ASetsFile, AProgPath: string; Handle: THandle);
     destructor Destroy; override;
-    //
     procedure Load; overload;
-    procedure Load(sets_file: string); overload;
+    procedure Load(ASetsFile: string); overload;
     procedure Save; overload;
-    procedure Save(sets_file: string); overload;
+    procedure Save(ASetsFile: string); overload;
     procedure SaveEx;
     procedure SaveEx2;
     function Backup: boolean;
@@ -96,7 +92,6 @@ type
     function getBaseOrientation: TBaseOrientation;
     function GetMonitorCount: integer;
     function GetMonitorName(index: integer): string;
-    //
     function GetPluginCount: integer;
     function GetPluginName(index: integer): string;
     function GetPluginFileName(index: integer): string;
@@ -104,19 +99,15 @@ type
     procedure GetPluginInfo(index: integer; mem: TMemo);
 end;
 
-var
-  sets: _Sets;
+var sets: _Sets;
 
 implementation
-uses frmmainu, toolu, frmsetsu, dockh, dwm_unit;
 //------------------------------------------------------------------------------
-constructor _Sets.Create(sets_file, _prog_path: string; Handle: THandle);
+constructor _Sets.Create(ASetsFile, AProgPath: string; Handle: THandle);
 begin
   inherited Create;
   ParentHWnd := Handle;
   StrCopy(container.ThemeName, 'Aero');
-  visible := true;
-  MouseOnEdge := false;
   container.AutoHidePixels := 0;
   container.CenterOffsetPercent := 50;
   container.EdgeOffset := 0;
@@ -125,10 +116,9 @@ begin
   container.CloseCmdWindow := true;
   container.BaseAlpha := 255;
   container.Hello := true;
-  SetsPathFile := sets_file;
-  progpath := _prog_path;
-  PluginsPath := progpath + '\Docklets';
-  ThemesPath := IncludeTrailingPathDelimiter(progpath) + 'Themes\';
+  SetsPathFile := ASetsFile;
+  PluginsPath := AProgPath + '\Docklets';
+  ThemesPath := IncludeTrailingPathDelimiter(AProgPath) + 'Themes\';
 end;
 //------------------------------------------------------------------------------
 destructor _Sets.Destroy;
@@ -138,9 +128,9 @@ begin
   if assigned(AutoRunList) then AutoRunList.free;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Load(sets_file: string);
+procedure _Sets.Load(ASetsFile: string);
 begin
-  SetsPathFile := sets_file;
+  SetsPathFile := ASetsFile;
   Load;
 end;
 //------------------------------------------------------------------------------
@@ -150,11 +140,12 @@ var
   ini: TIniFile;
   tmplist: TStrings;
 begin
+  FRestored := false;
   // restore from backup if sets file lost //
   if not FileExists(SetsPathFile) and FileExists(ChangeFileExt(SetsPathFile, '.bak')) then
   begin
     windows.CopyFile(pchar(ChangeFileExt(SetsPathFile, '.bak')), pchar(SetsPathFile), true);
-    frmmain.notify('Settings file not found. Restored from backup.');
+    FRestored := true;
   end;
 
   // load sets //
@@ -163,7 +154,7 @@ begin
   StrCopy(container.ThemeName, pchar(ini.ReadString('base', 'Theme', 'Aero')));
   container.Monitor := ini.ReadInteger('base', 'Monitor', 0);
   container.Site := StringToSite(ini.ReadString('base', 'Site', 'top'));
-  StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', 'explorer.exe')));
+  StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
   container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 500), 0, 9999);
@@ -236,9 +227,9 @@ begin
   ini.free;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Save(sets_file: string);
+procedure _Sets.Save(ASetsFile: string);
 begin
-  SetsPathFile := sets_file;
+  SetsPathFile := ASetsFile;
   Save;
 end;
 //------------------------------------------------------------------------------

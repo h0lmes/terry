@@ -82,6 +82,10 @@ msgstr "Удалить значок"
 msgid "Delete separator"
 msgstr "Удалить разделитель"
 
+#: declu.xdistort
+msgid "Distort: %d"
+msgstr "Искажение: %d"
+
 #: declu.xdock
 msgid "New dock"
 msgstr "Новый док"
@@ -217,9 +221,14 @@ msgstr "После закрытия данного сообщения вы ув�
 msgid "Place target file onto dock instead of shortcut?"
 msgstr "Добавить на панель целевой файл вместо ярлыка?"
 
+#: declu.xmsgrunagain
+msgid "Run the program again."
+msgstr ""
+
 #: declu.xmsgsetsrestored
-#| msgid "Settings restored from backup. Run program again"
-msgid "The settings are restored from backup. Run the program again"
+#, fuzzy
+#| msgid "The settings are restored from backup. Run the program again"
+msgid "The settings are restored from backup."
 msgstr "Настройки восстановлены из резервной копии. Запустите программу снова"
 
 #: declu.xmsgthemesaved
@@ -230,6 +239,10 @@ msgstr "Тема сохранена"
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
+
+#: declu.xoffsetoficons
+msgid "Offset of icons: %d pt"
+msgstr "Смещение значков: %d pt"
 
 #: declu.xopenfolderof
 msgctxt "declu.xopenfolderof"

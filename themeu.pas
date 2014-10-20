@@ -3,7 +3,7 @@ unit themeu;
 interface
 
 uses Windows, Classes, SysUtils, Forms, Dialogs, StdCtrls, IniFiles,
-  ActiveX, GDIPAPI, declu, gdip_gfx;
+  ActiveX, declu, toolu, gdip_gfx, GDIPAPI;
 
 const MAX_REGION_POINTS = 128;
 
@@ -36,13 +36,15 @@ type
 
   _Theme = class
   private
-    BaseCmd: TBaseCmd;
+    FSite: TBaseSite;
+    FThemeName: string;
     FBlurRegion: string;
     FBlurRegionPoints: array [0..MAX_REGION_POINTS - 1] of windows.TPoint;
     FBlurRegionPointsCount: integer;
     FBlurRect: Windows.TRect;
     FBlurR: Windows.TSize;
     procedure SetBlurRegion(value: string);
+    procedure SetSite(value: TBaseSite);
   public
     is_default: boolean;
     Background: TLayerBackground;
@@ -55,13 +57,13 @@ type
     ItemsArea: Windows.TRect;
     Path: string;
     property BlurRegion: string read FBlurRegion write SetBlurRegion;
+    property Site: TBaseSite read FSite write SetSite;
 
-    constructor Create(ABaseCmd: TBaseCmd);
+    constructor Create(aTheme: string; aSite: TBaseSite);
     destructor Destroy; override;
 
     procedure Clear;
     procedure ClearGraphics;
-    procedure DoThemeChanged;
     function Load: boolean;
     procedure ReloadGraphics;
     function Save: boolean;
@@ -80,18 +82,16 @@ type
     procedure SearchThemes(ThemeName: string; lb: TListBox);
   end;
 
-var
-  theme: _Theme;
+var theme: _Theme;
 
 implementation
-uses setsu, toolu;
 //------------------------------------------------------------------------------
-constructor _Theme.Create(ABaseCmd: TBaseCmd);
+constructor _Theme.Create(aTheme: string; aSite: TBaseSite);
 begin
-  BaseCmd := ABaseCmd;
+  FThemeName := aTheme;
+  FSite := aSite;
   Clear;
   ClearGraphics;
-
   CheckExtractFileFromResource('DEFAULT_ICON', UnzipPath('%pp%\default.png'));
   CheckExtractFileFromResource('DEFAULT_BACKGROUND', UnzipPath('%pp%\themes\background.png'));
   CheckExtractFileFromResource('DEFAULT_INDICATOR', UnzipPath('%pp%\themes\indicator.png'));
@@ -154,16 +154,10 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DoThemeChanged;
-begin
-  BaseCmd(tcThemeChanged, 0);
-end;
-//------------------------------------------------------------------------------
 procedure _Theme.SetTheme(aTheme: string);
 begin
-  StrCopy(sets.container.ThemeName, PChar(aTheme));
+  FThemeName := aTheme;
   Load;
-  DoThemeChanged;
 end;
 //------------------------------------------------------------------------------
 function _Theme.Load: boolean;
@@ -178,10 +172,10 @@ begin
 
   // default theme //
 
-  if not DirectoryExists(toolu.UnzipPath('%pp%\themes\') + PChar(@sets.container.ThemeName) + '\') then
+  if not DirectoryExists(UnzipPath('%pp%\themes\') + FThemeName + '\') then
   begin
-    StrCopy(sets.container.ThemeName, 'Aero');
-    if not DirectoryExists(toolu.UnzipPath('%pp%\themes\') + PChar(@sets.container.ThemeName) + '\') then
+    FThemeName := 'Aero';
+    if not DirectoryExists(UnzipPath('%pp%\themes\') + FThemeName + '\') then
     begin
       MakeDefaultTheme;
       Result := True;
@@ -191,7 +185,7 @@ begin
 
   // loading theme data //
   try
-    Path := toolu.UnzipPath('%pp%\themes\') + PChar(@sets.container.ThemeName) + '\';
+    Path := toolu.UnzipPath('%pp%\themes\') + FThemeName + '\';
 
     // background //
     ini := TIniFile.Create(Path + 'background.ini');
@@ -261,16 +255,16 @@ begin
 
   if not DirectoryExists(themes_path) then CreateDirectory(PChar(themes_path), nil);
 
-  if PChar(@sets.container.ThemeName) = '' then StrCopy(sets.container.ThemeName, 'Aero');
-  if not DirectoryExists(themes_path + PChar(@sets.container.ThemeName) + '\') then
-    CreateDirectory(PChar(themes_path + PChar(@sets.container.ThemeName) + '\'), nil);
+  if FThemeName = '' then FThemeName := 'Aero';
+  if not DirectoryExists(themes_path + FThemeName + '\') then
+    CreateDirectory(PChar(themes_path + FThemeName + '\'), nil);
 
   try
-    windows.DeleteFile(PChar(themes_path + PChar(@sets.container.ThemeName) + '\background.ini'));
-    windows.DeleteFile(PChar(themes_path + PChar(@sets.container.ThemeName) + '\separator.ini'));
+    windows.DeleteFile(PChar(themes_path + FThemeName + '\background.ini'));
+    windows.DeleteFile(PChar(themes_path + FThemeName + '\separator.ini'));
 
     // background //
-    ini := TIniFile.Create(themes_path + PChar(@sets.container.ThemeName) + '\background.ini');
+    ini := TIniFile.Create(themes_path + FThemeName + '\background.ini');
     ini.WriteString('Background', 'Image', Background.ImageFile);
     ini.WriteString('Background', 'OutsideBorderLeft', inttostr(ItemsArea.Left));
     ini.WriteString('Background', 'OutsideBorderTop', inttostr(ItemsArea.Top));
@@ -284,7 +278,7 @@ begin
     ini.WriteString('Background', 'ReflectionHeight', IntToStr(ReflectionSize));
     ini.Free;
     // separator //
-    ini := TIniFile.Create(themes_path + PChar(@sets.container.ThemeName) + '\separator.ini');
+    ini := TIniFile.Create(themes_path + FThemeName + '\separator.ini');
     ini.WriteString('Separator', 'Image', Separator.ImageFile);
     ini.WriteString('Separator', 'LeftWidth', inttostr(Separator.Margins.Left));
     ini.WriteString('Separator', 'TopHeight', inttostr(Separator.Margins.Top));
@@ -327,6 +321,12 @@ begin
     FBlurR.cx := FBlurRegionPoints[2].x;
     FBlurR.cy := FBlurRegionPoints[2].y;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure _Theme.SetSite(value: TBaseSite);
+begin
+  FSite := value;
+  ReloadGraphics;
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ReloadGraphics;
@@ -440,28 +440,28 @@ procedure _Theme.ImageAdjustRotate(image: Pointer);
 begin
   if image <> nil then
   begin
-    if sets.container.site = bsLeft then GdipImageRotateFlip(image, Rotate90FlipNone)
-    else if sets.container.site = bsTop then GdipImageRotateFlip(image, Rotate180FlipX)
-    else if sets.container.site = bsRight then GdipImageRotateFlip(image, Rotate270FlipNone);
+    if Fsite = bsLeft then GdipImageRotateFlip(image, Rotate90FlipNone)
+    else if Fsite = bsTop then GdipImageRotateFlip(image, Rotate180FlipX)
+    else if Fsite = bsRight then GdipImageRotateFlip(image, Rotate270FlipNone);
   end;
 end;
 //------------------------------------------------------------------------------
 function _Theme.CorrectMargins(margins: Windows.TRect): Windows.TRect;
 begin
   Result := margins;
-  if sets.container.site = bsLeft then
+  if Fsite = bsLeft then
   begin
     Result.Left := margins.Bottom;
     Result.Top := margins.Left;
     Result.Right := margins.Top;
     Result.Bottom := margins.Right;
   end
-  else if sets.container.site = bsTop then
+  else if Fsite = bsTop then
   begin
     Result.Top := margins.Bottom;
     Result.Bottom := margins.Top;
   end
-  else if sets.container.site = bsRight then
+  else if Fsite = bsRight then
   begin
     Result.Left := margins.Top;
     Result.Top := margins.Right;
@@ -473,7 +473,7 @@ end;
 function _Theme.CorrectSize(size: Windows.TSize): Windows.TSize;
 begin
   Result := size;
-  if (sets.container.site = bsLeft) or (sets.container.site = bsRight) then
+  if (Fsite = bsLeft) or (Fsite = bsRight) then
   begin
     Result.cx := size.cy;
     Result.cy := size.cx;
@@ -484,16 +484,16 @@ function _Theme.CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPo
 begin
   result.x := coord.x;
   result.y := coord.y;
-  if sets.container.site = bsLeft then
+  if Fsite = bsLeft then
   begin
     result.y := result.x;
     result.x := W - coord.y;
   end else
-  if sets.container.site = bsTop then
+  if Fsite = bsTop then
   begin
     result.y := H - result.y;
   end else
-  if sets.container.site = bsRight then
+  if Fsite = bsRight then
   begin
     result.x := result.y;
     result.y := H - coord.x;

@@ -92,7 +92,7 @@ begin
     try theme.ReflectionSize := StrToInt(edReflectionSize.text);
     except theme.ReflectionSize := 0;
     end;
-    theme.DoThemeChanged;
+    frmmain.BaseCmd(tcThemeChanged, 0);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ begin
   begin
     theme.Background.Margins:= StringToRect(edMargin.text);
     theme.ReloadGraphics;
-    theme.DoThemeChanged;
+    frmmain.BaseCmd(tcThemeChanged, 0);
   end;
 end;
 //------------------------------------------------------------------------------

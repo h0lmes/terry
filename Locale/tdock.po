@@ -71,6 +71,10 @@ msgstr ""
 msgid "Delete separator"
 msgstr ""
 
+#: declu.xdistort
+msgid "Distort: %d"
+msgstr ""
+
 #: declu.xdock
 msgid "New dock"
 msgstr ""
@@ -188,8 +192,12 @@ msgstr ""
 msgid "Place target file onto dock instead of shortcut?"
 msgstr ""
 
+#: declu.xmsgrunagain
+msgid "Run the program again."
+msgstr ""
+
 #: declu.xmsgsetsrestored
-msgid "The settings are restored from backup. Run the program again"
+msgid "The settings are restored from backup."
 msgstr ""
 
 #: declu.xmsgthemesaved
@@ -198,6 +206,10 @@ msgstr ""
 
 #: declu.xmsgunsavediconparams
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
+msgstr ""
+
+#: declu.xoffsetoficons
+msgid "Offset of icons: %d pt"
 msgstr ""
 
 #: declu.xopenfolderof

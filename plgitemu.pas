@@ -64,6 +64,7 @@ begin
   FImage := nil;
   AutoDeleteOverlay := true;
   FImage2 := nil;
+
   lpData := nil;
   CreatePlugin(AData);
 end;
@@ -72,11 +73,11 @@ procedure TPluginItem.CreatePlugin(AData: string);
 var
   ini: TIniFile;
 begin
-  FFreed := false;
   try
     // window to speed up drawing //
     hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, WINITEM_CLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
 
+    FFreed := true;
     // get library path //
     FIniFile := FetchValue(AData, 'inifile="', '";');
     FIniSection := FetchValue(AData, 'inisection="', '";');
@@ -92,7 +93,11 @@ begin
     // load library //
     SetCurrentDir(ExtractFilePath(PluginFile));
     hLib := LoadLibrary(PluginFile);
-    if hLib = 0 then raise Exception.Create('LoadLibrary(' + PluginFile + ') failed');
+    if hLib = 0 then
+    begin
+      MessageBox(FHWnd, pchar('LoadLibrary(' + PluginFile + ') failed'), 'CreatePlugin', 0);
+      exit;
+    end;
     @OnCreate := GetProcAddress(hLib, 'OnCreate');
     @OnSave := GetProcAddress(hLib, 'OnSave');
     @OnDestroy := GetProcAddress(hLib, 'OnDestroy');
@@ -101,7 +106,12 @@ begin
     @OnRightButtonClick := GetProcAddress(hLib, 'OnRightButtonClick');
     @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
     @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
-    if not assigned(OnCreate) then raise Exception.Create('OnCreate is NULL');
+    if not assigned(OnCreate) then
+    begin
+      MessageBox(FHWnd, pchar('OnCreate(' + PluginFile + ') is NULL'), 'CreatePlugin', 0);
+      exit;
+    end;
+    FFreed := false;
   except
     on e: Exception do raise Exception.Create('PluginItem.CreatePlugin'#10#13 + e.message);
   end;

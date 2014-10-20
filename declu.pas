@@ -169,6 +169,7 @@ const
   ID_TIMER_CLOSE            = 5;
   ID_TIMER_MOUSEHELD        = 6;
   ID_TIMER_UPDATE_SHORTCUT  = 7;
+  ID_TIMER_ROLL             = 8;
 
 resourcestring
 
@@ -180,7 +181,8 @@ resourcestring
   XMsgThemeSaved = 'Theme saved';
   XErrorSetsCorrupted = 'Settings file corrupted.';
   XErrorSetsRestoreFailed = 'Restore operation failed.';
-  XMsgSetsRestored = 'The settings are restored from backup. Run the program again';
+  XMsgSetsRestored = 'The settings are restored from backup.';
+  XMsgRunAgain = 'Run the program again.';
   XErrorSetsBackupFailed = 'Failed to backup settings.';
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';
@@ -251,6 +253,8 @@ resourcestring
   XShowCmdMaximized = 'Maximized to fullscreen';
   XSelectWorkingDirectory = 'Select working directory';
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
+  XOffsetOfIcons = 'Offset of icons: %d pt';
+  XDistort = 'Distort: %d';
 
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
