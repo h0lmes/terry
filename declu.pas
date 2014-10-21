@@ -28,6 +28,7 @@ type
     gpDropDistance,
     gpLaunchInterval,
     gpUseShell,
+    gpRunInThread,
     gpLaunchInThread,
     gpActivateOnMouse,
     gpCloseCmdWindow,

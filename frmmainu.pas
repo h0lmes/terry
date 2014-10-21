@@ -16,6 +16,7 @@ type
     params: array [0..2047] of char;
     dir: array [0..2047] of char;
     showcmd: integer;
+    notifyHost: boolean;
   end;
 
   { Tfrmmain }
@@ -1834,49 +1835,60 @@ end;
 function RunThread(p: pointer): PtrInt;
 var
   Data: PRunData absolute p;
-  th: THandle;
-  params_, dir_: pchar;
+  params, dir: pchar;
+  handle: THandle;
+  notifyHost: boolean;
 begin
-  params_ := nil;
-  dir_ := nil;
-  if pchar(@Data.params) <> '' then params_ := PChar(@Data.params);
-  if pchar(@Data.dir) <> '' then dir_ := PChar(@Data.dir);
-  shellexecute(Data.handle, nil, pchar(@Data.exename), params_, dir_, Data.showcmd);
-  th := GetCurrentThread;
-  postmessage(Data.handle, WM_APP_RUN_THREAD_END, 0, LPARAM(th));
+  notifyHost := Data.notifyHost;
+  handle := Data.handle;
+  params := nil;
+  dir := nil;
+  if pchar(@Data.params) <> '' then params := PChar(@Data.params);
+  if pchar(@Data.dir) <> '' then dir := PChar(@Data.dir);
+  shellexecute(handle, nil, pchar(@Data.exename), params, dir, Data.showcmd);
+  Dispose(Data);
+  // request main form to close thread handle
+  if notifyHost then postmessage(handle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
 end;
 //------------------------------------------------------------------------------
 // creates a new thread to run a program
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
+  Data: PRunData;
   shell: string;
-  Data: TRunData;
 begin
   try
     exename := toolu.UnzipPath(exename);
-    params := toolu.UnzipPath(params);
-    dir := toolu.UnzipPath(dir);
-    shell := toolu.UnzipPath(sets.container.Shell);
+    if params <> '' then params := toolu.UnzipPath(params);
+    if dir <> '' then dir := toolu.UnzipPath(dir);
 
     if directoryexists(exename) then
     begin
+      shell := toolu.UnzipPath(sets.container.Shell);
       if sets.container.useShell and fileexists(shell) then
       begin
         params := '"' + exename + '"';
         exename := shell;
-        shellexecute(Handle, nil, pchar(exename), pchar(params), nil, showcmd);
+        dir := '';
       end else begin
-        shellexecute(Handle, nil, pchar(exename), nil, nil, showcmd);
+        params := '';
+        dir := '';
       end;
-      exit;
     end;
 
+    New(Data);
     Data.handle := Handle;
-    strcopy(Data.exename, pchar(exename));
-    strcopy(Data.params, pchar(params));
-    strcopy(Data.dir, pchar(dir));
+    strcopy(pchar(@Data.exename), pchar(exename));
+    strcopy(pchar(@Data.params), pchar(params));
+    strcopy(pchar(@Data.dir), pchar(dir));
     Data.showcmd := showcmd;
-    if BeginThread(RunThread, @Data) = 0 then notify('Run.BeginThread failed');
+    Data.notifyHost := sets.container.RunInThread;
+    if sets.container.RunInThread then
+    begin
+      if BeginThread(RunThread, Data) = 0 then notify('Run.BeginThread failed');
+    end else begin
+      RunThread(Data);
+    end;
   except
     on e: Exception do err('Base.Run', e);
   end;

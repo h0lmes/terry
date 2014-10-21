@@ -713,6 +713,10 @@ msgstr ""
 msgid "Reserve screen edge"
 msgstr ""
 
+#: tfrmsets.chbruninthread.caption
+msgid "Run applications in separate threads"
+msgstr ""
+
 #: tfrmsets.chbstackopenanimation.caption
 msgid "Stack open/close animation"
 msgstr ""

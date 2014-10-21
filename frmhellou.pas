@@ -5,7 +5,7 @@ unit frmhellou;
 interface
 
 uses
-  Windows, Win32Themes, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  Windows, jwaWindows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
   StdCtrls, ExtCtrls, toolu, dwm_unit;
 
 type
@@ -59,8 +59,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.FormShow(Sender: TObject);
 begin
-  //dwm.ExtendFrameIntoClientArea(frmHello.Handle, rect(-1,-1,-1,-1));
-
+  Label1.Font.Bold := true;
+  Label2.Font.Bold := true;
+  Label4.Font.Bold := true;
+  //dwm.ExtendFrameIntoClientArea(frmHello.Handle, classes.rect(-1,-1,-1,-1));
+  //SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_LAYERED);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnCloseClick(Sender: TObject);

@@ -43,6 +43,7 @@ type
     UseShellContextMenus: boolean;
     StackOpenAnimation: boolean;
     AutoHideOnFullScreenApp: boolean;
+    RunInThread: boolean;
 
     Reflection: boolean;
     BaseAlpha: integer;
@@ -189,6 +190,7 @@ begin
   container.Hello := ini.ReadBool('base', 'Hello', true);
   container.useShell := ini.ReadBool('base', 'UseShell', false);
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
+  container.RunInThread := ini.ReadBool('base', 'RunInThread', true);
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
@@ -263,6 +265,7 @@ begin
   ini.WriteInteger('base', 'HideKeys', container.HideKeys);
   ini.WriteBool   ('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
   ini.WriteBool   ('base', 'UseShell', container.useShell);
+  ini.WriteBool   ('base', 'RunInThread', container.RunInThread);
   ini.WriteBool   ('base', 'ZoomItems', container.ZoomItems);
   ini.WriteBool   ('base', 'LaunchInThread', container.launchInThread);
   ini.WriteBool   ('base', 'ActivateOnMouse', container.ActivateOnMouse);
@@ -397,6 +400,7 @@ begin
   gpShowRunningIndicator: container.ShowRunningIndicator := boolean(value);
   gpItemAnimation: container.ItemAnimation := value;
   gpUseShell: container.UseShell := boolean(value);
+  gpRunInThread: container.RunInThread := boolean(value);
   gpAutoHide: container.AutoHide := boolean(value);
   gpLaunchInThread: container.LaunchInThread := boolean(value);
   gpActivateOnMouse: container.ActivateOnMouse := boolean(value);
@@ -444,6 +448,7 @@ begin
   gpShowRunningIndicator: result := integer(container.ShowRunningIndicator);
   gpItemAnimation: result := container.ItemAnimation;
   gpUseShell: result := integer(container.UseShell);
+  gpRunInThread: result := integer(container.RunInThread);
   gpAutoHide: result := integer(container.AutoHide);
   gpLaunchInThread: result := integer(container.LaunchInThread);
   gpActivateOnMouse: result := integer(container.ActivateOnMouse);
@@ -515,6 +520,7 @@ begin
   dst.BaseAlpha := src.BaseAlpha;
   dst.Blur := src.Blur;
   dst.useShell := src.useShell;
+  dst.RunInThread := src.RunInThread;
 
   CopyFontData(src.Font, dst.Font);
   CopyFontData(src.StackFont, dst.StackFont);

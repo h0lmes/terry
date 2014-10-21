@@ -3,30 +3,13 @@ object frmHello: TfrmHello
   Height = 487
   Top = 234
   Width = 538
-  BorderStyle = bsSingle
   Caption = 'Hello'
   ClientHeight = 487
   ClientWidth = 538
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
-  object Label1: TLabel
-    Left = 45
-    Height = 15
-    Top = 25
-    Width = 271
-    Caption = 'Hello!  Probably this is the first time you run TDock.'
-    ParentColor = False
-  end
-  object Label2: TLabel
-    Left = 45
-    Height = 15
-    Top = 65
-    Width = 152
-    Caption = 'Here you can do basic setup.'
-    ParentColor = False
-  end
+  LCLVersion = '1.2.2.0'
   object Label3: TLabel
     Left = 45
     Height = 15
@@ -61,14 +44,6 @@ object frmHello: TfrmHello
     Caption = 'Thanks!  I will manage everything myself'
     OnClick = btnCloseClick
     TabOrder = 2
-  end
-  object Label4: TLabel
-    Left = 45
-    Height = 15
-    Top = 45
-    Width = 270
-    Caption = 'You can view useful tips at any time by pressing F1.'
-    ParentColor = False
   end
   object Label5: TLabel
     Left = 45
@@ -122,5 +97,29 @@ object frmHello: TfrmHello
     Caption = 'Is there anything useful to know?'
     OnClick = btnCloseShowTipsClick
     TabOrder = 7
+  end
+  object Label1: TLabel
+    Left = 45
+    Height = 15
+    Top = 25
+    Width = 271
+    Caption = 'Hello!  Probably this is the first time you run TDock.'
+    ParentColor = False
+  end
+  object Label4: TLabel
+    Left = 45
+    Height = 15
+    Top = 45
+    Width = 270
+    Caption = 'You can view useful tips at any time by pressing F1.'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 45
+    Height = 15
+    Top = 65
+    Width = 152
+    Caption = 'Here you can do basic setup.'
+    ParentColor = False
   end
 end

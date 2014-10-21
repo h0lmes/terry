@@ -26,6 +26,7 @@ type
     cboItemAnimationType: TComboBox;
     chbTaskbar: TCheckBox;
     chbStackOpenAnimation: TCheckBox;
+    chbRunInThread: TCheckBox;
     gbAutostart: TGroupBox;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
@@ -118,6 +119,7 @@ type
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
     procedure chbReserveScreenEdgeClick(Sender: TObject);
+    procedure chbRunInThreadChange(Sender: TObject);
     procedure chbStackOpenAnimationChange(Sender: TObject);
     procedure chbTaskbarClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -388,6 +390,9 @@ begin
   // system //
   //
 
+  chbRunInThread.OnChange := nil;
+  chbRunInThread.Checked := sets.container.RunInThread;
+  chbRunInThread.OnChange := chbRunInThreadChange;
   cbUseShell.checked := sets.container.useshell;
   edShell.text := AnsiToUTF8(sets.container.shell);
   edLaunchInterval.OnChange := nil;
@@ -476,6 +481,16 @@ end;
 procedure Tfrmsets.cbautorunClick(Sender: TObject);
 begin
   toolu.setautorun(cbautorun.checked);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.cbShowHintClick(Sender: TObject);
+begin
+  frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbHintEffectsClick(Sender: TObject);
+begin
+  frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboBaseSiteChange(Sender: TObject);
@@ -694,6 +709,11 @@ end;
 //
 //
 //------------------------------------------------------------------------------
+procedure Tfrmsets.chbRunInThreadChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpRunInThread, integer(chbRunInThread.Checked));
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmsets.cbUseShellClick(Sender: TObject);
 begin
   sets.container.UseShell := cbUseShell.Checked;
@@ -723,6 +743,14 @@ begin
   if trystrtoint(edLaunchInterval.text, value) then frmmain.SetParam(gpLaunchInterval, value);
 end;
 //------------------------------------------------------------------------------
+//
+//
+//
+//  MENU ITEMS
+//
+//
+//
+//------------------------------------------------------------------------------
 procedure Tfrmsets.chb_activate_runningClick(Sender: TObject);
 begin
   frmmain.SetParam(gpActivateRunning, integer(chb_activate_running.Checked));
@@ -736,24 +764,6 @@ end;
 procedure Tfrmsets.chb_use_shell_context_menusClick(Sender: TObject);
 begin
   frmmain.SetParam(gpUseShellContextMenus, integer(chb_use_shell_context_menus.checked));
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
-//  MENU ITEMS
-//
-//
-//
-//------------------------------------------------------------------------------
-procedure Tfrmsets.cbShowHintClick(Sender: TObject);
-begin
-  frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.chbHintEffectsClick(Sender: TObject);
-begin
-  frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnSelectHintFontClick(Sender: TObject);
