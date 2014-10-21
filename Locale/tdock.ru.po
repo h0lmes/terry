@@ -223,13 +223,12 @@ msgstr "Добавить на панель целевой файл вместо 
 
 #: declu.xmsgrunagain
 msgid "Run the program again."
-msgstr ""
+msgstr "Запустите программу снова."
 
 #: declu.xmsgsetsrestored
-#, fuzzy
 #| msgid "The settings are restored from backup. Run the program again"
 msgid "The settings are restored from backup."
-msgstr "Настройки восстановлены из резервной копии. Запустите программу снова"
+msgstr "Настройки восстановлены из резервной копии."
 
 #: declu.xmsgthemesaved
 msgid "Theme saved"
@@ -291,10 +290,6 @@ msgstr "Вставить"
 msgctxt "declu.xprogramsettings"
 msgid "Program settings"
 msgstr "Настройки программы"
-
-#: declu.xrunasuser
-msgid "Run as a different user"
-msgstr "Запустить от имени другого пользователя"
 
 #: declu.xselectworkingdirectory
 msgid "Select working directory"
@@ -671,7 +666,7 @@ msgstr "Добавить"
 
 #: tfrmsets.btnautorunaddminimized.caption
 msgid "Add (run minimized)"
-msgstr ""
+msgstr "Добавить (запускать свернутым)"
 
 #: tfrmsets.btnautorunaddminimized.hint
 msgctxt "tfrmsets.btnautorunaddminimized.hint"

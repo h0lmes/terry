@@ -257,10 +257,6 @@ msgstr ""
 msgid "Program settings"
 msgstr ""
 
-#: declu.xrunasuser
-msgid "Run as a different user"
-msgstr ""
-
 #: declu.xselectworkingdirectory
 msgid "Select working directory"
 msgstr ""

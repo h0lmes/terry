@@ -8,6 +8,7 @@ object frmHello: TfrmHello
   ClientHeight = 487
   ClientWidth = 538
   OnClose = FormClose
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.2.4.0'
   object Label1: TLabel

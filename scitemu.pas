@@ -631,10 +631,10 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
+  if FBitBucketFiles > 0 then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi('Empty bin')));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
-  //AppendMenu(FHMenu, MF_STRING, $f005, PChar(UTF8ToAnsi(XRunAsUser)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
   dockh.DockAddMenu(FHMenu);
@@ -669,7 +669,7 @@ begin
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
-    $f005: ProcessHelper.RunAsUser(FCommand, FParams, FDir, FShowCmd);
+    $f005: DockExecute(FHWnd, pchar('/emptybin'), nil, nil, 1);
     $f006..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;

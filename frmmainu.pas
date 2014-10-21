@@ -4,11 +4,20 @@ interface
 
 uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
-  Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, Math, Syncobjs, MMSystem, LMessages,
+  Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gdip_gfx, dwm_unit, hintu, notifieru,
   itemmgru, DropTgtU, setsu, traycontrolleru;
 
 type
+  PRunData = ^TRunData;
+  TRunData = packed record
+    Handle: THandle;
+    exename: array [0..2047] of char;
+    params: array [0..2047] of char;
+    dir: array [0..2047] of char;
+    showcmd: integer;
+  end;
+
   { Tfrmmain }
 
   Tfrmmain = class(TForm)
@@ -285,7 +294,7 @@ begin
               if sets.AutoRunList.strings[idx] <> '' then
               begin
                   if copy(sets.AutoRunList.strings[idx], 1, 1) = '#' then
-                    execute_cmdline(copy(sets.AutoRunList.strings[idx], 2, length(sets.AutoRunList.strings[idx])), SW_MINIMIZE)
+                    execute_cmdline(copy(sets.AutoRunList.strings[idx], 2, 1023), SW_MINIMIZE)
                   else
                     execute_cmdline(sets.AutoRunList.strings[idx]);
               end;
@@ -551,6 +560,7 @@ begin
     WM_DISPLAYCHANGE : WMDisplayChange(message);
     WM_SETTINGCHANGE : WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
+    WM_APP_RUN_THREAD_END: CloseHandle(message.lParam);
   end;
   with message do result := CallWindowProc(FPrevWndProc, Handle, Msg, wParam, lParam);
 end;
@@ -1251,11 +1261,11 @@ begin
     begin
       // save workarea of the monitor with the taskbar
       SavedWorkarea := GetMonitorWorkareaRect(@monitor);
-      // set workarea = entire monitor area
-      SetWorkarea(GetMonitorBoundsRect(@monitor));
       // hide taskbar and button
       showwindow(hwnd, 0);
       showwindow(hwndButton, 0);
+      // set workarea = entire monitor area
+      SetWorkarea(GetMonitorBoundsRect(@monitor));
     end
     else
     if not hide and (not IsWindowVisible(hwnd) or not IsWindowVisible(hwndButton)) then
@@ -1288,15 +1298,16 @@ begin
   h := GetWindow(h, GW_HWNDPREV);
 	while h <> 0 do
 	begin
-    GetWindowPlacement(h, wp);
-    if wp.showCmd = SW_SHOWMAXIMIZED then
+    if IsWindowVisible(h) and (GetWindowLong(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
     begin
-      if PtInRect(bounds, wp.ptMaxPosition) then
+      GetWindowPlacement(h, wp);
+      if wp.showCmd = SW_SHOWMAXIMIZED then
       begin
-        //SetWindowPos(handle, h, rect.Left, rect.Top, rect.Right - rect.Left, rect.Bottom - rect.Top,
-          //SWP_NOACTIVATE + SWP_NOZORDER + SWP_FRAMECHANGED);
-        ShowWindow(h, SW_SHOWNORMAL);
-        ShowWindow(h, SW_SHOWMAXIMIZED);
+        if PtInRect(bounds, wp.ptMaxPosition) then
+        begin
+          ShowWindow(h, SW_SHOWNORMAL);
+          ShowWindow(h, SW_SHOWMAXIMIZED);
+        end;
       end;
     end;
     h := GetWindow(h, GW_HWNDPREV);
@@ -1315,32 +1326,44 @@ begin
     WorkArea := GetMonitorWorkareaRect;
     Bounds := ItemMgr.MonitorRect;
 
-    Position := ifthen(Edge = bsLeft, round(ItemMgr.BaseWindowRect.Width * Percent / 100), 0);
-    if WorkArea.Left <> Position then
+    if Edge = bsLeft then
     begin
-      WorkArea.Left := Position;
-      Changed := true;
-    end;
-
-    Position := ifthen(Edge = bsTop, round(ItemMgr.BaseWindowRect.Height * Percent / 100), 0);
-    if WorkArea.Top <> Position then
+      Position := ItemMgr.BaseWindowRect.Width * Percent div 100;
+      if WorkArea.Left <> Position then
+      begin
+        WorkArea.Left := Position;
+        Changed := true;
+      end;
+    end
+    else
+    if Edge = bsTop then
     begin
-      WorkArea.Top := Position;
-      Changed := true;
-    end;
-
-    Position := ifthen(Edge = bsRight, Bounds.Right - round(ItemMgr.BaseWindowRect.Width * Percent / 100), Bounds.Right);
-    if WorkArea.Right <> Position then
+      Position := ItemMgr.BaseWindowRect.Height * Percent div 100;
+      if WorkArea.Top <> Position then
+      begin
+        WorkArea.Top := Position;
+        Changed := true;
+      end;
+    end
+    else
+    if Edge = bsRight then
     begin
-      WorkArea.Right := Position;
-      Changed := true;
-    end;
-
-    Position := ifthen(Edge = bsBottom, Bounds.Bottom - round(ItemMgr.BaseWindowRect.Height * Percent / 100), Bounds.Bottom);
-    if WorkArea.Bottom <> Position then
+      Position := Bounds.Right - ItemMgr.BaseWindowRect.Width * Percent div 100;
+      if WorkArea.Right <> Position then
+      begin
+        WorkArea.Right := Position;
+        Changed := true;
+      end;
+    end
+    else
+    if Edge = bsBottom then
     begin
-      WorkArea.Bottom := Position;
-      Changed := true;
+      Position := Bounds.Bottom - ItemMgr.BaseWindowRect.Height * Percent div 100;
+      if WorkArea.Bottom <> Position then
+      begin
+        WorkArea.Bottom := Position;
+        Changed := true;
+      end;
     end;
 
     if Changed then SetWorkarea(WorkArea);
@@ -1683,7 +1706,7 @@ begin
 
   if cmd[1] <> '/' then
   begin
-    frmmain.Run(cmd, params, dir, showcmd);
+    Run(cmd, params, dir, showcmd);
     exit;
   end;
 
@@ -1735,6 +1758,10 @@ begin
   else if cmd = 'suspend' then ProcessHelper.SetSuspendState(false)
   else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
   else if cmd = 'kill' then ProcessHelper.Kill(params)
+  else if cmd = 'emptybin' then
+  begin
+    SHEmptyRecycleBin(Handle, nil, 0);
+  end
   else if cmd = 'setdisplaymode' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i1) then i1 := 1024;
@@ -1803,9 +1830,27 @@ begin
   else if cmd = 'guid' then SetClipboard(CreateClassId);
 end;
 //------------------------------------------------------------------------------
+// runner thread function
+function RunThread(p: pointer): PtrInt;
+var
+  Data: PRunData absolute p;
+  th: THandle;
+  params_, dir_: pchar;
+begin
+  params_ := nil;
+  dir_ := nil;
+  if pchar(@Data.params) <> '' then params_ := PChar(@Data.params);
+  if pchar(@Data.dir) <> '' then dir_ := PChar(@Data.dir);
+  shellexecute(Data.handle, nil, pchar(@Data.exename), params_, dir_, Data.showcmd);
+  th := GetCurrentThread;
+  postmessage(Data.handle, WM_APP_RUN_THREAD_END, 0, LPARAM(th));
+end;
+//------------------------------------------------------------------------------
+// creates a new thread to run a program
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   shell: string;
+  Data: TRunData;
 begin
   try
     exename := toolu.UnzipPath(exename);
@@ -1814,14 +1859,24 @@ begin
     shell := toolu.UnzipPath(sets.container.Shell);
 
     if directoryexists(exename) then
+    begin
       if sets.container.useShell and fileexists(shell) then
       begin
         params := '"' + exename + '"';
         exename := shell;
-        dir := '';
+        shellexecute(Handle, nil, pchar(exename), pchar(params), nil, showcmd);
+      end else begin
+        shellexecute(Handle, nil, pchar(exename), nil, nil, showcmd);
       end;
+      exit;
+    end;
 
-    ProcessHelper.Run(exename, params, dir, showcmd);
+    Data.handle := Handle;
+    strcopy(Data.exename, pchar(exename));
+    strcopy(Data.params, pchar(params));
+    strcopy(Data.dir, pchar(dir));
+    Data.showcmd := showcmd;
+    if BeginThread(RunThread, @Data) = 0 then notify('Run.BeginThread failed');
   except
     on e: Exception do err('Base.Run', e);
   end;

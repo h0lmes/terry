@@ -9,21 +9,6 @@ uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, toolu, declu;
 type
   __QueryFullProcessImageName = function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
 
-  {TRunThread}
-
-  TRunThread = class(TThread)
-  private
-    exename: string;
-    params: string;
-    dir: string;
-    showcmd: integer;
-  protected
-    procedure Execute; override;
-  public
-    constructor Create;
-    procedure exec(Aexename, Aparams, Adir: string; Ashowcmd: integer);
-  end;
-
   {TProcessHelper}
 
   TProcessHelper = class(TObject)
@@ -40,7 +25,6 @@ type
     hPowrprofDll: HMODULE;
     queryFullProcessImageName: __QueryFullProcessImageName;
     // processes //
-    RunThread: TRunThread;
     function IndexOf(Name: string): integer;
     function IndexOfFullName(Name: string): integer;
     function IndexOfPID(pid: dword): integer;
@@ -59,9 +43,6 @@ type
     procedure Kill(Name: string);
     function Exists(Name: string): boolean;
     function FullNameExists(Name: string): boolean;
-    // run processes //
-    procedure Run(exename, params, dir: string; showcmd: integer);
-    procedure RunAsUser(exename, params, dir: string; showcmd: integer);
     // windows //
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
@@ -93,7 +74,6 @@ begin
   listAppWindows := TFPList.Create;
   FWindowsCount := 0;
   FWindowsCountChanged := false;
-  RunThread := TRunThread.Create;
 
   @QueryFullProcessImageName := nil;
   if IsWindowsVista then
@@ -112,7 +92,6 @@ begin
   FreeLibrary(hKernel32);
   if hUser32 <> 0 then FreeLibrary(hUser32);
   if hPowrprofDll <> 0 then FreeLibrary(hPowrprofDll);
-  RunThread.terminate;
   listProcess.free;
   listProcessFullName.free;
   listAppWindows.free;
@@ -245,68 +224,6 @@ begin
       end;
 
       CloseHandle(hProcess);
-  end;
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
-// functions to run processes
-//
-//
-//
-//------------------------------------------------------------------------------
-procedure TProcessHelper.RunAsUser(exename, params, dir: string; showcmd: integer);
-var
-  params_, dir_: pchar;
-begin
-  params_ := nil;
-  dir_ := nil;
-  if params <> '' then params_ := PChar(UnzipPath(params));
-  if dir <> '' then dir_ := PChar(UnzipPath(dir));
-  shellexecute(0, 'runas', pchar(UnzipPath(exename)), params_, dir_, showcmd);
-end;
-//------------------------------------------------------------------------------
-procedure TProcessHelper.Run(exename, params, dir: string; showcmd: integer);
-begin
-  RunThread.exec(exename, params, dir, showcmd);
-  if Assigned(RunThread.FatalException) then raise RunThread.FatalException;
-end;
-//------------------------------------------------------------------------------
-//
-//
-// runner thread
-//
-//
-//------------------------------------------------------------------------------
-constructor TRunThread.Create;
-begin
-  FreeOnTerminate := true;
-  inherited Create(true);
-end;
-//------------------------------------------------------------------------------
-procedure TRunThread.exec(Aexename, Aparams, Adir: string; Ashowcmd: integer);
-begin
-  exename := Aexename;
-  params := Aparams;
-  dir := Adir;
-  showcmd := Ashowcmd;
-  Resume;
-end;
-//------------------------------------------------------------------------------
-procedure TRunThread.Execute;
-var
-  params_, dir_: pchar;
-  err: cardinal;
-begin
-  while not Terminated do
-  begin
-    params_ := nil;
-    dir_ := nil;
-    if params <> '' then params_ := PChar(params);
-    if dir <> '' then dir_ := PChar(dir);
-    err := shellexecute(application.mainform.handle, nil, pchar(exename), params_, dir_, showcmd);
-    Suspend;
   end;
 end;
 //------------------------------------------------------------------------------

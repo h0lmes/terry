@@ -23,8 +23,9 @@ type
       IsVista: boolean;
       hDwmLib: uint;
       DwmIsCompositionEnabled: function(pfEnabled: PBoolean): HRESULT; stdcall;
-      DwmEnableBlurBehindWindow: function(destWnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
+      DwmEnableBlurBehindWindow: function(Wnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
       DwmSetWindowAttribute: function(Wnd: HWND; dwAttribute: DWORD; pvAttribute: Pointer; cb: DWORD): HRESULT; stdcall;
+      DwmExtendFrameIntoClientArea: function(Wnd: HWND; var margins: windows.TRect): HRESULT; stdcall;
     public
       constructor Create;
       destructor Destroy; override;
@@ -32,6 +33,7 @@ type
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
       procedure ExcludeFromPeek(const AHandle: THandle);
+      procedure ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
   end;
 
 var DWM: TDWMHelper;
@@ -52,6 +54,7 @@ begin
     @DwmIsCompositionEnabled:= GetProcAddress(hDwmLib, 'DwmIsCompositionEnabled');
     @DwmEnableBlurBehindWindow:= GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
     @DwmSetWindowAttribute:= GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
+    @DwmExtendFrameIntoClientArea:= GetProcAddress(hDwmLib, 'DwmExtendFrameIntoClientArea');
   end;
 end;
 //------------------------------------------------------------------------------
@@ -107,6 +110,11 @@ begin
     exclude := -1;
     DwmSetWindowAttribute(AHandle, DWMWA_EXCLUDED_FROM_PEEK, @exclude, sizeof(exclude));
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TDWMHelper.ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
+begin
+  if @DwmExtendFrameIntoClientArea <> nil then DwmExtendFrameIntoClientArea(AHandle, margins);
 end;
 //------------------------------------------------------------------------------
 initialization

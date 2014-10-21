@@ -149,6 +149,7 @@ const
 
   // private Terry WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
+  WM_APP_RUN_THREAD_END = WM_APP + 2;
 
   // popup menu command IDs //
   IDM_PASTE = $f030;
@@ -191,7 +192,6 @@ resourcestring
   // frmterryu //
   XConfigureIcon = 'Configure icon';
   XOpenFolderOf = 'Open folder of';
-  XRunAsUser = 'Run as a different user';
   XCopy = 'Copy';
   XPaste = 'Paste';
   XDeleteIcon = 'Delete icon';

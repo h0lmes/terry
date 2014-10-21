@@ -5,8 +5,8 @@ unit frmhellou;
 interface
 
 uses
-  Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls;
+  Windows, Win32Themes, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, ExtCtrls, toolu, dwm_unit;
 
 type
 
@@ -35,6 +35,7 @@ type
     procedure btnRightClick(Sender: TObject);
     procedure btnTopClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormShow(Sender: TObject);
   private
   public
     class procedure Open;
@@ -45,7 +46,7 @@ var
 
 implementation
 {$R *.lfm}
-uses toolu, frmmainu, frmtipu;
+uses frmmainu, frmtipu;
 //------------------------------------------------------------------------------
 class procedure TfrmHello.Open;
 begin
@@ -54,6 +55,12 @@ begin
   frmHello.btnAutorun.Enabled := not CheckAutorun;
   frmHello.font.size := toolu.GetFontSize;
   frmHello.font.name := toolu.GetFont;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmHello.FormShow(Sender: TObject);
+begin
+  //dwm.ExtendFrameIntoClientArea(frmHello.Handle, rect(-1,-1,-1,-1));
+
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnCloseClick(Sender: TObject);
