@@ -5,8 +5,8 @@ unit frmhellou;
 interface
 
 uses
-  Windows, jwaWindows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, ExtCtrls, toolu, dwm_unit;
+  Windows, Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
+  StdCtrls, ExtCtrls, toolu;
 
 type
 

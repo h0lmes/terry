@@ -3,27 +3,36 @@ unit taskitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ComObj,
+uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes, ComObj,
   Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp;
 
 type
+
+  { TTaskItem }
+
   TTaskItem = class(TCustomItem)
   private
-    FAppHWnd: THandle;
+    FProcessID: dword;
+    FAppList: TFPList;
     procedure UpdateItemInternal;
-    procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
+    procedure CheckAppList;
+    procedure Exec;
+    procedure CloseList;
+    procedure OpenList;
   public
-    property AppHWnd: THandle read FAppHWnd;
+    function WindowInList(hwnd: THandle): boolean;
+    procedure UpdateTaskItem(hwnd: THandle);
+    procedure SetFont(var Value: _FontData);
+
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure UpdateTaskItem(h: THandle);
+    function cmd(id: TGParam; param: integer): integer; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TGParam; param: integer): integer; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
   end;
 
@@ -34,6 +43,8 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
+  FProcessID := 0;
+  FAppList := TFPList.Create;
   SetTimer(FHWnd, ID_TIMER, 2000, nil);
 end;
 //------------------------------------------------------------------------------
@@ -41,19 +52,42 @@ destructor TTaskItem.Destroy;
 begin
   FFreed := true;
   KillTimer(FHWnd, ID_TIMER);
+  FAppList.free;
   try GdipDisposeImage(FImage);
   except end;
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.UpdateTaskItem(h: THandle);
+function TTaskItem.WindowInList(hwnd: THandle): boolean;
+begin
+  UpdateTaskItem(hwnd);
+  result := FAppList.IndexOf(pointer(hwnd)) >= 0;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.UpdateTaskItem(hwnd: THandle);
+var
+  pid: dword;
 begin
   if FFreed then exit;
-  FAppHWnd := h;
-  UpdateItemInternal;
+  // check window ProcessID
+  GetWindowThreadProcessId(hwnd, @pid);
+  if FProcessID = 0 then FProcessID := pid;
+
+  // if window belong to the same process
+  if pid = FProcessID then
+  begin
+    // add the window to the list
+    if FAppList.IndexOf(pointer(hwnd)) < 0 then
+    begin
+      FAppList.Add(pointer(hwnd));
+      UpdateItemInternal;
+    end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItemInternal;
+var
+  hwnd: THandle;
 begin
   if FFreed or FUpdating then exit;
 
@@ -62,12 +96,13 @@ begin
       FUpdating := true;
       FIW := 0;
       FIH := 0;
-      if FAppHWnd = THandle(0) then
+      if FAppList.Count <= 0 then
       begin
         FCaption := '';
       end else begin
-        LoadImageFromHWnd(FAppHWnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
-        Caption := TProcessHelper.GetWindowText(FAppHWnd);
+        hwnd := THandle(FAppList.Items[0]);
+        LoadImageFromHWnd(hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
+        Caption := TProcessHelper.GetWindowText(hwnd);
       end;
     finally
       FUpdating:= false;
@@ -77,6 +112,12 @@ begin
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.SetFont(var Value: _FontData);
+begin
+  CopyFontData(Value, FFont);
+  Redraw;
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
@@ -111,10 +152,11 @@ end;
 procedure TTaskItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
   bmp: _SimpleBitmap;
-  dst, brush: Pointer;
+  dst, brush, hff, hfont, hformat: Pointer;
   xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
+  rect: GDIPAPI.TRectF;
 begin
   try
     if FFreed or FUpdating or (FFloating and not AForce) then exit;
@@ -179,6 +221,34 @@ begin
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
 
+    // draw windows count indicator
+    if assigned(FAppList) then
+      if FAppList.Count > 1 then
+      begin
+        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+        GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+        //
+        rect.X := ItemRect.Right - FSize div 3;
+        rect.Y := ItemRect.Top;
+        rect.Width := FSize div 3;
+        rect.Height := FSize div 3;
+        GdipCreateSolidFill($ffff0000, brush);
+        GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
+        GdipDeleteBrush(brush);
+        //
+        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hff);
+        GdipCreateFont(hff, FSize div 4, 1, 2, hfont);
+        GdipCreateSolidFill($ffffffff, brush);
+        GdipCreateStringFormat(0, 0, hformat);
+        GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
+        GdipSetStringFormatLineAlign(hformat, StringAlignmentCenter);
+        GdipDrawString(dst, PWideChar(WideString(inttostr(FAppList.Count))), -1, hfont, @rect, hformat, brush);
+        GdipDeleteStringFormat(hformat);
+        GdipDeleteBrush(brush);
+        GdipDeleteFont(hfont);
+        GdipDeleteFontFamily(hff);
+      end;
+
     if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
@@ -215,16 +285,15 @@ function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
 begin
-  result := false;
+  result := true;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)));
+  if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)));
   AppendMenu(FHMenu, MF_STRING, $f002, pchar(UTF8ToAnsi(XAddProgramToDock)));
   LME(true);
 
-  if not result then msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
-  Result := True;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
@@ -237,11 +306,14 @@ begin
   DestroyMenu(FHMenu);
   FHMenu := 0;
   case wParam of // f001 to f020
-    $f001: postmessage(FAppHWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
+    $f001:
+      if FAppList.Count > 0 then
+        postmessage(THandle(FAppList.Items[0]), WM_SYSCOMMAND, SC_CLOSE, 0);
     $f002:
+      if FAppList.Count > 0 then
       begin
         ProcessHelper.EnumProc;
-        str := ProcessHelper.GetAppWindowProcessFullName(FAppHWnd);
+        str := ProcessHelper.GetAppWindowProcessFullName(THandle(FAppList.Items[0]));
         if str <> '' then dockh.DockAddProgram(pchar(str));
       end;
     $f003..$f020: ;
@@ -253,20 +325,71 @@ procedure TTaskItem.WndMessage(var msg: TMessage);
 begin
   if FFreed then exit;
 
+  // WM_ACTIVATEAPP
+  if (msg.msg = WM_ACTIVATEAPP) and (msg.wParam = 0) then CloseList;
+
   // update application title //
   if (msg.msg = WM_TIMER) and (msg.wParam = ID_TIMER) then
   begin
-    Caption := TProcessHelper.GetWindowText(FAppHWnd);
+    CheckAppList;
+    // update caption
+    if FAppList.Count > 0 then
+      Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+    // delete self if no windows of the this process exist
+    if FAppList.Count = 0 then Delete;
   end;
+end;
+//------------------------------------------------------------------------------
+// delete non-existing windows
+procedure TTaskItem.CheckAppList;
+var
+  idx, old_count: integer;
+begin
+  old_count := FAppList.Count;
+  if FAppList.Count > 0 then
+  begin
+    for idx := FAppList.Count - 1 downto 0 do
+      if not IsWindow(THandle(FAppList.Items[idx])) then FAppList.Delete(idx);
+  end;
+  if FAppList.Count <> old_count then Redraw;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Exec;
 begin
-  ProcessHelper.ActivateWindow(FAppHWnd);
+  if FAppList.Count = 1 then
+    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
+  if FAppList.Count > 1 then OpenList;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);
 begin
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.OpenList;
+var
+  idx: integer;
+  hMenu: THandle;
+  pt: windows.TPoint;
+begin
+  pt := GetScreenRect.TopLeft;
+  if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
+  if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
+  if FSite = 0 then inc(pt.x, FSize);
+  if FSite = 1 then inc(pt.y, FSize);
+  hMenu := CreatePopupMenu;
+  for idx := 0 to FAppList.Count - 1 do
+    AppendMenu(hMenu, MF_STRING, idx + 1, pchar(ProcessHelper.GetWindowText(THandle(FAppList.Items[idx]))));
+  LME(true);
+
+  idx := integer(TrackPopupMenuEx(hMenu, TPM_RETURNCMD + ifthen(FSite = 3, TPM_BOTTOMALIGN, 0), pt.x, pt.y, FHWnd, nil));
+  LME(false);
+
+  if idx > 0 then ProcessHelper.ActivateWindow(THandle(FAppList.Items[idx - 1]));
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.CloseList;
+begin
+
 end;
 //------------------------------------------------------------------------------
 end.

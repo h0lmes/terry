@@ -4,7 +4,8 @@ interface
 
 uses
   SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  DefaultTranslator, Dialogs, ExtCtrls, StdCtrls, ComCtrls, Buttons, EColor, gdip_gfx;
+  DefaultTranslator, Dialogs, ExtCtrls, StdCtrls, ComCtrls, Buttons,
+  EColor, declu, gdip_gfx;
 
 type
   TUProc = procedure(afont: _FontData) of object;
@@ -127,7 +128,6 @@ begin
     FFont.size := StrToInt(edFontSize.Text);
     FFont.bold := sbtn_bold.down;
     FFont.italic := sbtn_Italic.down;
-    FFont.outline := false;
     if assigned(callback) then callback(FFont);
     Activate;
   except
@@ -161,7 +161,7 @@ procedure TfrmFont.rb_textClick(Sender: TObject);
 begin
   cbar.OnChange := nil;
   if rb_text.Checked then cbar.Color := gdip_gfx.SwapColor(FFont.color)
-  else cbar.Color := gdip_gfx.SwapColor(FFont.color_outline);
+  else cbar.Color := gdip_gfx.SwapColor(FFont.backcolor);
   cbar.OnChange := cbarChange;
 end;
 //------------------------------------------------------------------------------
@@ -170,8 +170,8 @@ var
   tmp: cardinal;
 begin
   tmp := FFont.color;
-  FFont.color := FFont.color_outline;
-  FFont.color_outline := tmp;
+  FFont.color := FFont.backcolor;
+  FFont.backcolor := tmp;
   rb_textClick(nil);
   ok(nil);
 end;
@@ -179,7 +179,7 @@ end;
 procedure TfrmFont.cbarChange(Sender: TObject);
 begin
   if rb_text.Checked then FFont.color := $ff000000 or gdip_gfx.swapcolor(cbar.Color)
-  else FFont.color_outline := $ff000000 or gdip_gfx.swapcolor(cbar.Color);
+  else FFont.backcolor := $ff000000 or gdip_gfx.swapcolor(cbar.Color);
   ok(nil);
 end;
 //------------------------------------------------------------------------------

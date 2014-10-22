@@ -195,14 +195,14 @@ begin
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
   container.Font.color:= uint(ini.ReadInteger('Font', 'color', integer($ffffffff)));
-  container.Font.color_outline:= uint(ini.ReadInteger('Font', 'backcolor', integer($ff202020)));
+  container.Font.backcolor:= uint(ini.ReadInteger('Font', 'backcolor', integer($ff202020)));
   container.Font.bold:= ini.ReadBool('Font', 'bold', true);
   container.Font.italic:= ini.ReadBool('Font', 'italic', false);
   // stack font //
   StrCopy(container.StackFont.name, pchar(ini.ReadString('StackFont', 'name', toolu.GetFont)));
   container.StackFont.size:= SetRange(ini.ReadInteger('StackFont', 'size', 14), 6, 72);
   container.StackFont.color:= uint(ini.ReadInteger('StackFont', 'color', integer($ffffffff)));
-  container.StackFont.color_outline:= uint(ini.ReadInteger('StackFont', 'backcolor', integer($ff202020)));
+  container.StackFont.backcolor:= uint(ini.ReadInteger('StackFont', 'backcolor', integer($ff202020)));
   container.StackFont.bold:= ini.ReadBool('StackFont', 'bold', true);
   container.StackFont.italic:= ini.ReadBool('StackFont', 'italic', false);
   // gfx //
@@ -289,14 +289,14 @@ begin
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
   ini.WriteInteger('Font', 'color', container.Font.color);
-  ini.WriteInteger('Font', 'backcolor', container.Font.color_outline);
+  ini.WriteInteger('Font', 'backcolor', container.Font.backcolor);
   ini.WriteBool   ('Font', 'bold', container.Font.bold);
   ini.WriteBool   ('Font', 'italic', container.Font.italic);
   // stack font //
   ini.WriteString ('StackFont', 'name', pchar(@container.StackFont.name[0]));
   ini.WriteInteger('StackFont', 'size', container.StackFont.size);
   ini.WriteInteger('StackFont', 'color', container.StackFont.color);
-  ini.WriteInteger('StackFont', 'backcolor', container.StackFont.color_outline);
+  ini.WriteInteger('StackFont', 'backcolor', container.StackFont.backcolor);
   ini.WriteBool   ('StackFont', 'bold', container.StackFont.bold);
   ini.WriteBool   ('StackFont', 'italic', container.StackFont.italic);
 

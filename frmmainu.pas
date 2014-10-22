@@ -411,7 +411,7 @@ begin
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
 
-    ItemMgr.SetStackFont(sets.container.StackFont);
+    ItemMgr.SetFont(sets.container.Font);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
 
     BaseCmd(tcThemeChanged, 0);
@@ -1549,14 +1549,12 @@ end;
 procedure Tfrmmain.SetFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.Font);
-  SetParam(gpShowHint, integer(sets.container.ShowHint));
+  if assigned(ItemMgr) then ItemMgr.SetFont(Value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.SetStackFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.StackFont);
-  if assigned(ItemMgr) then ItemMgr.SetStackFont(Value);
-  SetParam(gpShowHint, integer(sets.container.ShowHint));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OpenWith(filename: string);

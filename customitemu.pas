@@ -52,6 +52,7 @@ type TCustomItem = class
     MouseDownPoint: windows.TPoint;
     FMouseDownButton: TMouseButton;
 
+    FFont: _FontData;
     FImage: Pointer;
     FIW: uint; // image width
     FIH: uint; // image height
@@ -142,6 +143,7 @@ begin
   FSite := AParams.Site;
   FShowHint := AParams.ShowHint;
   FLockDragging := AParams.LockDragging;
+  CopyFontData(AParams.Font, FFont);
 end;
 //------------------------------------------------------------------------------
 destructor TCustomItem.Destroy;

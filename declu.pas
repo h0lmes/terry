@@ -1,7 +1,7 @@
 unit declu;
 
 interface
-uses Windows, DefaultTranslator;
+uses Windows, SysUtils, DefaultTranslator;
 
 type
   TBaseSite = (bsLeft = 0, bsTop, bsRight, bsBottom);
@@ -79,7 +79,17 @@ type
     icDropIndicator,
     icMax);
 
-  _ItemCreateParams = record
+  PFontData = ^_FontData;
+  _FontData = packed record
+    name: array [0..255] of char;
+    size: integer;
+    color: cardinal;
+    backcolor: cardinal;
+    bold: boolean;
+    italic: boolean;
+  end;
+
+  _ItemCreateParams = packed record
     ItemSize: integer;
     BigItemSize: integer;
     LaunchInterval: integer;
@@ -92,6 +102,7 @@ type
     Animation: integer;
     LockDragging: boolean;
     StackOpenAnimation: boolean;
+    Font: _FontData;
   end;
 
   TBaseCmd = function(id: TGParam; param: integer): integer of object;
@@ -266,6 +277,7 @@ resourcestring
 
   function SiteToString(site: TBaseSite): string;
   function StringToSite(str: string): TBaseSite;
+  procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 
 implementation
 //------------------------------------------------------------------------------
@@ -283,6 +295,16 @@ begin
   if str = 'top' then result := bsTop
   else if str = 'right' then result := bsRight
   else if str = 'bottom' then result := bsBottom;
+end;
+//--------------------------------------------------------------------------------------------------
+procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
+begin
+  strcopy(@fTo.name, @fFrom.name);
+  fTo.size:=          fFrom.size;
+  fTo.color:=         fFrom.color;
+  fTo.backcolor:=     fFrom.backcolor;
+  fTo.bold:=          fFrom.bold;
+  fTo.italic:=        fFrom.italic;
 end;
 //------------------------------------------------------------------------------
 end.

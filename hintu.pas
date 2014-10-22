@@ -226,7 +226,7 @@ begin
         points[2].y := 0;
         GdipAddPathPolygonI(path, @points, 3);
       end;
-      GdipCreateSolidFill($ff000000 + font.color_outline and $ffffff, hbrush);
+      GdipCreateSolidFill($ff000000 + font.backcolor and $ffffff, hbrush);
       GdipFillPath(hgdip, hbrush, path);
       GdipDeleteBrush(hbrush);
       GdipDeletePath(path);

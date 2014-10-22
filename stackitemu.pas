@@ -57,7 +57,6 @@ type
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
-    FStackFont: _FontData;
     procedure UpdateItemInternal;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer);
@@ -86,7 +85,7 @@ type
 
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
-    procedure SetStackFont(var Value: _FontData);
+    procedure SetFont(var Value: _FontData);
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -150,13 +149,6 @@ begin
   FSpecialFolder := '';
   FPreview := true;
   FPreviewImage := nil;
-
-  strcopy(pchar(@FStackFont.name), 'tahoma');
-  FStackFont.size := 12;
-  FStackFont.color := $fff0f0f0;
-  FStackFont.color_outline := $ff202020;
-  FStackFont.bold := false;
-  FStackFont.italic := false;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -563,14 +555,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.SetStackFont(var Value: _FontData);
+procedure TStackItem.SetFont(var Value: _FontData);
 var
   idx: integer;
 begin
-  CopyFontData(Value, FStackFont);
+  CopyFontData(Value, FFont);
   if FItemCount > 0 then
   begin
-    for idx := 0 to FItemCount - 1 do items[idx].item.SetFont(FStackFont);
+    for idx := 0 to FItemCount - 1 do items[idx].item.SetFont(FFont);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -922,6 +914,7 @@ begin
   result.ShowHint := FShowHint;
   result.Animation := 0;
   result.LockDragging := FLockDragging;
+  CopyFontData(FFont, result.Font);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.AddSubitem(data: string);
@@ -942,7 +935,6 @@ begin
       dec(FItemCount);
     end
     else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
-    items[FItemCount - 1].item.SetFont(FStackFont);
     FUpdating := upd;
 
     UpdatePreview;

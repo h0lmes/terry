@@ -3,7 +3,7 @@ unit gdip_gfx;
 interface
 
 uses Windows, Classes, SysUtils, Graphics, ShlObj, ShellAPI, PIDL, ActiveX,
-  CommCtrl, GDIPAPI, toolu, dockh;
+  CommCtrl, GDIPAPI, declu, toolu, dockh;
 
 const
   HLSMAX = 240;
@@ -55,17 +55,6 @@ type
     BufferBitmap: HBitmap;
   end;
 
-  PFontData = ^_FontData;
-  _FontData = packed record
-    name: array [0..255] of char;
-    size: integer;
-    color: cardinal;
-    color_outline: cardinal;
-    bold: boolean;
-    italic: boolean;
-    outline: boolean;
-  end;
-
   ppixel = ^pixel;
   pixel = packed record
     b: byte;
@@ -107,7 +96,6 @@ procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
 function IsJumboIcon(AIcon: HICON): boolean;
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
-procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 function SwapColor(color: uint): uint;
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
 function HLStoRGB(h, l, s: integer): uint;
@@ -1102,17 +1090,6 @@ begin
   except
     on e: Exception do raise Exception.Create('IsJumboIcon'#10#13 + e.message);
   end;
-end;
-//--------------------------------------------------------------------------------------------------
-procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
-begin
-  strcopy(@fTo.name, @fFrom.name);
-  fTo.size:=          fFrom.size;
-  fTo.color:=         fFrom.color;
-  fTo.color_outline:= fFrom.color_outline;
-  fTo.bold:=          fFrom.bold;
-  fTo.italic:=        fFrom.italic;
-  fTo.outline:=       fFrom.outline;
 end;
 //------------------------------------------------------------------------------
 function SwapColor(color: uint): uint;

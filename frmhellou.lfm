@@ -9,7 +9,7 @@ object frmHello: TfrmHello
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object Label3: TLabel
     Left = 45
     Height = 15

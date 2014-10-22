@@ -39,6 +39,7 @@ type
     UseShellContextMenus: boolean;
     ShowHint: boolean;
     StackOpenAnimation: boolean;
+    FFont: _FontData;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
@@ -78,7 +79,7 @@ type
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
     procedure CopyItemDescriptor(pFrom, pTo: PItem);
-    function GetTaskItemIndex(h: THandle): integer;
+    function GetTaskItemIndex(hwnd: THandle): integer;
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
@@ -165,7 +166,7 @@ type
     function ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
     function ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
     function AllItemCmd(id: TGParam; param: integer): integer;
-    procedure SetStackFont(var Value: _FontData);
+    procedure SetFont(var Value: _FontData);
     procedure PluginCallCreate(HWnd: HANDLE);
     function GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
@@ -1036,6 +1037,7 @@ begin
     icp.Animation := ItemAnimation;
     icp.LockDragging := LockDragging;
     icp.StackOpenAnimation := StackOpenAnimation;
+    CopyFontData(FFont, icp.Font);
 
     if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
     else
@@ -1059,17 +1061,22 @@ begin
 end;
 //------------------------------------------------------------------------------
 // do not call directly !!!
-// item can call this using DockH.DockDeleteItem from TCustomItem.Delete
+// items call this using DockH.DockDeleteItem()
+// use TCustomItem.Delete() instead
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
   idx: integer;
+  is_task: boolean;
 begin
   if Enabled then
   try
     idx := ItemIndex(HWnd);
+    is_task := IsTask(HWnd);
     enabled := false;
+
     // add to "deleted" list //
     itemsDeleted.Add(Pointer(HWnd));
+
     // erase it from "items" list //
     if idx <> NOT_AN_ITEM then
     begin
@@ -1078,8 +1085,12 @@ begin
         CopyItemDescriptor(@items[idx + 1], @items[idx]);
         inc(idx);
       end;
+      // decrement item count
       dec(ItemCount);
+      if is_task then
+        if TaskItemCount > 0 then dec(TaskItemCount);
     end;
+
     // update dock //
     enabled := true;
     ItemsChanged;
@@ -1565,7 +1576,7 @@ begin
     idx := 0;
     while idx < ItemCount do
     begin
-      if items[idx].h <> 0 then sendmessage(items[idx].h, WM_ACTIVATEAPP, 0, 0);
+      if items[idx].h <> 0 then postmessage(items[idx].h, WM_ACTIVATEAPP, 0, 0);
       inc(idx);
     end;
   except
@@ -1822,21 +1833,23 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetStackFont(var Value: _FontData);
+procedure _ItemManager.SetFont(var Value: _FontData);
 var
   item: integer;
   Inst: TCustomItem;
 begin
   try
+    CopyFontData(Value, FFont);
     item := 0;
     while item < ItemCount do
     begin
       Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
-      if Inst is TStackItem then (Inst as TStackItem).SetStackFont(Value);
+      if Inst is TStackItem then (Inst as TStackItem).SetFont(Value);
+      if Inst is TTaskItem then (Inst as TTaskItem).SetFont(Value);
       inc(item);
     end;
   except
-    on e: Exception do err('ItemManager.SetStackFont', e);
+    on e: Exception do err('ItemManager.SetFont', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1980,9 +1993,11 @@ begin
   begin
     HWndTask := ProcessHelper.GetAppWindowHandle(idx);
     index := GetTaskItemIndex(HWndTask);
-    if index = -1 then // there is no item for the window
+    // there is no item for the window
+    if index = -1 then
     begin
-      if TaskItemCount = 0 then // if there is no task items yet - add separator
+      // if there is no task items yet - add separator
+      if TaskItemCount = 0 then
       begin
         AddItem('class="separator";dontsave="1";candrag="0";', true);
         inc(TaskItemCount);
@@ -2000,23 +2015,7 @@ begin
     inc(idx);
   end;
 
-
-  // remove items //
-  idx := ItemCount - 1;
-  while idx >= 0 do
-  begin
-    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
-    if Inst is TTaskItem then
-      if TTaskItem(Inst).AppHWnd <> THandle(0) then
-        if ProcessHelper.GetAppWindowIndex(TTaskItem(Inst).AppHWnd) < 0 then
-        begin
-          Inst.Delete;
-          if TaskItemCount > 0 then dec(TaskItemCount);
-        end;
-    dec(idx);
-  end;
-
-  // if not task items left on the dock - delete task items separator //
+  // if there is no task items left on the dock - delete task items separator //
   if TaskItemCount = 1 then
   begin
     idx := ItemCount - 1;
@@ -2032,10 +2031,9 @@ begin
       dec(idx);
     end;
   end;
-
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetTaskItemIndex(h: THandle): integer;
+function _ItemManager.GetTaskItemIndex(hwnd: THandle): integer;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -2046,7 +2044,7 @@ begin
   begin
     Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
     if Inst is TTaskItem then
-      if TTaskItem(Inst).AppHWnd = h then
+      if TTaskItem(Inst).WindowInList(hwnd) then
       begin
         result := idx;
         break;

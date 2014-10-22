@@ -71,6 +71,7 @@ type
 
     function HitTest(Ax, Ay: integer): boolean;
     function ScreenHitTest(Ax, Ay: integer): boolean;
+    procedure SetFont(var Value: _FontData);
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
@@ -90,8 +91,6 @@ type
     function DropFile(pt: windows.TPoint; filename: string): boolean; virtual; abstract;
     procedure Delete(AllowUndo: boolean = true); virtual;
     procedure BeginDrag; virtual;
-
-    procedure SetFont(var Value: _FontData);
   end;
 
   { TShortcutSubitem }
@@ -443,15 +442,13 @@ begin
         yBitmap := FSize div 2 + 3;
       end;
       //
-      try GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-      except on e: Exception do raise Exception.Create('Caption.CreateFontFamily'#10#13 + e.message);
-      end;
-      GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
+      GdipCreateFont(hfontfamily, FFont.size - 1, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       //
       //GdipCreatePath(FillModeWinding, path);
-      GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.color_outline and $ffffff, brush);
+      GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.backcolor and $ffffff, brush);
       GdipFillRectangle(dst, brush, xBitmap - FCaptionHeight div 4, yBitmap - 1, FCaptionWidth - 3 + FCaptionHeight div 2, FCaptionHeight + 1);
       //GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
       //GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
@@ -811,6 +808,7 @@ begin
   FSite := AParams.Site;
   FShowHint := AParams.ShowHint;
   FLockDragging := AParams.LockDragging;
+  CopyFontData(AParams.Font, FFont);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.Init;
@@ -835,12 +833,6 @@ begin
   FImage := nil;
   FIW := 32;
   FIH := 32;
-  strcopy(pchar(@FFont.name), 'tahoma');
-  FFont.size := 12;
-  FFont.color := $fff0f0f0;
-  FFont.color_outline := $ff202020;
-  FFont.bold := false;
-  FFont.italic := false;
 end;
 //------------------------------------------------------------------------------
 destructor TCustomSubitem.Destroy;
@@ -1010,7 +1002,7 @@ begin
     GdipCreateFromHDC(dc, hgdip);
     if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
       raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
-    GdipCreateFont(hfontfamily, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+    GdipCreateFont(hfontfamily, FFont.size - 1, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
     rect.x := 0;
     rect.y := 0;
     rect.Width := 0;
