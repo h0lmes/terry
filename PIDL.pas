@@ -9,6 +9,9 @@ type
 
 function PIDL_CountFromCIDA(ida: PCIDA): longint;
 function PIDL_FromCIDA(index: longint; ida: PCIDA; var size: longint): PItemIDList;
+function PIDL_ToString(p: Pointer): string; overload;
+function PIDL_ToString(p: Pointer; size: uint): string; overload;
+function PIDL_FromString(Data: string): PItemIDList;
 function PIDL_GetSize(pidl: PITEMIDLIST): integer;
 function PIDL_Create(size: uint): PItemIDList;
 function PIDL_Copy(pidl: PItemIDList): PItemIDList;
@@ -21,6 +24,7 @@ function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 function PIDL_GetFileFolder(pidl: PItemIDList; var folder: IShellFolder): boolean;
 procedure PIDL_Free(pidl: PItemIDList);
 function IsGUID(str: string): boolean;
+function IsPIDLString(str: string): boolean;
 function CSIDL_ToInt(csidl: string): integer;
 
 var
@@ -78,6 +82,48 @@ begin
     size := offset + 2;
     result := ShellMalloc.Alloc(size);
     if result <> nil then CopyMemory(result, @buf, size);
+  end;
+end;
+//------------------------------------------------------------------------------
+function PIDL_ToString(p: Pointer): string;
+begin
+  Result := PIDL_ToString(p, PIDL_GetSize(p));
+end;
+//------------------------------------------------------------------------------
+function PIDL_ToString(p: Pointer; size: uint): string;
+var
+  i: uint;
+begin
+  Result := '';
+  if p <> nil then
+  begin
+    if size > 0 then result := '::::';
+    i := 0;
+    while i < size do
+    begin
+      Result := Result + inttohex(byte(pbyte(PChar(p) + i)^), 2);
+      inc(i);
+    end;
+  end;
+end;
+//------------------------------------------------------------------------------
+// converts string of type "::::14001F50E04FD020EA3A6910A2D808002B30309D0000" into a PIDL
+// each 2 digits represent one byte of PIDL in hex
+function PIDL_FromString(Data: string): PItemIDList;
+var
+  i, size: word;
+begin
+  result := nil;
+  if strlcomp(pchar(data), '::::', 4) <> 0 then exit;
+
+  data := copy(data, 5, length(data));
+  size := length(Data) div 2;
+  Result := ShellMalloc.Alloc(size);
+  i := 0;
+  while i < size do
+  begin
+    pbyte(cardinal(Result) + i)^ := byte(StrToInt('$' + copy(Data, 1 + i * 2, 2)));
+    inc(i);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -150,9 +196,20 @@ end;
 function PIDL_GetDisplayName2(pidl: PItemIDList): string;
 var
   pszName: array [0..MAX_PATH - 1] of char;
+  apidl: PItemIDList;
 begin
   result := '';
   if PIDL_GetDisplayName(nil, pidl, SHGDN_FORPARSING, pszName, MAX_PATH) then result := strpas(pszName);
+  if IsGUID(result) then
+  begin
+    apidl := PIDL_GetFromPath(pchar(result));
+    if assigned(apidl) then
+    begin
+      PIDL_Free(apidl);
+    end else begin
+      result := PIDL_ToString(pidl);
+    end;
+  end;
 end;
 //------------------------------------------------------------------------------
 //  takes a fully qualified pidl and returns the the relative pidl
@@ -239,6 +296,12 @@ end;
 function IsGUID(str: string): boolean;
 begin
   result := strlcomp(pchar(str), '::{', 3) = 0;
+end;
+//------------------------------------------------------------------------------
+// proprietary format PIDL string starts with "::::"
+function IsPIDLString(str: string): boolean;
+begin
+  result := strlcomp(pchar(str), '::::', 4) = 0;
 end;
 //------------------------------------------------------------------------------
 // convert CSIDL_ constant name to its value

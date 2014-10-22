@@ -3,7 +3,7 @@ unit taskitemu;
 {$t+}
 
 interface
-uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes, ComObj,
+uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes,
   Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp;
 
 type
@@ -12,7 +12,7 @@ type
 
   TTaskItem = class(TCustomItem)
   private
-    FProcessID: dword;
+    FProcName: string;
     FAppList: TFPList;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -43,9 +43,9 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
-  FProcessID := 0;
+  FProcName := '';
   FAppList := TFPList.Create;
-  SetTimer(FHWnd, ID_TIMER, 2000, nil);
+  SetTimer(FHWnd, ID_TIMER, 1000, nil);
 end;
 //------------------------------------------------------------------------------
 destructor TTaskItem.Destroy;
@@ -66,23 +66,24 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateTaskItem(hwnd: THandle);
 var
-  pid: dword;
+  ProcName: string;
 begin
   if FFreed then exit;
-  // check window ProcessID
-  GetWindowThreadProcessId(hwnd, @pid);
-  if FProcessID = 0 then FProcessID := pid;
+  // check window process name
+  ProcName := ProcessHelper.GetAppWindowProcessFullName(hwnd);
+  if FProcName = '' then FProcName := ProcName;
 
   // if window belong to the same process
-  if pid = FProcessID then
-  begin
-    // add the window to the list
-    if FAppList.IndexOf(pointer(hwnd)) < 0 then
+  if ProcName <> '' then
+    if ProcName = FProcName then
     begin
-      FAppList.Add(pointer(hwnd));
-      UpdateItemInternal;
+      // add the window to the list
+      if FAppList.IndexOf(pointer(hwnd)) < 0 then
+      begin
+        FAppList.Add(pointer(hwnd));
+        UpdateItemInternal;
+      end;
     end;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItemInternal;
@@ -228,10 +229,10 @@ begin
         GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         //
-        rect.X := ItemRect.Right - FSize div 3;
-        rect.Y := ItemRect.Top;
-        rect.Width := FSize div 3;
+        rect.Width := FSize * 5 div 12;
         rect.Height := FSize div 3;
+        rect.X := ItemRect.Right - rect.Width;
+        rect.Y := ItemRect.Top;
         GdipCreateSolidFill($ffff0000, brush);
         GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
         GdipDeleteBrush(brush);
@@ -310,12 +311,7 @@ begin
       if FAppList.Count > 0 then
         postmessage(THandle(FAppList.Items[0]), WM_SYSCOMMAND, SC_CLOSE, 0);
     $f002:
-      if FAppList.Count > 0 then
-      begin
-        ProcessHelper.EnumProc;
-        str := ProcessHelper.GetAppWindowProcessFullName(THandle(FAppList.Items[0]));
-        if str <> '' then dockh.DockAddProgram(pchar(str));
-      end;
+        if FProcName <> '' then dockh.DockAddProgram(pchar(FProcName));
     $f003..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
@@ -328,14 +324,14 @@ begin
   // WM_ACTIVATEAPP
   if (msg.msg = WM_ACTIVATEAPP) and (msg.wParam = 0) then CloseList;
 
-  // update application title //
   if (msg.msg = WM_TIMER) and (msg.wParam = ID_TIMER) then
   begin
+    // validate windows
     CheckAppList;
-    // update caption
+    // update item caption
     if FAppList.Count > 0 then
       Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
-    // delete self if no windows of the this process exist
+    // delete self if no windows left
     if FAppList.Count = 0 then Delete;
   end;
 end;
@@ -344,12 +340,16 @@ end;
 procedure TTaskItem.CheckAppList;
 var
   idx, old_count: integer;
+  hwnd: THandle;
 begin
   old_count := FAppList.Count;
   if FAppList.Count > 0 then
   begin
     for idx := FAppList.Count - 1 downto 0 do
-      if not IsWindow(THandle(FAppList.Items[idx])) then FAppList.Delete(idx);
+    begin
+      hwnd := THandle(FAppList.Items[idx]);
+      if ProcessHelper.GetAppWindowIndex(hwnd) < 0 then FAppList.Delete(idx);
+    end;
   end;
   if FAppList.Count <> old_count then Redraw;
 end;
@@ -370,6 +370,7 @@ var
   idx: integer;
   hMenu: THandle;
   pt: windows.TPoint;
+  flags: cardinal;
 begin
   pt := GetScreenRect.TopLeft;
   if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
@@ -378,10 +379,13 @@ begin
   if FSite = 1 then inc(pt.y, FSize);
   hMenu := CreatePopupMenu;
   for idx := 0 to FAppList.Count - 1 do
-    AppendMenu(hMenu, MF_STRING, idx + 1, pchar(ProcessHelper.GetWindowText(THandle(FAppList.Items[idx]))));
+    AppendMenu(hMenu, MF_STRING, idx + 1, pchar(ProcessHelper.GetWindowText(THandle(FAppList.Items[idx])) + '    '));
   LME(true);
 
-  idx := integer(TrackPopupMenuEx(hMenu, TPM_RETURNCMD + ifthen(FSite = 3, TPM_BOTTOMALIGN, 0), pt.x, pt.y, FHWnd, nil));
+  flags := TPM_RETURNCMD;
+  if (FSite = 1) or (FSite = 3) then flags := flags or TPM_CENTERALIGN;
+  if FSite = 3 then flags := flags or TPM_BOTTOMALIGN;
+  idx := integer(TrackPopupMenuEx(hMenu, flags, pt.x, pt.y, FHWnd, nil));
   LME(false);
 
   if idx > 0 then ProcessHelper.ActivateWindow(THandle(FAppList.Items[idx - 1]));

@@ -1136,7 +1136,9 @@ begin
       GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
-      // draw background //
+      // workaround to eliminate rumble on certain backgrounds while dragging file //
+      if ItemMgr.DraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
+      // draw dock background image //
       Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect);
       // update dock window //
       UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
@@ -1429,6 +1431,7 @@ end;
 procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: uint);
 begin
   ItemMgr.DragEnter;
+  BasePaint(1);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragOver;
@@ -1439,6 +1442,7 @@ end;
 procedure Tfrmmain.OnDragLeave;
 begin
   ItemMgr.DragLeave;
+  BasePaint(1);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDrop(files: TStrings; hWnd: uint);

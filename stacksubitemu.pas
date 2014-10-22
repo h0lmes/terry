@@ -262,6 +262,7 @@ begin
       // create PIDL from GUID //
       PIDL_Free(apidl);
       if IsGUID(FCommand) then apidl := PIDL_GetFromPath(pchar(FCommand));
+      if IsPIDLString(FCommand) then apidl := PIDL_FromString(FCommand);
       is_pidl := assigned(apidl);
       if is_pidl and (FCaption = '::::') then
       begin
@@ -755,7 +756,7 @@ var
   fcaption, fparams, fdir, ficon, ext: string;
 begin
   result := '';
-  if IsGUID(filename) then
+  if IsGUID(filename) or IsPIDLString(filename) then
   begin
     result := TShortcutSubitem.Make(0, '::::', filename, '', '', '', 1);
     exit

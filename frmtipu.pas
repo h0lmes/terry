@@ -38,6 +38,7 @@ uses toolu, setsu;
 //------------------------------------------------------------------------------
 class procedure TfrmTip.Open;
 begin
+  if not FileExists(UnzipPath('%pp%\tips.txt')) then exit;
   Application.CreateForm(TfrmTip, frmTip);
   frmTip.Show;
   frmTip.font.size := toolu.GetFontSize;
@@ -69,7 +70,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.Load;
 begin
-  memo.font.size := 14;
+  memo.font.size := 12;
   memo.font.name := toolu.GetFont;
   list.LoadFromFile(UnzipPath('%pp%\tips.txt'));
   FIndex := 0;

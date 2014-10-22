@@ -409,6 +409,7 @@ begin
 
     apidl := nil;
     if IsGUID(str) then apidl := PIDL_GetFromPath(pchar(str));
+    if IsPIDLString(str) then apidl := PIDL_FromString(str);
     if assigned(apidl) then
     begin
       LoadImageFromPIDL(apidl, 128, true, true, FImage, FIW, FIH);

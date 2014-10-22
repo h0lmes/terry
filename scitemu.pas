@@ -168,12 +168,13 @@ begin
         PIDL_Free(pidFolder);
         FCommand := strpas(pszName);
         if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
-        else FCaption := '::::'; // assuming it is a PIDL
+        else FCaption := '::::'; // assuming this is a PIDL
       end;
 
       // create PIDL from GUID //
       PIDL_Free(apidl);
       if IsGUID(FCommand) then apidl := PIDL_GetFromPath(pchar(FCommand));
+      if IsPIDLString(FCommand) then apidl := PIDL_FromString(FCommand);
       is_pidl := assigned(apidl);
       if is_pidl and (FCaption = '::::') then
       begin
@@ -246,7 +247,7 @@ begin
   end;
 
   FImageFile2 := '';
-  if FBitBucket then // if this shortcut is bitbucket
+  if FBitBucket then // if this shortcut is a bitbucket
   begin
     SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil); // set timer for update
 
@@ -259,7 +260,7 @@ begin
       if not FileExists(FImageFile2) then FImageFile2 := '';
     end;
   end
-  else // if it is not
+  else // if this shortcut is not a bitbucket
     KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
 end;
 //------------------------------------------------------------------------------
@@ -811,7 +812,7 @@ var
   fcaption, fparams, fdir, ficon, ext: string;
 begin
   result := '';
-  if IsGUID(filename) then
+  if IsGUID(filename) or IsPIDLString(filename) then
   begin
     result := TShortcutItem.Make(0, '::::', filename, '', '', '', 1);
     exit
