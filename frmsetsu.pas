@@ -18,7 +18,6 @@ type
     btnRemoveDock: TButton;
     btnRunNow: TButton;
     btnSelectHintFont: TBitBtn;
-    btnSelectStackFont: TBitBtn;
     btn_ok1: TBitBtn;
     cbShowHint: TCheckBox;
     chbHintEffects: TCheckBox;
@@ -115,7 +114,6 @@ type
     procedure btnAutoRunAddMinimizedClick(Sender: TObject);
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
-    procedure btnSelectStackFontClick(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
     procedure chbReserveScreenEdgeClick(Sender: TObject);
@@ -180,7 +178,6 @@ type
     procedure ReadAutorun;
     procedure SaveAutorun;
     procedure HintFontCallback(font: _FontData);
-    procedure StackHintFontCallback(font: _FontData);
   end;
 
 var
@@ -773,17 +770,8 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.HintFontCallback(font: _FontData);
 begin
+  font.size2:=font.size - 1;
   frmmain.SetFont(font);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.btnSelectStackFontClick(Sender: TObject);
-begin
-  TfrmFont.Open(sets.container.StackFont, StackHintFontCallback);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.StackHintFontCallback(font: _FontData);
-begin
-  frmmain.SetStackFont(font);
 end;
 //------------------------------------------------------------------------------
 //

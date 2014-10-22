@@ -114,7 +114,6 @@ type
     function GetHMenu(ParentMenu: uint): uint;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure SetFont(var Value: _FontData);
-    procedure SetStackFont(var Value: _FontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
     function IsLockedMouseEffect: boolean;
     function GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
@@ -1554,11 +1553,6 @@ procedure Tfrmmain.SetFont(var Value: _FontData);
 begin
   CopyFontData(Value, sets.container.Font);
   if assigned(ItemMgr) then ItemMgr.SetFont(Value);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.SetStackFont(var Value: _FontData);
-begin
-  CopyFontData(Value, sets.container.StackFont);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OpenWith(filename: string);

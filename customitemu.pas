@@ -83,6 +83,7 @@ type TCustomItem = class
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
+    procedure SetFont(var Value: _FontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
     function ToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
@@ -283,6 +284,11 @@ begin
   except
     on e: Exception do raise Exception.Create('CustomItem.Cmd'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.SetFont(var Value: _FontData);
+begin
+  CopyFontData(Value, FFont);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Redraw(Force: boolean = true);
@@ -533,8 +539,11 @@ begin
         end
         else if msg = wm_rbuttonup then
         begin
-              if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, msg, wParam, lParam);
+              if not FFreed then
+              begin
+                if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
+                else sendmessage(FHWndParent, msg, wParam, lParam);
+              end;
         end
         else if msg = wm_lbuttondblclk then
         begin

@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsStyle
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 2
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -410,30 +410,21 @@ object frmsets: Tfrmsets
       object btnSelectHintFont: TBitBtn
         Left = 15
         Height = 30
-        Top = 400
+        Top = 375
         Width = 431
         Caption = 'Select hint font'
         OnClick = btnSelectHintFontClick
         TabOrder = 2
       end
-      object btnSelectStackFont: TBitBtn
-        Left = 15
-        Height = 30
-        Top = 440
-        Width = 431
-        Caption = 'Select stack hint font'
-        OnClick = btnSelectStackFontClick
-        TabOrder = 3
-      end
       object lbTheme: TListBox
         Left = 15
-        Height = 371
+        Height = 341
         Top = 15
         Width = 201
         ItemHeight = 0
         OnDblClick = lbThemeDblClick
         OnSelectionChange = lbThemeSelectionChange
-        TabOrder = 4
+        TabOrder = 3
       end
     end
     object tsIcons: TTabSheet

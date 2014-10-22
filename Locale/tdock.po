@@ -635,10 +635,6 @@ msgstr ""
 msgid "Select hint font"
 msgstr ""
 
-#: tfrmsets.btnselectstackfont.caption
-msgid "Select stack hint font"
-msgstr ""
-
 #: tfrmsets.btn_cancel.caption
 msgctxt "TFRMSETS.BTN_CANCEL.CAPTION"
 msgid "Cancel"

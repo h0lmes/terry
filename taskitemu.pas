@@ -23,7 +23,6 @@ type
   public
     function WindowInList(hwnd: THandle): boolean;
     procedure UpdateTaskItem(hwnd: THandle);
-    procedure SetFont(var Value: _FontData);
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -113,12 +112,6 @@ begin
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.SetFont(var Value: _FontData);
-begin
-  CopyFontData(Value, FFont);
-  Redraw;
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;

@@ -10,19 +10,16 @@ type
     Site: TBaseSite;
     CenterOffsetPercent: integer;
     EdgeOffset: integer;
-
     AutoHide: boolean;
     AutoHideTime: integer;
     AutoShowTime: integer;
     AutoHidePixels: integer;
-
     ItemSize: integer;
     BigItemSize: integer;
     ZoomWidth: integer;
     ItemSpacing: integer;
     ZoomItems: boolean;
     ZoomTime: integer;
-
     HideKeys: integer;
     DropDistance: integer;
     LaunchInterval: integer;
@@ -44,17 +41,12 @@ type
     StackOpenAnimation: boolean;
     AutoHideOnFullScreenApp: boolean;
     RunInThread: boolean;
-
+    UseShell: boolean;
+    Hello: boolean;
     Reflection: boolean;
     BaseAlpha: integer;
     Blur: boolean;
-
-    UseShell: boolean;
-    Hello: boolean;
-
     Font: _FontData;
-    StackFont: _FontData;
-
     Shell: array [0..MAX_PATH] of char;
     ThemeName: array [0..MAX_PATH] of char;
   end;
@@ -194,17 +186,11 @@ begin
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
+  container.Font.size2:= SetRange(ini.ReadInteger('Font', 'size2', 14), 6, 72);
   container.Font.color:= uint(ini.ReadInteger('Font', 'color', integer($ffffffff)));
   container.Font.backcolor:= uint(ini.ReadInteger('Font', 'backcolor', integer($ff202020)));
   container.Font.bold:= ini.ReadBool('Font', 'bold', true);
   container.Font.italic:= ini.ReadBool('Font', 'italic', false);
-  // stack font //
-  StrCopy(container.StackFont.name, pchar(ini.ReadString('StackFont', 'name', toolu.GetFont)));
-  container.StackFont.size:= SetRange(ini.ReadInteger('StackFont', 'size', 14), 6, 72);
-  container.StackFont.color:= uint(ini.ReadInteger('StackFont', 'color', integer($ffffffff)));
-  container.StackFont.backcolor:= uint(ini.ReadInteger('StackFont', 'backcolor', integer($ff202020)));
-  container.StackFont.bold:= ini.ReadBool('StackFont', 'bold', true);
-  container.StackFont.italic:= ini.ReadBool('StackFont', 'italic', false);
   // gfx //
   container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 0, 255);
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
@@ -288,17 +274,11 @@ begin
   // font //
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
+  ini.WriteInteger('Font', 'size2', container.Font.size2);
   ini.WriteInteger('Font', 'color', container.Font.color);
   ini.WriteInteger('Font', 'backcolor', container.Font.backcolor);
   ini.WriteBool   ('Font', 'bold', container.Font.bold);
   ini.WriteBool   ('Font', 'italic', container.Font.italic);
-  // stack font //
-  ini.WriteString ('StackFont', 'name', pchar(@container.StackFont.name[0]));
-  ini.WriteInteger('StackFont', 'size', container.StackFont.size);
-  ini.WriteInteger('StackFont', 'color', container.StackFont.color);
-  ini.WriteInteger('StackFont', 'backcolor', container.StackFont.backcolor);
-  ini.WriteBool   ('StackFont', 'bold', container.StackFont.bold);
-  ini.WriteBool   ('StackFont', 'italic', container.StackFont.italic);
 
   // autoruns //
   idx:= 0;
@@ -523,7 +503,6 @@ begin
   dst.RunInThread := src.RunInThread;
 
   CopyFontData(src.Font, dst.Font);
-  CopyFontData(src.StackFont, dst.StackFont);
   StrCopy(dst.Shell, pchar(@src.Shell));
   StrCopy(dst.ThemeName, pchar(@src.ThemeName));
 end;

@@ -444,7 +444,7 @@ begin
       end;
       //
       GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-      GdipCreateFont(hfontfamily, FFont.size - 1, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+      GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       //
@@ -1003,7 +1003,7 @@ begin
     GdipCreateFromHDC(dc, hgdip);
     if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
       raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
-    GdipCreateFont(hfontfamily, FFont.size - 1, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+    GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
     rect.x := 0;
     rect.y := 0;
     rect.Width := 0;

@@ -85,11 +85,11 @@ type
 
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
-    procedure SetFont(var Value: _FontData);
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
+    procedure SetFont(var Value: _FontData); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -388,6 +388,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TStackItem.SetFont(var Value: _FontData);
+var
+  idx: integer;
+begin
+  inherited;
+
+  if FItemCount > 0 then
+  begin
+    for idx := 0 to FItemCount - 1 do items[idx].item.SetFont(FFont);
+  end;
+end;
+//------------------------------------------------------------------------------
 // set position, size, repaint window //
 procedure TStackItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
@@ -552,17 +564,6 @@ begin
   begin
     for idx := 0 to FItemCount - 1 do
       result := result + #10 + items[idx].item.SaveToString;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.SetFont(var Value: _FontData);
-var
-  idx: integer;
-begin
-  CopyFontData(Value, FFont);
-  if FItemCount > 0 then
-  begin
-    for idx := 0 to FItemCount - 1 do items[idx].item.SetFont(FFont);
   end;
 end;
 //------------------------------------------------------------------------------

@@ -1844,8 +1844,7 @@ begin
     while item < ItemCount do
     begin
       Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
-      if Inst is TStackItem then (Inst as TStackItem).SetFont(Value);
-      if Inst is TTaskItem then (Inst as TTaskItem).SetFont(Value);
+      if Inst is TCustomItem then Inst.SetFont(Value);
       inc(item);
     end;
   except

@@ -83,6 +83,7 @@ type
   _FontData = packed record
     name: array [0..255] of char;
     size: integer;
+    size2: integer;
     color: cardinal;
     backcolor: cardinal;
     bold: boolean;
@@ -300,11 +301,12 @@ end;
 procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
 begin
   strcopy(@fTo.name, @fFrom.name);
-  fTo.size:=          fFrom.size;
-  fTo.color:=         fFrom.color;
-  fTo.backcolor:=     fFrom.backcolor;
-  fTo.bold:=          fFrom.bold;
-  fTo.italic:=        fFrom.italic;
+  fTo.size      := fFrom.size;
+  fTo.size2     := fFrom.size2;
+  fTo.color     := fFrom.color;
+  fTo.backcolor := fFrom.backcolor;
+  fTo.bold      := fFrom.bold;
+  fTo.italic    := fFrom.italic;
 end;
 //------------------------------------------------------------------------------
 end.
