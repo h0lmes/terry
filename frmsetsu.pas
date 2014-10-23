@@ -697,17 +697,29 @@ end;
 //------------------------------------------------------------------------------
 function Tfrmsets.FontPreview: boolean;
 var
-  dst, hff, hfont, hformat, brush: pointer;
+  dst, ffamily, font, format, brush: pointer;
   rect: GDIPAPI.TRectF;
+  lf: LOGFONT;
+  tm: TTextMetric;
+  oldfont, newfont: HFONT;
+  isTTF: boolean;
 begin
   result := false;
-  if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hff) then exit;
-  if Ok <> GdipCreateFont(hff, FFont.size, ifthen(FFont.bold, 1, 0) + ifthen(FFont.italic, 2, 0), 2, hfont) then exit;
-  //
+  // check if font is TrueType
+  lf.lfCharSet := DEFAULT_CHARSET;
+  strlcopy(pchar(@lf.lfFaceName), pchar(@FFont.Name), LF_FACESIZE - 1);
+  newfont := CreateFontIndirect(@lf);
+  oldfont := SelectObject(canvas.handle, newfont);
+  GetTextMetrics(canvas.handle, @tm);
+  isTTF := tm.tmPitchAndFamily and TMPF_TRUETYPE <> 0;
+  SelectObject(canvas.handle, oldfont);
+  DeleteObject(newfont);
+  if not isTTF then exit;
+  // create graphics object
   GdipCreateFromHDC(pbox.Canvas.Handle, dst);
   GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
   GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-  //
+  // draw background
   rect.X := 0;
   rect.Y := 0;
   rect.Width := pbox.Width;
@@ -715,16 +727,19 @@ begin
   GdipCreateSolidFill(FFont.backcolor, brush);
   GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
   GdipDeleteBrush(brush);
-  //
+  // draw font name
+  if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, ffamily) then exit;
+  if Ok <> GdipCreateFont(ffamily, FFont.size, ifthen(FFont.bold, 1, 0) + ifthen(FFont.italic, 2, 0), 2, font) then exit;
   GdipCreateSolidFill(FFont.color, brush);
-  GdipCreateStringFormat(0, 0, hformat);
-  GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
-  GdipSetStringFormatLineAlign(hformat, StringAlignmentCenter);
-  GdipDrawString(dst, PWideChar(WideString(PChar(@FFont.Name))), -1, hfont, @rect, hformat, brush);
-  GdipDeleteStringFormat(hformat);
+  GdipCreateStringFormat(0, 0, format);
+  GdipSetStringFormatAlign(format, StringAlignmentCenter);
+  GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+  GdipDrawString(dst, PWideChar(WideString(PChar(@FFont.Name))), -1, font, @rect, format, brush);
+  GdipDeleteStringFormat(format);
   GdipDeleteBrush(brush);
-  GdipDeleteFont(hfont);
-  GdipDeleteFontFamily(hff);
+  GdipDeleteFont(font);
+  GdipDeleteFontFamily(ffamily);
+  // finalize
   GdipDeleteGraphics(dst);
   result := true;
 end;

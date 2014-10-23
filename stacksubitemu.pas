@@ -448,14 +448,9 @@ begin
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       //
-      //GdipCreatePath(FillModeWinding, path);
       GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.backcolor and $ffffff, brush);
       GdipFillRectangle(dst, brush, xBitmap - FCaptionHeight div 4, yBitmap - 1, FCaptionWidth - 3 + FCaptionHeight div 2, FCaptionHeight + 1);
-      //GdipAddPathEllipse(path, xBitmap - FCaptionHeight div 2, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
-      //GdipAddPathEllipse(path, xBitmap + FCaptionWidth - FCaptionHeight div 2 - 3, yBitmap - 1, FCaptionHeight + 2, FCaptionHeight + 1);
-      //GdipFillPath(dst, brush, path);
       GdipDeleteBrush(brush);
-      //GdipDeletePath(path);
       //
       rect.X := xBitmap;
       rect.Y := yBitmap;

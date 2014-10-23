@@ -7,6 +7,13 @@ const
   WM_DWMCOMPOSITIONCHANGED = $031E;
   DWMWA_EXCLUDED_FROM_PEEK = 12;
 
+  // _DWM_THUMBNAIL_PROPERTIES.dwFlags
+  DWM_TNP_RECTDESTINATION      = $1; // A value for the rcDestination member has been specified.
+  DWM_TNP_RECTSOURCE           = $2; // A value for the rcSource member has been specified.
+  DWM_TNP_OPACITY              = $4; // A value for the opacity member has been specified.
+  DWM_TNP_VISIBLE              = $8; // A value for the fVisible member has been specified.
+  DWM_TNP_SOURCECLIENTAREAONLY = $10; // A value for the fSourceClientAreaOnly member has been specified.
+
 type
   _DWM_BLURBEHIND = record
     dwFlags: dword;
@@ -15,6 +22,16 @@ type
     fTransitionOnMaximized: bool;
   end;
   P_DWM_BLURBEHIND = ^_DWM_BLURBEHIND;
+
+  _DWM_THUMBNAIL_PROPERTIES = record
+    dwFlags: DWORD;
+    rcDestination: TRect;
+    rcSource: TRect;
+    opacity: byte;
+    fVisible: bool;
+    fSourceClientAreaOnly: bool;
+  end;
+  P_DWM_THUMBNAIL_PROPERTIES = ^_DWM_THUMBNAIL_PROPERTIES;
 
   { TDWMHelper }
 
@@ -26,6 +43,11 @@ type
       DwmEnableBlurBehindWindow: function(Wnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
       DwmSetWindowAttribute: function(Wnd: HWND; dwAttribute: DWORD; pvAttribute: Pointer; cb: DWORD): HRESULT; stdcall;
       DwmExtendFrameIntoClientArea: function(Wnd: HWND; var margins: windows.TRect): HRESULT; stdcall;
+      //
+      DwmRegisterThumbnail: function(hwndDestination, hwndSource: HWND; phThumbnailId: PHandle): HRESULT; stdcall;
+      DwmUnregisterThumbnail: function(hThumbnailId: THandle): HRESULT; stdcall;
+      DwmUpdateThumbnailProperties: function(hThumbnailId: THandle; ptnProperties: P_DWM_THUMBNAIL_PROPERTIES): HRESULT; stdcall;
+      DwmQueryThumbnailSourceSize: function(hThumbnailId: THandle; out pSize: PSize): HRESULT; stdcall;
     public
       constructor Create;
       destructor Destroy; override;
@@ -34,6 +56,9 @@ type
       procedure DisableBlurBehindWindow(const AHandle: THandle);
       procedure ExcludeFromPeek(const AHandle: THandle);
       procedure ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
+      //
+      function RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; var hThumbnailId: THandle): boolean;
+      procedure UnregisterThumbnail(hThumbnailId: THandle);
   end;
 
 var DWM: TDWMHelper;
@@ -55,6 +80,11 @@ begin
     @DwmEnableBlurBehindWindow:= GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
     @DwmSetWindowAttribute:= GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
     @DwmExtendFrameIntoClientArea:= GetProcAddress(hDwmLib, 'DwmExtendFrameIntoClientArea');
+    //
+    @DwmRegisterThumbnail := GetProcAddress(hDwmLib, 'DwmRegisterThumbnail');
+    @DwmUnregisterThumbnail := GetProcAddress(hDwmLib, 'DwmUnregisterThumbnail');
+    @DwmUpdateThumbnailProperties := GetProcAddress(hDwmLib, 'DwmUpdateThumbnailProperties');
+    @DwmQueryThumbnailSourceSize := GetProcAddress(hDwmLib, 'DwmQueryThumbnailSourceSize');
   end;
 end;
 //------------------------------------------------------------------------------
@@ -115,6 +145,31 @@ end;
 procedure TDWMHelper.ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
 begin
   if @DwmExtendFrameIntoClientArea <> nil then DwmExtendFrameIntoClientArea(AHandle, margins);
+end;
+//------------------------------------------------------------------------------
+function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; var hThumbnailId: THandle): boolean;
+var
+  hr: HRESULT;
+  dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
+begin
+  result := false;
+  hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
+	if SUCCEEDED(hr) then
+	begin
+    dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY;
+    dskThumbProps.fSourceClientAreaOnly := false;
+		dskThumbProps.fVisible := true;
+		dskThumbProps.opacity := 255;
+		dskThumbProps.rcDestination := destRect;
+		hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+    result := SUCCEEDED(hr);
+    if not result then UnregisterThumbnail(hThumbnailId);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TDWMHelper.UnregisterThumbnail(hThumbnailId: THandle);
+begin
+  DwmUnregisterThumbnail(hThumbnailId);
 end;
 //------------------------------------------------------------------------------
 initialization
