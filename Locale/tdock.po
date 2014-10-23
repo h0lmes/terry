@@ -380,6 +380,16 @@ msgstr ""
 msgid "< - >"
 msgstr ""
 
+#: tfrmfont.btnfontbold.caption
+msgctxt "TFRMFONT.BTNFONTBOLD.CAPTION"
+msgid "Bold"
+msgstr ""
+
+#: tfrmfont.btnfontitalic.caption
+msgctxt "TFRMFONT.BTNFONTITALIC.CAPTION"
+msgid "Italic"
+msgstr ""
+
 #: tfrmfont.btnok.caption
 msgctxt "TFRMFONT.BTNOK.CAPTION"
 msgid "OK"
@@ -396,14 +406,6 @@ msgstr ""
 
 #: tfrmfont.rb_text.caption
 msgid "Text color"
-msgstr ""
-
-#: tfrmfont.sbtn_bold.caption
-msgid "Bold"
-msgstr ""
-
-#: tfrmfont.sbtn_italic.caption
-msgid "Italic"
 msgstr ""
 
 #: tfrmhello.btnadd.caption
@@ -617,9 +619,18 @@ msgctxt "TFRMSETS.BTNAUTORUNADDMINIMIZED.HINT"
 msgid "Add"
 msgstr ""
 
+#: tfrmsets.btnbackcolor.caption
+msgid "Background"
+msgstr ""
+
 #: tfrmsets.btnbrowseshell.caption
 msgctxt "TFRMSETS.BTNBROWSESHELL.CAPTION"
 msgid "..."
+msgstr ""
+
+#: tfrmsets.btncolor.caption
+msgctxt "TFRMSETS.BTNCOLOR.CAPTION"
+msgid "Color"
 msgstr ""
 
 #: tfrmsets.btndebug.caption
@@ -627,12 +638,18 @@ msgctxt "TFRMSETS.BTNDEBUG.CAPTION"
 msgid "Debug info"
 msgstr ""
 
-#: tfrmsets.btnremovedock.caption
-msgid "Remove this dock"
+#: tfrmsets.btnfontbold.caption
+msgctxt "TFRMSETS.BTNFONTBOLD.CAPTION"
+msgid "Bold"
 msgstr ""
 
-#: tfrmsets.btnselecthintfont.caption
-msgid "Select hint font"
+#: tfrmsets.btnfontitalic.caption
+msgctxt "TFRMSETS.BTNFONTITALIC.CAPTION"
+msgid "Italic"
+msgstr ""
+
+#: tfrmsets.btnremovedock.caption
+msgid "Remove this dock"
 msgstr ""
 
 #: tfrmsets.btn_cancel.caption
@@ -737,8 +754,17 @@ msgstr ""
 msgid "Show Windows Explorer context menus for programs"
 msgstr ""
 
+#: tfrmsets.dividerbevel1.caption
+msgctxt "TFRMSETS.DIVIDERBEVEL1.CAPTION"
+msgid "Font"
+msgstr ""
+
 #: tfrmsets.gbautostart.caption
 msgid "  Autostart  "
+msgstr ""
+
+#: tfrmsets.label1.caption
+msgid "Stack font size:"
 msgstr ""
 
 #: tfrmsets.label6.caption

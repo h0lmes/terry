@@ -1623,13 +1623,20 @@ end;
 procedure _ItemManager.DockAdd(HWnd: THandle);
 begin
   if (DropPlace >= 0) and (DropPlace < ItemCount) then
+  // if DropPlace exists, then it is not TaskItem //
   begin
-    // if DropPlace exists, then it is not TaskItem //
     if DropPlace > ItemCount - TaskItemCount then DropPlace := ItemCount - TaskItemCount;
     items[DropPlace].h := HWnd;
-  end else begin
-    // else check where to dock //
-    if IsTask(HWnd) then SetDropPlace(ItemCount) else SetDropPlace(ItemCount - TaskItemCount);
+  end
+  // else check where to dock //
+  else begin
+    if IsTask(HWnd) then
+    begin
+      SetDropPlace(ItemCount);
+      inc(TaskItemCount);
+    end
+    else
+      SetDropPlace(ItemCount - TaskItemCount);
     items[DropPlace].h := HWnd;
     items[DropPlace].s := ItemSize;
   end;
@@ -2005,11 +2012,7 @@ begin
       SetDropPlace(NOT_AN_ITEM);
       HWndItem := AddItem('class="task";', true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
-      if Inst is TTaskItem then
-      begin
-        inc(TaskItemCount);
-        TTaskItem(Inst).UpdateTaskItem(HWndTask);
-      end;
+      if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;
     inc(idx);
   end;

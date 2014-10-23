@@ -18,7 +18,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
@@ -407,24 +407,134 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 1
       end
-      object btnSelectHintFont: TBitBtn
-        Left = 15
-        Height = 30
-        Top = 375
-        Width = 431
-        Caption = 'Select hint font'
-        OnClick = btnSelectHintFontClick
-        TabOrder = 2
-      end
       object lbTheme: TListBox
         Left = 15
-        Height = 341
+        Height = 260
         Top = 15
         Width = 201
         ItemHeight = 0
         OnDblClick = lbThemeDblClick
         OnSelectionChange = lbThemeSelectionChange
+        TabOrder = 2
+      end
+      object edFontSize: TEdit
+        Left = 240
+        Height = 21
+        Top = 325
+        Width = 50
         TabOrder = 3
+      end
+      object udFontSize: TUpDown
+        Left = 290
+        Height = 21
+        Top = 325
+        Width = 16
+        Associate = edFontSize
+        Min = 3
+        Position = 11
+        TabOrder = 4
+        Thousands = False
+        Wrap = False
+      end
+      object btnFontBold: TSpeedButton
+        Left = 314
+        Height = 22
+        Top = 325
+        Width = 66
+        AllowAllUp = True
+        Caption = 'Bold'
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        GroupIndex = 1
+        ParentFont = False
+      end
+      object btnFontItalic: TSpeedButton
+        Left = 379
+        Height = 22
+        Top = 325
+        Width = 66
+        AllowAllUp = True
+        Caption = 'Italic'
+        Font.CharSet = RUSSIAN_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsItalic]
+        GroupIndex = 2
+        ParentFont = False
+      end
+      object DividerBevel1: TDividerBevel
+        Left = 15
+        Height = 15
+        Top = 295
+        Width = 430
+        Caption = 'Font'
+        Anchors = [akTop, akLeft, akRight]
+        BevelWidth = 1
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object listFont: TListBox
+        Left = 15
+        Height = 155
+        Top = 325
+        Width = 201
+        ItemHeight = 0
+        TabOrder = 5
+      end
+      object edFontSize2: TEdit
+        Left = 379
+        Height = 21
+        Top = 365
+        Width = 50
+        TabOrder = 6
+      end
+      object udFontSize2: TUpDown
+        Left = 429
+        Height = 21
+        Top = 365
+        Width = 16
+        Associate = edFontSize2
+        Min = 3
+        Position = 11
+        TabOrder = 7
+        Thousands = False
+        Wrap = False
+      end
+      object Label1: TLabel
+        Left = 240
+        Height = 13
+        Top = 370
+        Width = 74
+        Caption = 'Stack font size:'
+        ParentColor = False
+      end
+      object btnColor: TButton
+        Left = 240
+        Height = 25
+        Top = 405
+        Width = 100
+        Caption = 'Color'
+        OnClick = btnColorClick
+        TabOrder = 8
+      end
+      object btnBackColor: TButton
+        Left = 345
+        Height = 25
+        Top = 405
+        Width = 100
+        Caption = 'Background'
+        OnClick = btnBackColorClick
+        TabOrder = 9
+      end
+      object pbox: TPaintBox
+        Left = 240
+        Height = 35
+        Top = 445
+        Width = 205
+        OnPaint = pboxPaint
       end
     end
     object tsIcons: TTabSheet
@@ -891,7 +1001,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 295
-        Width = 456
+        Width = 446
         Alignment = taCenter
         AutoSize = False
         Caption = 'Uses Open Icon Library'

@@ -423,6 +423,16 @@ msgstr "Отмена"
 msgid "< - >"
 msgstr ""
 
+#: tfrmfont.btnfontbold.caption
+msgctxt "tfrmfont.btnfontbold.caption"
+msgid "Bold"
+msgstr "Жирный"
+
+#: tfrmfont.btnfontitalic.caption
+msgctxt "tfrmfont.btnfontitalic.caption"
+msgid "Italic"
+msgstr "Курсив"
+
 #: tfrmfont.btnok.caption
 msgctxt "TFRMFONT.BTNOK.CAPTION"
 msgid "OK"
@@ -440,14 +450,6 @@ msgstr "Цвет фона"
 #: tfrmfont.rb_text.caption
 msgid "Text color"
 msgstr "Цвет текста"
-
-#: tfrmfont.sbtn_bold.caption
-msgid "Bold"
-msgstr "Жирный"
-
-#: tfrmfont.sbtn_italic.caption
-msgid "Italic"
-msgstr "Курсив"
 
 #: tfrmhello.btnadd.caption
 #| msgid "Add shortcuts to installed applications"
@@ -674,23 +676,38 @@ msgctxt "tfrmsets.btnautorunaddminimized.hint"
 msgid "Add"
 msgstr "Добавить"
 
+#: tfrmsets.btnbackcolor.caption
+msgid "Background"
+msgstr ""
+
 #: tfrmsets.btnbrowseshell.caption
 msgctxt "TFRMSETS.BTNBROWSESHELL.CAPTION"
 msgid "..."
 msgstr "..."
+
+#: tfrmsets.btncolor.caption
+msgctxt "tfrmsets.btncolor.caption"
+msgid "Color"
+msgstr "Цвет"
 
 #: tfrmsets.btndebug.caption
 msgctxt "TFRMSETS.BTNDEBUG.CAPTION"
 msgid "Debug info"
 msgstr "Отладочная информация"
 
+#: tfrmsets.btnfontbold.caption
+msgctxt "tfrmsets.btnfontbold.caption"
+msgid "Bold"
+msgstr "Жирный"
+
+#: tfrmsets.btnfontitalic.caption
+msgctxt "tfrmsets.btnfontitalic.caption"
+msgid "Italic"
+msgstr "Курсив"
+
 #: tfrmsets.btnremovedock.caption
 msgid "Remove this dock"
 msgstr "Удалить этот док"
-
-#: tfrmsets.btnselecthintfont.caption
-msgid "Select hint font"
-msgstr "Выбрать шрифт подсказок"
 
 #: tfrmsets.btn_cancel.caption
 msgctxt "TFRMSETS.BTN_CANCEL.CAPTION"
@@ -799,9 +816,18 @@ msgstr "Показывать индикатор для запущенных пр
 msgid "Show Windows Explorer context menus for programs"
 msgstr "Показывать контекстные меню Проводника Windows для программ"
 
+#: tfrmsets.dividerbevel1.caption
+msgctxt "tfrmsets.dividerbevel1.caption"
+msgid "Font"
+msgstr "Шрифт"
+
 #: tfrmsets.gbautostart.caption
 msgid "  Autostart  "
 msgstr "  Автозапуск  "
+
+#: tfrmsets.label1.caption
+msgid "Stack font size:"
+msgstr ""
 
 #: tfrmsets.label6.caption
 msgid "Hotkey to completely hide panel:"

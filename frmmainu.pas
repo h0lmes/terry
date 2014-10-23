@@ -141,7 +141,7 @@ var frmmain: Tfrmmain;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmthemeeditoru, dropindicatoru, processhlp, frmhellou,
+  frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
   frmtipu, multidocku;
 {$R *.lfm}
 {$R Resource\res.res}

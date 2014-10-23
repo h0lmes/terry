@@ -18,7 +18,6 @@ uses
   frmsetsu in 'frmsetsu.pas' {frmsets},
   frmitemoptu in 'frmitemoptu.pas' {frmShortcutOptions},
   frmcmdu in 'frmcmdu.pas' {frmcmd},
-  frmFontU in 'frmFontU.pas' {frmFont},
   frmthemeeditoru {frmLayersEditor},
   frmColorU in 'frmColorU.pas' {frmColor},
   frmDebugU in 'frmDebugU.pas' {frmDebug},
@@ -46,7 +45,6 @@ uses
   frmstackpropu,
   stackmodeu,
   processhlp,
-  dropindicatoru,
   taskitemu,
   frmhellou, frmtipu, multidocku;
 

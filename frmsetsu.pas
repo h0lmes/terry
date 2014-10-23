@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
-  Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, LCLType, LCLProc,
-  declu, toolu, gdip_gfx, dwm_unit;
+  Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc,
+  declu, toolu, gdip_gfx, GDIPAPI, dwm_unit, DividerBevel;
 
 type
 
@@ -14,11 +14,14 @@ type
   Tfrmsets = class(TForm)
     btnAutoRunAdd: TSpeedButton;
     btnAutoRunAddMinimized: TSpeedButton;
+    btnBackColor: TButton;
     btnDebug: TButton;
+    btnFontBold: TSpeedButton;
+    btnFontItalic: TSpeedButton;
     btnRemoveDock: TButton;
     btnRunNow: TButton;
-    btnSelectHintFont: TBitBtn;
     btn_ok1: TBitBtn;
+    btnColor: TButton;
     cbShowHint: TCheckBox;
     chbHintEffects: TCheckBox;
     chbReserveScreenEdge: TCheckBox;
@@ -26,7 +29,11 @@ type
     chbTaskbar: TCheckBox;
     chbStackOpenAnimation: TCheckBox;
     chbRunInThread: TCheckBox;
+    DividerBevel1: TDividerBevel;
+    edFontSize: TEdit;
+    edFontSize2: TEdit;
     gbAutostart: TGroupBox;
+    Label1: TLabel;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
     lblIconSpacing: TLabel;
@@ -41,9 +48,11 @@ type
     lblCredits5: TLabel;
     lblZoomTime: TLabel;
     lbTheme: TListBox;
+    listFont: TListBox;
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
+    pbox: TPaintBox;
     Panel1: TPanel;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
@@ -111,7 +120,11 @@ type
     btn_cancel: TBitBtn;
     lv: TListView;
     images: TImageList;
+    udFontSize: TUpDown;
+    udFontSize2: TUpDown;
     procedure btnAutoRunAddMinimizedClick(Sender: TObject);
+    procedure btnBackColorClick(Sender: TObject);
+    procedure btnColorClick(Sender: TObject);
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
@@ -131,6 +144,7 @@ type
     procedure lbThemeSelectionChange(Sender: TObject; User: boolean);
     procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
+    procedure pboxPaint(Sender: TObject);
     procedure tbBaseAlphaChange(Sender: TObject);
     procedure tbEdgeOffsetChange(Sender: TObject);
     procedure edAutoShowTimeChange(Sender: TObject);
@@ -154,7 +168,6 @@ type
     procedure cbShowHintClick(Sender: TObject);
     procedure cbCtrlClick(Sender: TObject);
     procedure edLaunchIntervalChange(Sender: TObject);
-    procedure btnSelectHintFontClick(Sender: TObject);
     procedure cboBaseSiteChange(Sender: TObject);
     procedure tbIconSizeChange(Sender: TObject);
     procedure tbBigIconSizeChange(Sender: TObject);
@@ -170,6 +183,8 @@ type
     procedure btnAutoRunAddClick(Sender: TObject);
   private
     AutorunListChanged: boolean;
+    FFont: _FontData;
+    function FontPreview: boolean;
   public
     PageIndex: integer;
     class procedure Open(APageIndex: integer = 0);
@@ -177,14 +192,14 @@ type
     procedure UpdateItemSizeLabels;
     procedure ReadAutorun;
     procedure SaveAutorun;
-    procedure HintFontCallback(font: _FontData);
+    procedure ApplyFont(Sender: TObject);
   end;
 
 var
   frmsets: Tfrmsets;
 
 implementation
-uses setsu, themeu, frmmainu, frmFontU, frmthemeeditoru, frmDebugU;
+uses setsu, themeu, frmmainu, frmthemeeditoru, frmDebugU;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 procedure err(s: string);
@@ -342,6 +357,22 @@ begin
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
   chbBlur.OnClick := chbBlurClick;
+
+  CopyFontData(sets.container.Font, FFont);
+  listFont.Items := screen.Fonts;
+  listFont.OnClick := nil;
+  listFont.ItemIndex := listFont.items.IndexOf(PChar(@FFont.Name));
+  listFont.OnClick := ApplyFont;
+  edFontSize.OnChange := nil;
+  udFontSize.Position := FFont.size;
+  edFontSize.OnChange := ApplyFont;
+  edFontSize2.OnChange := nil;
+  udFontSize2.Position := FFont.size2;
+  edFontSize2.OnChange := ApplyFont;
+  btnFontBold.down := FFont.bold;
+  btnFontBold.OnClick := ApplyFont;
+  btnFontItalic.down := FFont.Italic;
+  btnFontItalic.OnClick := ApplyFont;
 
   //
   // icons //
@@ -631,6 +662,84 @@ begin
   TfrmThemeEditor.Open;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.btnBackColorClick(Sender: TObject);
+begin
+  with TColorDialog.Create(self) do
+  begin
+    Color := gdip_gfx.SwapColor(FFont.backcolor and $ffffff);
+    if Execute then
+    begin
+      FFont.backcolor := $ff000000 + gdip_gfx.SwapColor(Color and $ffffff);
+      ApplyFont(nil);
+    end;
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.btnColorClick(Sender: TObject);
+begin
+  with TColorDialog.Create(self) do
+  begin
+    Color := gdip_gfx.SwapColor(FFont.color and $ffffff);
+    if Execute then
+    begin
+      FFont.color := $ff000000 + gdip_gfx.SwapColor(Color and $ffffff);
+      ApplyFont(nil);
+    end;
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.pboxPaint(Sender: TObject);
+begin
+  FontPreview;
+end;
+//------------------------------------------------------------------------------
+function Tfrmsets.FontPreview: boolean;
+var
+  dst, hff, hfont, hformat, brush: pointer;
+  rect: GDIPAPI.TRectF;
+begin
+  result := false;
+  if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hff) then exit;
+  if Ok <> GdipCreateFont(hff, FFont.size, ifthen(FFont.bold, 1, 0) + ifthen(FFont.italic, 2, 0), 2, hfont) then exit;
+  //
+  GdipCreateFromHDC(pbox.Canvas.Handle, dst);
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+  GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+  //
+  rect.X := 0;
+  rect.Y := 0;
+  rect.Width := pbox.Width;
+  rect.Height := pbox.Height;
+  GdipCreateSolidFill(FFont.backcolor, brush);
+  GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
+  GdipDeleteBrush(brush);
+  //
+  GdipCreateSolidFill(FFont.color, brush);
+  GdipCreateStringFormat(0, 0, hformat);
+  GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
+  GdipSetStringFormatLineAlign(hformat, StringAlignmentCenter);
+  GdipDrawString(dst, PWideChar(WideString(PChar(@FFont.Name))), -1, hfont, @rect, hformat, brush);
+  GdipDeleteStringFormat(hformat);
+  GdipDeleteBrush(brush);
+  GdipDeleteFont(hfont);
+  GdipDeleteFontFamily(hff);
+  GdipDeleteGraphics(dst);
+  result := true;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.ApplyFont(Sender: TObject);
+begin
+  if listFont.ItemIndex >= 0 then StrCopy(pchar(@FFont.Name), PChar(listFont.Items[listFont.ItemIndex]));
+  FFont.size := StrToInt(edFontSize.Text);
+  FFont.size2 := StrToInt(edFontSize2.Text);
+  FFont.bold := btnFontBold.down;
+  FFont.italic := btnFontItalic.down;
+
+  if FontPreview then frmmain.SetFont(FFont);
+end;
+//------------------------------------------------------------------------------
 //
 //
 //
@@ -761,17 +870,6 @@ end;
 procedure Tfrmsets.chb_use_shell_context_menusClick(Sender: TObject);
 begin
   frmmain.SetParam(gpUseShellContextMenus, integer(chb_use_shell_context_menus.checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.btnSelectHintFontClick(Sender: TObject);
-begin
-  TfrmFont.Open(sets.container.font, HintFontCallback);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.HintFontCallback(font: _FontData);
-begin
-  font.size2:=font.size - 1;
-  frmmain.SetFont(font);
 end;
 //------------------------------------------------------------------------------
 //

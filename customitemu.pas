@@ -10,7 +10,11 @@ const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
   MIN_BORDER = 20;
 
-type TCustomItem = class
+type
+
+  { TCustomItem }
+
+  TCustomItem = class
   protected
     FFreed: boolean;
     FHWnd: uint;
@@ -109,7 +113,9 @@ type TCustomItem = class
     procedure Delete;
 
     class procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
-end;
+  end;
+
+procedure DrawDropIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
 
 implementation
 //------------------------------------------------------------------------------
@@ -631,6 +637,99 @@ begin
     end;
   except
     on e: Exception do raise Exception.Create('CustomItem.CreateColorAttributes'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure DrawDropIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
+var
+  brush, pen, path: pointer;
+  rect: GDIPAPI.TRectF;
+  cell, cell2, cell3, cell4: single;
+  points: array [0..11] of GDIPAPI.TPointF;
+begin
+  if iType > 0 then
+  try
+    GdipCreateSolidFill($80ffffff, brush);
+    GdipFillRectangle(dst, brush, X, Y, Width, Height);
+    GdipDeleteBrush(brush);
+    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+
+    if iType = 1 then // add
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      cell := Width * 0.2;
+      cell2 := Width * 0.4;
+      cell3 := Width * 0.6;
+      cell4 := Width * 0.8;
+      points[0].x := X + cell;
+      points[0].y := Y + cell2;
+      points[1].x := X + cell2;
+      points[1].y := Y + cell2;
+      points[2].x := X + cell2;
+      points[2].y := Y + cell;
+      points[3].x := X + cell3;
+      points[3].y := Y + cell;
+      points[4].x := X + cell3;
+      points[4].y := Y + cell2;
+      points[5].x := X + cell4;
+      points[5].y := Y + cell2;
+      points[6].x := X + cell4;
+      points[6].y := Y + cell3;
+      points[7].x := X + cell3;
+      points[7].y := Y + cell3;
+      points[8].x := X + cell3;
+      points[8].y := Y + cell4;
+      points[9].x := X + cell2;
+      points[9].y := Y + cell4;
+      points[10].x := X + cell2;
+      points[10].y := Y + cell3;
+      points[11].x := X + cell;
+      points[11].y := Y + cell3;
+      GdipAddPathClosedCurve2(path, points, 12, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+    end
+    else if iType = 2 then // run
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * 0.2;
+      points[0].y := Y + Height * 0.25;
+      points[1].x := X + Width * 0.9;
+      points[1].y := Y + Height * 0.25;
+      points[2].x := X + Width * 0.8;
+      points[2].y := Y + Height * 0.75;
+      points[3].x := X + Width * 0.1;
+      points[3].y := Y + Height * 0.75;
+      GdipAddPathClosedCurve2(path, points, 4, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+
+      GdipCreateSolidFill($ffe0e0e0, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * (0.25 + 0.04);
+      points[0].y := Y + Height * 0.35;
+      points[1].x := X + Width * (0.72 + 0.04);
+      points[1].y := Y + Height * 0.35;
+      points[2].x := X + Width * 0.72;
+      points[2].y := Y + Height * 0.55;
+      points[3].x := X + Width * 0.25;
+      points[3].y := Y + Height * 0.55;
+      GdipAddPathClosedCurve2(path, points, 4, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+
+      GdipCreatePen1($ff303030, 2, UnitPixel, pen);
+      GdipDrawLine(dst, pen, X + Width * 0.33, Y + Height * 0.37, X + Width * 0.3, Y + Height * 0.53);
+      GdipDeletePen(pen);
+    end;
+
+  except
+    on e: Exception do raise Exception.Create('DrawDropIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

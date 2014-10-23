@@ -51,8 +51,6 @@ type
     Separator: TLayerSeparator;
     Indicator: TLayerImage;
     Stack: TLayerImage;
-    DropIndicatorAdd: TLayerImage;
-    DropIndicatorRun: TLayerImage;
     ReflectionSize: integer;
     ItemsArea: Windows.TRect;
     Path: string;
@@ -95,8 +93,6 @@ begin
   CheckExtractFileFromResource('DEFAULT_ICON', UnzipPath('%pp%\default.png'));
   CheckExtractFileFromResource('DEFAULT_BACKGROUND', UnzipPath('%pp%\themes\background.png'));
   CheckExtractFileFromResource('DEFAULT_INDICATOR', UnzipPath('%pp%\themes\indicator.png'));
-  CheckExtractFileFromResource('DEFAULT_DROPINDICATOR_ADD', UnzipPath('%pp%\themes\dropindicator_add.png'));
-  CheckExtractFileFromResource('DEFAULT_DROPINDICATOR_RUN', UnzipPath('%pp%\themes\dropindicator_run.png'));
   CheckExtractFileFromResource('DEFAULT_STACK', UnzipPath('%pp%\themes\stack.png'));
 end;
 //------------------------------------------------------------------------------
@@ -130,20 +126,6 @@ begin
     try GdipDisposeImage(Stack.image);
     except end;
     Stack.image := nil;
-  end;
-
-  if DropIndicatorAdd.image <> nil then
-  begin
-    try GdipDisposeImage(DropIndicatorAdd.image);
-    except end;
-    DropIndicatorAdd.image := nil;
-  end;
-
-  if DropIndicatorRun.image <> nil then
-  begin
-    try GdipDisposeImage(DropIndicatorRun.image);
-    except end;
-    DropIndicatorRun.image := nil;
   end;
 
   if Background.image <> nil then
@@ -399,36 +381,6 @@ begin
       end;
     except
       on e: Exception do raise Exception.Create('Error loading indicator: ' + Path + 'indicator.png' + #13#10#13#10 + e.message);
-    end;
-
-    // drop indicator add //
-    try
-      if FileExists(Path + 'dropindicator_add.png') then
-        GdipLoadImageFromFile(PWideChar(WideString(Path + 'dropindicator_add.png')), DropIndicatorAdd.Image);
-      if DropIndicatorAdd.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\themes\dropindicator_add.png'))), DropIndicatorAdd.Image);
-      if DropIndicatorAdd.Image <> nil then
-      begin
-        GdipGetImageWidth(DropIndicatorAdd.Image, DropIndicatorAdd.W);
-        GdipGetImageHeight(DropIndicatorAdd.Image, DropIndicatorAdd.H);
-      end;
-    except
-      on e: Exception do raise Exception.Create('Error loading drop indicator add: ' + Path + 'dropindicator_add.png' + #13#10#13#10 + e.message);
-    end;
-
-    // drop indicator run //
-    try
-      if FileExists(Path + 'dropindicator_run.png') then
-        GdipLoadImageFromFile(PWideChar(WideString(Path + 'dropindicator_run.png')), DropIndicatorRun.Image);
-      if DropIndicatorRun.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\themes\dropindicator_run.png'))), DropIndicatorRun.Image);
-      if DropIndicatorRun.Image <> nil then
-      begin
-        GdipGetImageWidth(DropIndicatorRun.Image, DropIndicatorRun.W);
-        GdipGetImageHeight(DropIndicatorRun.Image, DropIndicatorRun.H);
-      end;
-    except
-      on e: Exception do raise Exception.Create('Error loading drop indicator run: ' + Path + 'dropindicator_run.png' + #13#10#13#10 + e.message);
     end;
 
   except

@@ -515,12 +515,8 @@ begin
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
-    if FDropIndicator = 1 then
-      if assigned(theme.DropIndicatorAdd.Image) then
-        GdipDrawImageRectRectI(dst, theme.DropIndicatorAdd.Image, xBitmap, yBitmap, FSize, FSize, 0, 0, theme.DropIndicatorAdd.W, theme.DropIndicatorAdd.H, UnitPixel, nil, nil, nil);
-    if FDropIndicator = 2 then
-      if assigned(theme.DropIndicatorRun.Image) then
-        GdipDrawImageRectRectI(dst, theme.DropIndicatorRun.Image, xBitmap, yBitmap, FSize, FSize, 0, 0, theme.DropIndicatorRun.W, theme.DropIndicatorRun.H, UnitPixel, nil, nil, nil);
+    // drop indicator
+    customitemu.DrawDropIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
     ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
