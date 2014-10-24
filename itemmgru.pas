@@ -78,7 +78,6 @@ type
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
-    procedure CopyItemDescriptor(pFrom, pTo: PItem);
     function GetTaskItemIndex(hwnd: THandle): integer;
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
@@ -1061,50 +1060,61 @@ begin
 end;
 //------------------------------------------------------------------------------
 // do not call directly !!!
-// items call this using DockH.DockDeleteItem()
-// use TCustomItem.Delete() instead
+// items call this using DockH.DockDeleteItem
+// use TCustomItem.Delete instead
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
   idx: integer;
   is_task: boolean;
+  Inst: TCustomItem;
 begin
   if Enabled then
   try
     idx := ItemIndex(HWnd);
     is_task := IsTask(HWnd);
-    enabled := false;
-
     // add to "deleted" list //
     itemsDeleted.Add(Pointer(HWnd));
 
-    // erase it from "items" list //
     if idx <> NOT_AN_ITEM then
     begin
+      // erase it from "items" list //
       while idx < ItemCount - 1 do
       begin
-        CopyItemDescriptor(@items[idx + 1], @items[idx]);
+        items[idx].h := items[idx + 1].h;
+        items[idx].x := items[idx + 1].x;
+        items[idx].y := items[idx + 1].y;
+        items[idx].s := items[idx + 1].s;
         inc(idx);
       end;
       // decrement item count
       dec(ItemCount);
+
+      // special handling for task items
       if is_task then
+      begin
         if TaskItemCount > 0 then dec(TaskItemCount);
+        // if there is no more task items in the dock - delete task items separator //
+        if TaskItemCount = 1 then
+        begin
+          idx := ItemCount - 1;
+          while (idx >= 0) and (TaskItemCount > 0) do
+          begin
+            Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+            if Inst is TSeparatorItem then
+              if Inst.DontSave then Inst.Delete;
+            dec(idx);
+          end;
+          TaskItemCount := 0;
+        end;
+      end;
+
     end;
 
     // update dock //
-    enabled := true;
     ItemsChanged;
   except
     on e: Exception do raise Exception.Create('ItemManager.DeleteItem'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.CopyItemDescriptor(pFrom, pTo: PItem);
-begin
-  pTo^.h := pFrom^.h;
-  pTo^.x := pFrom^.x;
-  pTo^.y := pFrom^.y;
-  pTo^.s := pFrom^.s;
 end;
 //------------------------------------------------------------------------------
 //
@@ -2015,23 +2025,6 @@ begin
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;
     inc(idx);
-  end;
-
-  // if there is no task items left on the dock - delete task items separator //
-  if TaskItemCount = 1 then
-  begin
-    idx := ItemCount - 1;
-    while (idx >= 0) and (TaskItemCount > 0) do
-    begin
-      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
-      if Inst is TSeparatorItem then
-        if Inst.DontSave then
-        begin
-          Inst.Delete;
-          if TaskItemCount > 0 then dec(TaskItemCount);
-        end;
-      dec(idx);
-    end;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -2,7 +2,7 @@ unit PIDL;
 
 interface
 
-uses Windows, ShellAPI, ShlObj, SysUtils, Forms, ActiveX, notifieru;
+uses Windows, ShellAPI, ShlObj, SysUtils, Forms, ActiveX;
 
 type
   PPItemIDList = ^PItemIDList;
@@ -31,12 +31,6 @@ var
   ShellMalloc: IMalloc;
 
 implementation
-//------------------------------------------------------------------------------
-procedure err(where: string; e: Exception);
-begin
-  if assigned(e) then messagebox(application.mainform.handle, PChar(e.Message), PChar(where), mb_iconexclamation)
-  else messagebox(application.mainform.handle, 'Error', PChar(where), mb_iconexclamation);
-end;
 //------------------------------------------------------------------------------
 // get PIDL count from CIDA structure
 function PIDL_CountFromCIDA(ida: PCIDA): longint;

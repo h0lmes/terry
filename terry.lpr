@@ -46,7 +46,7 @@ uses
   stackmodeu,
   processhlp,
   taskitemu,
-  frmhellou, frmtipu, multidocku;
+  frmhellou, frmtipu, multidocku, aeropeeku;
 
 {$R *.res}
 
@@ -588,7 +588,7 @@ begin
   AddLog('RegisterWindowItemClass');
   RegisterWindowItemClass;
   AddLog('Notifier');
-  Notifier := _Notifier.Create;
+  Notifier := TNotifier.Create;
   AddLog('Init');
   frmmain.Init(SetsFilename);
   Application.ShowMainForm := true;

@@ -15,10 +15,6 @@ msgctxt "declu.xaddicon"
 msgid "Add ..."
 msgstr "Создать ..."
 
-#: declu.xaddprogramtodock
-msgid "Add program to dock"
-msgstr "Добавить программу на док"
-
 #: declu.xall
 msgid "All"
 msgstr "Все"
@@ -58,6 +54,10 @@ msgstr "Вибрация"
 #: declu.xanimationzoom
 msgid "Zoom"
 msgstr "Увеличение"
+
+#: declu.xcloseallwindows
+msgid "Close all windows"
+msgstr ""
 
 #: declu.xclosewindow
 msgctxt "declu.xclosewindow"
@@ -214,15 +214,8 @@ msgid "Monitor"
 msgstr "Монитор"
 
 #: declu.xmsgnotificationareaicons
-msgid ""
-"After you close this message you will see \"Notification area icons\" "
-"window. To use this function uncheck \"Always show all icons\" at the bottom "
-"of the window and set all behaviors to \"Only show notifications\"."
-msgstr ""
-"После закрытия данного сообщения вы увидете окно \"Значки области уведомлений"
-"\". Для использования данной функции снимите отметку \"Всегда отображать все "
-"значки\" внизу окна и установите для всех значков поведение \"Показать "
-"только уведомления\"."
+msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
+msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
 msgid "Place target file onto dock instead of shortcut?"
@@ -242,25 +235,10 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#| msgid ""
-#| "Icon parameters changed. If you will proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
-#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
-#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
-#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
-#| "parameters changed. If you choose to proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
-#| "to proceed all changes will be lost. Proceed?"
-msgid ""
-"Icon parameters changed. If you choose to proceed all changes will be lost. "
-"Proceed?"
-msgstr ""
-"Параметры значка изменены. Если вы продолжите все изменения будут утеряны. "
-"Продолжить?"
+#, fuzzy
+#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
+msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
+msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
 
 #: declu.xoffsetoficons
 msgid "Offset of icons: %d pt"
@@ -308,6 +286,10 @@ msgstr "Стиль"
 #: declu.xpaste
 msgid "Paste"
 msgstr "Вставить"
+
+#: declu.xpintodock
+msgid "Pin to dock"
+msgstr ""
 
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
@@ -949,14 +931,10 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
-#| msgid ""
-#| "Move mouse pointer to the edge of screen to bring panel to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foreground"
+#, fuzzy
+#| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
-msgid ""
-"Move mouse pointer to the edge of the screen to put the dock to foreground"
+msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
 msgstr "Подведите указатель мыши к краю экрана чтобы показать  док"
 
 #: tfrmsets.lblshowdelay.caption
@@ -988,12 +966,8 @@ msgid "Zoom width"
 msgstr "Ширина увеличения"
 
 #: tfrmsets.stmovedockhint.caption
-msgid ""
-"Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows "
-"to move dock to another edge or monitor"
-msgstr ""
-"Совет: когда док активирован (например, после клика на нем) используйте <Alt>"
-"+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
+msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
+msgstr "Совет: когда док активирован (например, после клика на нем) используйте <Alt>+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
 
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
@@ -1216,3 +1190,4 @@ msgstr "Дальше"
 #: tfrmtip.caption
 msgid "Tip"
 msgstr "Подсказка"
+

@@ -4,7 +4,7 @@ unit taskitemu;
 
 interface
 uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes,
-  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp;
+  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp, aeropeeku;
 
 type
 
@@ -282,8 +282,9 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
-  if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)));
-  AppendMenu(FHMenu, MF_STRING, $f002, pchar(UTF8ToAnsi(XAddProgramToDock)));
+  if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
+  else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FProcName = '', MF_DISABLED, 0), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   LME(true);
 
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -294,6 +295,7 @@ procedure TTaskItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESUL
 var
   item: cardinal;
   str: string;
+  idx: integer;
 begin
   result := 0;
   LME(false);
@@ -302,7 +304,8 @@ begin
   case wParam of // f001 to f020
     $f001:
       if FAppList.Count > 0 then
-        postmessage(THandle(FAppList.Items[0]), WM_SYSCOMMAND, SC_CLOSE, 0);
+        for idx := FAppList.Count - 1 downto 0 do
+          postmessage(THandle(FAppList.Items[idx]), WM_SYSCOMMAND, SC_CLOSE, 0);
     $f002:
         if FProcName <> '' then dockh.DockAddProgram(pchar(FProcName));
     $f003..$f020: ;
@@ -349,8 +352,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Exec;
 begin
-  if FAppList.Count = 1 then
-    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
+  if FAppList.Count = 1 then OpenList;
+    //ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
   if FAppList.Count > 1 then OpenList;
 end;
 //------------------------------------------------------------------------------
@@ -360,33 +363,25 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.OpenList;
 var
-  idx: integer;
-  hMenu: THandle;
   pt: windows.TPoint;
-  flags: cardinal;
 begin
   pt := GetScreenRect.TopLeft;
   if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
   if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
   if FSite = 0 then inc(pt.x, FSize);
   if FSite = 1 then inc(pt.y, FSize);
-  hMenu := CreatePopupMenu;
-  for idx := 0 to FAppList.Count - 1 do
-    AppendMenu(hMenu, MF_STRING, idx + 1, pchar(ProcessHelper.GetWindowText(THandle(FAppList.Items[idx])) + '    '));
-  LME(true);
-
-  flags := TPM_RETURNCMD;
-  if (FSite = 1) or (FSite = 3) then flags := flags or TPM_CENTERALIGN;
-  if FSite = 3 then flags := flags or TPM_BOTTOMALIGN;
-  idx := integer(TrackPopupMenuEx(hMenu, flags, pt.x, pt.y, FHWnd, nil));
-  LME(false);
-
-  if idx > 0 then ProcessHelper.ActivateWindow(THandle(FAppList.Items[idx - 1]));
+  case FSite of
+    0: inc(pt.x, 10);
+    1: inc(pt.y, 10);
+    2: dec(pt.x, 10);
+    3: dec(pt.y, 10);
+  end;
+  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.CloseList;
 begin
-
+  TAeroPeekWindow.Close;
 end;
 //------------------------------------------------------------------------------
 end.

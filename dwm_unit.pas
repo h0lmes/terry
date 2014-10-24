@@ -47,7 +47,7 @@ type
       DwmRegisterThumbnail: function(hwndDestination, hwndSource: HWND; phThumbnailId: PHandle): HRESULT; stdcall;
       DwmUnregisterThumbnail: function(hThumbnailId: THandle): HRESULT; stdcall;
       DwmUpdateThumbnailProperties: function(hThumbnailId: THandle; ptnProperties: P_DWM_THUMBNAIL_PROPERTIES): HRESULT; stdcall;
-      DwmQueryThumbnailSourceSize: function(hThumbnailId: THandle; out pSize: PSize): HRESULT; stdcall;
+      DwmQueryThumbnailSourceSize: function(hThumbnailId: THandle; pSize: PSize): HRESULT; stdcall;
     public
       constructor Create;
       destructor Destroy; override;
@@ -150,12 +150,20 @@ end;
 function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; var hThumbnailId: THandle): boolean;
 var
   hr: HRESULT;
+  Size: windows.TSize;
+  ThumbW: integer;
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
 begin
   result := false;
   hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
 	if SUCCEEDED(hr) then
 	begin
+    DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
+    ThumbW := (destRect.Bottom - destRect.Top) * Size.cx div Size.cy;
+    destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
+    destRect.Right := destRect.Left + ThumbW;
+
+    FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
     dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY;
     dskThumbProps.fSourceClientAreaOnly := false;
 		dskThumbProps.fVisible := true;

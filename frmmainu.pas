@@ -6,7 +6,7 @@ uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gdip_gfx, dwm_unit, hintu, notifieru,
-  itemmgru, DropTgtU, setsu, traycontrolleru;
+  itemmgru, DropTgtU, setsu, traycontrolleru, aeropeeku;
 
 type
   PRunData = ^TRunData;
@@ -355,10 +355,9 @@ begin
       theme := nil;
       if assigned(sets) then sets.Free;
       sets := nil;
-      if assigned(ProcessHelper) then ProcessHelper.free;
-      ProcessHelper := nil;
-      if assigned(Notifier) then Notifier.Free;
-      Notifier := nil;
+      TProcessHelper.Cleanup;
+      TNotifier.Cleanup;
+      TAeroPeekWindow.Cleanup;
       if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
       LockList.free;
       // reset window proc

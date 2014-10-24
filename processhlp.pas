@@ -36,6 +36,7 @@ type
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
     // //
+    class procedure Cleanup;
     constructor Create;
     destructor Destroy; override;
     // processes //
@@ -63,6 +64,12 @@ var
   ProcessHelper: TProcessHelper;
 
 implementation
+//------------------------------------------------------------------------------
+class procedure TProcessHelper.Cleanup;
+begin
+  if assigned(ProcessHelper) then ProcessHelper.Free;
+  ProcessHelper := nil;
+end;
 //------------------------------------------------------------------------------
 constructor TProcessHelper.Create;
 begin

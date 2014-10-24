@@ -2,10 +2,10 @@ unit notifieru;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, declu;
+uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gdip_gfx, dwm_unit;
 
 type
-  _Notifier = class
+  TNotifier = class
   private
     hWnd: uint;
     WindowClassInstance: uint;
@@ -27,6 +27,7 @@ type
     procedure err(where: string; e: Exception);
   public
     texts: TStrings;
+    class procedure Cleanup;
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
@@ -38,13 +39,17 @@ type
     procedure WindowProc(var msg: TMessage);
   end;
 
-var
-  Notifier: _Notifier;
+var Notifier: TNotifier;
 
 implementation
-uses GDIPAPI, gdip_gfx, toolu, dwm_unit;
 //------------------------------------------------------------------------------
-constructor _Notifier.Create;
+class procedure TNotifier.Cleanup;
+begin
+  if assigned(Notifier) then Notifier.Free;
+  Notifier := nil;
+end;
+//------------------------------------------------------------------------------
+constructor TNotifier.Create;
 begin
   inherited;
   active := False;
@@ -68,7 +73,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-destructor _Notifier.Destroy;
+destructor TNotifier.Destroy;
 begin
   try
     // restore window proc
@@ -81,14 +86,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Notifier.GetMonitorRect(monitor: integer): Windows.TRect;
+function TNotifier.GetMonitorRect(monitor: integer): Windows.TRect;
 begin
   result := screen.DesktopRect;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
+procedure TNotifier.Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
 begin
   if alert then AddLog('!' + text) else AddLog(text);
   try
@@ -102,14 +107,14 @@ begin
       else if length(Text) > 30 then timeout := 11000;
       if current_text = '' then current_text := Text
       else current_text := current_text + #13#10#13#10 + Text;
-      Message_Internal('Terry', current_text, monitor, false);
+      Message_Internal(declu.PROGRAM_NAME, current_text, monitor, false);
     end;
   except
     on e: Exception do err('Notifier.Message', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
+procedure TNotifier.MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
 begin
   try
     timeout := 8000;
@@ -117,13 +122,13 @@ begin
     else if length(Text) > 30 then timeout := 11000;
     if replace or (current_text = '') then current_text := Text
     else current_text := current_text + #13#10#13#10 + Text;
-    Message_Internal('Terry', current_text, monitor, false);
+    Message_Internal(declu.PROGRAM_NAME, current_text, monitor, false);
   except
     on e: Exception do err('Notifier.MessageNoLog', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
+procedure TNotifier.Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
 var
   hgdip, path, hbrush, hpen: Pointer;
   caption_font, message_font, caption_font_family, message_font_family: Pointer;
@@ -231,17 +236,9 @@ begin
     bmp.topleft.y := y;
     bmp.Width := awidth;
     bmp.Height := aheight;
-    if not gdip_gfx.CreateBitmap(bmp) then
-    begin
-      err('Notifier.Message_Internal.Prepare CreateBitmap failed', nil);
-      exit;
-    end;
+    if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
-    if not assigned(hgdip) then
-    begin
-      err('Notifier.Message_Internal.Prepare CreateGraphics failed', nil);
-      exit;
-    end;
+    if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
     GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
   except
@@ -356,7 +353,7 @@ begin
   FActivating := False;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.Timer;
+procedure TNotifier.Timer;
 var
   delta: integer;
   set_pos: boolean;
@@ -396,7 +393,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.Close;
+procedure TNotifier.Close;
 var
   bmp: _SimpleBitmap;
 begin
@@ -423,7 +420,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.WindowProc(var msg: TMessage);
+procedure TNotifier.WindowProc(var msg: TMessage);
 begin
   msg.Result := 0;
   if (msg.msg = wm_lbuttondown) or (msg.msg = wm_rbuttonup) then
@@ -440,15 +437,15 @@ begin
   msg.Result := DefWindowProc(hWnd, msg.msg, msg.wParam, msg.lParam);
 end;
 //------------------------------------------------------------------------------
-procedure _Notifier.err(where: string; e: Exception);
+procedure TNotifier.err(where: string; e: Exception);
 begin
   if assigned(e) then
   begin
     AddLog(where + #10#13 + e.message);
-    messagebox(hWnd, PChar(where + #10#13 + e.message), 'Terry', MB_ICONERROR)
+    messagebox(hWnd, PChar(where + #10#13 + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
   end else begin
     AddLog(where);
-    messagebox(hWnd, PChar(where), 'Terry', MB_ICONERROR);
+    messagebox(hWnd, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
   end;
 end;
 //------------------------------------------------------------------------------

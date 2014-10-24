@@ -154,7 +154,7 @@ const
   PROGRAM_NAME = 'TDock';
   PROGRAM_REGKEY = 'tdock';
   PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
-  WINITEM_CLASS = 'TDockItemWClass';
+  WINITEM_CLASS = 'TDockWClass';
   ITEM_BACKGROUND = $2808080;
   RollStep = 4;
   NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
@@ -221,12 +221,13 @@ resourcestring
   XProgramSettings = 'Program settings';
   XExit = 'Exit';
   XCloseWindow = 'Close window';
+  XCloseAllWindows = 'Close all windows';
 
   XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
   XShortcut = 'Shortcut';
   XFile = 'File';
   XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
-  XAddProgramToDock = 'Add program to dock';
+  XPinToDock = 'Pin to dock';
 
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';

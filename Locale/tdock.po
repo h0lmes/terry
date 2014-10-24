@@ -5,10 +5,6 @@ msgstr "Content-Type: text/plain; charset=UTF-8"
 msgid "Add ..."
 msgstr ""
 
-#: declu.xaddprogramtodock
-msgid "Add program to dock"
-msgstr ""
-
 #: declu.xall
 msgid "All"
 msgstr ""
@@ -47,6 +43,10 @@ msgstr ""
 
 #: declu.xanimationzoom
 msgid "Zoom"
+msgstr ""
+
+#: declu.xcloseallwindows
+msgid "Close all windows"
 msgstr ""
 
 #: declu.xclosewindow
@@ -251,6 +251,10 @@ msgstr ""
 
 #: declu.xpaste
 msgid "Paste"
+msgstr ""
+
+#: declu.xpintodock
+msgid "Pin to dock"
 msgstr ""
 
 #: declu.xprogramsettings
