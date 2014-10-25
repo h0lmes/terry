@@ -14,12 +14,14 @@ type
   private
     FProcName: string;
     FAppList: TFPList;
+    FIsOpen: boolean;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CheckAppList;
     procedure Exec;
-    procedure CloseList;
-    procedure OpenList;
+    procedure ClosePeekWindow(Timeout: cardinal = 0);
+    procedure ShowPeekWindow(Timeout: cardinal = 0);
+    procedure UpdatePeekWindow;
   public
     function WindowInList(hwnd: THandle): boolean;
     procedure UpdateTaskItem(hwnd: THandle);
@@ -30,6 +32,7 @@ type
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
+    procedure MouseHover(AHover: boolean); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
@@ -44,6 +47,7 @@ begin
   FDontSave := true;
   FProcName := '';
   FAppList := TFPList.Create;
+  FIsOpen := false;
   SetTimer(FHWnd, ID_TIMER, 1000, nil);
 end;
 //------------------------------------------------------------------------------
@@ -174,13 +178,15 @@ begin
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
         else SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
         UpdateHint(xReal, yReal);
+        if FIsOpen then UpdatePeekWindow;
         exit;
       end else
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
       FSize := ASize;
-      if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
+      if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
       UpdateHint(xReal, yReal);
+      if FIsOpen then UpdatePeekWindow;
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
@@ -222,8 +228,8 @@ begin
         GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         //
-        rect.Width := FSize * 5 div 12;
-        rect.Height := FSize div 3;
+        rect.Width := FItemSize * 5 div 12;
+        rect.Height := FItemSize div 3;
         rect.X := ItemRect.Right - rect.Width;
         rect.Y := ItemRect.Top;
         GdipCreateSolidFill($ffff0000, brush);
@@ -231,7 +237,7 @@ begin
         GdipDeleteBrush(brush);
         //
         GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hff);
-        GdipCreateFont(hff, FSize div 4, 1, 2, hfont);
+        GdipCreateFont(hff, FItemSize div 4, 1, 2, hfont);
         GdipCreateSolidFill($ffffffff, brush);
         GdipCreateStringFormat(0, 0, hformat);
         GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
@@ -268,6 +274,7 @@ begin
 
   if button = mbRight then
   begin
+    ClosePeekWindow;
     windows.GetCursorPos(pt);
     ContextMenu(pt);
   end;
@@ -313,55 +320,101 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TTaskItem.MouseHover(AHover: boolean);
+begin
+  inherited;
+
+  if AHover then
+  begin
+    if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
+  end else begin
+    ClosePeekWindow(800);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
 begin
   if FFreed then exit;
 
   // WM_ACTIVATEAPP
-  if (msg.msg = WM_ACTIVATEAPP) and (msg.wParam = 0) then CloseList;
+  if (msg.msg = WM_ACTIVATEAPP) and (msg.wParam = 0) then ClosePeekWindow;
 
-  if (msg.msg = WM_TIMER) and (msg.wParam = ID_TIMER) then
+  // WM_TIMER
+  if msg.msg = WM_TIMER then
   begin
-    // validate windows
-    CheckAppList;
-    // update item caption
-    if FAppList.Count > 0 then
-      Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
-    // delete self if no windows left
-    if FAppList.Count = 0 then Delete;
-  end;
-end;
-//------------------------------------------------------------------------------
-// delete non-existing windows
-procedure TTaskItem.CheckAppList;
-var
-  idx, old_count: integer;
-  hwnd: THandle;
-begin
-  old_count := FAppList.Count;
-  if FAppList.Count > 0 then
-  begin
-    for idx := FAppList.Count - 1 downto 0 do
+
+    // GENERAL TIMER
+    if msg.wParam = ID_TIMER then
     begin
-      hwnd := THandle(FAppList.Items[idx]);
-      if ProcessHelper.GetAppWindowIndex(hwnd) < 0 then FAppList.Delete(idx);
+      // validate windows
+      CheckAppList;
+      // update item caption
+      if FAppList.Count > 0 then
+        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+      // delete self if no windows left
+      if FAppList.Count = 0 then Delete;
     end;
+
+    // "OPEN" TIMER
+    if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
   end;
-  if FAppList.Count <> old_count then Redraw;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Exec;
 begin
-  if FAppList.Count = 1 then OpenList;
-    //ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
-  if FAppList.Count > 1 then OpenList;
+  if FAppList.Count = 1 then
+    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
+  if FAppList.Count > 1 then ShowPeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);
 begin
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.OpenList;
+procedure TTaskItem.ShowPeekWindow(Timeout: cardinal = 0);
+var
+  pt: windows.TPoint;
+begin
+  if Timeout > 0 then
+  begin
+    SetTimer(FHWnd, ID_TIMER_OPEN, Timeout, nil);
+    exit;
+  end;
+
+  KillTimer(FHWnd, ID_TIMER_OPEN);
+
+  pt := GetScreenRect.TopLeft;
+  if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
+  if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
+  if FSite = 0 then inc(pt.x, FSize);
+  if FSite = 1 then inc(pt.y, FSize);
+  case FSite of
+    0: inc(pt.x, 10);
+    1: inc(pt.y, 10);
+    2: dec(pt.x, 10);
+    3: dec(pt.y, 10);
+  end;
+  //LME(true);
+  FHideHint := true;
+  UpdateHint;
+  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor);
+  FIsOpen := true;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.ClosePeekWindow(Timeout: cardinal = 0);
+begin
+  KillTimer(FHWnd, ID_TIMER_OPEN);
+  if FIsOpen then
+  begin
+    FIsOpen := false;
+    //LME(false);
+    FHideHint := false;
+    UpdateHint;
+    TAeroPeekWindow.Close(Timeout);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.UpdatePeekWindow;
 var
   pt: windows.TPoint;
 begin
@@ -376,12 +429,29 @@ begin
     2: dec(pt.x, 10);
     3: dec(pt.y, 10);
   end;
-  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, 0);
+  TAeroPeekWindow.SetPosition(pt.x, pt.y, FMonitor);
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.CloseList;
+// delete non-existing windows from the list
+procedure TTaskItem.CheckAppList;
+var
+  idx, old_count: integer;
+  hwnd: THandle;
 begin
-  TAeroPeekWindow.Close;
+  old_count := FAppList.Count;
+  if FAppList.Count > 0 then
+  begin
+    for idx := FAppList.Count - 1 downto 0 do
+    begin
+      hwnd := THandle(FAppList.Items[idx]);
+      if ProcessHelper.GetAppWindowIndex(hwnd) < 0 then FAppList.Delete(idx);
+    end;
+  end;
+  if FAppList.Count <> old_count then
+  begin
+    if FIsOpen then ShowPeekWindow; // full update
+    Redraw;
+  end;
 end;
 //------------------------------------------------------------------------------
 end.

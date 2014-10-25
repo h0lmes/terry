@@ -45,6 +45,7 @@ type
     FReflectionSize: integer;
     FShowHint: boolean; // global option
     FHideHint: boolean; // local option
+    FMonitor: integer;
     FSite: integer;
     FHover: boolean;
     FLockDragging: boolean;
@@ -224,6 +225,7 @@ begin
           FBorder := min(max(FReflectionSize, MIN_BORDER), FItemSize);
           Redraw;
         end;
+      gpMonitor: FMonitor := param;
       gpSite:
         if param <> FSite then
         begin
@@ -282,7 +284,11 @@ begin
           Redraw;
         end;
 
-      icHover: MouseHover(boolean(param));
+      icHover:
+        begin
+          if param = 0 then cmd(icSelect, 0);
+          MouseHover(boolean(param));
+        end;
 
       icFree: FFreed := param <> 0;
     end;

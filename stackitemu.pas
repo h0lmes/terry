@@ -440,7 +440,7 @@ begin
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
 
       FSize := ASize;
-      if FShowItem and SWP_HIDEWINDOW = SWP_HIDEWINDOW then exit;
+      if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
       UpdateHint(xReal, yReal);
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);

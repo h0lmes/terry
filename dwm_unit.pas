@@ -1,7 +1,7 @@
 unit dwm_unit;
 
 interface
-uses windows;
+uses windows, math;
 
 const
   WM_DWMCOMPOSITIONCHANGED = $031E;
@@ -151,17 +151,29 @@ function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; destRec
 var
   hr: HRESULT;
   Size: windows.TSize;
-  ThumbW: integer;
+  ThumbW, ThumbH: integer;
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
+  dstRatio, srcRatio: single;
 begin
   result := false;
   hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
 	if SUCCEEDED(hr) then
 	begin
     DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
-    ThumbW := (destRect.Bottom - destRect.Top) * Size.cx div Size.cy;
-    destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
-    destRect.Right := destRect.Left + ThumbW;
+    dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
+    srcRatio := Size.cx / Size.cy;
+    if srcRatio < dstRatio then
+    begin
+      ThumbW := round((destRect.Bottom - destRect.Top) * srcRatio);
+      destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
+      destRect.Right := destRect.Left + ThumbW;
+    end;
+    if srcRatio > dstRatio then
+    begin
+      ThumbH := round((destRect.Right - destRect.Left) / srcRatio);
+      destRect.Top := destRect.Top + (destRect.Bottom - destRect.Top - ThumbH) div 2;
+      destRect.Bottom := destRect.Top + ThumbH;
+    end;
 
     FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
     dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY;

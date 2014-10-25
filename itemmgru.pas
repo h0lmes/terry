@@ -1497,24 +1497,21 @@ var
 begin
   try
     if not enabled or not FVisible then exit;
-    if ItemCount < 0 then exit;
 
-    // hint //
-    wnd := WindowFromPoint(pt);
-    if ItemIndex(wnd) = NOT_AN_ITEM then wnd := 0;
-    if (wnd <> HoverItemHWnd) and not Dragging {avoid hint flickering} then
+    if ItemCount > 0 then
     begin
-      if HoverItemHWnd <> 0 then
+      // hint //
+      wnd := WindowFromPoint(pt);
+      if ItemIndex(wnd) = NOT_AN_ITEM then wnd := 0;
+      if wnd <> HoverItemHWnd then
       begin
-        ItemCmd(HoverItemHWnd, icSelect, 0);
-        ItemCmd(HoverItemHWnd, icHover, 0);
+        if HoverItemHWnd <> 0 then ItemCmd(HoverItemHWnd, icHover, 0);
+        if wnd <> 0 then ItemCmd(wnd, icHover, 1);
       end;
-      if wnd <> 0 then ItemCmd(wnd, icHover, 1);
+      HoverItemHWnd := wnd;
+      // zoom //
+      if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
     end;
-    HoverItemHWnd := wnd;
-
-    // zoom //
-    if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
 
     // drop place //
     if Dragging or DraggingFile then

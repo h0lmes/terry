@@ -904,8 +904,8 @@ procedure Tfrmmain.UpdateRunning;
 begin
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
-    if sets.container.Taskbar then ItemMgr.Taskbar;
     if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
+    if sets.container.Taskbar then ItemMgr.Taskbar;
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;
