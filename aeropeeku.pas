@@ -27,26 +27,26 @@ type
     FAnimate: boolean;
     list: TFPList;
     listThumbnail: TFPList;
+    function GetMonitorRect(AMonitor: integer): Windows.TRect;
+    procedure DrawBackgroundLayered;
+    procedure Timer;
+    procedure WindowProc(var msg: TMessage);
     procedure err(where: string; e: Exception);
   public
     property Handle: uint read FHWnd;
     property Active: boolean read FActive;
 
     class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
-    class function IsActive: boolean;
-    class procedure Close(Timeout: cardinal = 0);
     class procedure SetPosition(AX, AY: integer; AMonitor: integer);
+    class procedure Close(Timeout: cardinal = 0);
+    class function IsActive: boolean;
     class procedure Cleanup;
 
     constructor Create;
     destructor Destroy; override;
-    function GetMonitorRect(AMonitor: integer): Windows.TRect;
-    function OpenI(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
-    procedure SetPositionI(AX, AY: integer; AMonitor: integer);
-    procedure OpenI2;
-    procedure CloseI;
-    procedure Timer;
-    procedure WindowProc(var msg: TMessage);
+    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+    procedure SetWindowPosition(AX, AY: integer; AMonitor: integer);
+    procedure CloseWindow;
   end;
 
 var AeroPeekWindow: TAeroPeekWindow;
@@ -58,7 +58,24 @@ class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor:
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
-  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenI(AppList, AX, AY, AMonitor);
+  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor);
+end;
+//------------------------------------------------------------------------------
+// set new position
+class procedure TAeroPeekWindow.SetPosition(AX, AY: integer; AMonitor: integer);
+begin
+  if assigned(AeroPeekWindow) then AeroPeekWindow.SetWindowPosition(AX, AY, AMonitor);
+end;
+//------------------------------------------------------------------------------
+// close AeroPeekWindow
+// if Timeout set then close after timeout has elapsed
+class procedure TAeroPeekWindow.Close(Timeout: cardinal = 0);
+begin
+  if assigned(AeroPeekWindow) then
+  begin
+    if Timeout = 0 then AeroPeekWindow.CloseWindow
+    else SetTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE, Timeout, nil);
+  end;
 end;
 //------------------------------------------------------------------------------
 // check if AeroPeekWindow is visible
@@ -68,22 +85,7 @@ begin
   if assigned(AeroPeekWindow) then result := AeroPeekWindow.Active;
 end;
 //------------------------------------------------------------------------------
-// close AeroPeekWindow
-// if Timeout set then close after timeout has elapsed
-class procedure TAeroPeekWindow.Close(Timeout: cardinal = 0);
-begin
-  if assigned(AeroPeekWindow) then
-  begin
-    if Timeout = 0 then AeroPeekWindow.CloseI
-    else SetTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE, Timeout, nil);
-  end;
-end;
-//------------------------------------------------------------------------------
-class procedure TAeroPeekWindow.SetPosition(AX, AY: integer; AMonitor: integer);
-begin
-  if assigned(AeroPeekWindow) then AeroPeekWindow.SetPositionI(AX, AY, AMonitor);
-end;
-//------------------------------------------------------------------------------
+// destroy window
 class procedure TAeroPeekWindow.Cleanup;
 begin
   if assigned(AeroPeekWindow) then AeroPeekWindow.Free;
@@ -137,7 +139,7 @@ begin
   if AMonitor >= 0 then Result := screen.Monitors[AMonitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenI(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
 var
   idx: integer;
   ThumbnailId: THandle;
@@ -153,7 +155,7 @@ begin
     list.AddList(AppList);
     if list.Count = 0 then
     begin
-      CloseI;
+      CloseWindow;
       exit;
     end;
 
@@ -185,7 +187,7 @@ begin
     end;
 
     // show AeroPeek window
-    OpenI2;
+    DrawBackgroundLayered;
 
     // register thumbnails
     for idx := 0 to list.Count - 1 do
@@ -199,7 +201,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetPositionI(AX, AY: integer; AMonitor: integer);
+procedure TAeroPeekWindow.SetWindowPosition(AX, AY: integer; AMonitor: integer);
 begin
   if FActive then
   begin
@@ -211,7 +213,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.OpenI2;
+procedure TAeroPeekWindow.DrawBackgroundLayered;
 var
   hgdip, brush, font, family: Pointer;
   caption_rect: TRectF;
@@ -291,7 +293,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.CloseI;
+procedure TAeroPeekWindow.CloseWindow;
 var
   idx: integer;
 begin
@@ -326,13 +328,7 @@ begin
     for idx := 0 to list.Count - 1 do
       if PtInRect(classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + (idx + 1) * ThumbW, Border + ThumbH), pt) then
         ProcessHelper.ActivateWindow(THandle(list.Items[idx]));
-    CloseI;
-    exit;
-  end
-  // WM_RBUTTONUP
-  else if msg.msg = WM_RBUTTONUP then
-  begin
-    CloseI;
+    CloseWindow;
     exit;
   end
   // WM_TIMER
@@ -343,7 +339,7 @@ begin
     if msg.wParam = ID_TIMER_CLOSE then
     begin
       GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then CloseI;
+      if WindowFromPoint(pt) <> FHWnd then CloseWindow;
     end;
 
     exit;

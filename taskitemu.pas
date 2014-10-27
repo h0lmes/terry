@@ -4,7 +4,8 @@ unit taskitemu;
 
 interface
 uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes,
-  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp, aeropeeku;
+  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp,
+  aeropeeku, dwm_unit;
 
 type
 
@@ -324,12 +325,13 @@ procedure TTaskItem.MouseHover(AHover: boolean);
 begin
   inherited;
 
-  if AHover then
-  begin
-    if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
-  end else begin
-    ClosePeekWindow(800);
-  end;
+  if dwm.CompositingEnabled then
+    if AHover then
+    begin
+      if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
+    end else begin
+      ClosePeekWindow(800);
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
@@ -404,12 +406,15 @@ end;
 procedure TTaskItem.ClosePeekWindow(Timeout: cardinal = 0);
 begin
   KillTimer(FHWnd, ID_TIMER_OPEN);
+  if FHideHint then
+  begin
+    FHideHint := false;
+    UpdateHint;
+  end;
   if FIsOpen then
   begin
     FIsOpen := false;
     //LME(false);
-    FHideHint := false;
-    UpdateHint;
     TAeroPeekWindow.Close(Timeout);
   end;
 end;
