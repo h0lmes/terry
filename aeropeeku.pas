@@ -2,7 +2,7 @@ unit aeropeeku;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, uxTheme,
+uses Windows, Messages, Classes, SysUtils, Forms, uxTheme, themes,
   declu, dwm_unit, GDIPAPI, gdip_gfx, toolu, processhlp;
 
 type
@@ -102,10 +102,12 @@ begin
   list := TFPList.Create;
   listThumbnail := TFPList.Create;
 
+  BufferedPaintInit;
+
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP + WS_THICKFRAME, -100, -100, 50, 50, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_STATICEDGE + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP + WS_BORDER + WS_THICKFRAME, -100, -100, 50, 50, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then
     begin
       SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
@@ -130,6 +132,8 @@ begin
     DestroyWindow(FHWnd);
     if assigned(list) then list.Free;
     if assigned(listThumbnail) then listThumbnail.Free;
+
+    BufferedPaintUnInit;
     inherited;
   except
     on e: Exception do err('AeroPeekWindow.Destroy', e);
@@ -148,7 +152,7 @@ var
   idx: integer;
   ThumbnailId: THandle;
   rect, wa: windows.TRect;
-  theme, dc: HANDLE;
+  hbp, dc: HANDLE;
 begin
   result := false;
   if not FActivating then
@@ -202,8 +206,39 @@ begin
         Fy := FYTarget;
       end;
 
+      // prepare //
+      {bmp.topleft.x := Fx;
+      bmp.topleft.y := Fy;
+      bmp.Width := FWidth;
+      bmp.Height := FHeight;
+      if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+      hgdip := CreateGraphics(bmp.dc, 0);
+      if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
+      GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+      GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
+
+      // draw background //
+      if dwm.CompositingEnabled then alpha := $80000000 else alpha := $ff101010;
+      GdipCreateSolidFill(alpha, brush);
+      GdipFillRectangle(hgdip, brush, 0, 0, FWidth, FHeight);
+      GdipDeleteBrush(brush);
+
+      // update window //
+      acoeff := 255;
+      if FAnimate then
+      begin
+        acoeff := 255 - (abs(Fx - FXTarget) * 510 div FWidth);
+        if acoeff < 0 then acoeff := 0;
+        if acoeff > 255 then acoeff := 255;
+      end;
+      gdip_gfx.UpdateLWindow(FHWnd, bmp, acoeff);
+      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
+      GdipDeleteGraphics(hgdip);
+      gdip_gfx.DeleteBitmap(bmp);}
+
       // show AeroPeek window
       SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
+      SetActiveWindow(FHWnd);
       {rect := classes.rect(0, 0, FWidth, FHeight);
       theme := OpenThemeData(FHWnd, PWChar(WideString('window')));
       dc := GetWindowDC(FHWnd);
@@ -216,8 +251,8 @@ begin
       // register thumbnails
       for idx := 0 to list.Count - 1 do
       begin
-        rect := classes.rect(idx * (ThumbW + VSplit), 0, 0 + (idx + 1) * ThumbW, ThumbH);
-        dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, ThumbnailId);
+        rect := classes.rect(idx * (ThumbW + VSplit), 0, ThumbW + idx * (ThumbW + VSplit), ThumbH);
+        dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
         listThumbnail.Add(pointer(ThumbnailId));
       end;
     finally
@@ -255,6 +290,7 @@ begin
     KillTimer(FHWnd, ID_TIMER);
     ShowWindow(FHWnd, 0);
     FActive := False;
+    TAeroPeekWindow.Cleanup;
   except
     on e: Exception do err('AeroPeekWindow.CloseI', e);
   end;
@@ -263,10 +299,11 @@ end;
 procedure TAeroPeekWindow.Timer;
 var
   delta: integer;
+  rect: windows.TRect;
 begin
   if FActive then
   try
-    if (FXTarget <> Fx) or (FYTarget <> Fy) then
+    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) then
     begin
       delta := abs(FXTarget - Fx) div 4;
       if delta < 1 then delta := 1;
@@ -344,10 +381,10 @@ begin
   if assigned(e) then
   begin
     AddLog(where + #10#13 + e.message);
-    messagebox(FHWnd, PChar(where + #10#13 + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
+    messagebox(0, PChar(where + #10#13 + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
   end else begin
     AddLog(where);
-    messagebox(FHWnd, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
+    messagebox(0, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
   end;
 end;
 //------------------------------------------------------------------------------
