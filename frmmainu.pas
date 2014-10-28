@@ -1142,7 +1142,7 @@ begin
       UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
 
       // deal with blur //
-      if dwm.CompositingEnabled and sets.container.Blur and Theme.BlurEnabled then
+      if dwm.CompositionEnabled and sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
         rgn := Theme.GetBackgroundRgn(ItemMgr.BaseImageRect);

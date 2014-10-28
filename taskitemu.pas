@@ -323,9 +323,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.MouseHover(AHover: boolean);
 begin
+  FHideHint := TAeroPeekWindow.IsActive;
+
   inherited;
 
-  if dwm.CompositingEnabled then
+  if dwm.CompositionEnabled then
     if AHover then
     begin
       if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);

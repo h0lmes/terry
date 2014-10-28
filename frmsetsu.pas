@@ -353,7 +353,7 @@ begin
   lbTheme.OnSelectionChange := nil;
   theme.SearchThemes(sets.container.ThemeName, lbTheme);
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
-  chbBlur.Enabled := dwm.CompositingEnabled;
+  chbBlur.Enabled := dwm.CompositionEnabled;
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
   chbBlur.OnClick := chbBlurClick;

@@ -268,7 +268,7 @@ begin
 
     GdipClosePathFigure(path);
 
-    if dwm.CompositingEnabled then alpha := $80000000 else alpha := $ff101010;
+    if dwm.CompositionEnabled then alpha := $80000000 else alpha := $ff101010;
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
     GdipDeleteBrush(hbrush);
@@ -313,7 +313,7 @@ begin
     end;
     gdip_gfx.UpdateLWindow(hWnd, bmp, acoeff);
     SetWindowPos(hWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
-    if dwm.CompositingEnabled then
+    if dwm.CompositionEnabled then
     begin
       rgn := CreateRoundRectRgn(0, 0, awidth, aheight, radius * 2, radius * 2);
       DWM.EnableBlurBehindWindow(hWnd, rgn);

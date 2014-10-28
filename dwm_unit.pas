@@ -51,7 +51,7 @@ type
     public
       constructor Create;
       destructor Destroy; override;
-      function CompositingEnabled: boolean;
+      function CompositionEnabled: boolean;
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
       procedure ExcludeFromPeek(const AHandle: THandle);
@@ -94,7 +94,7 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-function TDWMHelper.CompositingEnabled: boolean;
+function TDWMHelper.CompositionEnabled: boolean;
 var
   enabled: Boolean;
 begin
@@ -107,7 +107,7 @@ procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
   bb: _DWM_BLURBEHIND;
 begin
-  if CompositingEnabled and (@DwmEnableBlurBehindWindow <> nil) then
+  if CompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
   begin
     ZeroMemory(@bb, SizeOf(bb));
     bb.dwFlags:= 3;
@@ -144,7 +144,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
 begin
-  if @DwmExtendFrameIntoClientArea <> nil then DwmExtendFrameIntoClientArea(AHandle, margins);
+  if CompositionEnabled then
+    if @DwmExtendFrameIntoClientArea <> nil then
+      DwmExtendFrameIntoClientArea(AHandle, margins);
 end;
 //------------------------------------------------------------------------------
 function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; var hThumbnailId: THandle): boolean;
@@ -156,40 +158,44 @@ var
   dstRatio, srcRatio: single;
 begin
   result := false;
-  hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
-	if SUCCEEDED(hr) then
-	begin
-    DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
-    dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
-    srcRatio := Size.cx / Size.cy;
-    if srcRatio < dstRatio then
-    begin
-      ThumbW := round((destRect.Bottom - destRect.Top) * srcRatio);
-      destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
-      destRect.Right := destRect.Left + ThumbW;
-    end;
-    if srcRatio > dstRatio then
-    begin
-      ThumbH := round((destRect.Right - destRect.Left) / srcRatio);
-      destRect.Top := destRect.Top + (destRect.Bottom - destRect.Top - ThumbH) div 2;
-      destRect.Bottom := destRect.Top + ThumbH;
-    end;
+  if CompositionEnabled then
+  begin
+    hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
+	  if SUCCEEDED(hr) then
+	  begin
+      DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
+      dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
+      srcRatio := Size.cx / Size.cy;
+      if srcRatio < dstRatio then
+      begin
+        ThumbW := round((destRect.Bottom - destRect.Top) * srcRatio);
+        destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
+        destRect.Right := destRect.Left + ThumbW;
+      end;
+      if srcRatio > dstRatio then
+      begin
+        ThumbH := round((destRect.Right - destRect.Left) / srcRatio);
+        destRect.Top := destRect.Top + (destRect.Bottom - destRect.Top - ThumbH) div 2;
+        destRect.Bottom := destRect.Top + ThumbH;
+      end;
 
-    FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
-    dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY;
-    dskThumbProps.fSourceClientAreaOnly := false;
-		dskThumbProps.fVisible := true;
-		dskThumbProps.opacity := 255;
-		dskThumbProps.rcDestination := destRect;
-		hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
-    result := SUCCEEDED(hr);
-    if not result then UnregisterThumbnail(hThumbnailId);
+      FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
+      dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY;
+      dskThumbProps.fSourceClientAreaOnly := false;
+		  dskThumbProps.fVisible := true;
+		  dskThumbProps.opacity := 255;
+		  dskThumbProps.rcDestination := destRect;
+		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+      result := SUCCEEDED(hr);
+      if not result then UnregisterThumbnail(hThumbnailId);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.UnregisterThumbnail(hThumbnailId: THandle);
 begin
-  DwmUnregisterThumbnail(hThumbnailId);
+  if @DwmUnregisterThumbnail <> nil then
+     DwmUnregisterThumbnail(hThumbnailId);
 end;
 //------------------------------------------------------------------------------
 initialization
