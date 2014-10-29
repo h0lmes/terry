@@ -165,11 +165,16 @@ procedure TAeroPeekWindow.Paint;
 
 var
   bmp: _SimpleBitmap;
-  hgdip, brush, path: Pointer;
-  alpha: cardinal;
+  hgdip, brush, pen, path, epath: Pointer;
+  rect: GDIPAPI.TRect;
+  pt: GDIPAPI.TPoint;
+  color1, color2: ARGB;
+  shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
+  radius, count: integer;
 begin
   // prepare //
+  radius := 6;
   bmp.topleft.x := Fx;
   bmp.topleft.y := Fy;
   bmp.Width := FWidth;
@@ -180,23 +185,55 @@ begin
   GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
   GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
-  // draw background //
-  if dwm.CompositionEnabled then alpha := $60000000 else alpha := $ff101010;
-  GdipCreateSolidFill(alpha, brush);
+  // shadow path
   GdipCreatePath(FillModeWinding, path);
-  AddPathRoundRect(path, Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2, Shadow);
-  GdipFillPath(hgdip, brush, path);
-  GdipDeletePath(path);
+  GdipCreatePath(FillModeWinding, epath);
+  AddPathRoundRect(epath, 0, 0, FWidth, FHeight, radius * 3);
+  AddPathRoundRect(path, Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2, radius);
+  // shadow gradient
+  GdipCreatePathGradientFromPath(epath, brush);
+  GdipSetPathGradientCenterColor(brush, $ff000000);
+  shadowEndColor[0] := 1000000;
+  count := 1;
+  GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
+  pt := MakePoint(FWidth div 2, FHeight div 2);
+  GdipSetPathGradientCenterPointI(brush, @pt);
+  GdipSetPathGradientFocusScales(brush, 1 - 0.4 * FHeight / FWidth, 1 - 0.4);
+  GdipSetClipPath(hgdip, path, CombineModeReplace);
+  GdipSetClipPath(hgdip, epath, CombineModeComplement);
+  GdipFillPath(hgdip, brush, epath);
+  GdipResetClip(hgdip);
   GdipDeleteBrush(brush);
+  // background fill
+  if dwm.CompositionEnabled then
+  begin
+    color1 := $40000000;
+    color2 := $40606060;
+  end else begin
+    color1 := $ff101010;
+    color2 := $ff404040;
+  end;
+  rect := GDIPAPI.MakeRect(Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2);
+  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
+  GdipFillPath(hgdip, brush, path);
+  GdipDeleteBrush(brush);
+  // border
+  GdipCreatePen1($b0ffffff, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  // cleanup
+  GdipDeletePath(path);
+  GdipDeletePath(epath);
 
   // update window //
   UpdateLWindow(FHWnd, bmp, 255);
   GdipDeleteGraphics(hgdip);
   gdip_gfx.DeleteBitmap(bmp);
 
+  // enable blur behind
   if dwm.CompositionEnabled then
   begin
-    rgn := CreateRoundRectRgn(Shadow, Shadow, FWidth - Shadow, FHeight - Shadow, Shadow * 2, Shadow * 2);
+    rgn := CreateRoundRectRgn(Shadow, Shadow, FWidth - Shadow, FHeight - Shadow, radius * 2, radius * 2);
     dwm.EnableBlurBehindWindow(FHWnd, rgn);
     DeleteObject(rgn);
   end;
@@ -228,12 +265,12 @@ begin
       //
       list.AddList(AppList);
 
-      // calc size
+      // size
       FMonitor := AMonitor;
       wa := GetMonitorRect(FMonitor);
       Border := 22;
-      Shadow := 10;
-      VSplit := 12;
+      Shadow := 14;
+      VSplit := 16;
       ThumbW := 200;
       ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
       FWTarget := Border * 2 + list.Count * (ThumbW + VSplit) - VSplit;
@@ -244,7 +281,7 @@ begin
         FHeight := FHTarget;
       end;
 
-      // calc position //
+      // position
       FXTarget := AX - FWTarget div 2;
       FYTarget := AY - FHTarget;
       if FAnimate then
@@ -261,10 +298,9 @@ begin
         Fy := FYTarget;
       end;
 
-      // show AeroPeek window
+      // show the window
       Paint;
       SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
       SetActiveWindow(FHWnd);
       if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
       FActive := true;
@@ -293,7 +329,6 @@ begin
     Fx := FXTarget;
     Fy := FYTarget;
     gdip_gfx.UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255);
-    //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -348,7 +383,6 @@ begin
       if FHeight < FHTarget then Inc(FHeight, delta);
 
       Paint;
-      //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
     end;
   except
     on e: Exception do err('AeroPeekWindow.Timer', e);
@@ -393,11 +427,6 @@ begin
   else if msg.msg = WM_NCHITTEST then
   begin
     msg.Result := HTCLIENT;
-    exit;
-  end
-  // disable WM_NCPAINT
-  else if msg.msg = WM_NCPAINT then
-  begin
     exit;
   end;
 
