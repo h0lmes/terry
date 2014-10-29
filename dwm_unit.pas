@@ -5,6 +5,8 @@ uses windows, math;
 
 const
   WM_DWMCOMPOSITIONCHANGED = $031E;
+  DWMWA_NCRENDERING_POLICY = 2;
+  DWMWA_ALLOW_NCPAINT = 4;
   DWMWA_EXCLUDED_FROM_PEEK = 12;
 
   // _DWM_THUMBNAIL_PROPERTIES.dwFlags
@@ -55,6 +57,7 @@ type
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
       procedure ExcludeFromPeek(const AHandle: THandle);
+      procedure EnableNCRendering(const AHandle: THandle);
       procedure ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
       //
       function RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; visible: boolean; var hThumbnailId: THandle): boolean;
@@ -141,6 +144,17 @@ begin
   begin
     exclude := -1;
     DwmSetWindowAttribute(AHandle, DWMWA_EXCLUDED_FROM_PEEK, @exclude, sizeof(exclude));
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TDWMHelper.EnableNCRendering(const AHandle: THandle);
+var
+  value: integer;
+begin
+  if @DwmSetWindowAttribute <> nil then
+  begin
+    value := 3;
+    DwmSetWindowAttribute(AHandle, DWMWA_NCRENDERING_POLICY, @value, sizeof(value));
   end;
 end;
 //------------------------------------------------------------------------------

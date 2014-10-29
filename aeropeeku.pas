@@ -15,7 +15,7 @@ type
     WindowClassInstance: uint;
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
-    VSplit, Border, ThumbW, ThumbH: integer;
+    VSplit, Border, Shadow, ThumbW, ThumbH: integer;
     Fx: integer;
     Fy: integer;
     FXTarget: integer;
@@ -30,6 +30,7 @@ type
     FAnimate: boolean;
     list: TFPList;
     listThumbnail: TFPList;
+    procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
     procedure Timer;
     procedure WindowProc(var msg: TMessage);
@@ -102,21 +103,19 @@ begin
   list := TFPList.Create;
   listThumbnail := TFPList.Create;
 
-  BufferedPaintInit;
-
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_STATICEDGE + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP + WS_BORDER + WS_THICKFRAME, -100, -100, 50, 50, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP + WS_BORDER + WS_THICKFRAME, -100, -100, 1, 1, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then
     begin
       SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
       FWndInstance := MakeObjectInstance(WindowProc);
       FPrevWndProc := Pointer(GetWindowLong(FHWnd, GWL_WNDPROC));
       SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
-      //DWM.EnableBlurBehindWindow(handle, 0);
-      if dwm.CompositionEnabled then dwm.ExtendFrameIntoClientArea(FHWnd, rect(-1,-1,-1,-1));
-      SetLayeredWindowAttributes(FHWnd, 0, 255, LWA_ALPHA);
+
+      //if dwm.CompositionEnabled then dwm.ExtendFrameIntoClientArea(FHWnd, rect(-1,-1,-1,-1));
+      //SetLayeredWindowAttributes(FHWnd, 0, 255, LWA_ALPHA);
     end
     else err('AeroPeekWindow.Create.CreateWindowEx failed', nil);
   except
@@ -132,8 +131,6 @@ begin
     DestroyWindow(FHWnd);
     if assigned(list) then list.Free;
     if assigned(listThumbnail) then listThumbnail.Free;
-
-    BufferedPaintUnInit;
     inherited;
   except
     on e: Exception do err('AeroPeekWindow.Destroy', e);
@@ -147,12 +144,69 @@ begin
   if AMonitor >= 0 then Result := screen.Monitors[AMonitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
+procedure TAeroPeekWindow.Paint;
+  procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
+  begin
+    GdipStartPathFigure(path);
+    GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y);
+    GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
+
+    GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1);
+    GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
+
+    GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1);
+    GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
+
+    GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius);
+    GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
+
+    GdipClosePathFigure(path);
+  end;
+
+var
+  bmp: _SimpleBitmap;
+  hgdip, brush, path: Pointer;
+  alpha: cardinal;
+  rgn: HRGN;
+begin
+  // prepare //
+  bmp.topleft.x := Fx;
+  bmp.topleft.y := Fy;
+  bmp.Width := FWidth;
+  bmp.Height := FHeight;
+  if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+  hgdip := CreateGraphics(bmp.dc, 0);
+  if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
+  GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+  GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
+
+  // draw background //
+  if dwm.CompositionEnabled then alpha := $60000000 else alpha := $ff101010;
+  GdipCreateSolidFill(alpha, brush);
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2, Shadow);
+  GdipFillPath(hgdip, brush, path);
+  GdipDeletePath(path);
+  GdipDeleteBrush(brush);
+
+  // update window //
+  UpdateLWindow(FHWnd, bmp, 255);
+  GdipDeleteGraphics(hgdip);
+  gdip_gfx.DeleteBitmap(bmp);
+
+  if dwm.CompositionEnabled then
+  begin
+    rgn := CreateRoundRectRgn(Shadow, Shadow, FWidth - Shadow, FHeight - Shadow, Shadow * 2, Shadow * 2);
+    dwm.EnableBlurBehindWindow(FHWnd, rgn);
+    DeleteObject(rgn);
+  end;
+end;
+//------------------------------------------------------------------------------
 function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
 var
   idx: integer;
   ThumbnailId: THandle;
   rect, wa: windows.TRect;
-  hbp, dc: HANDLE;
 begin
   result := false;
   if not FActivating then
@@ -177,7 +231,8 @@ begin
       // calc size
       FMonitor := AMonitor;
       wa := GetMonitorRect(FMonitor);
-      Border := GetSystemMetrics(SM_CXSIZEFRAME);
+      Border := 22;
+      Shadow := 10;
       VSplit := 12;
       ThumbW := 200;
       ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
@@ -206,52 +261,18 @@ begin
         Fy := FYTarget;
       end;
 
-      // prepare //
-      {bmp.topleft.x := Fx;
-      bmp.topleft.y := Fy;
-      bmp.Width := FWidth;
-      bmp.Height := FHeight;
-      if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      hgdip := CreateGraphics(bmp.dc, 0);
-      if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-      GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-      GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
-
-      // draw background //
-      if dwm.CompositingEnabled then alpha := $80000000 else alpha := $ff101010;
-      GdipCreateSolidFill(alpha, brush);
-      GdipFillRectangle(hgdip, brush, 0, 0, FWidth, FHeight);
-      GdipDeleteBrush(brush);
-
-      // update window //
-      acoeff := 255;
-      if FAnimate then
-      begin
-        acoeff := 255 - (abs(Fx - FXTarget) * 510 div FWidth);
-        if acoeff < 0 then acoeff := 0;
-        if acoeff > 255 then acoeff := 255;
-      end;
-      gdip_gfx.UpdateLWindow(FHWnd, bmp, acoeff);
-      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      GdipDeleteGraphics(hgdip);
-      gdip_gfx.DeleteBitmap(bmp);}
-
       // show AeroPeek window
-      SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
+      Paint;
+      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
+      //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
       SetActiveWindow(FHWnd);
-      {rect := classes.rect(0, 0, FWidth, FHeight);
-      theme := OpenThemeData(FHWnd, PWChar(WideString('window')));
-      dc := GetWindowDC(FHWnd);
-      DrawThemeBackground(theme, dc, WP_CAPTION, FS_ACTIVE, rect, nil);
-      ReleaseDC(FHWnd, dc);
-      CloseThemeData(theme);}
       if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
       FActive := true;
 
       // register thumbnails
       for idx := 0 to list.Count - 1 do
       begin
-        rect := classes.rect(idx * (ThumbW + VSplit), 0, ThumbW + idx * (ThumbW + VSplit), ThumbH);
+        rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
         dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
         listThumbnail.Add(pointer(ThumbnailId));
       end;
@@ -271,7 +292,8 @@ begin
     FYTarget := AY - FHTarget;
     Fx := FXTarget;
     Fy := FYTarget;
-    SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
+    gdip_gfx.UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255);
+    //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -325,7 +347,8 @@ begin
       if FHeight > FHTarget then Dec(FHeight, delta);
       if FHeight < FHTarget then Inc(FHeight, delta);
 
-      SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
+      Paint;
+      //SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
     end;
   except
     on e: Exception do err('AeroPeekWindow.Timer', e);
@@ -347,7 +370,7 @@ begin
     pt.y := TSmallPoint(msg.lParam).y;
     for idx := 0 to list.Count - 1 do
     begin
-      rect := classes.rect(idx * (ThumbW + VSplit), 0, 0 + (idx + 1) * ThumbW, ThumbH);
+      rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
       if PtInRect(rect, pt) then ProcessHelper.ActivateWindow(THandle(list.Items[idx]));
     end;
     CloseWindow;
@@ -370,6 +393,11 @@ begin
   else if msg.msg = WM_NCHITTEST then
   begin
     msg.Result := HTCLIENT;
+    exit;
+  end
+  // disable WM_NCPAINT
+  else if msg.msg = WM_NCPAINT then
+  begin
     exit;
   end;
 
