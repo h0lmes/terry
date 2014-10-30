@@ -16,7 +16,7 @@ type
     aheight: integer;
     Visible: boolean;
     Caption: WideString;
-    font: _FontData;
+    FFont: _FontData;
     wnd_owner: uint;
     alpha: integer;
     ax: integer; // real x
@@ -69,9 +69,9 @@ constructor _Hint.Create;
 begin
   inherited;
 
-  StrCopy(@font.Name[0], PChar(GetFont));
-  font.size := GetfontSize;
-  font.color := $ffffffff;
+  StrCopy(@FFont.Name[0], PChar(GetFont));
+  FFont.size := GetfontSize;
+  FFont.color := $ffffffff;
   alpha := 0;
   Visible := False;
 
@@ -117,7 +117,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Hint.ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
 var
-  hgdip, hfont, hfontfamily, hbrush, path: Pointer;
+  hgdip, font, family, brush, path: Pointer;
   rect: TRectF;
   wa: Windows.TRect;
   bmp: _SimpleBitmap;
@@ -130,7 +130,7 @@ begin
     try
       wnd_owner := hwndOwner;
       Caption := caption_;
-      CopyFontData(sets.container.Font, font);
+      CopyFontData(sets.container.Font, FFont);
       FBorder := 0;
       if (ASite = bsTop) or (ASite = bsBottom) then FBorder := 7;
 
@@ -138,13 +138,13 @@ begin
       bmp.dc := CreateCompatibleDC(0);
       if bmp.dc = 0 then raise Exception.Create('Hint.ActivateHint.CreateCompatibleDC failed');
       GdipCreateFromHDC(bmp.dc, hgdip);
-      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@font.Name))), nil, hfontfamily);
-      GdipCreateFont(hfontfamily, font.size, integer(font.bold) + integer(font.italic) * 2, 2, hfont);
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+      GdipCreateFont(family, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
       rect.x := 0;
       rect.y := 0;
       rect.Width := 0;
       rect.Height := 0;
-      GdipMeasureString(hgdip, PWideChar(Caption), -1, hfont, @rect, nil, @rect, nil, nil);
+      GdipMeasureString(hgdip, PWideChar(Caption), -1, font, @rect, nil, @rect, nil, nil);
       GdipDeleteGraphics(hgdip);
       DeleteDC(bmp.dc);
 
@@ -226,9 +226,9 @@ begin
         points[2].y := 0;
         GdipAddPathPolygonI(path, @points, 3);
       end;
-      GdipCreateSolidFill($ff000000 + font.backcolor and $ffffff, hbrush);
-      GdipFillPath(hgdip, hbrush, path);
-      GdipDeleteBrush(hbrush);
+      GdipCreateSolidFill($ff000000 + FFont.backcolor and $ffffff, brush);
+      GdipFillPath(hgdip, brush, path);
+      GdipDeleteBrush(brush);
       GdipDeletePath(path);
     except
       on e: Exception do
@@ -244,9 +244,9 @@ begin
     try
       rect.Y := 1;
       rect.X := aheight div 4 + 1;
-      GdipCreateSolidFill(font.color, hbrush);
-      GdipDrawString(hgdip, PWideChar(Caption), -1, hfont, @rect, nil, hbrush);
-      GdipDeleteBrush(hbrush);
+      GdipCreateSolidFill(FFont.color, brush);
+      GdipDrawString(hgdip, PWideChar(Caption), -1, font, @rect, nil, brush);
+      GdipDeleteBrush(brush);
 
       UpdateLWindow(hWnd, bmp, alpha);
       SetWindowPos(hWnd, hwnd_topmost, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
@@ -254,8 +254,8 @@ begin
       if not Visible and sets.container.HintEffects then SetTimer(hWnd, ID_TIMER, 10, nil);
       Visible := True;
 
-      GdipDeleteFont(hfont);
-      GdipDeleteFontFamily(hfontfamily);
+      GdipDeleteFont(font);
+      GdipDeleteFontFamily(family);
       GdipDeleteGraphics(hgdip);
       DeleteBitmap(bmp);
     except

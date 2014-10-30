@@ -313,7 +313,7 @@ begin
     $f001:
       if FAppList.Count > 0 then
         for idx := FAppList.Count - 1 downto 0 do
-          postmessage(THandle(FAppList.Items[idx]), WM_SYSCOMMAND, SC_CLOSE, 0);
+          ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
     $f002:
         if FProcName <> '' then dockh.DockAddProgram(pchar(FProcName));
     $f003..$f020: ;

@@ -86,6 +86,8 @@ procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
+procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload;
+procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer); overload;
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
@@ -99,6 +101,9 @@ function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; va
 function SwapColor(color: uint): uint;
 procedure RGBtoHLS(color: uint; out h, l, s: integer);
 function HLStoRGB(h, l, s: integer): uint;
+function WinRectToGDIPRect(rect: windows.TRect): GDIPAPI.TRect;
+function WinRectToGDIPRectF(rect: windows.TRect): GDIPAPI.TRectF;
+
 
 var
   StartupInput: GdiplusStartupInput;
@@ -455,6 +460,28 @@ begin
   if alpha > 255 then alpha:= 255;
   if alpha < 0 then alpha:= 0;
   matrix[3, 3]:= alpha / 255;
+end;
+//------------------------------------------------------------------------------
+procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
+begin
+  GdipStartPathFigure(path);
+  GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y);
+  GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
+
+  GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1);
+  GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
+
+  GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1);
+  GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
+
+  GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius);
+  GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
+  GdipClosePathFigure(path);
+end;
+//------------------------------------------------------------------------------
+procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer);
+begin
+  AddPathRoundRect(path, rect.X, rect.Y, rect.Width, rect.Height, radius);
 end;
 //------------------------------------------------------------------------------
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
@@ -1169,6 +1196,22 @@ begin
   if B < 0 then B:= 0;
   if B > RGBMAX then B:= RGBMAX;
   result:= RGB(round(r), round(g), round(b));
+end;
+//------------------------------------------------------------------------------
+function WinRectToGDIPRect(rect: windows.TRect): GDIPAPI.TRect;
+begin
+  result.x := rect.left;
+  result.y := rect.top;
+  result.Width := rect.Right - rect.Left;
+  result.Height := rect.Bottom - rect.Top;
+end;
+//------------------------------------------------------------------------------
+function WinRectToGDIPRectF(rect: windows.TRect): GDIPAPI.TRectF;
+begin
+  result.x := rect.left;
+  result.y := rect.top;
+  result.Width := rect.Right - rect.Left;
+  result.Height := rect.Bottom - rect.Top;
 end;
 //--------------------------------------------------------------------------------------------------
 initialization

@@ -15,7 +15,7 @@ type
     WindowClassInstance: uint;
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
-    VSplit, Border, Shadow, ThumbW, ThumbH: integer;
+    FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
     Fx: integer;
     Fy: integer;
     FXTarget: integer;
@@ -24,6 +24,9 @@ type
     FHeight: integer;
     FWTarget: integer;
     FHTarget: integer;
+    FTitleHeight: integer;
+    FCloseButtonSize: integer;
+    FCloseButtonDownIndex: integer;
     FActivating: boolean;
     FActive: boolean;
     FMonitor: integer;
@@ -33,9 +36,18 @@ type
     listThumbnail: TFPList;
     FColor1, FColor2: cardinal;
     FCompositionEnabled: boolean;
+    FFontFamily: string;
+    FFontSize: integer;
+    procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
+    function GetCloseButtonRect(index: integer): windows.TRect;
+    function GetItemRect(index: integer): windows.TRect;
+    function GetThumbRect(index: integer): windows.TRect;
+    function GetTitleRect(index: integer): windows.TRect;
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
+    procedure RegisterThumbnails;
     procedure Timer;
+    procedure UnRegisterThumbnails;
     procedure WindowProc(var msg: TMessage);
     procedure err(where: string; e: Exception);
   public
@@ -104,13 +116,16 @@ begin
   inherited;
   FActive := false;
   FAnimate := true;
+  FFontFamily := toolu.GetFont;
+  FFontSize := toolu.GetFontSize * 3 div 2;
+  FCloseButtonDownIndex := -1;
   list := TFPList.Create;
   listThumbnail := TFPList.Create;
 
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP + WS_BORDER + WS_THICKFRAME, -100, -100, 1, 1, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, nil, WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then
     begin
       SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
@@ -148,33 +163,111 @@ begin
   if AMonitor >= 0 then Result := screen.Monitors[AMonitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.Paint;
-  procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
+function TAeroPeekWindow.GetItemRect(index: integer): windows.TRect;
+begin
+  result.Left := FBorder + index * (ThumbW + ItemSplit);
+  result.Top := FBorder;
+  result.Right := result.Left + ThumbW;
+  result.Bottom := result.Top + FTitleHeight + ThumbH;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.GetThumbRect(index: integer): windows.TRect;
+begin
+  result.Left := FBorder + index * (ThumbW + ItemSplit);
+  result.Top := FBorder + FTitleHeight;
+  result.Right := result.Left + ThumbW;
+  result.Bottom := result.Top + ThumbH;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.GetTitleRect(index: integer): windows.TRect;
+begin
+  result.Left := FBorder + index * (ThumbW + ItemSplit);
+  result.Top := FBorder;
+  result.Right := result.Left + ThumbW - FCloseButtonSize - 5;
+  result.Bottom := result.Top + FTitleHeight;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.GetCloseButtonRect(index: integer): windows.TRect;
+begin
+  result := GetItemRect(index);
+  result.Left := result.Right - FCloseButtonSize;
+  result.Bottom := result.Top + FCloseButtonSize;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.RegisterThumbnails;
+var
+  idx: integer;
+  rect: windows.TRect;
+  ThumbnailId: THandle;
+begin
+  if FCompositionEnabled then
+    for idx := 0 to list.Count - 1 do
+    begin
+      rect := GetThumbRect(idx);
+      dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
+      listThumbnail.Add(pointer(ThumbnailId));
+    end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.UnRegisterThumbnails;
+var
+  idx: integer;
+begin
+  if listThumbnail.Count > 0 then
+    for idx := 0 to listThumbnail.Count - 1 do dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
+  listThumbnail.Clear;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
+var
+  brush, pen, path: Pointer;
+  crossRect: GDIPAPI.TRect;
+  color1, color2: cardinal;
+begin
+  // button
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, rect, 2);
+  if Pressed then
   begin
-    GdipStartPathFigure(path);
-    GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y);
-    GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
-
-    GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1);
-    GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
-
-    GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1);
-    GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
-
-    GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius);
-    GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
-
-    GdipClosePathFigure(path);
+    color1 := $ffff3030;
+    color2 := $ffff3030;
+  end else begin
+    color1 := $ffffa0a0;
+    color2 := $ffff3030;
   end;
-
+  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
+  GdipFillPath(hgdip, brush, path);
+  GdipDeleteBrush(brush);
+  GdipCreatePen1($ff000000, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  GdipDeletePath(path);
+  // cross
+  crossRect.Width := rect.Width div 2;
+  crossRect.Height := rect.Height div 2;
+  crossRect.X := rect.X + (rect.Width - crossRect.Width) div 2;
+  crossRect.Y := rect.Y + (rect.Height - crossRect.Height) div 2;
+  GdipCreatePen1($a0000000, 4, UnitPixel, pen);
+  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
+  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
+  GdipDeletePen(pen);
+  GdipCreatePen1($c0ffffff, 2, UnitPixel, pen);
+  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y + 1, crossRect.X + crossRect.Width - 1, crossRect.Y + crossRect.Height - 1);
+  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y - 1 + crossRect.Height, crossRect.X + crossRect.Width - 1, crossRect.Y + 1);
+  GdipDeletePen(pen);
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.Paint;
 var
   bmp: _SimpleBitmap;
-  hgdip, brush, pen, path, epath: Pointer;
+  hgdip, brush, pen, path, epath, family, font, format: Pointer;
+  titleRect: GDIPAPI.TRectF;
   rect: GDIPAPI.TRect;
   pt: GDIPAPI.TPoint;
   shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
-  radius, count: integer;
+  radius, count, idx: integer;
+  title: string;
 begin
   // prepare //
   radius := 6;
@@ -188,42 +281,62 @@ begin
   GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
   GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
-  // shadow path
+  // FShadow path
   GdipCreatePath(FillModeWinding, path);
   GdipCreatePath(FillModeWinding, epath);
   AddPathRoundRect(epath, 0, 0, FWidth, FHeight, trunc(radius * 2.5));
-  AddPathRoundRect(path, Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2, radius);
+  AddPathRoundRect(path, FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2, radius);
   GdipSetClipPath(hgdip, path, CombineModeReplace);
   GdipSetClipPath(hgdip, epath, CombineModeComplement);
-  // shadow gradient
+  // FShadow gradient
   GdipCreatePathGradientFromPath(epath, brush);
   GdipSetPathGradientCenterColor(brush, $ff000000);
   shadowEndColor[0] := 0;
   count := 1;
   GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
-  pt := MakePoint(FWidth div 2, FHeight div 2);
+  pt := MakePoint(FWidth div 2 + 1, FHeight div 2 + 1);
   GdipSetPathGradientCenterPointI(brush, @pt);
   GdipSetPathGradientFocusScales(brush, 1 - 0.25 * FHeight / FWidth, 1 - 0.25);
   GdipFillPath(hgdip, brush, epath);
   GdipResetClip(hgdip);
   GdipDeleteBrush(brush);
   // background fill
-  rect := GDIPAPI.MakeRect(Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2);
+  rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
   GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
   GdipFillPath(hgdip, brush, path);
   GdipDeleteBrush(brush);
-  // border
+  // FBorder
   GdipCreatePen1($a0000000, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
   GdipResetPath(path);
-  AddPathRoundRect(path, Shadow + 1, Shadow + 1, FWidth - Shadow * 2 - 2, FHeight - Shadow * 2 - 2, radius);
+  AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, radius);
   GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
   // cleanup
   GdipDeletePath(path);
   GdipDeletePath(epath);
+
+  // titles and close buttons
+  GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
+  GdipCreateFont(family, FFontSize, 0, 2, font);
+  GdipCreateSolidFill($ffffffff, brush);
+  GdipCreateStringFormat(0, 0, format);
+  GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap);
+  for idx := 0 to list.Count - 1 do
+  begin
+    titleRect := WinRectToGDIPRectF(GetTitleRect(idx));
+    title := ProcessHelper.GetWindowText(THandle(list.Items[idx]));
+    GdipDrawString(hgdip, PWideChar(WideString(title)), -1, font, @titleRect, format, brush);
+
+    rect := WinRectToGDIPRect(GetCloseButtonRect(idx));
+    DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = idx);
+  end;
+  GdipDeleteStringFormat(format);
+  GdipDeleteBrush(brush);
+  GdipDeleteFont(font);
+  GdipDeleteFontFamily(family);
 
   // update window //
   UpdateLWindow(FHWnd, bmp, 255);
@@ -234,7 +347,7 @@ begin
   // enable blur behind
   if FCompositionEnabled then
   begin
-    rgn := CreateRoundRectRgn(Shadow, Shadow, FWidth - Shadow, FHeight - Shadow, radius * 2, radius * 2);
+    rgn := CreateRoundRectRgn(FShadow, FShadow, FWidth - FShadow, FHeight - FShadow, radius * 2, radius * 2);
     dwm.EnableBlurBehindWindow(FHWnd, rgn);
     DeleteObject(rgn);
   end;
@@ -243,8 +356,7 @@ end;
 function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
 var
   idx: integer;
-  ThumbnailId: THandle;
-  rect, wa: windows.TRect;
+  wa: windows.TRect;
   opaque: bool;
 begin
   result := false;
@@ -253,33 +365,40 @@ begin
     try
       FActivating := true;
       FCompositionEnabled := dwm.CompositionEnabled;
-
       KillTimer(FHWnd, ID_TIMER_CLOSE);
-      // unregister thumbnails
-      if listThumbnail.Count > 0 then
-        for idx := 0 to listThumbnail.Count - 1 do dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
-      listThumbnail.Clear;
+
+      UnRegisterThumbnails;
+
       list.Clear;
       if AppList.Count = 0 then
       begin
         CloseWindow;
         exit;
       end;
-
-      //
       list.AddList(AppList);
 
       // size
       FMonitor := AMonitor;
       FSite := Site;
       wa := GetMonitorRect(FMonitor);
-      Border := 22;
-      Shadow := 8;
-      VSplit := 16;
-      ThumbW := 200;
-      ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
-      FWTarget := Border * 2 + list.Count * (ThumbW + VSplit) - VSplit;
-      FHTarget := Border * 2 + ThumbH;
+
+      FCloseButtonSize := 17;
+      FBorder := 22;
+      FShadow := 8;
+      if FCompositionEnabled then
+      begin
+        FTitleHeight := 30;
+        ItemSplit := 16;
+        ThumbW := 200;
+        ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
+      end else begin
+        FTitleHeight := 30;
+        ItemSplit := 16;
+        ThumbW := 200;
+        ThumbH := 0;
+      end;
+      FWTarget := FBorder * 2 + list.Count * (ThumbW + ItemSplit) - ItemSplit;
+      FHTarget := FBorder * 2 + FTitleHeight + ThumbH;
       if not FActive then
       begin
         FWidth := FWTarget;
@@ -352,13 +471,7 @@ begin
       FActive := true;
 
       // register thumbnails
-      if FCompositionEnabled then
-        for idx := 0 to list.Count - 1 do
-        begin
-          rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
-          dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
-          listThumbnail.Add(pointer(ThumbnailId));
-        end;
+      RegisterThumbnails;
     finally
       FActivating := false;
     end;
@@ -459,15 +572,42 @@ var
 begin
   msg.Result := 0;
 
-  // WM_LBUTTONUP
-  if msg.msg = WM_LBUTTONUP then
+  // WM_LBUTTONDOWN
+  if msg.msg = WM_LBUTTONDOWN then
   begin
     pt.x := TSmallPoint(msg.lParam).x;
     pt.y := TSmallPoint(msg.lParam).y;
     for idx := 0 to list.Count - 1 do
     begin
-      rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
-      if PtInRect(rect, pt) then ProcessHelper.ActivateWindow(THandle(list.Items[idx]));
+      rect := GetItemRect(idx);
+      if PtInRect(rect, pt) then
+      begin
+        rect := GetCloseButtonRect(idx);
+        if PtInRect(rect, pt) then
+        begin
+          FCloseButtonDownIndex := idx;
+          Paint;
+        end;
+      end;
+    end;
+    exit;
+  end
+  // WM_LBUTTONUP
+  else if msg.msg = WM_LBUTTONUP then
+  begin
+    FCloseButtonDownIndex := -1;
+    Paint;
+    pt.x := TSmallPoint(msg.lParam).x;
+    pt.y := TSmallPoint(msg.lParam).y;
+    for idx := 0 to list.Count - 1 do
+    begin
+      rect := GetItemRect(idx);
+      if PtInRect(rect, pt) then
+      begin
+        rect := GetCloseButtonRect(idx);
+        if PtInRect(rect, pt) then ProcessHelper.CloseWindow(THandle(list.Items[idx]))
+        else ProcessHelper.ActivateWindow(THandle(list.Items[idx]));
+      end;
     end;
     CloseWindow;
     exit;
@@ -483,12 +623,6 @@ begin
       if WindowFromPoint(pt) <> FHWnd then CloseWindow;
     end;
 
-    exit;
-  end
-  // override WM_NCHITTEST to disable window sizing
-  else if msg.msg = WM_NCHITTEST then
-  begin
-    msg.Result := HTCLIENT;
     exit;
   end;
 

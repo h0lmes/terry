@@ -253,30 +253,17 @@ begin
   // background //
   try
     GdipCreatePath(FillModeAlternate, path);
-    GdipStartPathFigure(path);
-    GdipAddPathLine(path, radius, 0, awidth - radius - 1, 0);
-    GdipAddPathArc(path, awidth - radius * 2 - 1, 0, radius * 2, radius * 2, 270, 90);
-
-    GdipAddPathLine(path, awidth - 1, radius, awidth - 1, aheight - radius - 1);
-    GdipAddPathArc(path, awidth - radius * 2 - 1, aheight - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
-
-    GdipAddPathLine(path, awidth - radius - 1, aheight - 1, radius, aheight - 1);
-    GdipAddPathArc(path, 0, aheight - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
-
-    GdipAddPathLine(path, 0, aheight - radius - 1, 0, radius);
-    GdipAddPathArc(path, 0, 0, radius * 2, radius * 2, 180, 90);
-
-    GdipClosePathFigure(path);
-
+    AddPathRoundRect(path, 0, 0, awidth, aheight, radius);
     if dwm.CompositionEnabled then alpha := $80000000 else alpha := $ff101010;
+    // fill
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
     GdipDeleteBrush(hbrush);
-
+    // outline
     GdipCreatePen1($60ffffff, 1, UnitPixel, hpen);
     GdipDrawPath(hgdip, hpen, path);
     GdipDeletePen(hpen);
-
+    // cleanup
     GdipDeletePath(path);
   except
     on e: Exception do

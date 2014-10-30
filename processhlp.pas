@@ -48,6 +48,7 @@ type
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
     procedure ActivateWindow(h: THandle);
+    procedure CloseWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
     procedure EnumAppWindows;
     function GetAppWindowsCount: integer;
@@ -382,6 +383,11 @@ begin
     AllowSetForeground(h);
     SetForegroundWindow(h);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.CloseWindow(h: THandle);
+begin
+  postmessage(h, WM_SYSCOMMAND, SC_CLOSE, 0);
 end;
 //------------------------------------------------------------------------------
 // ProcessName - path and file name
