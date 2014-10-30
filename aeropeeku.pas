@@ -27,9 +27,12 @@ type
     FActivating: boolean;
     FActive: boolean;
     FMonitor: integer;
+    FSite: integer;
     FAnimate: boolean;
     list: TFPList;
     listThumbnail: TFPList;
+    FColor1, FColor2: cardinal;
+    FCompositionEnabled: boolean;
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
     procedure Timer;
@@ -39,7 +42,7 @@ type
     property Handle: uint read FHWnd;
     property Active: boolean read FActive;
 
-    class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+    class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
     class procedure SetPosition(AX, AY: integer; AMonitor: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
@@ -47,7 +50,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
     procedure SetWindowPosition(AX, AY: integer; AMonitor: integer);
     procedure CloseWindow;
   end;
@@ -55,13 +58,14 @@ type
 var AeroPeekWindow: TAeroPeekWindow;
 
 implementation
+uses frmmainu;
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
-  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor);
+  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor, Site);
 end;
 //------------------------------------------------------------------------------
 // set new position
@@ -168,7 +172,6 @@ var
   hgdip, brush, pen, path, epath: Pointer;
   rect: GDIPAPI.TRect;
   pt: GDIPAPI.TPoint;
-  color1, color2: ARGB;
   shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
   radius, count: integer;
@@ -188,37 +191,34 @@ begin
   // shadow path
   GdipCreatePath(FillModeWinding, path);
   GdipCreatePath(FillModeWinding, epath);
-  AddPathRoundRect(epath, 0, 0, FWidth, FHeight, radius * 3);
+  AddPathRoundRect(epath, 0, 0, FWidth, FHeight, trunc(radius * 2.5));
   AddPathRoundRect(path, Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2, radius);
+  GdipSetClipPath(hgdip, path, CombineModeReplace);
+  GdipSetClipPath(hgdip, epath, CombineModeComplement);
   // shadow gradient
   GdipCreatePathGradientFromPath(epath, brush);
   GdipSetPathGradientCenterColor(brush, $ff000000);
-  shadowEndColor[0] := 1000000;
+  shadowEndColor[0] := 0;
   count := 1;
   GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
   pt := MakePoint(FWidth div 2, FHeight div 2);
   GdipSetPathGradientCenterPointI(brush, @pt);
-  GdipSetPathGradientFocusScales(brush, 1 - 0.4 * FHeight / FWidth, 1 - 0.4);
-  GdipSetClipPath(hgdip, path, CombineModeReplace);
-  GdipSetClipPath(hgdip, epath, CombineModeComplement);
+  GdipSetPathGradientFocusScales(brush, 1 - 0.25 * FHeight / FWidth, 1 - 0.25);
   GdipFillPath(hgdip, brush, epath);
   GdipResetClip(hgdip);
   GdipDeleteBrush(brush);
   // background fill
-  if dwm.CompositionEnabled then
-  begin
-    color1 := $40000000;
-    color2 := $40606060;
-  end else begin
-    color1 := $ff101010;
-    color2 := $ff404040;
-  end;
   rect := GDIPAPI.MakeRect(Shadow, Shadow, FWidth - Shadow * 2, FHeight - Shadow * 2);
-  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
+  GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
   GdipFillPath(hgdip, brush, path);
   GdipDeleteBrush(brush);
   // border
-  GdipCreatePen1($b0ffffff, 1, UnitPixel, pen);
+  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  GdipResetPath(path);
+  AddPathRoundRect(path, Shadow + 1, Shadow + 1, FWidth - Shadow * 2 - 2, FHeight - Shadow * 2 - 2, radius);
+  GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
   // cleanup
@@ -229,9 +229,10 @@ begin
   UpdateLWindow(FHWnd, bmp, 255);
   GdipDeleteGraphics(hgdip);
   gdip_gfx.DeleteBitmap(bmp);
+  if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
 
   // enable blur behind
-  if dwm.CompositionEnabled then
+  if FCompositionEnabled then
   begin
     rgn := CreateRoundRectRgn(Shadow, Shadow, FWidth - Shadow, FHeight - Shadow, radius * 2, radius * 2);
     dwm.EnableBlurBehindWindow(FHWnd, rgn);
@@ -239,21 +240,24 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer): boolean;
+function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
 var
   idx: integer;
   ThumbnailId: THandle;
   rect, wa: windows.TRect;
+  opaque: bool;
 begin
   result := false;
   if not FActivating then
   try
     try
       FActivating := true;
+      FCompositionEnabled := dwm.CompositionEnabled;
 
       KillTimer(FHWnd, ID_TIMER_CLOSE);
       // unregister thumbnails
-      for idx := 0 to listThumbnail.Count - 1 do dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
+      if listThumbnail.Count > 0 then
+        for idx := 0 to listThumbnail.Count - 1 do dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
       listThumbnail.Clear;
       list.Clear;
       if AppList.Count = 0 then
@@ -267,9 +271,10 @@ begin
 
       // size
       FMonitor := AMonitor;
+      FSite := Site;
       wa := GetMonitorRect(FMonitor);
       Border := 22;
-      Shadow := 14;
+      Shadow := 8;
       VSplit := 16;
       ThumbW := 200;
       ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
@@ -281,21 +286,62 @@ begin
         FHeight := FHTarget;
       end;
 
-      // position
+      // position (default is bottom)
       FXTarget := AX - FWTarget div 2;
       FYTarget := AY - FHTarget;
+      if FSite = 1 then // top
+      begin
+        FXTarget := AX - FWTarget div 2;
+        FYTarget := AY;
+      end else if FSite = 0 then // left
+      begin
+        FXTarget := AX;
+        FYTarget := AY - FHTarget div 2;
+      end else if FSite = 2 then // right
+      begin
+        FXTarget := AX - FWTarget;
+        FYTarget := AY - FHTarget div 2;
+      end;
+      //
       if FAnimate then
       begin
         if not FActive then
         begin
           Fx := FXTarget;
           Fy := FYTarget + 20;
+          if Site = 1 then // top
+          begin
+            Fx := FXTarget;
+            Fy := FYTarget - 20;
+          end else if Site = 0 then // left
+          begin
+            Fx := FXTarget - 20;
+            Fy := FYTarget;
+          end else if Site = 2 then // right
+          begin
+            Fx := FXTarget + 20;
+            Fy := FYTarget;
+          end;
         end;
       end
       else
       begin
         Fx := FXTarget;
         Fy := FYTarget;
+      end;
+
+      // update color info
+      if not FActive then
+      begin
+        if FCompositionEnabled then
+        begin
+          FColor1 := $50000000;
+          FColor2 := $10ffffff;
+        end else begin
+          FColor1 := $ff101010;
+          FColor2 := $ff808080;
+        end;
+        dwm.GetColorizationColor(FColor1, opaque);
       end;
 
       // show the window
@@ -306,12 +352,13 @@ begin
       FActive := true;
 
       // register thumbnails
-      for idx := 0 to list.Count - 1 do
-      begin
-        rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
-        dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
-        listThumbnail.Add(pointer(ThumbnailId));
-      end;
+      if FCompositionEnabled then
+        for idx := 0 to list.Count - 1 do
+        begin
+          rect := classes.rect(Border + idx * (ThumbW + VSplit), Border, Border + ThumbW + idx * (ThumbW + VSplit), Border + ThumbH);
+          dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
+          listThumbnail.Add(pointer(ThumbnailId));
+        end;
     finally
       FActivating := false;
     end;
@@ -326,9 +373,24 @@ begin
   begin
     FXTarget := AX - FWTarget div 2;
     FYTarget := AY - FHTarget;
+    if FSite = 1 then // top
+    begin
+      FXTarget := AX - FWTarget div 2;
+      FYTarget := AY;
+    end else if FSite = 0 then // left
+    begin
+      FXTarget := AX;
+      FYTarget := AY - FHTarget div 2;
+    end else if FSite = 2 then // right
+    begin
+      FXTarget := AX - FWTarget;
+      FYTarget := AY - FHTarget div 2;
+    end;
     Fx := FXTarget;
     Fy := FYTarget;
-    gdip_gfx.UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255);
+
+    if FCompositionEnabled then UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255)
+    else SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
   end;
 end;
 //------------------------------------------------------------------------------

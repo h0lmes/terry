@@ -485,12 +485,21 @@ end;
 // e.g. ItemManager and all items                                             //
 procedure Tfrmmain.SetParam(id: TGParam; value: integer);
 begin
+  case id of
+    gpMonitor, gpSite: UnreserveScreenEdge(sets.container.Site);
+  end;
+
   value := sets.StoreParam(id, value);
 
   case id of
-    gpMonitor:                if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
+    gpMonitor:
+      begin
+        UnreserveScreenEdge(sets.container.Site);
+        if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
+      end;
     gpSite:
       begin
+        UnreserveScreenEdge(sets.container.Site);
         if assigned(theme) then theme.Site := sets.container.Site;
         if assigned(ItemMgr) then ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
       end;

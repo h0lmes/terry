@@ -924,15 +924,18 @@ begin
     if FItemCount >= MAX_SUBITEMS then exit;
     inc(FItemCount);
     upd := FUpdating;
-    FUpdating := true;
-    items[FItemCount - 1].item := TShortcutSubitem.Create(data, FHWnd, MakeICP);
-    if items[FItemCount - 1].item.Freed then
-    begin
-      DeleteSubitem(FItemCount - 1);
-      dec(FItemCount);
-    end
-    else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
-    FUpdating := upd;
+    try
+      FUpdating := true;
+      items[FItemCount - 1].item := TShortcutSubitem.Create(data, FHWnd, MakeICP);
+      if items[FItemCount - 1].item.Freed then
+      begin
+        DeleteSubitem(FItemCount - 1);
+        dec(FItemCount);
+      end
+      else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
+    finally
+      FUpdating := upd;
+    end;
 
     UpdatePreview;
   except
@@ -1116,6 +1119,7 @@ begin
     finally
       FUpdating := false;
     end;
+    FStateProgress := 0;
     FState := stsOpening; // further progress is being done by timer //
     FHideHint := true;
     Redraw;
@@ -1128,6 +1132,7 @@ begin
   if not FFreed and (FItemCount > 0) and (FState = stsOpen) then
   begin
     cmd(icSelect, 0);
+    FStateProgress := 1;
     FState := stsClosing;  // further progress is being done by timer //
   end;
 end;
@@ -1151,8 +1156,7 @@ begin
   else
   if (FState = stsOpening) and (FStateProgress < 1) then
   begin
-      showItems := false;
-      if FStateProgress = 0 then showItems := true;
+      showItems := FStateProgress = 0;
 
       FStateProgress += step;
       if not FOpenAnimation then FStateProgress := 1;
@@ -1186,13 +1190,14 @@ begin
         AllSubitemsCmd(icSelect, 0);
         Redraw;
       end;
-      ShowStackState;
 
       if FState = stsClosed then
       begin
         wpi := BeginDeferWindowPos(FItemCount);
         for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
         EndDeferWindowPos(wpi);
+      end else begin
+        ShowStackState;
       end;
   end;
 end;

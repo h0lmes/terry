@@ -327,13 +327,12 @@ begin
 
   inherited;
 
-  if dwm.CompositionEnabled then
-    if AHover then
-    begin
-      if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
-    end else begin
-      ClosePeekWindow(800);
-    end;
+  if AHover then
+  begin
+    if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
+  end else begin
+    ClosePeekWindow(800);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
@@ -401,7 +400,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor);
+  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor, FSite);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------
