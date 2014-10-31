@@ -55,6 +55,7 @@ type
     function GetAppWindowsCount: integer;
     function GetAppWindowHandle(index: integer): THandle;
     function GetAppWindowIndex(h: THandle): integer;
+    function WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
     function GetAppWindowProcessName(h: THandle): string;
     function GetAppWindowProcessFullName(h: THandle): string;
     function GetAppWindowClassName(h: THandle): string;
@@ -470,6 +471,11 @@ end;
 function TProcessHelper.GetAppWindowIndex(h: THandle): integer;
 begin
   result := listAppWindows.IndexOf(pointer(h));
+end;
+//------------------------------------------------------------------------------
+function TProcessHelper.WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
+begin
+  result := MonitorFromWindow(h1, MONITOR_DEFAULTTOPRIMARY) = MonitorFromWindow(h2, MONITOR_DEFAULTTOPRIMARY);
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowProcessName(h: THandle): string;

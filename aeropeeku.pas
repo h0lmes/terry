@@ -479,6 +479,11 @@ begin
       FHTarget := FBorder * 2 + items[FItemCount - 1].rect.Bottom - items[0].rect.Top;
     end;
   end;
+  if not FAnimate then
+  begin
+    FWidth := FWTarget;
+    FHeight := FHTarget;
+  end;
 end;
 //------------------------------------------------------------------------------
 function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
@@ -494,6 +499,7 @@ begin
     try
       FActivating := true;
       FCompositionEnabled := dwm.CompositionEnabled;
+      FAnimate := FCompositionEnabled;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
 
       UnRegisterThumbnails;
@@ -686,7 +692,7 @@ begin
     pt.y := TSmallPoint(msg.lParam).y;
     for index := 0 to FItemCount - 1 do
     begin
-      if PtInRect(items[index].rect, pt) then
+      if PtInRect(items[index].rectSel, pt) then
       begin
         if PtInRect(items[index].rectClose, pt) then
         begin
@@ -706,7 +712,7 @@ begin
     pt.y := TSmallPoint(msg.lParam).y;
     for index := 0 to FItemCount - 1 do
     begin
-      if PtInRect(items[index].rect, pt) then
+      if PtInRect(items[index].rectSel, pt) then
       begin
         if PtInRect(items[index].rectClose, pt) then ProcessHelper.CloseWindow(items[index].hwnd)
         else ProcessHelper.ActivateWindow(items[index].hwnd);

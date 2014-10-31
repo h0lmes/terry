@@ -2005,7 +2005,9 @@ begin
   while idx < ProcessHelper.GetAppWindowsCount do
   begin
     HWndTask := ProcessHelper.GetAppWindowHandle(idx);
-    index := GetTaskItemIndex(HWndTask);
+    //index := 0;
+    //if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then
+      index := GetTaskItemIndex(HWndTask);
     // there is no item for the window
     if index = -1 then
     begin
