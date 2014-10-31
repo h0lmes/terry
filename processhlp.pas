@@ -47,6 +47,7 @@ type
     // windows //
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
+    function WindowOnTop(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle);
     procedure CloseWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
@@ -328,25 +329,23 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.ActivateWindow(h: THandle);
+function TProcessHelper.WindowOnTop(wnd: THandle): boolean;
+  function ZOrderIndex(hWnd: uint): integer;
+  var
+    index: integer;
+    h: THandle;
+  begin
+    result := 0;
+    index := 0;
+	  h := FindWindow('Progman', nil);
+	  while (h <> 0) and (h <> hWnd) do
+	  begin
+		  inc(index);
+		  h := GetWindow(h, GW_HWNDPREV);
+	  end;
+	  result := index;
+  end;
 
-function ZOrderIndex(hWnd: uint): integer;
-var
-  index: integer;
-  h: THandle;
-begin
-  result := 0;
-  index := 0;
-	h := FindWindow('Progman', nil);
-	while (h <> 0) and (h <> hWnd) do
-	begin
-		inc(index);
-		h := GetWindow(h, GW_HWNDPREV);
-	end;
-	result := index;
-end;
-
-function WindowOnTop(wnd: THandle): boolean;
 var
   i, index: integer;
   h: THandle;
@@ -367,7 +366,8 @@ begin
     inc(i);
   end;
 end;
-
+//------------------------------------------------------------------------------
+procedure TProcessHelper.ActivateWindow(h: THandle);
 begin
   if IsWindowVisible(h) and not IsIconic(h) then
   begin

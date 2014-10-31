@@ -32,6 +32,7 @@ type
     FMonitor: integer;
     FSite: integer;
     FAnimate: boolean;
+    FTopWindowIndex: integer;
     list: TFPList;
     listThumbnail: TFPList;
     FColor1, FColor2: cardinal;
@@ -41,6 +42,7 @@ type
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
     function GetCloseButtonRect(index: integer): windows.TRect;
     function GetItemRect(index: integer): windows.TRect;
+    function GetItemSelectionRect(index: integer): windows.TRect;
     function GetThumbRect(index: integer): windows.TRect;
     function GetTitleRect(index: integer): windows.TRect;
     procedure Paint;
@@ -119,6 +121,7 @@ begin
   FFontFamily := toolu.GetFont;
   FFontSize := toolu.GetFontSize * 3 div 2;
   FCloseButtonDownIndex := -1;
+  FTopWindowIndex := -1;
   list := TFPList.Create;
   listThumbnail := TFPList.Create;
 
@@ -169,6 +172,15 @@ begin
   result.Top := FBorder;
   result.Right := result.Left + ThumbW;
   result.Bottom := result.Top + FTitleHeight + ThumbH;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.GetItemSelectionRect(index: integer): windows.TRect;
+begin
+  result := GetItemRect(index);
+  result.Left -= 5;
+  result.Top -= 5;
+  result.Right += 5;
+  result.Bottom += 5;
 end;
 //------------------------------------------------------------------------------
 function TAeroPeekWindow.GetThumbRect(index: integer): windows.TRect;
@@ -224,9 +236,6 @@ var
   crossRect: GDIPAPI.TRect;
   color1, color2: cardinal;
 begin
-  // button
-  GdipCreatePath(FillModeWinding, path);
-  AddPathRoundRect(path, rect, 2);
   if Pressed then
   begin
     color1 := $ffff3030;
@@ -235,10 +244,19 @@ begin
     color1 := $ffffa0a0;
     color2 := $ffff3030;
   end;
+  // button
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, rect, 2);
   GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
   GdipFillPath(hgdip, brush, path);
   GdipDeleteBrush(brush);
-  GdipCreatePen1($ff000000, 1, UnitPixel, pen);
+  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  //
+  GdipResetPath(path);
+  AddPathRoundRect(path, rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2, 2);
+  GdipCreatePen1($60ffffff, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
   GdipDeletePath(path);
@@ -300,23 +318,41 @@ begin
   GdipFillPath(hgdip, brush, epath);
   GdipResetClip(hgdip);
   GdipDeleteBrush(brush);
+  GdipDeletePath(epath);
   // background fill
   rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
   GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
   GdipFillPath(hgdip, brush, path);
   GdipDeleteBrush(brush);
-  // FBorder
+  // dark border
   GdipCreatePen1($a0000000, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
+  // light border
   GdipResetPath(path);
   AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, radius);
   GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
   GdipDrawPath(hgdip, pen, path);
   GdipDeletePen(pen);
-  // cleanup
   GdipDeletePath(path);
-  GdipDeletePath(epath);
+
+  // selection
+  if FTopWindowIndex > -1 then
+  begin
+    GdipCreatePath(FillModeWinding, path);
+    // selection fill
+    rect := WinRectToGDIPRect(GetItemSelectionRect(FTopWindowIndex));
+    AddPathRoundRect(path, rect, radius div 2);
+    GdipCreateSolidFill($30b0c0ff, brush);
+    GdipFillPath(hgdip, brush, path);
+    GdipDeleteBrush(brush);
+    // selection border
+    GdipCreatePen1($a0b0c0ff, 1, UnitPixel, pen);
+    GdipDrawPath(hgdip, pen, path);
+    GdipDeletePen(pen);
+    GdipResetPath(path);
+    GdipDeletePath(path);
+  end;
 
   // titles and close buttons
   GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
@@ -358,12 +394,14 @@ var
   idx: integer;
   wa: windows.TRect;
   opaque: bool;
+  hwnd: THandle;
 begin
   result := false;
   if not FActivating then
   try
     try
       FActivating := true;
+      FTopWindowIndex := -1;
       FCompositionEnabled := dwm.CompositionEnabled;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
 
@@ -376,6 +414,12 @@ begin
         exit;
       end;
       list.AddList(AppList);
+      for idx := 0 to list.Count - 1 do
+      begin
+        hwnd := THandle(list.Items[idx]);
+        if IsWindowVisible(hwnd) and not IsIconic(hwnd) then
+          if ProcessHelper.WindowOnTop(hwnd) then FTopWindowIndex := idx;
+      end;
 
       // size
       FMonitor := AMonitor;
