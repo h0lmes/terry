@@ -6,6 +6,18 @@ uses Windows, Messages, Classes, SysUtils, Forms, uxTheme, themes,
   declu, dwm_unit, GDIPAPI, gdip_gfx, toolu, processhlp;
 
 type
+  TAPWLayout = (apwlHorizontal, apwlVertical);
+
+  TAeroPeekWindowItem = packed record
+    hwnd: THandle;            // target window handle
+    ThumbnailId: THandle;     // live preview thumbnail handle
+    rect: windows.TRect;      // whole item rect
+    rectSel: windows.TRect;   // whole item selection rect
+    rectTitle: windows.TRect; // window title rect
+    rectThumb: windows.TRect; // live thumbnail rect
+    rectClose: windows.TRect; // close button rect
+    Foreground: boolean;
+  end;
 
   { TAeroPeekWindow }
 
@@ -25,29 +37,28 @@ type
     FWTarget: integer;
     FHTarget: integer;
     FTitleHeight: integer;
+    FRadius: integer;
     FCloseButtonSize: integer;
+    FCloseButtonOffset: integer;
     FCloseButtonDownIndex: integer;
     FActivating: boolean;
     FActive: boolean;
     FMonitor: integer;
     FSite: integer;
     FAnimate: boolean;
-    FTopWindowIndex: integer;
-    list: TFPList;
-    listThumbnail: TFPList;
+    FForegroundWindowIndex: integer;
     FColor1, FColor2: cardinal;
     FCompositionEnabled: boolean;
     FFontFamily: string;
     FFontSize: integer;
+    FLayout: TAPWLayout;
+    FItemCount: integer;
+    items: array of TAeroPeekWindowItem;
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
-    function GetCloseButtonRect(index: integer): windows.TRect;
-    function GetItemRect(index: integer): windows.TRect;
-    function GetItemSelectionRect(index: integer): windows.TRect;
-    function GetThumbRect(index: integer): windows.TRect;
-    function GetTitleRect(index: integer): windows.TRect;
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
     procedure RegisterThumbnails;
+    procedure SetItems(AppList: TFPList);
     procedure Timer;
     procedure UnRegisterThumbnails;
     procedure WindowProc(var msg: TMessage);
@@ -119,11 +130,9 @@ begin
   FActive := false;
   FAnimate := true;
   FFontFamily := toolu.GetFont;
-  FFontSize := toolu.GetFontSize * 3 div 2;
+  FFontSize := round(toolu.GetFontSize * 1.6);
   FCloseButtonDownIndex := -1;
-  FTopWindowIndex := -1;
-  list := TFPList.Create;
-  listThumbnail := TFPList.Create;
+  FItemCount := 0;
 
   // create window //
   FHWnd := 0;
@@ -151,8 +160,6 @@ begin
     // restore window proc
     if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
     DestroyWindow(FHWnd);
-    if assigned(list) then list.Free;
-    if assigned(listThumbnail) then listThumbnail.Free;
     inherited;
   except
     on e: Exception do err('AeroPeekWindow.Destroy', e);
@@ -166,68 +173,22 @@ begin
   if AMonitor >= 0 then Result := screen.Monitors[AMonitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.GetItemRect(index: integer): windows.TRect;
-begin
-  result.Left := FBorder + index * (ThumbW + ItemSplit);
-  result.Top := FBorder;
-  result.Right := result.Left + ThumbW;
-  result.Bottom := result.Top + FTitleHeight + ThumbH;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.GetItemSelectionRect(index: integer): windows.TRect;
-begin
-  result := GetItemRect(index);
-  result.Left -= 5;
-  result.Top -= 5;
-  result.Right += 5;
-  result.Bottom += 5;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.GetThumbRect(index: integer): windows.TRect;
-begin
-  result.Left := FBorder + index * (ThumbW + ItemSplit);
-  result.Top := FBorder + FTitleHeight;
-  result.Right := result.Left + ThumbW;
-  result.Bottom := result.Top + ThumbH;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.GetTitleRect(index: integer): windows.TRect;
-begin
-  result.Left := FBorder + index * (ThumbW + ItemSplit);
-  result.Top := FBorder;
-  result.Right := result.Left + ThumbW - FCloseButtonSize - 5;
-  result.Bottom := result.Top + FTitleHeight;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.GetCloseButtonRect(index: integer): windows.TRect;
-begin
-  result := GetItemRect(index);
-  result.Left := result.Right - FCloseButtonSize;
-  result.Bottom := result.Top + FCloseButtonSize;
-end;
-//------------------------------------------------------------------------------
 procedure TAeroPeekWindow.RegisterThumbnails;
 var
-  idx: integer;
-  rect: windows.TRect;
+  index: integer;
   ThumbnailId: THandle;
 begin
   if FCompositionEnabled then
-    for idx := 0 to list.Count - 1 do
-    begin
-      rect := GetThumbRect(idx);
-      dwm.RegisterThumbnail(FHWnd, THandle(list.Items[idx]), rect, true, ThumbnailId);
-      listThumbnail.Add(pointer(ThumbnailId));
-    end;
+    for index := 0 to FItemCount - 1 do
+      dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].rectThumb, true, items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.UnRegisterThumbnails;
 var
-  idx: integer;
+  index: integer;
 begin
-  if listThumbnail.Count > 0 then
-    for idx := 0 to listThumbnail.Count - 1 do dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
-  listThumbnail.Clear;
+  if FItemCount > 0 then
+    for index := 0 to FItemCount - 1 do dwm.UnregisterThumbnail(items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
@@ -284,108 +245,239 @@ var
   pt: GDIPAPI.TPoint;
   shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
-  radius, count, idx: integer;
+  count, index: integer;
   title: string;
 begin
-  // prepare //
-  radius := 6;
-  bmp.topleft.x := Fx;
-  bmp.topleft.y := Fy;
-  bmp.Width := FWidth;
-  bmp.Height := FHeight;
-  if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-  hgdip := CreateGraphics(bmp.dc, 0);
-  if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-  GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-  GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
+  try
+    // prepare //
+    bmp.topleft.x := Fx;
+    bmp.topleft.y := Fy;
+    bmp.Width := FWidth;
+    bmp.Height := FHeight;
+    if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+    hgdip := CreateGraphics(bmp.dc, 0);
+    if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
+    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+    GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
-  // FShadow path
-  GdipCreatePath(FillModeWinding, path);
-  GdipCreatePath(FillModeWinding, epath);
-  AddPathRoundRect(epath, 0, 0, FWidth, FHeight, trunc(radius * 2.5));
-  AddPathRoundRect(path, FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2, radius);
-  GdipSetClipPath(hgdip, path, CombineModeReplace);
-  GdipSetClipPath(hgdip, epath, CombineModeComplement);
-  // FShadow gradient
-  GdipCreatePathGradientFromPath(epath, brush);
-  GdipSetPathGradientCenterColor(brush, $ff000000);
-  shadowEndColor[0] := 0;
-  count := 1;
-  GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
-  pt := MakePoint(FWidth div 2 + 1, FHeight div 2 + 1);
-  GdipSetPathGradientCenterPointI(brush, @pt);
-  GdipSetPathGradientFocusScales(brush, 1 - 0.25 * FHeight / FWidth, 1 - 0.25);
-  GdipFillPath(hgdip, brush, epath);
-  GdipResetClip(hgdip);
-  GdipDeleteBrush(brush);
-  GdipDeletePath(epath);
-  // background fill
-  rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
-  GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
-  GdipFillPath(hgdip, brush, path);
-  GdipDeleteBrush(brush);
-  // dark border
-  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
-  // light border
-  GdipResetPath(path);
-  AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, radius);
-  GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
-  GdipDeletePath(path);
-
-  // selection
-  if FTopWindowIndex > -1 then
-  begin
+    //
     GdipCreatePath(FillModeWinding, path);
-    // selection fill
-    rect := WinRectToGDIPRect(GetItemSelectionRect(FTopWindowIndex));
-    AddPathRoundRect(path, rect, radius div 2);
-    GdipCreateSolidFill($30b0c0ff, brush);
+    AddPathRoundRect(path, FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2, FRadius);
+
+    // shadow
+    if FShadow > 0 then
+    begin
+      // FShadow path
+      GdipCreatePath(FillModeWinding, epath);
+      AddPathRoundRect(epath, 0, 0, FWidth, FHeight, trunc(FRadius * 2.5));
+      GdipSetClipPath(hgdip, path, CombineModeReplace);
+      GdipSetClipPath(hgdip, epath, CombineModeComplement);
+      // FShadow gradient
+      GdipCreatePathGradientFromPath(epath, brush);
+      GdipSetPathGradientCenterColor(brush, $ff000000);
+      shadowEndColor[0] := 0;
+      count := 1;
+      GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
+      pt := MakePoint(FWidth div 2 + 1, FHeight div 2 + 1);
+      GdipSetPathGradientCenterPointI(brush, @pt);
+      GdipSetPathGradientFocusScales(brush, 1 - 0.25 * FHeight / FWidth, 1 - 0.25);
+      GdipFillPath(hgdip, brush, epath);
+      GdipResetClip(hgdip);
+      GdipDeleteBrush(brush);
+      GdipDeletePath(epath);
+    end;
+
+    // background fill
+    rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
+    GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
     GdipFillPath(hgdip, brush, path);
     GdipDeleteBrush(brush);
-    // selection border
-    GdipCreatePen1($a0b0c0ff, 1, UnitPixel, pen);
+    // dark border
+    GdipCreatePen1($a0000000, 1, UnitPixel, pen);
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
+    // light border
     GdipResetPath(path);
+    AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, FRadius);
+    GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
+    GdipDrawPath(hgdip, pen, path);
+    GdipDeletePen(pen);
     GdipDeletePath(path);
+
+    // item selection
+    if (FItemCount > 0) and (FForegroundWindowIndex > -1) then
+    begin
+      GdipCreatePath(FillModeWinding, path);
+      // selection fill
+      rect := WinRectToGDIPRect(items[FForegroundWindowIndex].rectSel);
+      AddPathRoundRect(path, rect, FRadius div 2);
+      GdipCreateSolidFill($40b0d0ff, brush);
+      GdipFillPath(hgdip, brush, path);
+      GdipDeleteBrush(brush);
+      // selection border
+      GdipCreatePen1($a0b0d0ff, 1, UnitPixel, pen);
+      GdipDrawPath(hgdip, pen, path);
+      GdipDeletePen(pen);
+      GdipDeletePath(path);
+    end;
+
+    // titles, close buttons
+    GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
+    GdipCreateFont(family, FFontSize, 0, 2, font);
+    GdipCreateSolidFill($ffffffff, brush);
+    GdipCreateStringFormat(0, 0, format);
+    GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap);
+    for index := 0 to FItemCount - 1 do
+    begin
+      // window title
+      titleRect := WinRectToGDIPRectF(items[index].rectTitle);
+      title := ProcessHelper.GetWindowText(items[index].hwnd);
+      GdipDrawString(hgdip, PWideChar(WideString(title)), -1, font, @titleRect, format, brush);
+      // close button
+      rect := WinRectToGDIPRect(items[index].rectClose);
+      DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = index);
+    end;
+    GdipDeleteStringFormat(format);
+    GdipDeleteBrush(brush);
+    GdipDeleteFont(font);
+    GdipDeleteFontFamily(family);
+
+    // update window //
+    UpdateLWindow(FHWnd, bmp, 255);
+    GdipDeleteGraphics(hgdip);
+    gdip_gfx.DeleteBitmap(bmp);
+    if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
+
+    // enable blur behind
+    if FCompositionEnabled then
+    begin
+      rgn := CreateRoundRectRgn(FShadow, FShadow, FWidth - FShadow, FHeight - FShadow, FRadius * 2, FRadius * 2);
+      dwm.EnableBlurBehindWindow(FHWnd, rgn);
+      DeleteObject(rgn);
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.Paint', e);
   end;
-
-  // titles and close buttons
-  GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
-  GdipCreateFont(family, FFontSize, 0, 2, font);
-  GdipCreateSolidFill($ffffffff, brush);
-  GdipCreateStringFormat(0, 0, format);
-  GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap);
-  for idx := 0 to list.Count - 1 do
-  begin
-    titleRect := WinRectToGDIPRectF(GetTitleRect(idx));
-    title := ProcessHelper.GetWindowText(THandle(list.Items[idx]));
-    GdipDrawString(hgdip, PWideChar(WideString(title)), -1, font, @titleRect, format, brush);
-
-    rect := WinRectToGDIPRect(GetCloseButtonRect(idx));
-    DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = idx);
-  end;
-  GdipDeleteStringFormat(format);
-  GdipDeleteBrush(brush);
-  GdipDeleteFont(font);
-  GdipDeleteFontFamily(family);
-
-  // update window //
-  UpdateLWindow(FHWnd, bmp, 255);
-  GdipDeleteGraphics(hgdip);
-  gdip_gfx.DeleteBitmap(bmp);
-  if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
-
-  // enable blur behind
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.SetItems(AppList: TFPList);
+var
+  index: integer;
+  wa: windows.TRect;
+  maxw, maxh: integer;
+  //
+  title: string;
+  dc: HDC;
+  hgdip, family, font: pointer;
+  rect: GDIPAPI.TRectF;
+begin
+  FCloseButtonSize := 17;
   if FCompositionEnabled then
   begin
-    rgn := CreateRoundRectRgn(FShadow, FShadow, FWidth - FShadow, FHeight - FShadow, radius * 2, radius * 2);
-    dwm.EnableBlurBehindWindow(FHWnd, rgn);
-    DeleteObject(rgn);
+    FBorder := 22;
+    FShadow := 8;
+    FTitleHeight := 30;
+    ItemSplit := 16;
+    FCloseButtonOffset := 0;
+    FRadius := 6;
+    ThumbW := 200;
+    wa := GetMonitorRect(FMonitor);
+    ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
+  end else begin
+    FBorder := 10;
+    FShadow := 0;
+    FTitleHeight := 21;
+    ItemSplit := 10;
+    FCloseButtonOffset := 2;
+    FRadius := 2;
+    ThumbW := 200;
+    ThumbH := 0;
+  end;
+
+  FItemCount := AppList.Count;
+  FForegroundWindowIndex := -1;
+  maxw := 0;
+  maxh := 0;
+
+  SetLength(items, FItemCount);
+  if FItemCount > 0 then
+  begin
+    // store target windows' handles
+    for index := 0 to FItemCount - 1 do items[index].hwnd := THandle(AppList.Items[index]);
+
+    // get max title width (if "no live preview" mode)
+    if not FCompositionEnabled then
+    begin
+      dc := CreateCompatibleDC(0);
+      if dc <> 0 then
+      begin
+        GdipCreateFromHDC(dc, hgdip);
+        GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
+        GdipCreateFont(family, FFontSize, 0, 2, font);
+        for index := 0 to FItemCount - 1 do
+        begin
+          title := ProcessHelper.GetWindowText(items[index].hwnd);
+          rect.x := 0;
+          rect.y := 0;
+          rect.Width := 0;
+          rect.Height := 0;
+          GdipMeasureString(hgdip, PWideChar(WideString(title)), -1, font, @rect, nil, @rect, nil, nil);
+          if round(rect.Width) + 5 + FCloseButtonSize > ThumbW then ThumbW := round(rect.Width) + 5 + FCloseButtonSize;
+        end;
+        GdipDeleteGraphics(hgdip);
+        GdipDeleteFont(font);
+        GdipDeleteFontFamily(family);
+        DeleteDC(dc);
+      end;
+    end;
+
+    // set item props
+    for index := 0 to FItemCount - 1 do
+    begin
+      if FLayout = apwlHorizontal then
+      begin
+        items[index].rect.Left := FBorder + index * (ThumbW + ItemSplit);
+        items[index].rect.Top := FBorder;
+      end else begin
+        items[index].rect.Left := FBorder;
+        items[index].rect.Top := FBorder + index * (FTitleHeight + ThumbH + ItemSplit);
+      end;
+      items[index].rect.Right := items[index].rect.Left + ThumbW;
+      items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + ThumbH;
+      if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
+      if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
+
+      items[index].rectSel := items[index].rect;
+      items[index].rectSel.Left -= 5;
+      items[index].rectSel.Top -= 5;
+      items[index].rectSel.Right += 5;
+      items[index].rectSel.Bottom += 5;
+
+      items[index].rectThumb := items[index].rect;
+      items[index].rectThumb.Top += FTitleHeight;
+
+      items[index].rectTitle := items[index].rect;
+      items[index].rectTitle.Right -= FCloseButtonSize + 5;
+      items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
+
+      items[index].rectClose := items[index].rect;
+      items[index].rectClose.Top += FCloseButtonOffset;
+      items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
+      items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
+
+      if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
+         if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+    end;
+
+    // calc width and height
+    if FLayout = apwlHorizontal then
+    begin
+      FWTarget := FBorder * 2 + items[FItemCount - 1].rect.Right - items[0].rect.Left;
+      FHTarget := FBorder * 2 + maxh;
+    end else begin
+      FWTarget := FBorder * 2 + maxw;
+      FHTarget := FBorder * 2 + items[FItemCount - 1].rect.Bottom - items[0].rect.Top;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -401,48 +493,24 @@ begin
   try
     try
       FActivating := true;
-      FTopWindowIndex := -1;
       FCompositionEnabled := dwm.CompositionEnabled;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
 
       UnRegisterThumbnails;
 
-      list.Clear;
+      // read window list
       if AppList.Count = 0 then
       begin
         CloseWindow;
         exit;
       end;
-      list.AddList(AppList);
-      for idx := 0 to list.Count - 1 do
-      begin
-        hwnd := THandle(list.Items[idx]);
-        if IsWindowVisible(hwnd) and not IsIconic(hwnd) then
-          if ProcessHelper.WindowOnTop(hwnd) then FTopWindowIndex := idx;
-      end;
 
       // size
       FMonitor := AMonitor;
       FSite := Site;
-      wa := GetMonitorRect(FMonitor);
-
-      FCloseButtonSize := 17;
-      FBorder := 22;
-      FShadow := 8;
-      if FCompositionEnabled then
-      begin
-        FTitleHeight := 30;
-        ItemSplit := 16;
-        ThumbW := 200;
-        ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
-      end else begin
-        FTitleHeight := 30;
-        ItemSplit := 16;
-        ThumbW := 200;
-        ThumbH := 0;
-      end;
-      FWTarget := FBorder * 2 + list.Count * (ThumbW + ItemSplit) - ItemSplit;
-      FHTarget := FBorder * 2 + FTitleHeight + ThumbH;
+      FLayout := apwlHorizontal;
+      if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
+      SetItems(AppList);
       if not FActive then
       begin
         FWidth := FWTarget;
@@ -493,7 +561,7 @@ begin
         Fy := FYTarget;
       end;
 
-      // update color info
+      // update colors
       if not FActive then
       begin
         if FCompositionEnabled then
@@ -505,6 +573,8 @@ begin
           FColor2 := $ff808080;
         end;
         dwm.GetColorizationColor(FColor1, opaque);
+        if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000;
+        if opaque then FColor2 := FColor2 or $ff000000;
       end;
 
       // show the window
@@ -552,18 +622,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.CloseWindow;
-var
-  idx: integer;
 begin
   try
     KillTimer(FHWnd, ID_TIMER_CLOSE);
-    // unregister thumbnails
-    if listThumbnail.Count > 0 then
-      for idx := 0 to listThumbnail.Count - 1 do
-        dwm.UnregisterThumbnail(THandle(listThumbnail.Items[idx]));
-    listThumbnail.clear;
-    list.clear;
     KillTimer(FHWnd, ID_TIMER);
+    UnRegisterThumbnails;
     ShowWindow(FHWnd, 0);
     FActive := False;
     TAeroPeekWindow.Cleanup;
@@ -577,7 +640,7 @@ var
   delta: integer;
   rect: windows.TRect;
 begin
-  if FActive then
+  if FActive and not FActivating then
   try
     if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) then
     begin
@@ -610,7 +673,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.WindowProc(var msg: TMessage);
 var
-  idx: integer;
+  index: integer;
   pt: windows.TPoint;
   rect: windows.TRect;
 begin
@@ -621,15 +684,13 @@ begin
   begin
     pt.x := TSmallPoint(msg.lParam).x;
     pt.y := TSmallPoint(msg.lParam).y;
-    for idx := 0 to list.Count - 1 do
+    for index := 0 to FItemCount - 1 do
     begin
-      rect := GetItemRect(idx);
-      if PtInRect(rect, pt) then
+      if PtInRect(items[index].rect, pt) then
       begin
-        rect := GetCloseButtonRect(idx);
-        if PtInRect(rect, pt) then
+        if PtInRect(items[index].rectClose, pt) then
         begin
-          FCloseButtonDownIndex := idx;
+          FCloseButtonDownIndex := index;
           Paint;
         end;
       end;
@@ -643,14 +704,12 @@ begin
     Paint;
     pt.x := TSmallPoint(msg.lParam).x;
     pt.y := TSmallPoint(msg.lParam).y;
-    for idx := 0 to list.Count - 1 do
+    for index := 0 to FItemCount - 1 do
     begin
-      rect := GetItemRect(idx);
-      if PtInRect(rect, pt) then
+      if PtInRect(items[index].rect, pt) then
       begin
-        rect := GetCloseButtonRect(idx);
-        if PtInRect(rect, pt) then ProcessHelper.CloseWindow(THandle(list.Items[idx]))
-        else ProcessHelper.ActivateWindow(THandle(list.Items[idx]));
+        if PtInRect(items[index].rectClose, pt) then ProcessHelper.CloseWindow(items[index].hwnd)
+        else ProcessHelper.ActivateWindow(items[index].hwnd);
       end;
     end;
     CloseWindow;
