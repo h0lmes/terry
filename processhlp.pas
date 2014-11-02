@@ -7,8 +7,6 @@ interface
 uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, toolu, declu;
 
 type
-  __QueryFullProcessImageName = function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
-
   {TProcessHelper}
 
   TProcessHelper = class(TObject)
@@ -23,7 +21,8 @@ type
     hKernel32: HMODULE;
     hUser32: HMODULE;
     hPowrprofDll: HMODULE;
-    queryFullProcessImageName: __QueryFullProcessImageName;
+    AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
+    queryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
     // processes //
     function IndexOf(Name: string): integer;
     function IndexOfFullName(Name: string): integer;
@@ -44,6 +43,8 @@ type
     procedure Kill(Name: string);
     function Exists(Name: string): boolean;
     function FullNameExists(Name: string): boolean;
+    function GetWindowProcessName(h: THandle): string;
+    function GetWindowProcessFullName(h: THandle): string;
     // windows //
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
@@ -52,13 +53,12 @@ type
     procedure CloseWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
     procedure EnumAppWindows;
+    procedure SortAppWindows(list: TFPList);
     function GetAppWindowsCount: integer;
     function GetAppWindowHandle(index: integer): THandle;
     function GetAppWindowIndex(h: THandle): integer;
+    function GetWindowClassName(h: THandle): string;
     function WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
-    function GetAppWindowProcessName(h: THandle): string;
-    function GetAppWindowProcessFullName(h: THandle): string;
-    function GetAppWindowClassName(h: THandle): string;
     // system //
     procedure SetSuspendState(Hibernate: boolean);
   end;
@@ -85,21 +85,27 @@ begin
   FWindowsCount := 0;
   FWindowsCountChanged := false;
 
+  hKernel32 := 0;
+  hUser32 := 0;
+  hPowrprofDll := 0;
   @QueryFullProcessImageName := nil;
+  @AllowSetForegroundWindow := nil;
+
   if IsWindowsVista then
   begin
     hKernel32 := LoadLibrary('kernel32.dll');
     if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
   end;
-  hUser32 := 0;
-  hPowrprofDll := 0;
+  hUser32 := GetModuleHandle('USER32.DLL');
+  if hUser32 = 0 then hUser32 := LoadLibrary('USER32.DLL');
+  if hUser32 <> 0 then @AllowSetForegroundWindow := GetProcAddress(hUser32, 'AllowSetForegroundWindow');
 
   FReady := assigned(crsection) and assigned(listProcess) and assigned(listAppWindows);
 end;
 //------------------------------------------------------------------------------
 destructor TProcessHelper.Destroy;
 begin
-  FreeLibrary(hKernel32);
+  if hKernel32 <> 0 then FreeLibrary(hKernel32);
   if hUser32 <> 0 then FreeLibrary(hUser32);
   if hPowrprofDll <> 0 then FreeLibrary(hPowrprofDll);
   listProcess.free;
@@ -297,12 +303,17 @@ begin
 
     listAppWindows.Clear;
     EnumWindows(@EnumWProc, LPARAM(self));
-    listAppWindows.Sort(CmpWindows);
+    SortAppWindows(listAppWindows);
 
     FWindowsCountChanged := oldWindowsCount <> FWindowsCount;
   finally
     crsection.Leave;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.SortAppWindows(list: TFPList);
+begin
+  list.Sort(CmpWindows);
 end;
 //------------------------------------------------------------------------------
 class function TProcessHelper.GetWindowText(h: THandle): string;
@@ -315,13 +326,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.AllowSetForeground(hWnd: HWND);
 var
-  AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
   dwProcess: dword;
 begin
-  @AllowSetForegroundWindow := nil;
-  if hUser32 = 0 then hUser32 := GetModuleHandle('USER32.DLL');
-  if hUser32 = 0 then hUser32 := LoadLibrary('USER32.DLL');
-  if hUser32 <> 0 then @AllowSetForegroundWindow := GetProcAddress(hUser32, 'AllowSetForegroundWindow');
   if assigned(AllowSetForegroundWindow) then
   begin
     dwProcess := 0;
@@ -478,7 +484,7 @@ begin
   result := MonitorFromWindow(h1, MONITOR_DEFAULTTOPRIMARY) = MonitorFromWindow(h2, MONITOR_DEFAULTTOPRIMARY);
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowProcessName(h: THandle): string;
+function TProcessHelper.GetWindowProcessName(h: THandle): string;
 var
   wtpid: dword;
 begin
@@ -486,7 +492,7 @@ begin
   result := GetName(IndexOfPID(wtpid));
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowProcessFullName(h: THandle): string;
+function TProcessHelper.GetWindowProcessFullName(h: THandle): string;
 var
   wtpid: dword;
 begin
@@ -494,7 +500,7 @@ begin
   result := GetFullName(IndexOfPIDFullName(wtpid));
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowClassName(h: THandle): string;
+function TProcessHelper.GetWindowClassName(h: THandle): string;
 var
   cls: array [0..255] of char;
 begin

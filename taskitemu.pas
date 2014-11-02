@@ -72,7 +72,7 @@ end;
 //------------------------------------------------------------------------------
 function TTaskItem.WindowInList(hwnd: THandle): boolean;
 begin
-  if FGrouping or (FAppList.Count = 0) then UpdateTaskItem(hwnd);
+  UpdateTaskItem(hwnd);
   result := FAppList.IndexOf(pointer(hwnd)) >= 0;
 end;
 //------------------------------------------------------------------------------
@@ -80,9 +80,10 @@ procedure TTaskItem.UpdateTaskItem(hwnd: THandle);
 var
   ProcName: string;
 begin
-  if FFreed then exit;
+  if FFreed or (not FGrouping and (FAppList.Count > 0)) then exit;
+
   // check window process name
-  ProcName := ProcessHelper.GetAppWindowProcessFullName(hwnd);
+  ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
   if FProcName = '' then FProcName := ProcName;
 
   // if window belong to the same process
@@ -107,17 +108,18 @@ begin
   try
     try
       FUpdating := true;
-      FIW := 0;
-      FIH := 0;
-      if FAppList.Count <= 0 then
+      // sort list
+      if FAppList.Count > 1 then ProcessHelper.SortAppWindows(FAppList);
+      // update image
+      if FAppList.Count > 0 then
       begin
-        FCaption := '';
-      end else begin
+        FIW := 0;
+        FIH := 0;
         hwnd := THandle(FAppList.Items[0]);
         LoadAppImage(FProcName, hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
-        if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd)
-        else Caption := '';
       end;
+      // update caption
+      if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd) else Caption := '';
     finally
       FUpdating:= false;
     end;
@@ -339,12 +341,13 @@ begin
 
   inherited;
 
-  if AHover then
-  begin
-    if TAeroPeekWindow.IsActive then ShowPeekWindow(400) else ShowPeekWindow(800);
-  end else begin
-    ClosePeekWindow(800);
-  end;
+  if not FFreed then
+    if AHover then
+    begin
+      if TAeroPeekWindow.IsActive then ShowPeekWindow(200) else ShowPeekWindow(800);
+    end else begin
+      ClosePeekWindow(800);
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
@@ -378,8 +381,12 @@ end;
 procedure TTaskItem.Exec;
 begin
   if FAppList.Count = 1 then
+  begin
+    KillTimer(FHWnd, ID_TIMER_OPEN);
     ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
-  if FAppList.Count > 1 then ShowPeekWindow;
+  end;
+  if FAppList.Count > 1 then
+    if TAeroPeekWindow.IsActive then ClosePeekWindow else ShowPeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);
@@ -412,7 +419,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor, FSite, FLivePreviews);
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FMonitor, FSite, FLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------

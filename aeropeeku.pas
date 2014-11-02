@@ -43,8 +43,10 @@ type
     FCloseButtonDownIndex: integer;
     FActivating: boolean;
     FActive: boolean;
+    FHostWnd: THandle;
     FMonitor: integer;
     FSite: integer;
+    FWorkArea: windows.TRect;
     FAnimate: boolean;
     FForegroundWindowIndex: integer;
     FColor1, FColor2: cardinal;
@@ -65,17 +67,19 @@ type
     procedure err(where: string; e: Exception);
   public
     property Handle: uint read FHWnd;
+    property HostHandle: uint read FHostWnd;
     property Active: boolean read FActive;
 
-    class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
+    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
     class procedure SetPosition(AX, AY: integer; AMonitor: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
+    class function ActivatedBy(HostWnd: THandle): boolean;
     class procedure Cleanup;
 
     constructor Create;
     destructor Destroy; override;
-    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
+    function OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
     procedure SetWindowPosition(AX, AY: integer; AMonitor: integer);
     procedure CloseWindow;
   end;
@@ -83,14 +87,17 @@ type
 var AeroPeekWindow: TAeroPeekWindow;
 
 implementation
-uses frmmainu;
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
+class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
-  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor, Site, LivePreviews);
+  if assigned(AeroPeekWindow) then
+  begin
+    KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
+    result := AeroPeekWindow.OpenWindow(HostWnd, AppList, AX, AY, AMonitor, Site, LivePreviews);
+  end;
 end;
 //------------------------------------------------------------------------------
 // set new position
@@ -115,6 +122,13 @@ class function TAeroPeekWindow.IsActive: boolean;
 begin
   result := false;
   if assigned(AeroPeekWindow) then result := AeroPeekWindow.Active;
+end;
+//------------------------------------------------------------------------------
+// check if AeroPeekWindow is visible and was activated by a particular host
+class function TAeroPeekWindow.ActivatedBy(HostWnd: THandle): boolean;
+begin
+  result := false;
+  if assigned(AeroPeekWindow) then result := AeroPeekWindow.Active and (AeroPeekWindow.HostHandle = HostWnd);
 end;
 //------------------------------------------------------------------------------
 // destroy window
@@ -191,49 +205,263 @@ begin
     for index := 0 to FItemCount - 1 do dwm.UnregisterThumbnail(items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
+function TAeroPeekWindow.OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
 var
-  brush, pen, path: Pointer;
-  crossRect: GDIPAPI.TRect;
-  color1, color2: cardinal;
+  idx: integer;
+  wa: windows.TRect;
+  opaque: bool;
+  hwnd: THandle;
 begin
-  if Pressed then
-  begin
-    color1 := $ffff3030;
-    color2 := $ffff3030;
-  end else begin
-    color1 := $ffffa0a0;
-    color2 := $ffff3030;
+  result := false;
+  if not FActivating then
+  try
+    try
+      FActivating := true;
+      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews;
+      FAnimate := FCompositionEnabled;
+
+      UnRegisterThumbnails;
+
+      // read window list
+      if AppList.Count = 0 then
+      begin
+        CloseWindow;
+        exit;
+      end;
+
+      // size
+      FHostWnd := HostWnd;
+      FMonitor := AMonitor;
+      FSite := Site;
+      FLayout := apwlHorizontal;
+      if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
+      // set items' positions, calulate window size, update workarea
+      SetItems(AppList);
+      if not FActive then
+      begin
+        FWidth := FWTarget;
+        FHeight := FHTarget;
+      end;
+
+      // calculate position
+      FXTarget := AX - FWTarget div 2;
+      FYTarget := AY - FHTarget;
+      if FSite = 1 then // top
+      begin
+        FXTarget := AX - FWTarget div 2;
+        FYTarget := AY;
+      end else if FSite = 0 then // left
+      begin
+        FXTarget := AX;
+        FYTarget := AY - FHTarget div 2;
+      end else if FSite = 2 then // right
+      begin
+        FXTarget := AX - FWTarget;
+        FYTarget := AY - FHTarget div 2;
+      end;
+      // position window inside workarea
+      if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
+      if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
+      if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
+      if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+
+      // set starting position
+      if FAnimate then
+      begin
+        if not FActive then
+        begin
+          Fx := FXTarget;
+          Fy := FYTarget + 20;
+          if Site = 1 then // top
+          begin
+            Fx := FXTarget;
+            Fy := FYTarget - 20;
+          end else if Site = 0 then // left
+          begin
+            Fx := FXTarget - 20;
+            Fy := FYTarget;
+          end else if Site = 2 then // right
+          begin
+            Fx := FXTarget + 20;
+            Fy := FYTarget;
+          end;
+        end;
+      end
+      else
+      begin
+        Fx := FXTarget;
+        Fy := FYTarget;
+      end;
+
+      // update colors
+      if not FActive then
+      begin
+        if FCompositionEnabled then
+        begin
+          FColor1 := $50000000;
+          FColor2 := $10ffffff;
+        end else begin
+          FColor1 := $ff101010;
+          FColor2 := $ff808080;
+        end;
+        dwm.GetColorizationColor(FColor1, opaque);
+        if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000;
+        if opaque then FColor2 := FColor2 or $ff000000;
+      end;
+
+      // show the window
+      Paint;
+      // set foreground
+      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
+      SetActiveWindow(FHWnd);
+      if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
+      FActive := true;
+
+      // register thumbnails
+      RegisterThumbnails;
+    finally
+      FActivating := false;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.Message', e);
   end;
-  // button
-  GdipCreatePath(FillModeWinding, path);
-  AddPathRoundRect(path, rect, 2);
-  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
-  GdipFillPath(hgdip, brush, path);
-  GdipDeleteBrush(brush);
-  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.SetItems(AppList: TFPList);
+var
+  index: integer;
+  maxw, maxh: integer;
   //
-  GdipResetPath(path);
-  AddPathRoundRect(path, rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2, 2);
-  GdipCreatePen1($60ffffff, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
-  GdipDeletePath(path);
-  // cross
-  crossRect.Width := rect.Width div 2;
-  crossRect.Height := rect.Height div 2;
-  crossRect.X := rect.X + (rect.Width - crossRect.Width) div 2;
-  crossRect.Y := rect.Y + (rect.Height - crossRect.Height) div 2;
-  GdipCreatePen1($a0000000, 4, UnitPixel, pen);
-  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
-  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
-  GdipDeletePen(pen);
-  GdipCreatePen1($c0ffffff, 2, UnitPixel, pen);
-  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y + 1, crossRect.X + crossRect.Width - 1, crossRect.Y + crossRect.Height - 1);
-  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y - 1 + crossRect.Height, crossRect.X + crossRect.Width - 1, crossRect.Y + 1);
-  GdipDeletePen(pen);
+  title: array [0..255] of WideChar;
+  dc: HDC;
+  hgdip, family, font: pointer;
+  rect: GDIPAPI.TRectF;
+begin
+  FItemCount := AppList.Count;
+  FForegroundWindowIndex := -1;
+  maxw := 0;
+  maxh := 0;
+
+  if FCompositionEnabled then
+  begin
+    FWorkArea := GetMonitorRect(FMonitor);
+    FBorder := 22;
+    FShadow := 8;
+    FTitleHeight := 30;
+    ItemSplit := 16;
+    FCloseButtonSize := 17;
+    FCloseButtonOffset := 0;
+    FRadius := 6;
+    if FLayout = apwlHorizontal then
+    begin
+      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorder * 2) div FItemCount - ItemSplit);
+      ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
+    end else begin
+      ThumbW := 200;
+      ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
+      if ThumbH > (FWorkArea.Bottom - FWorkArea.Top - FBorder * 2) div FItemCount - FTitleHeight - ItemSplit then
+      begin
+        ThumbH := (FWorkArea.Bottom - FWorkArea.Top - FBorder * 2) div FItemCount - FTitleHeight - ItemSplit;
+        ThumbW := round(ThumbH * (FWorkArea.Right - FWorkArea.Left) / (FWorkArea.Bottom - FWorkArea.Top));
+      end;
+    end;
+  end else begin
+    FBorder := 10;
+    FShadow := 0;
+    FTitleHeight := 21;
+    ItemSplit := 10;
+    FCloseButtonSize := 17;
+    FCloseButtonOffset := 2;
+    FRadius := 0;
+    ThumbW := 200;
+    ThumbH := 0;
+  end;
+
+  SetLength(items, FItemCount);
+  if FItemCount > 0 then
+  begin
+    // store target windows' handles
+    for index := 0 to FItemCount - 1 do items[index].hwnd := THandle(AppList.Items[index]);
+
+    // get max title width (if "no live preview" mode)
+    if not FCompositionEnabled then
+    begin
+      dc := CreateCompatibleDC(0);
+      if dc <> 0 then
+      begin
+        GdipCreateFromHDC(dc, hgdip);
+        GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
+        GdipCreateFont(family, FFontSize, 0, 2, font);
+        for index := 0 to FItemCount - 1 do
+        begin
+          GetWindowTextW(items[index].hwnd, @title, 255);
+          rect.x := 0;
+          rect.y := 0;
+          rect.Width := 0;
+          rect.Height := 0;
+          GdipMeasureString(hgdip, PWideChar(@title), -1, font, @rect, nil, @rect, nil, nil);
+          if round(rect.Width) + 5 + FCloseButtonSize > ThumbW then ThumbW := round(rect.Width) + 5 + FCloseButtonSize;
+        end;
+        GdipDeleteGraphics(hgdip);
+        GdipDeleteFont(font);
+        GdipDeleteFontFamily(family);
+        DeleteDC(dc);
+      end;
+    end;
+
+    // set item props
+    for index := 0 to FItemCount - 1 do
+    begin
+      if FLayout = apwlHorizontal then
+      begin
+        items[index].rect.Left := FBorder + index * (ThumbW + ItemSplit);
+        items[index].rect.Top := FBorder;
+      end else begin
+        items[index].rect.Left := FBorder;
+        items[index].rect.Top := FBorder + index * (FTitleHeight + ThumbH + ItemSplit);
+      end;
+      items[index].rect.Right := items[index].rect.Left + ThumbW;
+      items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + ThumbH;
+      if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
+      if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
+
+      items[index].rectSel := items[index].rect;
+      items[index].rectSel.Left -= 5;
+      items[index].rectSel.Top -= 5;
+      items[index].rectSel.Right += 5;
+      items[index].rectSel.Bottom += 5;
+
+      items[index].rectThumb := items[index].rect;
+      items[index].rectThumb.Top += FTitleHeight;
+
+      items[index].rectTitle := items[index].rect;
+      items[index].rectTitle.Right -= FCloseButtonSize + 5;
+      items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
+
+      items[index].rectClose := items[index].rect;
+      items[index].rectClose.Top += FCloseButtonOffset;
+      items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
+      items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
+
+      if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
+         if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+    end;
+
+    // calc width and height
+    if FLayout = apwlHorizontal then
+    begin
+      FWTarget := FBorder * 2 + items[FItemCount - 1].rect.Right - items[0].rect.Left;
+      FHTarget := FBorder * 2 + maxh;
+    end else begin
+      FWTarget := FBorder * 2 + maxw;
+      FHTarget := FBorder * 2 + items[FItemCount - 1].rect.Bottom - items[0].rect.Top;
+    end;
+  end;
+  if not FAnimate then
+  begin
+    FWidth := FWTarget;
+    FHeight := FHTarget;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.Paint;
@@ -246,7 +474,7 @@ var
   shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
   count, index: integer;
-  title: string;
+  title: array [0..255] of WideChar;
 begin
   try
     // prepare //
@@ -331,8 +559,8 @@ begin
     begin
       // window title
       titleRect := WinRectToGDIPRectF(items[index].rectTitle);
-      title := ProcessHelper.GetWindowText(items[index].hwnd);
-      GdipDrawString(hgdip, PWideChar(WideString(title)), -1, font, @titleRect, format, brush);
+      GetWindowTextW(items[index].hwnd, title, 255);
+      GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
       // close button
       rect := WinRectToGDIPRect(items[index].rectClose);
       DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = index);
@@ -360,244 +588,49 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetItems(AppList: TFPList);
+procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
 var
-  index: integer;
-  wa: windows.TRect;
-  maxw, maxh: integer;
-  //
-  title: string;
-  dc: HDC;
-  hgdip, family, font: pointer;
-  rect: GDIPAPI.TRectF;
+  brush, pen, path: Pointer;
+  crossRect: GDIPAPI.TRect;
+  color1, color2: cardinal;
 begin
-  FCloseButtonSize := 17;
-  if FCompositionEnabled then
+  if Pressed then
   begin
-    FBorder := 22;
-    FShadow := 8;
-    FTitleHeight := 30;
-    ItemSplit := 16;
-    FCloseButtonOffset := 0;
-    FRadius := 6;
-    ThumbW := 200;
-    wa := GetMonitorRect(FMonitor);
-    ThumbH := round(ThumbW * (wa.Bottom - wa.Top) / (wa.Right - wa.Left));
+    color1 := $ffff3030;
+    color2 := $ffff3030;
   end else begin
-    FBorder := 10;
-    FShadow := 0;
-    FTitleHeight := 21;
-    ItemSplit := 10;
-    FCloseButtonOffset := 2;
-    FRadius := 2;
-    ThumbW := 200;
-    ThumbH := 0;
+    color1 := $ffffa0a0;
+    color2 := $ffff3030;
   end;
-
-  FItemCount := AppList.Count;
-  FForegroundWindowIndex := -1;
-  maxw := 0;
-  maxh := 0;
-
-  SetLength(items, FItemCount);
-  if FItemCount > 0 then
-  begin
-    // store target windows' handles
-    for index := 0 to FItemCount - 1 do items[index].hwnd := THandle(AppList.Items[index]);
-
-    // get max title width (if "no live preview" mode)
-    if not FCompositionEnabled then
-    begin
-      dc := CreateCompatibleDC(0);
-      if dc <> 0 then
-      begin
-        GdipCreateFromHDC(dc, hgdip);
-        GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
-        GdipCreateFont(family, FFontSize, 0, 2, font);
-        for index := 0 to FItemCount - 1 do
-        begin
-          title := ProcessHelper.GetWindowText(items[index].hwnd);
-          rect.x := 0;
-          rect.y := 0;
-          rect.Width := 0;
-          rect.Height := 0;
-          GdipMeasureString(hgdip, PWideChar(WideString(title)), -1, font, @rect, nil, @rect, nil, nil);
-          if round(rect.Width) + 5 + FCloseButtonSize > ThumbW then ThumbW := round(rect.Width) + 5 + FCloseButtonSize;
-        end;
-        GdipDeleteGraphics(hgdip);
-        GdipDeleteFont(font);
-        GdipDeleteFontFamily(family);
-        DeleteDC(dc);
-      end;
-    end;
-
-    // set item props
-    for index := 0 to FItemCount - 1 do
-    begin
-      if FLayout = apwlHorizontal then
-      begin
-        items[index].rect.Left := FBorder + index * (ThumbW + ItemSplit);
-        items[index].rect.Top := FBorder;
-      end else begin
-        items[index].rect.Left := FBorder;
-        items[index].rect.Top := FBorder + index * (FTitleHeight + ThumbH + ItemSplit);
-      end;
-      items[index].rect.Right := items[index].rect.Left + ThumbW;
-      items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + ThumbH;
-      if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
-      if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
-
-      items[index].rectSel := items[index].rect;
-      items[index].rectSel.Left -= 5;
-      items[index].rectSel.Top -= 5;
-      items[index].rectSel.Right += 5;
-      items[index].rectSel.Bottom += 5;
-
-      items[index].rectThumb := items[index].rect;
-      items[index].rectThumb.Top += FTitleHeight;
-
-      items[index].rectTitle := items[index].rect;
-      items[index].rectTitle.Right -= FCloseButtonSize + 5;
-      items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
-
-      items[index].rectClose := items[index].rect;
-      items[index].rectClose.Top += FCloseButtonOffset;
-      items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
-      items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
-
-      if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
-         if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
-    end;
-
-    // calc width and height
-    if FLayout = apwlHorizontal then
-    begin
-      FWTarget := FBorder * 2 + items[FItemCount - 1].rect.Right - items[0].rect.Left;
-      FHTarget := FBorder * 2 + maxh;
-    end else begin
-      FWTarget := FBorder * 2 + maxw;
-      FHTarget := FBorder * 2 + items[FItemCount - 1].rect.Bottom - items[0].rect.Top;
-    end;
-  end;
-  if not FAnimate then
-  begin
-    FWidth := FWTarget;
-    FHeight := FHTarget;
-  end;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
-var
-  idx: integer;
-  wa: windows.TRect;
-  opaque: bool;
-  hwnd: THandle;
-begin
-  result := false;
-  if not FActivating then
-  try
-    try
-      FActivating := true;
-      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews;
-      FAnimate := FCompositionEnabled;
-      KillTimer(FHWnd, ID_TIMER_CLOSE);
-
-      UnRegisterThumbnails;
-
-      // read window list
-      if AppList.Count = 0 then
-      begin
-        CloseWindow;
-        exit;
-      end;
-
-      // size
-      FMonitor := AMonitor;
-      FSite := Site;
-      FLayout := apwlHorizontal;
-      if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
-      SetItems(AppList);
-      if not FActive then
-      begin
-        FWidth := FWTarget;
-        FHeight := FHTarget;
-      end;
-
-      // position (default is bottom)
-      FXTarget := AX - FWTarget div 2;
-      FYTarget := AY - FHTarget;
-      if FSite = 1 then // top
-      begin
-        FXTarget := AX - FWTarget div 2;
-        FYTarget := AY;
-      end else if FSite = 0 then // left
-      begin
-        FXTarget := AX;
-        FYTarget := AY - FHTarget div 2;
-      end else if FSite = 2 then // right
-      begin
-        FXTarget := AX - FWTarget;
-        FYTarget := AY - FHTarget div 2;
-      end;
-      //
-      if FAnimate then
-      begin
-        if not FActive then
-        begin
-          Fx := FXTarget;
-          Fy := FYTarget + 20;
-          if Site = 1 then // top
-          begin
-            Fx := FXTarget;
-            Fy := FYTarget - 20;
-          end else if Site = 0 then // left
-          begin
-            Fx := FXTarget - 20;
-            Fy := FYTarget;
-          end else if Site = 2 then // right
-          begin
-            Fx := FXTarget + 20;
-            Fy := FYTarget;
-          end;
-        end;
-      end
-      else
-      begin
-        Fx := FXTarget;
-        Fy := FYTarget;
-      end;
-
-      // update colors
-      if not FActive then
-      begin
-        if FCompositionEnabled then
-        begin
-          FColor1 := $50000000;
-          FColor2 := $10ffffff;
-        end else begin
-          FColor1 := $ff101010;
-          FColor2 := $ff808080;
-        end;
-        dwm.GetColorizationColor(FColor1, opaque);
-        if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000;
-        if opaque then FColor2 := FColor2 or $ff000000;
-      end;
-
-      // show the window
-      Paint;
-      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      SetActiveWindow(FHWnd);
-      if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
-      FActive := true;
-
-      // register thumbnails
-      RegisterThumbnails;
-    finally
-      FActivating := false;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.Message', e);
-  end;
+  // button
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, rect, 2);
+  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
+  GdipFillPath(hgdip, brush, path);
+  GdipDeleteBrush(brush);
+  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  //
+  GdipResetPath(path);
+  AddPathRoundRect(path, rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2, 2);
+  GdipCreatePen1($60ffffff, 1, UnitPixel, pen);
+  GdipDrawPath(hgdip, pen, path);
+  GdipDeletePen(pen);
+  GdipDeletePath(path);
+  // cross
+  crossRect.Width := rect.Width div 2;
+  crossRect.Height := rect.Height div 2;
+  crossRect.X := rect.X + (rect.Width - crossRect.Width) div 2;
+  crossRect.Y := rect.Y + (rect.Height - crossRect.Height) div 2;
+  GdipCreatePen1($a0000000, 4, UnitPixel, pen);
+  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
+  GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
+  GdipDeletePen(pen);
+  GdipCreatePen1($c0ffffff, 2, UnitPixel, pen);
+  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y + 1, crossRect.X + crossRect.Width - 1, crossRect.Y + crossRect.Height - 1);
+  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y - 1 + crossRect.Height, crossRect.X + crossRect.Width - 1, crossRect.Y + 1);
+  GdipDeletePen(pen);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.SetWindowPosition(AX, AY: integer; AMonitor: integer);
@@ -619,6 +652,12 @@ begin
       FXTarget := AX - FWTarget;
       FYTarget := AY - FHTarget div 2;
     end;
+    // position window inside workarea
+    if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
+    if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
+    if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
+    if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+
     Fx := FXTarget;
     Fy := FYTarget;
 
@@ -633,8 +672,8 @@ begin
     KillTimer(FHWnd, ID_TIMER_CLOSE);
     KillTimer(FHWnd, ID_TIMER);
     UnRegisterThumbnails;
-    ShowWindow(FHWnd, 0);
-    FActive := False;
+    ShowWindow(FHWnd, SW_HIDE);
+    FActive := false;
     TAeroPeekWindow.Cleanup;
   except
     on e: Exception do err('AeroPeekWindow.CloseI', e);
@@ -714,7 +753,10 @@ begin
     begin
       if PtInRect(items[index].rectSel, pt) then
       begin
-        if PtInRect(items[index].rectClose, pt) then ProcessHelper.CloseWindow(items[index].hwnd)
+        if PtInRect(items[index].rectClose, pt) then
+        begin
+          ProcessHelper.CloseWindow(items[index].hwnd);
+        end
         else ProcessHelper.ActivateWindow(items[index].hwnd);
       end;
     end;
