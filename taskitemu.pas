@@ -16,6 +16,8 @@ type
     FProcName: string;
     FAppList: TFPList;
     FIsOpen: boolean;
+    FGrouping: boolean;
+    FLivePreviews: boolean;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CheckAppList;
@@ -46,6 +48,12 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
+  FGrouping := true;
+  try FGrouping := boolean(strtoint(FetchValue(AData, 'grouping="', '";')));
+  except end;
+  FLivePreviews := true;
+  try FLivePreviews := boolean(strtoint(FetchValue(AData, 'livepreviews="', '";')));
+  except end;
   FProcName := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
@@ -64,7 +72,7 @@ end;
 //------------------------------------------------------------------------------
 function TTaskItem.WindowInList(hwnd: THandle): boolean;
 begin
-  UpdateTaskItem(hwnd);
+  if FGrouping or (FAppList.Count = 0) then UpdateTaskItem(hwnd);
   result := FAppList.IndexOf(pointer(hwnd)) >= 0;
 end;
 //------------------------------------------------------------------------------
@@ -106,8 +114,9 @@ begin
         FCaption := '';
       end else begin
         hwnd := THandle(FAppList.Items[0]);
-        LoadImageFromHWnd(hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
-        Caption := TProcessHelper.GetWindowText(hwnd);
+        LoadAppImage(FProcName, hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
+        if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd)
+        else Caption := '';
       end;
     finally
       FUpdating:= false;
@@ -151,7 +160,7 @@ end;
 procedure TTaskItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
   bmp: _SimpleBitmap;
-  dst, brush, hff, hfont, hformat: Pointer;
+  dst, brush, family, hfont, format, path: Pointer;
   xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
@@ -228,26 +237,29 @@ begin
       begin
         GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-        //
-        rect.Width := FItemSize * 5 div 12;
-        rect.Height := FItemSize div 3;
+        // background
+        rect.Width := FItemSize / 2;
+        rect.Height := FItemSize / 3;
         rect.X := ItemRect.Right - rect.Width;
         rect.Y := ItemRect.Top;
+        GdipCreatePath(FillModeWinding, path);
+        AddPathRoundRect(path, rect, rect.Height / 2);
         GdipCreateSolidFill($ffff0000, brush);
-        GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
+        GdipFillPath(dst, brush, path);
         GdipDeleteBrush(brush);
-        //
-        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hff);
-        GdipCreateFont(hff, FItemSize div 4, 1, 2, hfont);
+        GdipDeletePath(path);
+        // number
+        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+        GdipCreateFont(family, FItemSize div 4, 1, 2, hfont);
         GdipCreateSolidFill($ffffffff, brush);
-        GdipCreateStringFormat(0, 0, hformat);
-        GdipSetStringFormatAlign(hformat, StringAlignmentCenter);
-        GdipSetStringFormatLineAlign(hformat, StringAlignmentCenter);
-        GdipDrawString(dst, PWideChar(WideString(inttostr(FAppList.Count))), -1, hfont, @rect, hformat, brush);
-        GdipDeleteStringFormat(hformat);
+        GdipCreateStringFormat(0, 0, format);
+        GdipSetStringFormatAlign(format, StringAlignmentCenter);
+        GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+        GdipDrawString(dst, PWideChar(WideString(inttostr(FAppList.Count))), -1, hfont, @rect, format, brush);
+        GdipDeleteStringFormat(format);
         GdipDeleteBrush(brush);
         GdipDeleteFont(hfont);
-        GdipDeleteFontFamily(hff);
+        GdipDeleteFontFamily(family);
       end;
 
     if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
@@ -329,7 +341,7 @@ begin
 
   if AHover then
   begin
-    if TAeroPeekWindow.IsActive then ShowPeekWindow else ShowPeekWindow(800);
+    if TAeroPeekWindow.IsActive then ShowPeekWindow(400) else ShowPeekWindow(800);
   end else begin
     ClosePeekWindow(800);
   end;
@@ -352,7 +364,7 @@ begin
       // validate windows
       CheckAppList;
       // update item caption
-      if FAppList.Count > 0 then
+      if FAppList.Count = 1 then
         Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
       // delete self if no windows left
       if FAppList.Count = 0 then Delete;
@@ -400,7 +412,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor, FSite);
+  TAeroPeekWindow.Open(FAppList, pt.x, pt.y, FMonitor, FSite, FLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------

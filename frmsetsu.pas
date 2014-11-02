@@ -26,13 +26,16 @@ type
     chbHintEffects: TCheckBox;
     chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
-    chbTaskbar: TCheckBox;
     chbStackOpenAnimation: TCheckBox;
     chbRunInThread: TCheckBox;
+    chbTaskbar: TCheckBox;
+    chbTaskbarLivePreviews: TCheckBox;
+    chbTaskbarGrouping: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
     gbAutostart: TGroupBox;
+    GroupBox1: TGroupBox;
     Label1: TLabel;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
@@ -133,6 +136,8 @@ type
     procedure chbRunInThreadChange(Sender: TObject);
     procedure chbStackOpenAnimationChange(Sender: TObject);
     procedure chbTaskbarClick(Sender: TObject);
+    procedure chbTaskbarGroupingChange(Sender: TObject);
+    procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btn_cancelClick(Sender: TObject);
@@ -311,6 +316,12 @@ begin
   chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
   tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
   chbTaskbar.Checked := sets.container.Taskbar;
+  chbTaskbarLivePreviews.OnChange := nil;
+  chbTaskbarLivePreviews.Checked := sets.container.TaskbarLivePreviews;
+  chbTaskbarLivePreviews.OnChange := chbTaskbarLivePreviewsChange;
+  chbTaskbarGrouping.OnChange := nil;
+  chbTaskbarGrouping.Checked := sets.container.TaskbarGrouping;
+  chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
 
   //
   // расположение //
@@ -627,6 +638,16 @@ end;
 procedure Tfrmsets.chbTaskbarClick(Sender: TObject);
 begin
   frmmain.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbTaskbarGroupingChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpTaskbarGrouping, integer(chbTaskbarGrouping.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbTaskbarLivePreviewsChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpTaskbarLivePreviews, integer(chbTaskbarLivePreviews.Checked));
 end;
 //------------------------------------------------------------------------------
 //

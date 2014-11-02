@@ -33,6 +33,8 @@ type
     ReserveScreenEdge: boolean;
     ReserveScreenEdgePercent: integer;
     Taskbar: boolean;
+    TaskbarLivePreviews: boolean;
+    TaskbarGrouping: boolean;
     StayOnTop: boolean;
     ShowHint: boolean;
     HintEffects: boolean;
@@ -172,6 +174,8 @@ begin
   container.ReserveScreenEdge := ini.ReadBool('base', 'ReserveScreenEdge', false);
   container.ReserveScreenEdgePercent := SetRange(ini.ReadInteger('base', 'ReserveScreenEdgePercent', 100), 0, 200);
   container.Taskbar := ini.ReadBool('base', 'Taskbar', false);
+  container.TaskbarLivePreviews := ini.ReadBool('base', 'TaskbarLivePreviews', true);
+  container.TaskbarGrouping := ini.ReadBool('base', 'TaskbarGrouping', true);
   container.StayOnTop := ini.ReadBool('base', 'StayOnTop', false);
   container.LockDragging := ini.ReadBool('base', 'LockDragging', true);
   container.ShowHint := ini.ReadBool('base', 'ShowHint', true);
@@ -260,6 +264,8 @@ begin
   ini.WriteBool   ('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
   ini.WriteInteger('base', 'ReserveScreenEdgePercent', container.ReserveScreenEdgePercent);
   ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
+  ini.WriteBool   ('base', 'TaskbarLivePreviews', container.TaskbarLivePreviews);
+  ini.WriteBool   ('base', 'TaskbarGrouping', container.TaskbarGrouping);
   ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
   ini.WriteBool   ('base', 'LockDragging', container.LockDragging);
   ini.WriteBool   ('base', 'ShowHint', container.ShowHint);
@@ -388,7 +394,9 @@ begin
   gpHideTaskbar: container.HideTaskbar := boolean(value);
   gpReserveScreenEdge: container.ReserveScreenEdge := boolean(value);
   gpReserveScreenEdgePercent: container.ReserveScreenEdgePercent := SetRange(value, 0, 200);
-  gpTaskBar: container.Taskbar := boolean(value);
+  gpTaskbar: container.Taskbar := boolean(value);
+  gpTaskbarLivePreviews: container.TaskbarLivePreviews := boolean(value);
+  gpTaskbarGrouping: container.TaskbarGrouping := boolean(value);
   gpStayOnTop: container.StayOnTop := boolean(value);
   gpShowHint: container.ShowHint := boolean(value);
   gpHintEffects: container.HintEffects := boolean(value);
@@ -437,6 +445,8 @@ begin
   gpReserveScreenEdge: result := integer(container.ReserveScreenEdge);
   gpReserveScreenEdgePercent: result := container.ReserveScreenEdgePercent;
   gpTaskbar: result := integer(container.Taskbar);
+  gpTaskbarLivePreviews: result := integer(container.TaskbarLivePreviews);
+  gpTaskbarGrouping: result := integer(container.TaskbarGrouping);
   gpStayOnTop: result := integer(container.StayOnTop);
   gpShowHint: result := integer(container.ShowHint);
   gpHintEffects: result := integer(container.HintEffects);
@@ -489,6 +499,8 @@ begin
   dst.ReserveScreenEdge := src.ReserveScreenEdge;
   dst.ReserveScreenEdgePercent := src.ReserveScreenEdgePercent;
   dst.Taskbar := src.Taskbar;
+  dst.TaskbarLivePreviews := src.TaskbarLivePreviews;
+  dst.TaskbarGrouping := src.TaskbarGrouping;
   dst.StayOnTop := src.StayOnTop;
   dst.ShowHint := src.ShowHint;
   dst.HintEffects := src.HintEffects;

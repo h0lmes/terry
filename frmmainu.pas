@@ -514,6 +514,8 @@ begin
     gpBaseAlpha:              BasePaint(1);
     gpBlur:                   BasePaint(1);
     gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
+    gpTaskbarLivePreviews:    ItemMgr.ClearTaskbar;
+    gpTaskbarGrouping:        ItemMgr.ClearTaskbar;
     gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
   end;
 
@@ -914,7 +916,7 @@ begin
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
     if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
-    if sets.container.Taskbar then ItemMgr.Taskbar;
+    if sets.container.Taskbar then ItemMgr.Taskbar(sets.container.TaskbarLivePreviews, sets.container.TaskbarGrouping);
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;

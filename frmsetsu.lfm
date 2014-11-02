@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsStyle
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -35,7 +35,7 @@ object frmsets: Tfrmsets
       object lblMouseOverTip: TLabel
         Left = 15
         Height = 13
-        Top = 210
+        Top = 200
         Width = 369
         Caption = 'Move mouse pointer to the edge of the screen to put the dock to foreground'
         Font.CharSet = RUSSIAN_CHARSET
@@ -48,7 +48,7 @@ object frmsets: Tfrmsets
       object cbActivateOnMouse: TCheckBox
         Left = 15
         Height = 19
-        Top = 190
+        Top = 180
         Width = 156
         Caption = 'Activate dock on mouseover'
         OnClick = cbActivateOnMouseClick
@@ -66,7 +66,7 @@ object frmsets: Tfrmsets
       object gbHide: TGroupBox
         Left = 15
         Height = 95
-        Top = 265
+        Top = 330
         Width = 431
         ClientHeight = 77
         ClientWidth = 427
@@ -142,27 +142,18 @@ object frmsets: Tfrmsets
         OnClick = chbReserveScreenEdgeClick
         TabOrder = 2
       end
-      object chbTaskbar: TCheckBox
-        Left = 15
-        Height = 19
-        Top = 235
-        Width = 204
-        Caption = 'Show icons for running tasks (taskbar)'
-        OnClick = chbTaskbarClick
-        TabOrder = 5
-      end
       object tbReserveScreenEdgePercent: TTrackBar
-        Left = 21
+        Left = 55
         Height = 31
-        Top = 145
-        Width = 422
+        Top = 140
+        Width = 388
         Frequency = 10
         Max = 200
         OnChange = tbReserveScreenEdgePercentChange
         PageSize = 10
         Position = 100
         ShowSelRange = False
-        TabOrder = 6
+        TabOrder = 5
       end
       object cbShowHint: TCheckBox
         Left = 15
@@ -171,7 +162,7 @@ object frmsets: Tfrmsets
         Width = 126
         Caption = 'Show hint (icon name)'
         OnClick = cbShowHintClick
-        TabOrder = 7
+        TabOrder = 6
       end
       object chbHintEffects: TCheckBox
         Left = 15
@@ -180,7 +171,7 @@ object frmsets: Tfrmsets
         Width = 110
         Caption = 'Enable hint effects'
         OnClick = chbHintEffectsClick
-        TabOrder = 8
+        TabOrder = 7
       end
       object Panel1: TPanel
         Left = 15
@@ -192,7 +183,7 @@ object frmsets: Tfrmsets
         ClientWidth = 178
         Color = 176
         ParentColor = False
-        TabOrder = 9
+        TabOrder = 8
         object btnRemoveDock: TButton
           Left = 5
           Height = 25
@@ -201,6 +192,42 @@ object frmsets: Tfrmsets
           Caption = 'Remove this dock'
           OnClick = btnRemoveDockClick
           TabOrder = 0
+        end
+      end
+      object GroupBox1: TGroupBox
+        Left = 15
+        Height = 100
+        Top = 225
+        Width = 431
+        ClientHeight = 82
+        ClientWidth = 427
+        TabOrder = 9
+        object chbTaskbar: TCheckBox
+          Left = 10
+          Height = 19
+          Top = 5
+          Width = 204
+          Caption = 'Show icons for running tasks (taskbar)'
+          OnClick = chbTaskbarClick
+          TabOrder = 0
+        end
+        object chbTaskbarLivePreviews: TCheckBox
+          Left = 10
+          Height = 19
+          Top = 30
+          Width = 193
+          Caption = 'Show live previews (when available)'
+          OnChange = chbTaskbarLivePreviewsChange
+          TabOrder = 1
+        end
+        object chbTaskbarGrouping: TCheckBox
+          Left = 10
+          Height = 19
+          Top = 55
+          Width = 109
+          Caption = 'Group similar tasks'
+          OnChange = chbTaskbarGroupingChange
+          TabOrder = 2
         end
       end
     end

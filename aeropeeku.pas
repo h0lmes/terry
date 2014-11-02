@@ -67,7 +67,7 @@ type
     property Handle: uint read FHWnd;
     property Active: boolean read FActive;
 
-    class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
+    class function Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
     class procedure SetPosition(AX, AY: integer; AMonitor: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
@@ -75,7 +75,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
+    function OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
     procedure SetWindowPosition(AX, AY: integer; AMonitor: integer);
     procedure CloseWindow;
   end;
@@ -86,11 +86,11 @@ implementation
 uses frmmainu;
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
+class function TAeroPeekWindow.Open(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
-  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor, Site);
+  if assigned(AeroPeekWindow) then result := AeroPeekWindow.OpenWindow(AppList, AX, AY, AMonitor, Site, LivePreviews);
 end;
 //------------------------------------------------------------------------------
 // set new position
@@ -486,7 +486,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer): boolean;
+function TAeroPeekWindow.OpenWindow(AppList: TFPList; AX, AY: integer; AMonitor: integer; Site: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
   wa: windows.TRect;
@@ -498,7 +498,7 @@ begin
   try
     try
       FActivating := true;
-      FCompositionEnabled := dwm.CompositionEnabled;
+      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews;
       FAnimate := FCompositionEnabled;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
 

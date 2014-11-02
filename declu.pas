@@ -19,6 +19,8 @@ type
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
     gpTaskbar,
+    gpTaskbarLivePreviews,
+    gpTaskbarGrouping,
     gpSite,
     gpAutoHide,
     gpAutoHideTime,

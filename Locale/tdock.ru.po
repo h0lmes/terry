@@ -242,6 +242,7 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
+#, fuzzy
 #| msgid ""
 #| "Icon parameters changed. If you will proceed all changes will be lost. "
 #| "Proceed?Icon parameters changed. If you choose to proceed all changes "
@@ -255,7 +256,10 @@ msgstr "Тема сохранена"
 #| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
 #| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
 #| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
-#| "you choose to proceed all changes will be lost. Proceed?"
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?"
 msgid ""
 "Icon parameters changed. If you choose to proceed all changes will be lost. "
 "Proceed?"
@@ -826,6 +830,17 @@ msgstr "Анимация открытия/закрытия стека"
 msgid "Show icons for running tasks (taskbar)"
 msgstr "Показывать значки для запущенных программ (панель задач)"
 
+#: tfrmsets.chbtaskbargrouping.caption
+msgctxt "tfrmsets.chbtaskbargrouping.caption"
+msgid "Group similar tasks"
+msgstr "Группировать сходные задачи"
+
+#: tfrmsets.chbtaskbarlivepreviews.caption
+#| msgid "Show \"Live previews\" (when available)"
+msgctxt "tfrmsets.chbtaskbarlivepreviews.caption"
+msgid "Show live previews (when available)"
+msgstr "Показывать миниатюры (когда доступно)"
+
 #: tfrmsets.chb_activate_running.caption
 msgctxt "TFRMSETS.CHB_ACTIVATE_RUNNING.CAPTION"
 msgid "Activate program if already running"
@@ -954,8 +969,11 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
+#, fuzzy
 #| msgid ""
 #| "Move mouse pointer to the edge of screen to bring panel to foregroundMove "
+#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
+#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "

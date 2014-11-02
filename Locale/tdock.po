@@ -742,6 +742,16 @@ msgstr ""
 msgid "Show icons for running tasks (taskbar)"
 msgstr ""
 
+#: tfrmsets.chbtaskbargrouping.caption
+msgctxt "TFRMSETS.CHBTASKBARGROUPING.CAPTION"
+msgid "Group similar tasks"
+msgstr ""
+
+#: tfrmsets.chbtaskbarlivepreviews.caption
+msgctxt "TFRMSETS.CHBTASKBARLIVEPREVIEWS.CAPTION"
+msgid "Show live previews (when available)"
+msgstr ""
+
 #: tfrmsets.chb_activate_running.caption
 msgid "Activate program if already running"
 msgstr ""

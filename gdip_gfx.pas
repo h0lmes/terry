@@ -88,10 +88,13 @@ function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload;
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer); overload;
+procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: Single); overload;
+procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRectF; radius: Single); overload;
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -465,21 +468,43 @@ end;
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
 begin
   GdipStartPathFigure(path);
-  GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y);
+  if radius * 2 < w then GdipAddPathLineI(path, x + radius, y, x + w - radius - 1, y); // top line
+  GdipAddPathArcI(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
+
+  if radius * 2 < h then GdipAddPathLineI(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1); // right line
+  GdipAddPathArcI(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
+
+  if radius * 2 < w then GdipAddPathLineI(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1); // bottom line
+  GdipAddPathArcI(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
+
+  if radius * 2 < h then GdipAddPathLineI(path, x, y + h - radius - 1, x, y + radius); // left line
+  GdipAddPathArcI(path, x, y, radius * 2, radius * 2, 180, 90);
+  GdipClosePathFigure(path);
+end;
+//------------------------------------------------------------------------------
+procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: Single);
+begin
+  GdipStartPathFigure(path);
+  if radius * 2 < w then GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y); // top line
   GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
 
-  GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1);
+  if radius * 2 < h then GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1); // right line
   GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
 
-  GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1);
+  if radius * 2 < w then GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1); // bottom line
   GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
 
-  GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius);
+  if radius * 2 < h then GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius); // left line
   GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
   GdipClosePathFigure(path);
 end;
 //------------------------------------------------------------------------------
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer);
+begin
+  AddPathRoundRect(path, rect.X, rect.Y, rect.Width, rect.Height, radius);
+end;
+//------------------------------------------------------------------------------
+procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRectF; radius: Single);
 begin
   AddPathRoundRect(path, rect.X, rect.Y, rect.Width, rect.Height, radius);
 end;
@@ -756,6 +781,27 @@ begin
     except end;
   except
     on e: Exception do raise Exception.Create('LoadImageFromPIDL'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+var
+  ico: HICON;
+begin
+  try
+    image := nil;
+    if fileexists(appFile) then
+    begin
+      ico := GetIconFromFileSH(appFile);
+      if ico <> 0 then
+      begin
+        image := IconToGdipBitmap(ico);
+        DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+      end;
+    end;
+    if image = nil then LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);
+  except
+    on e: Exception do raise Exception.Create('LoadAppImage'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

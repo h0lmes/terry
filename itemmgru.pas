@@ -129,7 +129,7 @@ type
     procedure Save(fsets: string);
 
     // task item procs //
-    procedure Taskbar;
+    procedure Taskbar(LivePreviews, Grouping: boolean);
     procedure ClearTaskbar;
 
     // items //
@@ -1993,7 +1993,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure _ItemManager.Taskbar;
+procedure _ItemManager.Taskbar(LivePreviews, Grouping: boolean);
 var
   idx: integer;
   Inst: TCustomItem;
@@ -2019,7 +2019,8 @@ begin
       end;
       // add task item at the end of list //
       SetDropPlace(NOT_AN_ITEM);
-      HWndItem := AddItem('class="task";', true);
+      HWndItem := AddItem('class="task";livepreviews="' + inttostr(integer(LivePreviews)) +
+        '";grouping="' + inttostr(integer(Grouping)) + '";', true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;
