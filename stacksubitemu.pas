@@ -330,11 +330,12 @@ procedure TShortcutSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle:
 var
   bmp: _SimpleBitmap;
   dst: Pointer;
-  hattr, brush, path, hfont, hfontfamily: Pointer;
+  hattr, brush, path, font, family: Pointer;
   xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
   rect: TRectF;
+  points: array [0..3] of GDIPAPI.TPoint;
 begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
@@ -442,25 +443,35 @@ begin
         xBitmap := -FCaptionWidth div 2;
         yBitmap := FSize div 2 + 3;
       end;
-      //
-      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily);
-      GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
+      // hint background
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := xBitmap - FCaptionHeight div 4;
+      points[0].y := yBitmap - 1;
+      points[1].x := points[0].x + FCaptionWidth - 3 + FCaptionHeight div 2;
+      points[1].y := points[0].y;
+      points[2].x := points[1].x;
+      points[2].y := points[0].y + FCaptionHeight + 1;
+      points[3].x := points[0].x;
+      points[3].y := points[2].y;
+      GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
+      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-      GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-      //
-      GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.backcolor and $ffffff, brush);
-      GdipFillRectangle(dst, brush, xBitmap - FCaptionHeight div 4, yBitmap - 1, FCaptionWidth - 3 + FCaptionHeight div 2, FCaptionHeight + 1);
+      GdipFillPath(dst, brush, path);
       GdipDeleteBrush(brush);
+      GdipDeletePath(path);
       //
       rect.X := xBitmap;
       rect.Y := yBitmap;
       rect.Width := FCaptionWidth;
       rect.Height := FCaptionHeight;
-      GdipCreateSolidFill(AHintAlpha * $1000000 + FFont.color and $ffffff, brush);
-      GdipDrawString(dst, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, brush);
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+      GdipCreateFont(family, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
+      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.color and $ffffff, brush);
+      GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+      GdipDrawString(dst, PWideChar(WideString(FCaption)), -1, font, @rect, nil, brush);
       GdipDeleteBrush(brush);
-      GdipDeleteFont(hfont);
-      GdipDeleteFontFamily(hfontfamily);
+      GdipDeleteFont(font);
+      GdipDeleteFontFamily(family);
       //
       GdipResetWorldTransform(dst);
     end;

@@ -911,6 +911,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.UpdateRunning;
 begin
+  if not IsLockedMouseEffect then
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
     if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;

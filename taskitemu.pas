@@ -82,11 +82,16 @@ var
 begin
   if FFreed or (not FGrouping and (FAppList.Count > 0)) then exit;
 
-  // check window process name
-  ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
-  if FProcName = '' then FProcName := ProcName;
+  if FAppList.Count = 0 then
+  begin
+    FAppList.Add(pointer(hwnd));
+    FProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
+    UpdateItemInternal;
+    exit;
+  end;
 
   // if window belong to the same process
+  ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
   if ProcName <> '' then
     if ProcName = FProcName then
     begin

@@ -504,17 +504,32 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowsCount: integer;
 begin
-  result := listAppWindows.count;
+  crsection.Acquire;
+  try
+    result := listAppWindows.count;
+  finally
+    crsection.Leave;
+  end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowHandle(index: integer): THandle;
 begin
-  result := THandle(listAppWindows.items[index]);
+  crsection.Acquire;
+  try
+    result := THandle(listAppWindows.items[index]);
+  finally
+    crsection.Leave;
+  end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowIndex(h: THandle): integer;
 begin
-  result := listAppWindows.IndexOf(pointer(h));
+  crsection.Acquire;
+  try
+    result := listAppWindows.IndexOf(pointer(h));
+  finally
+    crsection.Leave;
+  end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
@@ -536,6 +551,7 @@ var
 begin
   GetWindowThreadProcessId(h, @wtpid);
   result := GetFullName(IndexOfPIDFullName(wtpid));
+  if result = '' then result := GetName(IndexOfPID(wtpid));
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetWindowClassName(h: THandle): string;

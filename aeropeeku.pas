@@ -11,12 +11,11 @@ type
   TAeroPeekWindowItem = packed record
     hwnd: THandle;            // target window handle
     ThumbnailId: THandle;     // live preview thumbnail handle
-    rect: windows.TRect;      // whole item rect
-    rectSel: windows.TRect;   // whole item selection rect
+    rect: windows.TRect;      // item bounds rect
+    rectSel: windows.TRect;   // item selection rect
     rectTitle: windows.TRect; // window title rect
     rectThumb: windows.TRect; // live thumbnail rect
     rectClose: windows.TRect; // close button rect
-    Foreground: boolean;
   end;
 
   { TAeroPeekWindow }
@@ -27,7 +26,6 @@ type
     WindowClassInstance: uint;
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
-    FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
     Fx: integer;
     Fy: integer;
     FXTarget: integer;
@@ -36,11 +34,11 @@ type
     FHeight: integer;
     FWTarget: integer;
     FHTarget: integer;
+    FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
     FTitleHeight: integer;
     FRadius: integer;
     FCloseButtonSize: integer;
     FCloseButtonOffset: integer;
-    FCloseButtonDownIndex: integer;
     FActivating: boolean;
     FActive: boolean;
     FHostWnd: THandle;
@@ -48,6 +46,7 @@ type
     FSite: integer;
     FWorkArea: windows.TRect;
     FAnimate: boolean;
+    FCloseButtonDownIndex: integer;
     FForegroundWindowIndex: integer;
     FColor1, FColor2: cardinal;
     FCompositionEnabled: boolean;
