@@ -344,13 +344,20 @@ begin
   if not FFreed then
     if AHover then
     begin
-      if TAeroPeekWindow.IsActive then ShowPeekWindow(200) else ShowPeekWindow(800);
+      if TAeroPeekWindow.IsActive then
+      begin
+        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow
+        else ShowPeekWindow(200);
+      end
+      else ShowPeekWindow(800);
     end else begin
       ClosePeekWindow(800);
     end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
+var
+  idx: integer;
 begin
   if FFreed then exit;
 

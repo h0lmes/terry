@@ -122,7 +122,7 @@ var
   wa: Windows.TRect;
   bmp: _SimpleBitmap;
   mi: MONITORINFO;
-  points: array [0..2] of GDIPAPI.TPoint;
+  points: array [0..3] of GDIPAPI.TPoint;
 begin
   if IsWindow(hWnd) then
   try
@@ -131,8 +131,7 @@ begin
       wnd_owner := hwndOwner;
       Caption := caption_;
       CopyFontData(sets.container.Font, FFont);
-      FBorder := 0;
-      if (ASite = bsTop) or (ASite = bsBottom) then FBorder := 7;
+      FBorder := 7;
 
       // measure string //
       bmp.dc := CreateCompatibleDC(0);
@@ -203,29 +202,18 @@ begin
       GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
       GdipTranslateWorldTransform(hgdip, FBorder, FBorder, MatrixOrderPrepend);
-
       GdipCreatePath(FillModeWinding, path);
-      GdipAddPathRectangleI(path, 0, 0, awidth, aheight);
-      if ASite = bsBottom then
-      begin
-        points[0].x := awidth div 2;
-        points[0].y := aheight + FBorder - 1;
-        points[1].x := awidth div 2 - 2;
-        points[1].y := aheight;
-        points[2].x := awidth div 2 + min(15, awidth div 2);
-        points[2].y := aheight;
-        GdipAddPathPolygonI(path, @points, 3);
-      end;
-      if ASite = bsTop then
-      begin
-        points[0].x := awidth div 2;
-        points[0].y := -FBorder + 1;
-        points[1].x := awidth div 2 - 2;
-        points[1].y := 0;
-        points[2].x := awidth div 2 + min(15, awidth div 2);
-        points[2].y := 0;
-        GdipAddPathPolygonI(path, @points, 3);
-      end;
+      // compose path
+      points[0].x := 0;
+      points[0].y := 0;
+      points[1].x := aWidth;
+      points[1].y := 0;
+      points[2].x := aWidth;
+      points[2].y := aHeight;
+      points[3].x := 0;
+      points[3].y := aHeight;
+      GdipAddPathClosedCurve2I(path, points, 4, 15 / aWidth);
+      // fill
       GdipCreateSolidFill($ff000000 + FFont.backcolor and $ffffff, brush);
       GdipFillPath(hgdip, brush, path);
       GdipDeleteBrush(brush);

@@ -24,6 +24,8 @@ type
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
     queryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
     // processes //
+    procedure ActivateMDIWindow(h: THandle);
+    procedure CloseMDIWindow(h: THandle);
     function IndexOf(Name: string): integer;
     function IndexOfFullName(Name: string): integer;
     function IndexOfPID(pid: dword): integer;
@@ -31,6 +33,7 @@ type
     function GetName(index: integer): string;
     function GetFullName(index: integer): string;
     function GetFullNameByPID(pid: uint): string;
+    function IsMDIWindow(h: THandle): boolean;
   public
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
@@ -284,6 +287,7 @@ begin
       if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
       if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
       if windows.GetWindowText(h, ch, 10) < 1 then exit;
+      if GetProp(h, 'ITaskList_Deleted') <> 0 then exit;
     end;
 
     helper.listAppWindows.Add(pointer(h));
@@ -374,8 +378,19 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+function TProcessHelper.IsMDIWindow(h: THandle): boolean;
+begin
+  result := GetWindowLong(h, GWL_EXSTYLE) and WS_EX_MDICHILD <> 0;
+end;
+//------------------------------------------------------------------------------
 procedure TProcessHelper.ActivateWindow(h: THandle);
 begin
+  if IsMDIWindow(h) then
+  begin
+    ActivateMDIWindow(h);
+    exit;
+  end;
+
   if IsWindowVisible(h) and not IsIconic(h) then
   begin
     if WindowOnTop(h) then
@@ -392,9 +407,32 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TProcessHelper.ActivateMDIWindow(h: THandle);
+var
+  parent: THandle;
+begin
+  parent := GetParent(h);
+  if parent <> 0 then SendMessage(parent, WM_MDIACTIVATE, h, 0)
+end;
+//------------------------------------------------------------------------------
 procedure TProcessHelper.CloseWindow(h: THandle);
 begin
+  if IsMDIWindow(h) then
+  begin
+    CloseMDIWindow(h);
+    exit;
+  end;
+
   postmessage(h, WM_SYSCOMMAND, SC_CLOSE, 0);
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.CloseMDIWindow(h: THandle);
+var
+  parent: THandle;
+begin
+  ActivateMDIWindow(h);
+  parent := GetParent(h);
+  if parent <> 0 then SendMessage(parent, WM_MDIDESTROY, h, 0)
 end;
 //------------------------------------------------------------------------------
 // ProcessName - path and file name

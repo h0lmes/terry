@@ -467,7 +467,7 @@ end;
 procedure TAeroPeekWindow.Paint;
 var
   bmp: _SimpleBitmap;
-  hgdip, brush, pen, path, epath, family, font, format: Pointer;
+  hgdip, brush, pen, path, shadow_path, family, font, format: Pointer;
   titleRect: GDIPAPI.TRectF;
   rect: GDIPAPI.TRect;
   pt: GDIPAPI.TPoint;
@@ -496,23 +496,23 @@ begin
     if FShadow > 0 then
     begin
       // FShadow path
-      GdipCreatePath(FillModeWinding, epath);
-      AddPathRoundRect(epath, 0, 0, FWidth, FHeight, trunc(FRadius * 2.5));
+      GdipCreatePath(FillModeWinding, shadow_path);
+      AddPathRoundRect(shadow_path, 0, 0, FWidth, FHeight, trunc(FRadius * 2.5));
       GdipSetClipPath(hgdip, path, CombineModeReplace);
-      GdipSetClipPath(hgdip, epath, CombineModeComplement);
+      GdipSetClipPath(hgdip, shadow_path, CombineModeComplement);
       // FShadow gradient
-      GdipCreatePathGradientFromPath(epath, brush);
+      GdipCreatePathGradientFromPath(shadow_path, brush);
       GdipSetPathGradientCenterColor(brush, $ff000000);
       shadowEndColor[0] := 0;
       count := 1;
       GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
       pt := MakePoint(FWidth div 2 + 1, FHeight div 2 + 1);
       GdipSetPathGradientCenterPointI(brush, @pt);
-      GdipSetPathGradientFocusScales(brush, 1 - 0.25 * FHeight / FWidth, 1 - 0.25);
-      GdipFillPath(hgdip, brush, epath);
+      GdipSetPathGradientFocusScales(brush, 1 - FShadow / FWidth * 5, 1 - FShadow / FHeight * 5);
+      GdipFillPath(hgdip, brush, shadow_path);
       GdipResetClip(hgdip);
       GdipDeleteBrush(brush);
-      GdipDeletePath(epath);
+      GdipDeletePath(shadow_path);
     end;
 
     // background fill
