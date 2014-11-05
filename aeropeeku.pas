@@ -342,9 +342,9 @@ begin
   maxw := 0;
   maxh := 0;
 
+  FWorkArea := GetMonitorRect(FMonitor);
   if FCompositionEnabled then
   begin
-    FWorkArea := GetMonitorRect(FMonitor);
     FBorder := 22;
     FShadow := 8;
     FTitleHeight := 30;

@@ -345,6 +345,7 @@ begin
       KillTimer(handle, ID_TIMER);
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
+      TAeroPeekWindow.Cleanup;
       if assigned(DropMgr) then DropMgr.Destroy;
       DropMgr := nil;
       if assigned(ItemMgr) then ItemMgr.Free;
@@ -357,7 +358,6 @@ begin
       sets := nil;
       TProcessHelper.Cleanup;
       TNotifier.Cleanup;
-      TAeroPeekWindow.Cleanup;
       if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
       LockList.free;
       // reset window proc
@@ -408,6 +408,7 @@ begin
     ItemMgr.SetParam(gpLockDragging, integer(sets.container.LockDragging));
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
+    ItemMgr.SetParam(gpTaskbarSameMonitor, integer(sets.container.TaskbarSameMonitor));
 
     ItemMgr.SetFont(sets.container.Font);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
@@ -513,9 +514,6 @@ begin
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
     gpBlur:                   BasePaint(1);
-    gpTaskbar:                if value = 0 then ItemMgr.ClearTaskbar;
-    gpTaskbarLivePreviews:    ItemMgr.ClearTaskbar;
-    gpTaskbarGrouping:        ItemMgr.ClearTaskbar;
     gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
   end;
 

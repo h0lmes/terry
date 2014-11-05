@@ -35,6 +35,7 @@ type
     Taskbar: boolean;
     TaskbarLivePreviews: boolean;
     TaskbarGrouping: boolean;
+    TaskbarSameMonitor: boolean;
     StayOnTop: boolean;
     ShowHint: boolean;
     HintEffects: boolean;
@@ -176,6 +177,7 @@ begin
   container.Taskbar := ini.ReadBool('base', 'Taskbar', false);
   container.TaskbarLivePreviews := ini.ReadBool('base', 'TaskbarLivePreviews', true);
   container.TaskbarGrouping := ini.ReadBool('base', 'TaskbarGrouping', true);
+  container.TaskbarSameMonitor := ini.ReadBool('base', 'TaskbarSameMonitor', false);
   container.StayOnTop := ini.ReadBool('base', 'StayOnTop', false);
   container.LockDragging := ini.ReadBool('base', 'LockDragging', true);
   container.ShowHint := ini.ReadBool('base', 'ShowHint', true);
@@ -266,6 +268,7 @@ begin
   ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
   ini.WriteBool   ('base', 'TaskbarLivePreviews', container.TaskbarLivePreviews);
   ini.WriteBool   ('base', 'TaskbarGrouping', container.TaskbarGrouping);
+  ini.WriteBool   ('base', 'TaskbarSameMonitor', container.TaskbarSameMonitor);
   ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
   ini.WriteBool   ('base', 'LockDragging', container.LockDragging);
   ini.WriteBool   ('base', 'ShowHint', container.ShowHint);
@@ -397,6 +400,7 @@ begin
   gpTaskbar: container.Taskbar := boolean(value);
   gpTaskbarLivePreviews: container.TaskbarLivePreviews := boolean(value);
   gpTaskbarGrouping: container.TaskbarGrouping := boolean(value);
+  gpTaskbarSameMonitor: container.TaskbarSameMonitor := boolean(value);
   gpStayOnTop: container.StayOnTop := boolean(value);
   gpShowHint: container.ShowHint := boolean(value);
   gpHintEffects: container.HintEffects := boolean(value);
@@ -447,6 +451,7 @@ begin
   gpTaskbar: result := integer(container.Taskbar);
   gpTaskbarLivePreviews: result := integer(container.TaskbarLivePreviews);
   gpTaskbarGrouping: result := integer(container.TaskbarGrouping);
+  gpTaskbarSameMonitor: result := integer(container.TaskbarSameMonitor);
   gpStayOnTop: result := integer(container.StayOnTop);
   gpShowHint: result := integer(container.ShowHint);
   gpHintEffects: result := integer(container.HintEffects);
@@ -501,6 +506,7 @@ begin
   dst.Taskbar := src.Taskbar;
   dst.TaskbarLivePreviews := src.TaskbarLivePreviews;
   dst.TaskbarGrouping := src.TaskbarGrouping;
+  dst.TaskbarSameMonitor := src.TaskbarSameMonitor;
   dst.StayOnTop := src.StayOnTop;
   dst.ShowHint := src.ShowHint;
   dst.HintEffects := src.HintEffects;

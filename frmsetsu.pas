@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
   Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc,
-  declu, toolu, gdip_gfx, GDIPAPI, dwm_unit, DividerBevel;
+  declu, toolu, gdip_gfx, GDIPAPI, dwm_unit, DividerBevel, types;
 
 type
 
@@ -31,6 +31,7 @@ type
     chbTaskbar: TCheckBox;
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
+    chbTaskbarSameMonitor: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
@@ -138,6 +139,7 @@ type
     procedure chbTaskbarClick(Sender: TObject);
     procedure chbTaskbarGroupingChange(Sender: TObject);
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
+    procedure chbTaskbarSameMonitorChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btn_cancelClick(Sender: TObject);
@@ -186,6 +188,8 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
+    procedure tsGeneralContextPopup(Sender: TObject; MousePos: TPoint;
+      var Handled: Boolean);
   private
     AutorunListChanged: boolean;
     FFont: _FontData;
@@ -322,6 +326,9 @@ begin
   chbTaskbarGrouping.OnChange := nil;
   chbTaskbarGrouping.Checked := sets.container.TaskbarGrouping;
   chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
+  chbTaskbarSameMonitor.OnChange := nil;
+  chbTaskbarSameMonitor.Checked := sets.container.TaskbarSameMonitor;
+  chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
 
   //
   // расположение //
@@ -650,6 +657,11 @@ begin
   frmmain.SetParam(gpTaskbarLivePreviews, integer(chbTaskbarLivePreviews.Checked));
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.chbTaskbarSameMonitorChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpTaskbarSameMonitor, integer(chbTaskbarSameMonitor.Checked));
+end;
+//------------------------------------------------------------------------------
 //
 //
 //
@@ -957,6 +969,13 @@ begin
     free;
   end;
 end;
+
+procedure Tfrmsets.tsGeneralContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnAutoRunAddMinimizedClick(Sender: TObject);
 begin

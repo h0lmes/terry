@@ -21,6 +21,7 @@ type
     gpTaskbar,
     gpTaskbarLivePreviews,
     gpTaskbarGrouping,
+    gpTaskbarSameMonitor,
     gpSite,
     gpAutoHide,
     gpAutoHideTime,

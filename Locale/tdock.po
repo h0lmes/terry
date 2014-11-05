@@ -236,6 +236,7 @@ msgid "Icons"
 msgstr ""
 
 #: declu.xpagemisc
+msgctxt "declu.xpagemisc"
 msgid "Misc"
 msgstr ""
 
@@ -752,6 +753,10 @@ msgctxt "TFRMSETS.CHBTASKBARLIVEPREVIEWS.CAPTION"
 msgid "Show live previews (when available)"
 msgstr ""
 
+#: tfrmsets.chbtaskbarsamemonitor.caption
+msgid "Show only tasks from the same monitor"
+msgstr ""
+
 #: tfrmsets.chb_activate_running.caption
 msgid "Activate program if already running"
 msgstr ""
@@ -924,7 +929,8 @@ msgid "Style"
 msgstr ""
 
 #: tfrmsets.tssystem.caption
-msgid "System"
+msgctxt "tfrmsets.tssystem.caption"
+msgid "Misc"
 msgstr ""
 
 #: tfrmstackprop.bbaddicon.hint

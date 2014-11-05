@@ -259,7 +259,8 @@ msgstr "Тема сохранена"
 #| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
 #| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
 #| "parameters changed. If you choose to proceed all changes will be lost. "
-#| "Proceed?"
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?"
 msgid ""
 "Icon parameters changed. If you choose to proceed all changes will be lost. "
 "Proceed?"
@@ -297,6 +298,7 @@ msgid "Icons"
 msgstr "Значки"
 
 #: declu.xpagemisc
+msgctxt "declu.xpagemisc"
 msgid "Misc"
 msgstr "Разное"
 
@@ -841,6 +843,10 @@ msgctxt "tfrmsets.chbtaskbarlivepreviews.caption"
 msgid "Show live previews (when available)"
 msgstr "Показывать миниатюры (когда доступно)"
 
+#: tfrmsets.chbtaskbarsamemonitor.caption
+msgid "Show only tasks from the same monitor"
+msgstr "Показывать только программы с этого монитора"
+
 #: tfrmsets.chb_activate_running.caption
 msgctxt "TFRMSETS.CHB_ACTIVATE_RUNNING.CAPTION"
 msgid "Activate program if already running"
@@ -977,6 +983,7 @@ msgstr "Монитор:"
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
+#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
 #| "mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
 msgid ""
@@ -1045,9 +1052,10 @@ msgid "Style"
 msgstr "Стиль"
 
 #: tfrmsets.tssystem.caption
+#| msgid "System"
 msgctxt "TFRMSETS.TSSYSTEM.CAPTION"
-msgid "System"
-msgstr "Система"
+msgid "Misc"
+msgstr "Разное"
 
 #: tfrmstackprop.bbaddicon.hint
 msgctxt "tfrmstackprop.bbaddicon.hint"

@@ -39,6 +39,7 @@ type
     UseShellContextMenus: boolean;
     ShowHint: boolean;
     StackOpenAnimation: boolean;
+    FTaskbarSameMonitor: boolean;
     FFont: _FontData;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
@@ -257,7 +258,7 @@ begin
           ItemSize := value;
           ItemsChanged(true);
         end;
-      gpBigItemSize: BigItemSize := value;
+      gpBigItemSize:            BigItemSize := value;
       gpZoomWidth:
         begin
           ZoomWidth := value;
@@ -294,8 +295,8 @@ begin
           FEdgeOffset := value;
           ItemsChanged;
         end;
-      gpDropDistance: DropDistance := value;
-      gpLockDragging: LockDragging := boolean(value);
+      gpDropDistance:           DropDistance := value;
+      gpLockDragging:           LockDragging := boolean(value);
       gpReflection:
         begin
           Reflection := boolean(value);
@@ -306,14 +307,22 @@ begin
           ReflectionSize := value;
           ItemsChanged(true);
         end;
-      gpItemAnimation: ItemAnimation := value;
-      gpLaunchInterval: LaunchInterval := value;
-      gpActivateRunning: ActivateRunning := value <> 0;
-      gpUseShellContextMenus: UseShellContextMenus := value <> 0;
-      gpShowHint: ShowHint := value <> 0;
-      gpStackOpenAnimation: StackOpenAnimation := value <> 0;
-      gpZoomTime: ZoomTime := value;
-      gpLockMouseEffect: LockMouseEffect := value <> 0;
+      gpTaskbar:                if value = 0 then ClearTaskbar;
+      gpTaskbarLivePreviews:    ClearTaskbar;
+      gpTaskbarGrouping:        ClearTaskbar;
+      gpTaskbarSameMonitor:
+        begin
+          FTaskbarSameMonitor := value <> 0;
+          ClearTaskbar;
+        end;
+      gpItemAnimation:          ItemAnimation := value;
+      gpLaunchInterval:         LaunchInterval := value;
+      gpActivateRunning:        ActivateRunning := value <> 0;
+      gpUseShellContextMenus:   UseShellContextMenus := value <> 0;
+      gpShowHint:               ShowHint := value <> 0;
+      gpStackOpenAnimation:     StackOpenAnimation := value <> 0;
+      gpZoomTime:               ZoomTime := value;
+      gpLockMouseEffect:        LockMouseEffect := value <> 0;
     end;
   except
     on e: Exception do err('ItemManager.SetParam', e);
@@ -525,8 +534,11 @@ begin
     for idx := 0 to itemsDeleted.Count - 1 do
     begin
       Inst := TCustomItem(GetWindowLong(THandle(itemsDeleted.Items[idx]), GWL_USERDATA));
-      Inst.Freed := true;
-      FreeAndNil(Inst);
+      if Inst is TCustomItem then
+      begin
+        Inst.Freed := true;
+        FreeAndNil(Inst);
+      end;
     end;
     itemsDeleted.Clear;
   except
@@ -1999,15 +2011,18 @@ var
   Inst: TCustomItem;
   index: integer;
   HWndTask, HWndItem: THandle;
+  check: boolean;
 begin
   // add items //
   idx := 0;
   while idx < ProcessHelper.GetAppWindowsCount do
   begin
     HWndTask := ProcessHelper.GetAppWindowHandle(idx);
-    //index := 0;
-    //if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then
-      index := GetTaskItemIndex(HWndTask);
+    index := 0;
+    check := not FTaskbarSameMonitor;
+    if FTaskbarSameMonitor then
+      if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then check := true;
+    if check then index := GetTaskItemIndex(HWndTask);
     // there is no item for the window
     if index = -1 then
     begin
