@@ -69,7 +69,7 @@ type
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
     procedure SetCaption(value: string);
-    procedure UpdateHint(Ax: integer = -100000; Ay: integer = -100000);
+    procedure UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
     function GetRectFromSize(ASize: integer): windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
@@ -170,8 +170,8 @@ begin
   FEnabled := true;
   FCanDrag := true;
   FCaption := '';
-  Fx:= -100000;
-  Fy:= -100000;
+  Fx:= -32000;
+  Fy:= -32000;
   FSize:= 32;
   FCaption := '';
   FUpdating:= false;
@@ -393,7 +393,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.UpdateHint(Ax: integer = -100000; Ay: integer = -100000);
+procedure TCustomItem.UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
 var
   hx, hy: integer;
   wrect, baserect: windows.TRect;
@@ -409,7 +409,7 @@ begin
       exit;
     end;
 
-    if (Ax <> -100000) and (Ay <> -100000) then
+    if (Ax <> -32000) and (Ay <> -32000) then
     begin
       wRect := Rect;
       hx := Ax + wRect.Left + FSize div 2;
@@ -565,7 +565,7 @@ begin
         end
         else if msg = wm_mousemove then
         begin
-              // undock item (the only place in whole code to undock) //
+              // undock item (the only place to undock) //
               if (FCanDrag and not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
               begin
                 if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
@@ -574,12 +574,12 @@ begin
                   dockh.Undock(FHWnd);
                 end;
               end;
-              {// dock item //
+              // just in case - dock item //
               if FFloating and (wParam and MK_LBUTTON = 0) then
               begin
                 cmd(icFloat, 0);
                 dockh.Dock(FHWnd);
-              end;}
+              end;
         end
         else if msg = wm_exitsizemove then
         begin

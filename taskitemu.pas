@@ -247,8 +247,8 @@ begin
         // background
         rect.Width := FItemSize / 2;
         rect.Height := FItemSize / 3;
-        rect.X := ItemRect.Right - rect.Width;
-        rect.Y := ItemRect.Top;
+        rect.X := ItemRect.Right - rect.Width + 1;
+        rect.Y := ItemRect.Top - 1;
         GdipCreatePath(FillModeWinding, path);
         AddPathRoundRect(path, rect, rect.Height / 2);
         GdipCreateSolidFill($ffff0000, brush);
