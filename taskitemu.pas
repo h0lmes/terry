@@ -18,6 +18,7 @@ type
     FIsOpen: boolean;
     FGrouping: boolean;
     FLivePreviews: boolean;
+    FScheduled: boolean;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CheckAppList;
@@ -38,6 +39,7 @@ type
     procedure MouseHover(AHover: boolean); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
+    procedure Timer; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
   end;
 
@@ -49,6 +51,7 @@ begin
   FCanDrag := false;
   FDontSave := true;
   FGrouping := true;
+  FScheduled := false;
   try FGrouping := boolean(strtoint(FetchValue(AData, 'grouping="', '";')));
   except end;
   FLivePreviews := true;
@@ -90,17 +93,15 @@ begin
     exit;
   end;
 
-  // if window belong to the same process
+  if FAppList.IndexOf(pointer(hwnd)) >= 0 then exit;
+
+  // if the window belong to the same process add the window to the list
   ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
   if ProcName <> '' then
     if ProcName = FProcName then
     begin
-      // add the window to the list
-      if FAppList.IndexOf(pointer(hwnd)) < 0 then
-      begin
-        FAppList.Add(pointer(hwnd));
-        UpdateItemInternal;
-      end;
+      FAppList.Add(pointer(hwnd));
+      UpdateItemInternal;
     end;
 end;
 //------------------------------------------------------------------------------
@@ -118,10 +119,10 @@ begin
       // update image
       if FAppList.Count > 0 then
       begin
-        FIW := 0;
-        FIH := 0;
+        FIW := 32;
+        FIH := 32;
         hwnd := THandle(FAppList.Items[0]);
-        LoadAppImage(FProcName, hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 3000);
+        LoadAppImage(FProcName, hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 500);
       end;
       // update caption
       if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd) else Caption := '';
@@ -360,9 +361,29 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
+procedure TTaskItem.Timer;
+begin
+  try
+    inherited;
+    if FFreed or FUpdating then exit;
+
+    if FScheduled then
+    begin
+      FScheduled := false;
+      // validate windows
+      CheckAppList;
+      // update item caption
+      if FAppList.Count = 1 then
+        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+      // delete self if no windows left
+      if FAppList.Count = 0 then Delete;
+    end;
+  except
+    on e: Exception do raise Exception.Create('TaskItem.Timer'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
-var
-  idx: integer;
 begin
   if FFreed then exit;
 
@@ -372,19 +393,8 @@ begin
   // WM_TIMER
   if msg.msg = WM_TIMER then
   begin
-
     // GENERAL TIMER
-    if msg.wParam = ID_TIMER then
-    begin
-      // validate windows
-      CheckAppList;
-      // update item caption
-      if FAppList.Count = 1 then
-        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
-      // delete self if no windows left
-      if FAppList.Count = 0 then Delete;
-    end;
-
+    if msg.wParam = ID_TIMER then FScheduled := true;
     // "OPEN" TIMER
     if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
   end;

@@ -2013,33 +2013,37 @@ var
   HWndTask, HWndItem: THandle;
   check: boolean;
 begin
-  // add items //
-  idx := 0;
-  while idx < ProcessHelper.GetAppWindowsCount do
-  begin
-    HWndTask := ProcessHelper.GetAppWindowHandle(idx);
-    index := 0;
-    check := not FTaskbarSameMonitor;
-    if FTaskbarSameMonitor then
-      if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then check := true;
-    if check then index := GetTaskItemIndex(HWndTask);
-    // there is no item for the window
-    if index = -1 then
+  try
+    // add items //
+    idx := 0;
+    while idx < ProcessHelper.GetAppWindowsCount do
     begin
-      // if there is no task items yet - add separator
-      if TaskItemCount = 0 then
+      HWndTask := ProcessHelper.GetAppWindowHandle(idx);
+      index := 0;
+      check := not FTaskbarSameMonitor;
+      if FTaskbarSameMonitor then
+        if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then check := true;
+      if check then index := GetTaskItemIndex(HWndTask);
+      // there is no item for the window
+      if index = -1 then
       begin
-        AddItem('class="separator";dontsave="1";candrag="0";', true);
-        inc(TaskItemCount);
+        // if there is no task items yet - add separator
+        if TaskItemCount = 0 then
+        begin
+          AddItem('class="separator";dontsave="1";candrag="0";', true);
+          inc(TaskItemCount);
+        end;
+        // add task item at the end of list //
+        SetDropPlace(NOT_AN_ITEM);
+        HWndItem := AddItem('class="task";livepreviews="' + inttostr(integer(LivePreviews)) +
+          '";grouping="' + inttostr(integer(Grouping)) + '";', true);
+        Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+        if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
       end;
-      // add task item at the end of list //
-      SetDropPlace(NOT_AN_ITEM);
-      HWndItem := AddItem('class="task";livepreviews="' + inttostr(integer(LivePreviews)) +
-        '";grouping="' + inttostr(integer(Grouping)) + '";', true);
-      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
-      if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
+      inc(idx);
     end;
-    inc(idx);
+  except
+    on e: Exception do err('ItemManager.Taskbar', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -2048,18 +2052,22 @@ var
   idx: integer;
   Inst: TCustomItem;
 begin
-  result := -1;
-  idx := 0;
-  while idx < ItemCount do
-  begin
-    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
-    if Inst is TTaskItem then
-      if TTaskItem(Inst).WindowInList(hwnd) then
-      begin
-        result := idx;
-        break;
-      end;
-    inc(idx);
+  try
+    result := -1;
+    idx := 0;
+    while idx < ItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+      if Inst is TTaskItem then
+        if TTaskItem(Inst).WindowInList(hwnd) then
+        begin
+          result := idx;
+          break;
+        end;
+      inc(idx);
+    end;
+  except
+    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
   end;
 end;
 //------------------------------------------------------------------------------

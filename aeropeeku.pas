@@ -11,8 +11,12 @@ type
   TAeroPeekWindowItem = packed record
     hwnd: THandle;            // target window handle
     ThumbnailId: THandle;     // live preview thumbnail handle
+    image: pointer;           // window icon as GDIP bitmap
+    iw: cardinal;             // icon width
+    ih: cardinal;             // icon height
     rect: windows.TRect;      // item bounds rect
     rectSel: windows.TRect;   // item selection rect
+    rectIcon: windows.TRect;  // window icon rect
     rectTitle: windows.TRect; // window title rect
     rectThumb: windows.TRect; // live thumbnail rect
     rectClose: windows.TRect; // close button rect
@@ -34,7 +38,7 @@ type
     FHeight: integer;
     FWTarget: integer;
     FHTarget: integer;
-    FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
+    FIconSize, FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
     FTitleHeight: integer;
     FRadius: integer;
     FCloseButtonSize: integer;
@@ -55,6 +59,7 @@ type
     FLayout: TAPWLayout;
     FItemCount: integer;
     items: array of TAeroPeekWindowItem;
+    procedure ClearImages;
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
@@ -157,9 +162,6 @@ begin
       FWndInstance := MakeObjectInstance(WindowProc);
       FPrevWndProc := Pointer(GetWindowLong(FHWnd, GWL_WNDPROC));
       SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
-
-      //if dwm.CompositionEnabled then dwm.ExtendFrameIntoClientArea(FHWnd, rect(-1,-1,-1,-1));
-      //SetLayeredWindowAttributes(FHWnd, 0, 255, LWA_ALPHA);
     end
     else err('AeroPeekWindow.Create.CreateWindowEx failed', nil);
   except
@@ -204,6 +206,21 @@ begin
     for index := 0 to FItemCount - 1 do dwm.UnregisterThumbnail(items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
+procedure TAeroPeekWindow.ClearImages;
+var
+  index: integer;
+begin
+  if FItemCount > 0 then
+    for index := 0 to FItemCount - 1 do
+      if assigned(items[index].image) then
+      begin
+        GdipDisposeImage(items[index].image);
+        items[index].image := nil;
+        items[index].iw := 0;
+        items[index].ih := 0;
+      end;
+end;
+//------------------------------------------------------------------------------
 function TAeroPeekWindow.OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
@@ -220,6 +237,7 @@ begin
       FAnimate := FCompositionEnabled;
 
       UnRegisterThumbnails;
+      ClearImages;
 
       // read window list
       if AppList.Count = 0 then
@@ -322,7 +340,7 @@ begin
       FActivating := false;
     end;
   except
-    on e: Exception do err('AeroPeekWindow.Message', e);
+    on e: Exception do err('AeroPeekWindow.OpenWindow', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -346,6 +364,7 @@ begin
   begin
     FBorder := 22;
     FShadow := 8;
+    FIconSize := 16;
     FTitleHeight := 30;
     ItemSplit := 16;
     FCloseButtonSize := 17;
@@ -367,6 +386,7 @@ begin
   end else begin
     FBorder := 10;
     FShadow := 0;
+    FIconSize := 16;
     FTitleHeight := 21;
     ItemSplit := 10;
     FCloseButtonSize := 17;
@@ -379,8 +399,12 @@ begin
   SetLength(items, FItemCount);
   if FItemCount > 0 then
   begin
-    // store target windows' handles
-    for index := 0 to FItemCount - 1 do items[index].hwnd := THandle(AppList.Items[index]);
+    // store handles
+    for index := 0 to FItemCount - 1 do
+    begin
+      items[index].hwnd := THandle(AppList.Items[index]);
+      LoadImageFromHWnd(items[index].hwnd, 16, true, false, items[index].image, items[index].iw, items[index].ih, 500);
+    end;
 
     // get max title width (if "no live preview" mode)
     if not FCompositionEnabled then
@@ -433,8 +457,15 @@ begin
       items[index].rectThumb := items[index].rect;
       items[index].rectThumb.Top += FTitleHeight;
 
+      items[index].rectIcon := items[index].rect;
+      items[index].rectIcon.Top += FCloseButtonOffset;
+      items[index].rectIcon.Right := items[index].rectIcon.Left + items[index].iw;
+      items[index].rectIcon.Bottom := items[index].rectIcon.Top + items[index].ih;
+
       items[index].rectTitle := items[index].rect;
-      items[index].rectTitle.Right -= FCloseButtonSize + 5;
+      if assigned(items[index].image) then
+        items[index].rectTitle.Left += items[index].iw + 3;
+      items[index].rectTitle.Right -= FCloseButtonSize + 3;
       items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
 
       items[index].rectClose := items[index].rect;
@@ -548,7 +579,7 @@ begin
       GdipDeletePath(path);
     end;
 
-    // titles, close buttons
+    // icons, titles, close buttons
     GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
     GdipCreateFont(family, FFontSize, 0, 2, font);
     GdipCreateSolidFill($ffffffff, brush);
@@ -556,6 +587,11 @@ begin
     GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap);
     for index := 0 to FItemCount - 1 do
     begin
+      // icon
+      if assigned(items[index].image) then
+        GdipDrawImageRectRectI(hgdip, items[index].image,
+          items[index].rectIcon.Left, items[index].rectIcon.Top, items[index].iw, items[index].ih,
+          0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
       // window title
       titleRect := WinRectToGDIPRectF(items[index].rectTitle);
       GetWindowTextW(items[index].hwnd, title, 255);
@@ -671,11 +707,12 @@ begin
     KillTimer(FHWnd, ID_TIMER_CLOSE);
     KillTimer(FHWnd, ID_TIMER);
     UnRegisterThumbnails;
+    ClearImages;
     ShowWindow(FHWnd, SW_HIDE);
     FActive := false;
     TAeroPeekWindow.Cleanup;
   except
-    on e: Exception do err('AeroPeekWindow.CloseI', e);
+    on e: Exception do err('AeroPeekWindow.CloseWindow', e);
   end;
 end;
 //------------------------------------------------------------------------------

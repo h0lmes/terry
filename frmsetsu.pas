@@ -32,6 +32,7 @@ type
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
+    chbTaskbarNotGroupMultiple: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
@@ -56,11 +57,12 @@ type
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
-    pbox: TPaintBox;
     Panel1: TPanel;
+    pbox: TPaintBox;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
+    tbAeroPeekThumbSize: TTrackBar;
     tbZoomTime: TTrackBar;
     tbReserveScreenEdgePercent: TTrackBar;
     tbIconSpacing: TTrackBar;

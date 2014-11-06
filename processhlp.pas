@@ -41,6 +41,8 @@ type
     class procedure Cleanup;
     constructor Create;
     destructor Destroy; override;
+    procedure EnterCRS;
+    procedure LeaveCRS;
     // processes //
     procedure EnumProc;
     procedure Kill(Name: string);
@@ -116,6 +118,16 @@ begin
   listAppWindows.free;
   crsection.free;
   inherited;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.EnterCRS;
+begin
+  crsection.Acquire;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.LeaveCRS;
+begin
+  crsection.Leave;
 end;
 //------------------------------------------------------------------------------
 //
