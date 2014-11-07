@@ -56,7 +56,7 @@ type
     FFontFamily: string;
     FFontSize: integer;
     FLayout: TAPWLayout;
-    FItemCount: integer;
+    FWindowCount, FProcessCount, FItemCount: integer;
     items: array of TAeroPeekWindowItem;
     procedure ClearImages;
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
@@ -332,7 +332,6 @@ begin
       Paint;
       // set foreground
       SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      SetActiveWindow(FHWnd);
       if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
       FActive := true;
 
@@ -348,9 +347,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.SetItems(AppList: TFPList);
 var
-  index: integer;
+  index, iitem: integer;
   maxw, maxh, position: integer;
   pid, prevpid: dword;
+  separators: boolean;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
@@ -383,20 +383,36 @@ begin
     FSelectionRadius := 2;
   end;
 
+  // count processes
+  FWindowCount := AppList.Count;
+  if FWindowCount > 0 then FProcessCount := 1;
+  index := 0;
+  while index < FWindowCount do
+  begin
+    GetWindowThreadProcessId(THandle(AppList.Items[index]), @pid);
+    if (index > 0) and (pid <> prevpid) then inc(FProcessCount);
+    prevpid := pid;
+    inc(index);
+  end;
+  separators := (FProcessCount > 1) and (FProcessCount < FWindowCount);
+
   // store handles, load icons
   FItemCount := 0;
   index := 0;
-  while index < AppList.Count do
+  prevpid := 0;
+  pid := 0;
+  while index < FWindowCount do
   begin
     inc(FItemCount);
     SetLength(items, FItemCount);
-    items[FItemCount - 1].hwnd := THandle(AppList.Items[index]);
-    GetWindowThreadProcessId(items[FItemCount - 1].hwnd, @pid);
+    iitem := FItemCount - 1;
+    items[iitem].hwnd := THandle(AppList.Items[index]);
+    if separators then GetWindowThreadProcessId(items[iitem].hwnd, @pid);
     if (index > 0) and (pid <> prevpid) then
     begin
-      items[FItemCount - 1].hwnd := 0;
+      items[iitem].hwnd := 0;
     end else begin
-      LoadImageFromHWnd(items[FItemCount - 1].hwnd, FIconSize, true, false, items[FItemCount - 1].image, items[FItemCount - 1].iw, items[FItemCount - 1].ih, 500);
+      LoadImageFromHWnd(items[iitem].hwnd, FIconSize, true, false, items[iitem].image, items[iitem].iw, items[iitem].ih, 500);
       inc(index);
     end;
     prevpid := pid;
@@ -495,7 +511,7 @@ begin
         items[index].rectTitle := items[index].rect;
         if assigned(items[index].image) then
           items[index].rectTitle.Left += items[index].iw + 3;
-        items[index].rectTitle.Right -= FCloseButtonSize + 3;
+        items[index].rectTitle.Right -= FCloseButtonSize + 1;
         items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
 
         items[index].rectIcon := items[index].rect;

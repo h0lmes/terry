@@ -787,12 +787,14 @@ end;
 procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 var
   ico: HICON;
+  iIcon: word;
 begin
   try
     image := nil;
     if fileexists(appFile) then
     begin
       ico := GetIconFromFileSH(appFile);
+      if ico = 0 then ico := ExtractAssociatedIcon(hInstance, pchar(appFile), @iIcon);
       if ico <> 0 then
       begin
         image := IconToGdipBitmap(ico);
@@ -859,7 +861,7 @@ end;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   icoIndex: integer;
-  idx: word;
+  iIcon: word;
   ico: HICON;
   ext: string;
 begin
@@ -871,7 +873,7 @@ begin
     imagefile := UnzipPath(imagefile);
     icoIndex := 0;
     if trystrtoint(cutafterlast(imagefile, ','), icoIndex) then imagefile := cuttolast(imagefile, ',');
-    idx := icoIndex;
+    iIcon := icoIndex;
 
     if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin
@@ -889,7 +891,7 @@ begin
         ico := GetIconFromFileSH(imagefile);
         if ico = 0 then
         begin
-          ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @idx);
+          ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @iIcon);
           image := IconToGdipBitmap(ico);
           DeleteObject(ico);
         end else begin
