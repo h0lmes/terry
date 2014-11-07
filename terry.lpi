@@ -108,13 +108,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="328"/>
-        <CursorPos X="103" Y="348"/>
+        <TopLine Value="735"/>
+        <CursorPos X="13" Y="753"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
@@ -219,7 +216,7 @@
         <UnitName Value="gdip_gfx"/>
         <WindowIndex Value="0"/>
         <TopLine Value="807"/>
-        <CursorPos X="32" Y="829"/>
+        <CursorPos X="40" Y="818"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit14>
@@ -281,7 +278,7 @@
         <UnitName Value="hintu"/>
         <WindowIndex Value="0"/>
         <TopLine Value="191"/>
-        <CursorPos X="7" Y="215"/>
+        <CursorPos X="65" Y="203"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit20>
@@ -342,7 +339,7 @@
         <UnitName Value="notifieru"/>
         <WindowIndex Value="0"/>
         <TopLine Value="225"/>
-        <CursorPos X="32" Y="253"/>
+        <CursorPos X="70" Y="242"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit26>
@@ -426,8 +423,8 @@
         <UnitName Value="taskitemu"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="97"/>
-        <CursorPos X="30" Y="115"/>
+        <TopLine Value="91"/>
+        <CursorPos X="36" Y="366"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -599,8 +596,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1040"/>
-        <CursorPos X="55" Y="453"/>
+        <TopLine Value="439"/>
+        <CursorPos X="63" Y="470"/>
         <UsageCount Value="201"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit50>
@@ -634,10 +631,10 @@
         <Filename Value="processhlp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="processhlp"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="18"/>
-        <CursorPos X="32" Y="24"/>
+        <TopLine Value="253"/>
+        <CursorPos X="52" Y="270"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -721,9 +718,9 @@
         <Filename Value="GDIPAPI.pas"/>
         <UnitName Value="GDIPAPI"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="4203"/>
-        <CursorPos X="48" Y="4216"/>
-        <UsageCount Value="25"/>
+        <TopLine Value="541"/>
+        <CursorPos X="39" Y="560"/>
+        <UsageCount Value="26"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit65>
       <Unit66>
@@ -1071,9 +1068,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="360"/>
-        <CursorPos X="36" Y="364"/>
-        <UsageCount Value="159"/>
+        <TopLine Value="417"/>
+        <CursorPos X="74" Y="439"/>
+        <UsageCount Value="167"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit109>
@@ -1085,127 +1082,123 @@
         <UsageCount Value="2"/>
       </Unit110>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="536" Column="41" TopLine="508"/>
+        <Caret Line="380" Column="62" TopLine="344"/>
       </Position1>
       <Position2>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="540" Column="50" TopLine="512"/>
+        <Caret Line="385" Column="12" TopLine="348"/>
       </Position2>
       <Position3>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="94" Column="43" TopLine="75"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="441" Column="42" TopLine="419"/>
       </Position3>
       <Position4>
-        <Filename Value="processhlp.pas"/>
-        <Caret Line="124" Column="22" TopLine="104"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="442" Column="41" TopLine="419"/>
       </Position4>
       <Position5>
-        <Filename Value="processhlp.pas"/>
-        <Caret Line="130" Column="20" TopLine="104"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="444" Column="42" TopLine="419"/>
       </Position5>
       <Position6>
-        <Filename Value="processhlp.pas"/>
-        <Caret Line="120" Column="33" TopLine="103"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="445" Column="41" TopLine="419"/>
       </Position6>
       <Position7>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="519" Column="31" TopLine="502"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="485" Column="26" TopLine="454"/>
       </Position7>
       <Position8>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2051" Column="19" TopLine="2043"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="486" Column="26" TopLine="454"/>
       </Position8>
       <Position9>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="568" Column="22" TopLine="560"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="488" Column="26" TopLine="454"/>
       </Position9>
       <Position10>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="86" Column="12" TopLine="1"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="489" Column="26" TopLine="454"/>
       </Position10>
       <Position11>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="16" Column="14" TopLine="1"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="41" Column="34" TopLine="18"/>
       </Position11>
       <Position12>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="60" Column="12" TopLine="31"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="363" Column="19" TopLine="350"/>
       </Position12>
       <Position13>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="91" Column="14" TopLine="62"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="364" Column="12" TopLine="350"/>
       </Position13>
       <Position14>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="85" Column="27" TopLine="81"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="374" Column="70" TopLine="350"/>
       </Position14>
       <Position15>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="91" Column="14" TopLine="81"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="379" Column="63" TopLine="350"/>
       </Position15>
       <Position16>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="101" Column="28" TopLine="81"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="371" Column="62" TopLine="350"/>
       </Position16>
       <Position17>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="126" Column="31" TopLine="97"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="374" Column="69" TopLine="350"/>
       </Position17>
       <Position18>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="316" Column="50" TopLine="287"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="379" Column="62" TopLine="350"/>
       </Position18>
       <Position19>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="102" Column="48" TopLine="105"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="381" Column="63" TopLine="350"/>
       </Position19>
       <Position20>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="115" Column="30" TopLine="97"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="386" Column="12" TopLine="350"/>
       </Position20>
       <Position21>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="210" Column="11" TopLine="194"/>
+        <Caret Line="387" Column="12" TopLine="350"/>
       </Position21>
       <Position22>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="220" Column="30" TopLine="193"/>
+        <Caret Line="440" Column="45" TopLine="418"/>
       </Position22>
       <Position23>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="349" Column="20" TopLine="326"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="443" Column="42" TopLine="418"/>
       </Position23>
       <Position24>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="348" Column="20" TopLine="325"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="444" Column="41" TopLine="418"/>
       </Position24>
       <Position25>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="347" Column="20" TopLine="324"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="446" Column="42" TopLine="418"/>
       </Position25>
       <Position26>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="349" Column="20" TopLine="326"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="447" Column="41" TopLine="418"/>
       </Position26>
       <Position27>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="348" Column="20" TopLine="325"/>
+        <Filename Value="taskitemu.pas"/>
+        <Caret Line="141" Column="9" TopLine="119"/>
       </Position27>
       <Position28>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="347" Column="20" TopLine="324"/>
+        <Filename Value="taskitemu.pas"/>
+        <Caret Line="366" Column="36" TopLine="91"/>
       </Position28>
       <Position29>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="349" Column="20" TopLine="326"/>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="463" Column="70" TopLine="434"/>
       </Position29>
-      <Position30>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="350" Column="20" TopLine="327"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

@@ -239,7 +239,7 @@ begin
     if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+    GdipSetTextRenderingHint(hgdip, TextRenderingHintClearTypeGridFit);
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
   except
     on e: Exception do

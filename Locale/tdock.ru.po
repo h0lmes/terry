@@ -815,10 +815,6 @@ msgctxt "tfrmsets.chbtaskbarlivepreviews.caption"
 msgid "Show live previews (when available)"
 msgstr "Показывать миниатюры (когда доступно)"
 
-#: tfrmsets.chbtaskbarnotgroupmultiple.caption
-msgid "Do not group tasks with multiple windows"
-msgstr ""
-
 #: tfrmsets.chbtaskbarsamemonitor.caption
 msgid "Show only tasks from the same monitor"
 msgstr "Показывать только программы с этого монитора"

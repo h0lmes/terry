@@ -19,6 +19,7 @@ type
     FGrouping: boolean;
     FLivePreviews: boolean;
     FScheduled: boolean;
+    procedure UpdateImage;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CheckAppList;
@@ -117,13 +118,7 @@ begin
       // sort list
       if FAppList.Count > 1 then ProcessHelper.SortAppWindows(FAppList);
       // update image
-      if FAppList.Count > 0 then
-      begin
-        FIW := 32;
-        FIH := 32;
-        hwnd := THandle(FAppList.Items[0]);
-        LoadAppImage(FProcName, hwnd, FBigItemSize, false, false, FImage, FIW, FIH, 500);
-      end;
+      UpdateImage;
       // update caption
       if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd) else Caption := '';
     finally
@@ -133,6 +128,18 @@ begin
     Redraw;
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.UpdateImage;
+begin
+  try
+    if FAppList.Count > 0 then
+    begin
+      LoadAppImage(FProcName, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
+    end;
+  except
+    on e: Exception do raise Exception.Create('TaskItem.UpdateImage'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -352,8 +359,7 @@ begin
     begin
       if TAeroPeekWindow.IsActive then
       begin
-        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow
-        else ShowPeekWindow(200);
+        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
       end
       else ShowPeekWindow(800);
     end else begin
@@ -372,11 +378,20 @@ begin
       FScheduled := false;
       // validate windows
       CheckAppList;
+      if FAppList.Count = 0 then
+      begin
+        Delete;
+        exit;
+      end;
+      // update image
+      if not assigned(FImage) then
+      begin
+        UpdateImage;
+        Redraw;
+      end;
       // update item caption
       if FAppList.Count = 1 then
         Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
-      // delete self if no windows left
-      if FAppList.Count = 0 then Delete;
     end;
   except
     on e: Exception do raise Exception.Create('TaskItem.Timer'#10#13 + e.message);
@@ -394,7 +409,7 @@ begin
   if msg.msg = WM_TIMER then
   begin
     // GENERAL TIMER
-    if msg.wParam = ID_TIMER then FScheduled := true;
+    if msg.wParam = ID_TIMER then FScheduled := true; // do in sync with main timer
     // "OPEN" TIMER
     if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
   end;

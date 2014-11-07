@@ -273,13 +273,18 @@ begin
   GetWindowThreadProcessId(THandle(Item1), @pid1);
   GetWindowThreadProcessId(THandle(Item2), @pid2);
   result := 0;
-  if pid1 > pid2 then result := -1;
-  if pid1 < pid2 then result := 1;
+  if pid1 < pid2 then result := -1;
+  if pid1 > pid2 then result := 1;
   if pid1 = pid2 then
   begin
-    if THandle(Item1) > THandle(Item2) then result := -1;
-    if THandle(Item1) < THandle(Item2) then result := 1;
+    if THandle(Item1) < THandle(Item2) then result := -1;
+    if THandle(Item1) > THandle(Item2) then result := 1;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.SortAppWindows(list: TFPList);
+begin
+  list.Sort(CmpWindows);
 end;
 //------------------------------------------------------------------------------
 function EnumWProc(h: THandle; l: LPARAM): bool; stdcall;
@@ -325,11 +330,6 @@ begin
   finally
     crsection.Leave;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TProcessHelper.SortAppWindows(list: TFPList);
-begin
-  list.Sort(CmpWindows);
 end;
 //------------------------------------------------------------------------------
 class function TProcessHelper.GetWindowText(h: THandle): string;

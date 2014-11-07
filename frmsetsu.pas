@@ -32,7 +32,6 @@ type
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
-    chbTaskbarNotGroupMultiple: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;

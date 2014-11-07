@@ -38,11 +38,10 @@ type
     FHeight: integer;
     FWTarget: integer;
     FHTarget: integer;
-    FIconSize, FBorder, FShadow, ThumbW, ThumbH, ItemSplit: integer;
-    FTitleHeight: integer;
-    FRadius: integer;
+    FIconSize, FBorderX, FBorderY, FShadow, ThumbW, ThumbH, ItemSplit: integer;
+    FTitleHeight, FTitleSplit: integer;
+    FRadius, FSelectionRadius: integer;
     FCloseButtonSize: integer;
-    FCloseButtonOffset: integer;
     FActivating: boolean;
     FActive: boolean;
     FHostWnd: THandle;
@@ -195,7 +194,8 @@ var
 begin
   if FCompositionEnabled then
     for index := 0 to FItemCount - 1 do
-      dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].rectThumb, true, items[index].ThumbnailId);
+      if items[index].hwnd <> 0 then
+        dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].rectThumb, true, items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.UnRegisterThumbnails;
@@ -203,7 +203,9 @@ var
   index: integer;
 begin
   if FItemCount > 0 then
-    for index := 0 to FItemCount - 1 do dwm.UnregisterThumbnail(items[index].ThumbnailId);
+    for index := 0 to FItemCount - 1 do
+      if items[index].hwnd <> 0 then
+        dwm.UnregisterThumbnail(items[index].ThumbnailId);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.ClearImages;
@@ -347,66 +349,76 @@ end;
 procedure TAeroPeekWindow.SetItems(AppList: TFPList);
 var
   index: integer;
-  maxw, maxh: integer;
+  maxw, maxh, position: integer;
+  pid, prevpid: dword;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
   hgdip, family, font: pointer;
   rect: GDIPAPI.TRectF;
 begin
-  FItemCount := AppList.Count;
-  FForegroundWindowIndex := -1;
-  maxw := 0;
-  maxh := 0;
+  // store handles, load icons
+  index := 0;
+  while index < AppList.Count do
+  begin
+    inc(FItemCount);
+    SetLength(items, FItemCount);
+    items[FItemCount - 1].hwnd := THandle(AppList.Items[index]);
+    GetWindowThreadProcessId(items[FItemCount - 1].hwnd, @pid);
+    if (index > 0) and (pid <> prevpid) then
+    begin
+      items[FItemCount - 1].hwnd := 0;
+    end else begin
+      LoadImageFromHWnd(items[FItemCount - 1].hwnd, FIconSize, true, false, items[FItemCount - 1].image, items[FItemCount - 1].iw, items[FItemCount - 1].ih, 500);
+      inc(index);
+    end;
+    prevpid := pid;
+  end;
 
   FWorkArea := GetMonitorRect(FMonitor);
   if FCompositionEnabled then
   begin
-    FBorder := 22;
+    FBorderX := 26;
+    FBorderY := 22;
     FShadow := 8;
     FIconSize := 16;
-    FTitleHeight := 30;
+    FTitleHeight := 20;
+    FTitleSplit := 9;
     ItemSplit := 16;
     FCloseButtonSize := 17;
-    FCloseButtonOffset := 0;
     FRadius := 6;
+    FSelectionRadius := 2;
     if FLayout = apwlHorizontal then
     begin
-      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorder * 2) div FItemCount - ItemSplit);
+      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2) div FItemCount - ItemSplit);
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
     end else begin
       ThumbW := 200;
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
-      if ThumbH > (FWorkArea.Bottom - FWorkArea.Top - FBorder * 2) div FItemCount - FTitleHeight - ItemSplit then
+      if ThumbH > (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2) div FItemCount - FTitleHeight - ItemSplit then
       begin
-        ThumbH := (FWorkArea.Bottom - FWorkArea.Top - FBorder * 2) div FItemCount - FTitleHeight - ItemSplit;
+        ThumbH := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2) div FItemCount - FTitleHeight - ItemSplit;
         ThumbW := round(ThumbH * (FWorkArea.Right - FWorkArea.Left) / (FWorkArea.Bottom - FWorkArea.Top));
       end;
     end;
   end else begin
-    FBorder := 10;
+    FBorderX := 24;
+    FBorderY := 14;
     FShadow := 0;
     FIconSize := 16;
-    FTitleHeight := 21;
+    FTitleHeight := 24;
+    FTitleSplit := 0;
     ItemSplit := 10;
     FCloseButtonSize := 17;
-    FCloseButtonOffset := 2;
     FRadius := 0;
+    FSelectionRadius := 2;
     ThumbW := 200;
     ThumbH := 0;
   end;
 
-  SetLength(items, FItemCount);
   if FItemCount > 0 then
   begin
-    // store handles
-    for index := 0 to FItemCount - 1 do
-    begin
-      items[index].hwnd := THandle(AppList.Items[index]);
-      LoadImageFromHWnd(items[index].hwnd, 16, true, false, items[index].image, items[index].iw, items[index].ih, 500);
-    end;
-
-    // get max title width (if "no live preview" mode)
+    // get max title width (if in "no live preview" mode)
     if not FCompositionEnabled then
     begin
       dc := CreateCompatibleDC(0);
@@ -423,7 +435,9 @@ begin
           rect.Width := 0;
           rect.Height := 0;
           GdipMeasureString(hgdip, PWideChar(@title), -1, font, @rect, nil, @rect, nil, nil);
-          if round(rect.Width) + 5 + FCloseButtonSize > ThumbW then ThumbW := round(rect.Width) + 5 + FCloseButtonSize;
+          maxw := round(rect.Width) + 3 + FIconSize + 3 + FCloseButtonSize + 10;
+          if maxw > (FWorkArea.Right - FWorkArea.Left) div 2 then maxw := (FWorkArea.Right - FWorkArea.Left) div 2;
+          if maxw > ThumbW then ThumbW := maxw;
         end;
         GdipDeleteGraphics(hgdip);
         GdipDeleteFont(font);
@@ -433,58 +447,76 @@ begin
     end;
 
     // set item props
+    maxw := 0;
+    maxh := 0;
+    FForegroundWindowIndex := -1;
+    if FLayout = apwlHorizontal then position := FBorderX else position := FBorderY;
     for index := 0 to FItemCount - 1 do
     begin
       if FLayout = apwlHorizontal then
       begin
-        items[index].rect.Left := FBorder + index * (ThumbW + ItemSplit);
-        items[index].rect.Top := FBorder;
+        if items[index].hwnd <> 0 then position += ThumbW + ItemSplit else position += 20 + ItemSplit;
+        items[index].rect.Left := position;
+        items[index].rect.Top := FBorderY;
       end else begin
-        items[index].rect.Left := FBorder;
-        items[index].rect.Top := FBorder + index * (FTitleHeight + ThumbH + ItemSplit);
+        items[index].rect.Left := FBorderX;
+        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH + ItemSplit else position += 10 + ItemSplit;
+        items[index].rect.Top := position;
       end;
-      items[index].rect.Right := items[index].rect.Left + ThumbW;
-      items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + ThumbH;
+      if items[index].hwnd <> 0 then
+      begin
+        items[index].rect.Right := items[index].rect.Left + ThumbW;
+        items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
+      end else begin
+        items[index].rect.Right := items[index].rect.Left + 20;
+        items[index].rect.Bottom := items[index].rect.Top + 10;
+      end;
       if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
       if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
 
-      items[index].rectSel := items[index].rect;
-      items[index].rectSel.Left -= 5;
-      items[index].rectSel.Top -= 5;
-      items[index].rectSel.Right += 5;
-      items[index].rectSel.Bottom += 5;
+      if items[index].hwnd <> 0 then
+      begin
+        items[index].rectSel := items[index].rect;
+        items[index].rectSel.Left -= 5;
+        items[index].rectSel.Top -= 5;
+        items[index].rectSel.Right += 5;
+        items[index].rectSel.Bottom += 5;
 
-      items[index].rectThumb := items[index].rect;
-      items[index].rectThumb.Top += FTitleHeight;
+        items[index].rectThumb := items[index].rect;
+        items[index].rectThumb.Top += FTitleHeight;
+        items[index].rectThumb.Top += FTitleSplit;
 
-      items[index].rectIcon := items[index].rect;
-      items[index].rectIcon.Top += FCloseButtonOffset;
-      items[index].rectIcon.Right := items[index].rectIcon.Left + items[index].iw;
-      items[index].rectIcon.Bottom := items[index].rectIcon.Top + items[index].ih;
+        items[index].rectTitle := items[index].rect;
+        if assigned(items[index].image) then
+          items[index].rectTitle.Left += items[index].iw + 3;
+        items[index].rectTitle.Right -= FCloseButtonSize + 3;
+        items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
 
-      items[index].rectTitle := items[index].rect;
-      if assigned(items[index].image) then
-        items[index].rectTitle.Left += items[index].iw + 3;
-      items[index].rectTitle.Right -= FCloseButtonSize + 3;
-      items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
+        items[index].rectIcon := items[index].rect;
+        items[index].rectIcon.Top += round((FTitleHeight - FIconSize) / 2);
+        items[index].rectIcon.Right := items[index].rectIcon.Left + items[index].iw;
+        items[index].rectIcon.Bottom := items[index].rectIcon.Top + items[index].ih;
 
-      items[index].rectClose := items[index].rect;
-      items[index].rectClose.Top += FCloseButtonOffset;
-      items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
-      items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
+        items[index].rectClose := items[index].rect;
+        items[index].rectClose.Top += round((FTitleHeight - FCloseButtonSize) / 2);
+        items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
+        items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
 
-      if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
-         if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+        if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
+           if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+      end;
     end;
 
     // calc width and height
     if FLayout = apwlHorizontal then
     begin
-      FWTarget := FBorder * 2 + items[FItemCount - 1].rect.Right - items[0].rect.Left;
-      FHTarget := FBorder * 2 + maxh;
+      position += FBorderX;
+      FWTarget := position;
+      FHTarget := FBorderY * 2 + maxh;
     end else begin
-      FWTarget := FBorder * 2 + maxw;
-      FHTarget := FBorder * 2 + items[FItemCount - 1].rect.Bottom - items[0].rect.Top;
+      FWTarget := FBorderX * 2 + maxw;
+      position += FBorderY;
+      FHTarget := position;
     end;
   end;
   if not FAnimate then
@@ -515,7 +547,7 @@ begin
     if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
+    GdipSetTextRenderingHint(hgdip, TextRenderingHintClearTypeGridFit);
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
     //
@@ -568,7 +600,7 @@ begin
       GdipCreatePath(FillModeWinding, path);
       // selection fill
       rect := WinRectToGDIPRect(items[FForegroundWindowIndex].rectSel);
-      AddPathRoundRect(path, rect, FRadius div 2);
+      AddPathRoundRect(path, rect, FSelectionRadius);
       GdipCreateSolidFill($40b0d0ff, brush);
       GdipFillPath(hgdip, brush, path);
       GdipDeleteBrush(brush);
@@ -584,22 +616,24 @@ begin
     GdipCreateFont(family, FFontSize, 0, 2, font);
     GdipCreateSolidFill($ffffffff, brush);
     GdipCreateStringFormat(0, 0, format);
-    GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap);
+    GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap or StringFormatFlagsNoFitBlackBox);
+    GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
     for index := 0 to FItemCount - 1 do
-    begin
-      // icon
-      if assigned(items[index].image) then
-        GdipDrawImageRectRectI(hgdip, items[index].image,
-          items[index].rectIcon.Left, items[index].rectIcon.Top, items[index].iw, items[index].ih,
-          0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
-      // window title
-      titleRect := WinRectToGDIPRectF(items[index].rectTitle);
-      GetWindowTextW(items[index].hwnd, title, 255);
-      GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
-      // close button
-      rect := WinRectToGDIPRect(items[index].rectClose);
-      DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = index);
-    end;
+      if items[index].hwnd <> 0 then
+      begin
+        // icon
+        if assigned(items[index].image) then
+          GdipDrawImageRectRectI(hgdip, items[index].image,
+            items[index].rectIcon.Left, items[index].rectIcon.Top, items[index].iw, items[index].ih,
+            0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
+        // window title
+        titleRect := WinRectToGDIPRectF(items[index].rectTitle);
+        GetWindowTextW(items[index].hwnd, title, 255);
+        GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
+        // close button
+        rect := WinRectToGDIPRect(items[index].rectClose);
+        DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = index);
+      end;
     GdipDeleteStringFormat(format);
     GdipDeleteBrush(brush);
     GdipDeleteFont(font);
@@ -767,14 +801,13 @@ begin
     pt.y := TSmallPoint(msg.lParam).y;
     for index := 0 to FItemCount - 1 do
     begin
-      if PtInRect(items[index].rectSel, pt) then
-      begin
-        if PtInRect(items[index].rectClose, pt) then
-        begin
-          FCloseButtonDownIndex := index;
-          Paint;
-        end;
-      end;
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
+          if PtInRect(items[index].rectClose, pt) then
+          begin
+            FCloseButtonDownIndex := index;
+            Paint;
+          end;
     end;
     exit;
   end
@@ -787,14 +820,15 @@ begin
     pt.y := TSmallPoint(msg.lParam).y;
     for index := 0 to FItemCount - 1 do
     begin
-      if PtInRect(items[index].rectSel, pt) then
-      begin
-        if PtInRect(items[index].rectClose, pt) then
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
         begin
-          ProcessHelper.CloseWindow(items[index].hwnd);
-        end
-        else ProcessHelper.ActivateWindow(items[index].hwnd);
-      end;
+          if PtInRect(items[index].rectClose, pt) then
+          begin
+            ProcessHelper.CloseWindow(items[index].hwnd);
+          end
+          else ProcessHelper.ActivateWindow(items[index].hwnd);
+        end;
     end;
     CloseWindow;
     exit;
