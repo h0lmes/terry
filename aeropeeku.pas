@@ -357,7 +357,34 @@ var
   hgdip, family, font: pointer;
   rect: GDIPAPI.TRectF;
 begin
+  // set primary params
+  if FCompositionEnabled then
+  begin
+    FBorderX := 26;
+    FBorderY := 22;
+    FShadow := 8;
+    FIconSize := 16;
+    FTitleHeight := 20;
+    FTitleSplit := 9;
+    ItemSplit := 16;
+    FCloseButtonSize := 17;
+    FRadius := 6;
+    FSelectionRadius := 2;
+  end else begin
+    FBorderX := 24;
+    FBorderY := 14;
+    FShadow := 0;
+    FIconSize := 16;
+    FTitleHeight := 24;
+    FTitleSplit := 0;
+    ItemSplit := 10;
+    FCloseButtonSize := 17;
+    FRadius := 0;
+    FSelectionRadius := 2;
+  end;
+
   // store handles, load icons
+  FItemCount := 0;
   index := 0;
   while index < AppList.Count do
   begin
@@ -375,19 +402,10 @@ begin
     prevpid := pid;
   end;
 
+  // calc thumbnail width and height
   FWorkArea := GetMonitorRect(FMonitor);
   if FCompositionEnabled then
   begin
-    FBorderX := 26;
-    FBorderY := 22;
-    FShadow := 8;
-    FIconSize := 16;
-    FTitleHeight := 20;
-    FTitleSplit := 9;
-    ItemSplit := 16;
-    FCloseButtonSize := 17;
-    FRadius := 6;
-    FSelectionRadius := 2;
     if FLayout = apwlHorizontal then
     begin
       ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2) div FItemCount - ItemSplit);
@@ -402,16 +420,6 @@ begin
       end;
     end;
   end else begin
-    FBorderX := 24;
-    FBorderY := 14;
-    FShadow := 0;
-    FIconSize := 16;
-    FTitleHeight := 24;
-    FTitleSplit := 0;
-    ItemSplit := 10;
-    FCloseButtonSize := 17;
-    FRadius := 0;
-    FSelectionRadius := 2;
     ThumbW := 200;
     ThumbH := 0;
   end;
@@ -455,12 +463,10 @@ begin
     begin
       if FLayout = apwlHorizontal then
       begin
-        if items[index].hwnd <> 0 then position += ThumbW + ItemSplit else position += 20 + ItemSplit;
         items[index].rect.Left := position;
         items[index].rect.Top := FBorderY;
       end else begin
         items[index].rect.Left := FBorderX;
-        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH + ItemSplit else position += 10 + ItemSplit;
         items[index].rect.Top := position;
       end;
       if items[index].hwnd <> 0 then
@@ -468,8 +474,8 @@ begin
         items[index].rect.Right := items[index].rect.Left + ThumbW;
         items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
       end else begin
-        items[index].rect.Right := items[index].rect.Left + 20;
-        items[index].rect.Bottom := items[index].rect.Top + 10;
+        items[index].rect.Right := items[index].rect.Left + 10;
+        items[index].rect.Bottom := items[index].rect.Top + 2;
       end;
       if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
       if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
@@ -505,6 +511,14 @@ begin
         if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
            if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
       end;
+
+      if FLayout = apwlHorizontal then
+      begin
+        if items[index].hwnd <> 0 then position += ThumbW else position += 10;
+      end else begin
+        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH else position += 2;
+      end;
+      if index < FItemCount - 1 then position += ItemSplit;
     end;
 
     // calc width and height
