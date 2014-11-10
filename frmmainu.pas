@@ -611,7 +611,7 @@ begin
       else if sets.container.site = bsRight then
         MouseOver := (pt.x >= mon_rect.Right - 1) and
           (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height);
-      MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.Dragging;
+      MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.DraggingItem;
 
       if MouseOver and not OldMouseOver then MouseEnter;
       if not MouseOver and OldMouseOver then MouseLeave;
@@ -936,7 +936,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RollDown;
 begin
-  if ItemMgr.Dragging then exit;
+  if ItemMgr.DraggingItem or ItemMgr.DraggingFile then exit;
   if sets.container.AutoHide and not IsHiddenDown then
   begin
     if sets.getBaseOrientation = boVertical then wndOffsetTarget := ItemMgr.BaseWindowRect.Width - sets.container.AutoHidePixels
@@ -1204,7 +1204,7 @@ procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer)
 var
   monitor: cardinal;
 begin
-  if not closing and not IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.Dragging then
+  if not closing and not IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.DraggingItem then
   begin
     if InitDone and not assigned(AHint) then AHint := _Hint.Create;
     if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);

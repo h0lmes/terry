@@ -102,9 +102,9 @@ type
     Zooming: boolean; // true if mouse is over the panel and any items are zoomed //
     DropDistance: integer;
     LockDragging: boolean;
-    Dragging: boolean; // indicates that item is being dragged over //
+    DraggingItem: boolean; // indicates that item is being dragged //
     DragHWnd: THandle; // handle of the item that is being dragged //
-    DraggingFile: boolean; // indicates that file is being dragged over //
+    DraggingFile: boolean; // indicates that file is being dragged //
     DropPlace: integer; // index of free space //
     DropPlaceEx: integer; // index of a place to drop to //
     ParentHWnd: cardinal;
@@ -207,8 +207,9 @@ begin
   LockDragging := false;
   HoverItemHWnd := 0;
   SelectedItemHWnd := 0;
-  Dragging := false;
+  DraggingItem := false;
   DragHWnd := 0;
+  DraggingFile := false;
   LockMouseEffect := false;
   FCenterOffsetPercent := 50;
   FEdgeOffset := 0;
@@ -396,7 +397,7 @@ var
   stack: TStackItem;
 begin
   if fsets = '' then exit;
-  Dragging := false;
+  DraggingItem := false;
   DraggingFile := false;
   DragHWnd := 0;
 
@@ -1209,8 +1210,7 @@ begin
     AllItemCmd(icDropIndicator, 0);
 
     DropPlace := index;
-    // seek for current DropPlace in the items array //
-    // DropPlace item has its Handle = 0 //
+    // seek for current DropPlace in the items array (item.h = 0) //
     currentDropPlace := NOT_AN_ITEM;
     if ItemCount > 0 then
       for i := 0 to ItemCount - 1 do
@@ -1286,21 +1286,21 @@ begin
     if DropPlaceEx <> NOT_AN_ITEM then
     begin
       Inst := TCustomItem(GetWindowLong(items[DropPlaceEx].h, GWL_USERDATA));
-      if Dragging and not DraggingFile then
+      if DraggingItem and not DraggingFile then
       begin
         DragInst := TCustomItem(GetWindowLong(DragHWnd, GWL_USERDATA));
         if ((Inst is TStackItem) and (DragInst is TStackItem)) or
           ((Inst is TStackItem) and (DragInst is TShortcutItem)) or
-          ((Inst is TShortcutItem) and (DragInst is TShortcutItem)) then atype := 1; // add
-      end else begin
-        if Inst is TStackItem then atype := 1; // add
-        if Inst is TShortcutItem then atype := 2; // run
+          ((Inst is TShortcutItem) and (DragInst is TShortcutItem)) then atype := DII_ADD; // add
+        if atype = 0 then DropPlaceEx := DropPlace;
       end;
-      if atype = 0 then DropPlaceEx := DropPlace;
     end;
 
-    AllItemCmd(icDropIndicator, 0);
-    if atype > 0 then ItemCmd(items[DropPlaceEx].h, icDropIndicator, atype);
+    if DraggingItem and not DraggingFile then
+    begin
+      AllItemCmd(icDropIndicator, 0);
+      if atype > 0 then ItemCmd(items[DropPlaceEx].h, icDropIndicator, atype);
+    end;
   except
     on e: Exception do err('ItemManager.SetDropPlaceEx', e);
   end;
@@ -1429,9 +1429,9 @@ begin
   if enabled and not DraggingFile then
   try
     item := NOT_AN_ITEM;
-    if Zooming or CheckMouseOn or Dragging then
+    if Zooming or CheckMouseOn or DraggingItem then
     begin
-      item := ItemFromPoint(x, y, ifthen(Dragging, DropDistance, 0));
+      item := ItemFromPoint(x, y, ifthen(DraggingItem, DropDistance, 0));
       if item <> NOT_AN_ITEM then
       begin
         if item < 0 then item := NOT_AN_ITEM;
@@ -1494,8 +1494,8 @@ begin
   try
     windows.GetCursorPos(pt);
     wnd := WindowFromPoint(pt);
-    if Dragging or DraggingFile or Zooming then
-      item := trunc(ItemFromPoint(pt.x, pt.y, ifthen(Dragging or DraggingFile, DropDistance, 0)))
+    if DraggingItem or DraggingFile or Zooming then
+      item := trunc(ItemFromPoint(pt.x, pt.y, ifthen(DraggingItem or DraggingFile, DropDistance, 0)))
     else
       item := ItemIndex(wnd);
     result := (item <> NOT_AN_ITEM) or (wnd = ParentHWnd);
@@ -1528,7 +1528,7 @@ begin
     end;
 
     // drop place //
-    if Dragging or DraggingFile then
+    if DraggingItem or DraggingFile then
     begin
       CalcDropPlace(pt);
       if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
@@ -1540,13 +1540,14 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DragEnter;
 begin
-  Dragging := false;
+  DraggingItem := false;
   DraggingFile := true;
   DragOver;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DragLeave;
 begin
+  DraggingItem := false;
   DraggingFile := false;
   SetDropPlaceEx(NOT_AN_ITEM);
   SetDropPlace(NOT_AN_ITEM);
@@ -1619,10 +1620,10 @@ var
   index: integer;
   pt: windows.TPoint;
 begin
-  if enabled and not Dragging then
+  if enabled and not DraggingItem then
   try
     AllItemCmd(icHover, 0);
-    Dragging := true;
+    DraggingItem := true;
     DragHWnd := HWnd;
     index := ItemIndex(HWnd);
     try if index <> NOT_AN_ITEM then items[index].h := 0;
@@ -1746,7 +1747,7 @@ begin
       end;
     end;
 
-    Dragging := false;
+    DraggingItem := false;
     DragHWnd := 0;
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);

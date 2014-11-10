@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsStyle
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 2
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -151,7 +151,7 @@ object frmsets: Tfrmsets
         Frequency = 20
         Max = 200
         OnChange = tbReserveScreenEdgePercentChange
-        PageSize = 10
+        PageSize = 20
         Position = 100
         ShowSelRange = False
         TabOrder = 5
@@ -226,7 +226,7 @@ object frmsets: Tfrmsets
           Frequency = 40
           Max = 400
           Min = 100
-          PageSize = 10
+          PageSize = 40
           Position = 200
           ShowSelRange = False
           Enabled = False
@@ -311,6 +311,7 @@ object frmsets: Tfrmsets
         Frequency = 5
         Max = 100
         OnChange = tbCenterOffsetPercentChange
+        PageSize = 5
         Position = 50
         ShowSelRange = False
         TabOrder = 2
@@ -334,6 +335,7 @@ object frmsets: Tfrmsets
         Max = 100
         Min = -100
         OnChange = tbEdgeOffsetChange
+        PageSize = 10
         Position = 0
         ShowSelRange = False
         TabOrder = 3
@@ -453,6 +455,7 @@ object frmsets: Tfrmsets
         Frequency = 20
         Max = 255
         OnChange = tbBaseAlphaChange
+        PageSize = 20
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
@@ -603,6 +606,7 @@ object frmsets: Tfrmsets
         Frequency = 20
         Max = 255
         OnChange = tbSeparatorAlphaChange
+        PageSize = 20
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
@@ -724,6 +728,7 @@ object frmsets: Tfrmsets
         Max = 128
         Min = 16
         OnChange = tbIconSizeChange
+        PageSize = 8
         Position = 16
         ShowSelRange = False
         TabOrder = 5
@@ -737,6 +742,7 @@ object frmsets: Tfrmsets
         Max = 256
         Min = 16
         OnChange = tbBigIconSizeChange
+        PageSize = 8
         Position = 16
         ShowSelRange = False
         TabOrder = 6
@@ -749,6 +755,7 @@ object frmsets: Tfrmsets
         Max = 5
         Min = 2
         OnChange = tbZoomWidthChange
+        PageSize = 1
         Position = 2
         ShowSelRange = False
         TabOrder = 7
@@ -798,6 +805,7 @@ object frmsets: Tfrmsets
         Frequency = 60
         Max = 600
         OnChange = tbZoomTimeChange
+        PageSize = 60
         Position = 0
         ShowSelRange = False
         TabOrder = 11

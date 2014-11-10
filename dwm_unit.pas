@@ -101,7 +101,6 @@ type
 var DWM: TDWMHelper;
 
 implementation
-uses frmmainu;
 //------------------------------------------------------------------------------
 constructor TDWMHelper.Create;
 var

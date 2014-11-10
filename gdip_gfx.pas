@@ -28,6 +28,11 @@ const
   SHIL_JUMBO      = $04;  //Windows Vista and later. The image is normally 256x256 pixels.
   IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
 
+  DII_ADD = 1;
+  DII_RUN = 2;
+  DII_ICON = 3;
+  DII_MOVE = 4;
+
 type
   TRGBAData = array [0..3] of Byte;
   PRGBAData = ^TRGBAData;
@@ -84,6 +89,7 @@ procedure MultiplyMatrix(var matrix, matrix2: ColorMatrix);
 procedure CreateColorMatrix(color_data: integer; var clMatrix: ColorMatrix);
 procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
+procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload;
@@ -91,6 +97,7 @@ procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer);
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: Single); overload;
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRectF; radius: Single); overload;
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch; Alpha: integer = 255);
+procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -465,6 +472,30 @@ begin
   matrix[3, 3]:= alpha / 255;
 end;
 //------------------------------------------------------------------------------
+procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
+var
+  lMatrix, aMatrix: ColorMatrix;
+  brightness, tmpColorData: integer;
+begin
+  try
+    attr := nil;
+    tmpColorData := ColorData;
+    if Selected then
+    begin
+      brightness := max(byte(ColorData shr 16) - $10, 0);
+      tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
+    end;
+    if Selected or (ColorData <> DEFAULT_COLOR_DATA) then
+    begin
+      CreateColorMatrix(tmpColorData, lMatrix);
+      GdipCreateImageAttributes(attr);
+      GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
+    end;
+  except
+    on e: Exception do raise Exception.Create('CreateColorAttributes'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
 begin
   GdipStartPathFigure(path);
@@ -732,6 +763,162 @@ begin
 
   finally
     if assigned(attr) then GdipDisposeImageAttributes(attr);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
+var
+  brush, pen, path: pointer;
+  rect: GDIPAPI.TRectF;
+  cell, cell2, cell3, cell4: single;
+  points: array [0..23] of GDIPAPI.TPointF;
+begin
+  if iType > 0 then
+  try
+    if iType <> DII_MOVE then
+    begin
+      GdipCreateSolidFill($80ffffff, brush);
+      GdipFillRectangle(dst, brush, X, Y, Width, Height);
+      GdipDeleteBrush(brush);
+    end;
+
+    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+
+    if iType = DII_ADD then // add
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      cell := Width * 0.2;
+      cell2 := Width * 0.4;
+      cell3 := Width * 0.6;
+      cell4 := Width * 0.8;
+      points[0].x := X + cell;
+      points[0].y := Y + cell2;
+      points[1].x := X + cell2;
+      points[1].y := Y + cell2;
+      points[2].x := X + cell2;
+      points[2].y := Y + cell;
+      points[3].x := X + cell3;
+      points[3].y := Y + cell;
+      points[4].x := X + cell3;
+      points[4].y := Y + cell2;
+      points[5].x := X + cell4;
+      points[5].y := Y + cell2;
+      points[6].x := X + cell4;
+      points[6].y := Y + cell3;
+      points[7].x := X + cell3;
+      points[7].y := Y + cell3;
+      points[8].x := X + cell3;
+      points[8].y := Y + cell4;
+      points[9].x := X + cell2;
+      points[9].y := Y + cell4;
+      points[10].x := X + cell2;
+      points[10].y := Y + cell3;
+      points[11].x := X + cell;
+      points[11].y := Y + cell3;
+      GdipAddPathClosedCurve2(path, points, 12, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+    end
+    else
+    if iType = DII_RUN then // run
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * 0.2;
+      points[0].y := Y + Height * 0.25;
+      points[1].x := X + Width * 0.9;
+      points[1].y := Y + Height * 0.25;
+      points[2].x := X + Width * 0.8;
+      points[2].y := Y + Height * 0.75;
+      points[3].x := X + Width * 0.1;
+      points[3].y := Y + Height * 0.75;
+      GdipAddPathClosedCurve2(path, points, 4, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+
+      GdipCreateSolidFill($ffe0e0e0, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * (0.25 + 0.04);
+      points[0].y := Y + Height * 0.35;
+      points[1].x := X + Width * (0.72 + 0.04);
+      points[1].y := Y + Height * 0.35;
+      points[2].x := X + Width * 0.72;
+      points[2].y := Y + Height * 0.55;
+      points[3].x := X + Width * 0.25;
+      points[3].y := Y + Height * 0.55;
+      GdipAddPathClosedCurve2(path, points, 4, 0.1);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+
+      GdipCreatePen1($ff303030, 2, UnitPixel, pen);
+      GdipDrawLine(dst, pen, X + Width * 0.33, Y + Height * 0.37, X + Width * 0.3, Y + Height * 0.53);
+      GdipDeletePen(pen);
+    end
+    else
+    if iType = DII_MOVE then // move
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * 0.5; // top arrow point
+      points[0].y := Y + Height * 0.2;
+      points[1].x := X + Width * 0.62; // next point clockwise
+      points[1].y := Y + Height * 0.36;
+      points[2].x := X + Width * 0.56;
+      points[2].y := Y + Height * 0.36;
+      points[3].x := X + Width * 0.56;
+      points[3].y := Y + Height * 0.44;
+      points[4].x := X + Width * 0.64;
+      points[4].y := Y + Height * 0.44;
+      points[5].x := X + Width * 0.64;
+      points[5].y := Y + Height * 0.38;
+      points[6].x := X + Width * 0.8; // right arrow point
+      points[6].y := Y + Height * 0.5;
+      points[7].x := X + Width * 0.64;
+      points[7].y := Y + Height * 0.62;
+      points[8].x := X + Width * 0.64;
+      points[8].y := Y + Height * 0.56;
+      points[9].x := X + Width * 0.56;
+      points[9].y := Y + Height * 0.56;
+      points[10].x := X + Width * 0.56;
+      points[10].y := Y + Height * 0.64;
+      points[11].x := X + Width * 0.62;
+      points[11].y := Y + Height * 0.64;
+      points[12].x := X + Width * 0.5; // bottom arrow point
+      points[12].y := Y + Height * 0.8;
+      points[13].x := X + Width * 0.38;
+      points[13].y := Y + Height * 0.64;
+      points[14].x := X + Width * 0.44;
+      points[14].y := Y + Height * 0.64;
+      points[15].x := X + Width * 0.44;
+      points[15].y := Y + Height * 0.56;
+      points[16].x := X + Width * 0.36;
+      points[16].y := Y + Height * 0.56;
+      points[17].x := X + Width * 0.36;
+      points[17].y := Y + Height * 0.62;
+      points[18].x := X + Width * 0.2; // left arrow point
+      points[18].y := Y + Height * 0.5;
+      points[19].x := X + Width * 0.36;
+      points[19].y := Y + Height * 0.38;
+      points[20].x := X + Width * 0.36;
+      points[20].y := Y + Height * 0.44;
+      points[21].x := X + Width * 0.44;
+      points[21].y := Y + Height * 0.44;
+      points[22].x := X + Width * 0.44;
+      points[22].y := Y + Height * 0.36;
+      points[23].x := X + Width * 0.38;
+      points[23].y := Y + Height * 0.36;
+      GdipAddPathClosedCurve2(path, points, 24, 0);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
+    end;
+
+  except
+    on e: Exception do raise Exception.Create('DrawItemIndicator'#10#13 + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------

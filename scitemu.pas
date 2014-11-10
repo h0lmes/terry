@@ -359,6 +359,17 @@ begin
 
       // commands //
       icUpdateRunning: UpdateItemRunningState;
+      icDragEnter:
+        begin
+          FDropIndicator := DII_RUN;
+          Redraw;
+          result := FDropIndicator;
+        end;
+      icDragLeave:
+        begin
+          FDropIndicator := 0;
+          Redraw;
+        end;
     end;
 
   except
@@ -509,13 +520,13 @@ begin
     end;
 
     // draw icon //
-    TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
+    CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     // drop indicator
-    customitemu.DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
+    DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
     ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);

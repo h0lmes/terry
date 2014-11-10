@@ -397,7 +397,7 @@ begin
     end;
 
     // draw icon //
-    TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
+    CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
     GdipSetCompositingMode(dst, CompositingModeSourceOver);

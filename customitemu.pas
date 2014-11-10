@@ -9,10 +9,6 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
   MIN_BORDER = 20;
-  DII_ADD = 1;
-  DII_RUN = 2;
-  DII_ICON = 3;
-  DII_MOVE = 4;
 
 type
 
@@ -49,6 +45,7 @@ type
     FReflectionSize: integer;
     FShowHint: boolean; // global option
     FHideHint: boolean; // local option
+    FHintVisible: boolean; // is hint currently visible?
     FMonitor: integer;
     FSite: integer;
     FHover: boolean;
@@ -116,11 +113,7 @@ type
     procedure Animate(AAnimationType: integer);
     procedure LME(lock: boolean);
     procedure Delete;
-
-    class procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
   end;
-
-procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
 
 implementation
 //------------------------------------------------------------------------------
@@ -130,7 +123,7 @@ begin
   Init;
 
   FHWndParent := AHWndParent;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, -32, -32, 32, 32, FHWndParent, 0, hInstance, nil);
+  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, Fx, Fy, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
@@ -151,7 +144,7 @@ begin
   FActivateRunning := AParams.ActivateRunning;
   FReflection := AParams.Reflection;
   FReflectionSize := AParams.ReflectionSize;
-  FBorder := max(AParams.ReflectionSize, MIN_BORDER);
+  FBorder := max(FReflectionSize, MIN_BORDER);
   FSite := AParams.Site;
   FShowHint := AParams.ShowHint;
   FLockDragging := AParams.LockDragging;
@@ -161,6 +154,7 @@ end;
 destructor TCustomItem.Destroy;
 begin
   // restore window proc
+  SetWindowLong(FHWnd, GWL_USERDATA, 0);
   SetWindowLong(FHWnd, GWL_WNDPROC, PtrInt(FPrevWndProc));
   FreeObjectInstance(FWndInstance);
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
@@ -174,22 +168,23 @@ begin
   FEnabled := true;
   FCanDrag := true;
   FCaption := '';
-  Fx:= -32000;
-  Fy:= -32000;
-  FSize:= 32;
+  Fx := -32000;
+  Fy := -32000;
+  FSize := 32;
   FCaption := '';
-  FUpdating:= false;
-  FFloating:= false;
-  FSelected:= false;
-  FDropIndicator:= 0;
-  FReflection:= false;
-  FReflectionSize:= 16;
+  FUpdating := false;
+  FFloating := false;
+  FSelected := false;
+  FDropIndicator := 0;
+  FReflection := false;
+  FReflectionSize := 16;
   FBorder := FReflectionSize;
   FShowHint := true;
   FHideHint := false;
-  FSite:= 3;
-  FHover:= false;
-  FLockMouseEffect:= false;
+  FHintVisible := false;
+  FSite := 3;
+  FHover := false;
+  FLockMouseEffect := false;
   FItemSize := 32;
   FBigItemSize := 32;
   FAnimationProgress := 0;
@@ -225,8 +220,8 @@ begin
         end;
       gpReflectionSize:
         begin
-          FReflectionSize := param;
-          FBorder := min(max(FReflectionSize, MIN_BORDER), FItemSize);
+          FReflectionSize := min(param, FItemSize);
+          FBorder := max(FReflectionSize, MIN_BORDER);
           Redraw;
         end;
       gpMonitor: FMonitor := param;
@@ -409,7 +404,11 @@ begin
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
-      dockh.DeactivateHint(FHWnd);
+      if FHintVisible then
+      begin
+        FHintVisible := false;
+        dockh.DeactivateHint(FHWnd);
+      end;
       exit;
     end;
 
@@ -434,6 +433,7 @@ begin
     else
       hy := min(baserect.top, hy - FSize div 2 - hint_offset);
 
+    FHintVisible := true;
     dockh.ActivateHint(FHWnd, PWideChar(WideString(FCaption)), hx, hy);
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
@@ -625,194 +625,6 @@ begin
     message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
   except
     on e: Exception do raise Exception.Create('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------
-class procedure TCustomItem.CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
-var
-  lMatrix, aMatrix: ColorMatrix;
-  brightness, tmpColorData: integer;
-begin
-  try
-    attr := nil;
-    tmpColorData := ColorData;
-    if Selected then
-    begin
-      brightness := max(byte(ColorData shr 16) - $10, 0);
-      tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
-    end;
-    if Selected or (ColorData <> DEFAULT_COLOR_DATA) then
-    begin
-      CreateColorMatrix(tmpColorData, lMatrix);
-      GdipCreateImageAttributes(attr);
-      GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
-    end;
-  except
-    on e: Exception do raise Exception.Create('CustomItem.CreateColorAttributes'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
-var
-  brush, pen, path: pointer;
-  rect: GDIPAPI.TRectF;
-  cell, cell2, cell3, cell4: single;
-  points: array [0..23] of GDIPAPI.TPointF;
-begin
-  if iType > 0 then
-  try
-    GdipCreateSolidFill($80ffffff, brush);
-    GdipFillRectangle(dst, brush, X, Y, Width, Height);
-    GdipDeleteBrush(brush);
-    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-
-    if iType = DII_ADD then // add
-    begin
-      GdipCreateSolidFill($ff303030, brush);
-      GdipCreatePath(FillModeWinding, path);
-      cell := Width * 0.2;
-      cell2 := Width * 0.4;
-      cell3 := Width * 0.6;
-      cell4 := Width * 0.8;
-      points[0].x := X + cell;
-      points[0].y := Y + cell2;
-      points[1].x := X + cell2;
-      points[1].y := Y + cell2;
-      points[2].x := X + cell2;
-      points[2].y := Y + cell;
-      points[3].x := X + cell3;
-      points[3].y := Y + cell;
-      points[4].x := X + cell3;
-      points[4].y := Y + cell2;
-      points[5].x := X + cell4;
-      points[5].y := Y + cell2;
-      points[6].x := X + cell4;
-      points[6].y := Y + cell3;
-      points[7].x := X + cell3;
-      points[7].y := Y + cell3;
-      points[8].x := X + cell3;
-      points[8].y := Y + cell4;
-      points[9].x := X + cell2;
-      points[9].y := Y + cell4;
-      points[10].x := X + cell2;
-      points[10].y := Y + cell3;
-      points[11].x := X + cell;
-      points[11].y := Y + cell3;
-      GdipAddPathClosedCurve2(path, points, 12, 0.1);
-      GdipFillPath(dst, brush, path);
-      GdipDeletePath(path);
-      GdipDeleteBrush(brush);
-    end
-    else
-    if iType = DII_RUN then // run
-    begin
-      GdipCreateSolidFill($ff303030, brush);
-      GdipCreatePath(FillModeWinding, path);
-      points[0].x := X + Width * 0.2;
-      points[0].y := Y + Height * 0.25;
-      points[1].x := X + Width * 0.9;
-      points[1].y := Y + Height * 0.25;
-      points[2].x := X + Width * 0.8;
-      points[2].y := Y + Height * 0.75;
-      points[3].x := X + Width * 0.1;
-      points[3].y := Y + Height * 0.75;
-      GdipAddPathClosedCurve2(path, points, 4, 0.1);
-      GdipFillPath(dst, brush, path);
-      GdipDeletePath(path);
-      GdipDeleteBrush(brush);
-
-      GdipCreateSolidFill($ffe0e0e0, brush);
-      GdipCreatePath(FillModeWinding, path);
-      points[0].x := X + Width * (0.25 + 0.04);
-      points[0].y := Y + Height * 0.35;
-      points[1].x := X + Width * (0.72 + 0.04);
-      points[1].y := Y + Height * 0.35;
-      points[2].x := X + Width * 0.72;
-      points[2].y := Y + Height * 0.55;
-      points[3].x := X + Width * 0.25;
-      points[3].y := Y + Height * 0.55;
-      GdipAddPathClosedCurve2(path, points, 4, 0.1);
-      GdipFillPath(dst, brush, path);
-      GdipDeletePath(path);
-      GdipDeleteBrush(brush);
-
-      GdipCreatePen1($ff303030, 2, UnitPixel, pen);
-      GdipDrawLine(dst, pen, X + Width * 0.33, Y + Height * 0.37, X + Width * 0.3, Y + Height * 0.53);
-      GdipDeletePen(pen);
-    end
-    else
-    if iType = DII_MOVE then // move
-    begin
-      GdipCreateSolidFill($ff303030, brush);
-      GdipCreatePath(FillModeWinding, path);
-      points[0].x := X + Width * 0.5; // top arrow point
-      points[0].y := Y + Height * 0.2;
-      points[1].x := X + Width * 0.62; // next point clockwise
-      points[1].y := Y + Height * 0.36;
-      points[2].x := X + Width * 0.56;
-      points[2].y := Y + Height * 0.36;
-      points[3].x := X + Width * 0.56;
-      points[3].y := Y + Height * 0.44;
-      points[4].x := X + Width * 0.64;
-      points[4].y := Y + Height * 0.44;
-      points[5].x := X + Width * 0.64;
-      points[5].y := Y + Height * 0.38;
-      points[6].x := X + Width * 0.8; // right arrow point
-      points[6].y := Y + Height * 0.5;
-      points[7].x := X + Width * 0.64;
-      points[7].y := Y + Height * 0.62;
-      points[8].x := X + Width * 0.64;
-      points[8].y := Y + Height * 0.56;
-      points[9].x := X + Width * 0.56;
-      points[9].y := Y + Height * 0.56;
-      points[10].x := X + Width * 0.56;
-      points[10].y := Y + Height * 0.64;
-      points[11].x := X + Width * 0.62;
-      points[11].y := Y + Height * 0.64;
-      points[12].x := X + Width * 0.5; // bottom arrow point
-      points[12].y := Y + Height * 0.8;
-      points[13].x := X + Width * 0.38;
-      points[13].y := Y + Height * 0.64;
-      points[14].x := X + Width * 0.44;
-      points[14].y := Y + Height * 0.64;
-      points[15].x := X + Width * 0.44;
-      points[15].y := Y + Height * 0.56;
-      points[16].x := X + Width * 0.36;
-      points[16].y := Y + Height * 0.56;
-      points[17].x := X + Width * 0.36;
-      points[17].y := Y + Height * 0.62;
-      points[18].x := X + Width * 0.2; // left arrow point
-      points[18].y := Y + Height * 0.5;
-      points[19].x := X + Width * 0.36;
-      points[19].y := Y + Height * 0.38;
-      points[20].x := X + Width * 0.36;
-      points[20].y := Y + Height * 0.44;
-      points[21].x := X + Width * 0.44;
-      points[21].y := Y + Height * 0.44;
-      points[22].x := X + Width * 0.44;
-      points[22].y := Y + Height * 0.36;
-      points[23].x := X + Width * 0.38;
-      points[23].y := Y + Height * 0.36;
-      GdipAddPathClosedCurve2(path, points, 24, 0);
-      GdipFillPath(dst, brush, path);
-      GdipDeletePath(path);
-      GdipDeleteBrush(brush);
-    end;
-
-  except
-    on e: Exception do raise Exception.Create('DrawDropIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

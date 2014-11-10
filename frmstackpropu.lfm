@@ -137,7 +137,7 @@ object frmStackProp: TfrmStackProp
         Max = 50
         Min = -20
         OnChange = tbOffsetChange
-        PageSize = 20
+        PageSize = 5
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
@@ -160,7 +160,6 @@ object frmStackProp: TfrmStackProp
         Frequency = 2
         Min = -10
         OnChange = tbDistortChange
-        PageSize = 1
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
@@ -496,7 +495,7 @@ object frmStackProp: TfrmStackProp
         Frequency = 16
         Max = 255
         OnChange = tbHueChange
-        PageSize = 10
+        PageSize = 16
         Position = 0
         ShowSelRange = False
         TickMarks = tmTopLeft
@@ -510,7 +509,7 @@ object frmStackProp: TfrmStackProp
         Width = 413
         Frequency = 16
         Max = 255
-        PageSize = 10
+        PageSize = 16
         Position = 0
         ShowSelRange = False
         TickMarks = tmTopLeft
@@ -524,7 +523,7 @@ object frmStackProp: TfrmStackProp
         Width = 413
         Frequency = 16
         Max = 255
-        PageSize = 10
+        PageSize = 16
         Position = 0
         ShowSelRange = False
         TickMarks = tmTopLeft
@@ -538,7 +537,7 @@ object frmStackProp: TfrmStackProp
         Width = 413
         Frequency = 16
         Max = 255
-        PageSize = 10
+        PageSize = 16
         Position = 0
         ShowSelRange = False
         TickMarks = tmTopLeft

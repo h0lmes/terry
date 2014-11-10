@@ -362,7 +362,11 @@ begin
             Redraw;
           end;
         end;
-      icDragEnter: OnDragEnter;
+      icDragEnter:
+        begin
+          OnDragEnter;
+          result := FDropIndicator;
+        end;
       icDragOver: OnDragOver;
       icDragLeave: OnDragLeave;
       icIsItem:
@@ -474,7 +478,7 @@ begin
     end;
 
     // draw icons //
-    TCustomItem.CreateColorAttributes(FColorData, FSelected, hattr);
+    CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if FSelected or (FColorData <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
@@ -482,7 +486,7 @@ begin
     if assigned(FPreviewImage) and (FState = stsClosed) then
       GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
     // drop indicator
-    customitemu.DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
+    DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
     ////
     if FReflection and (FReflectionSize > 0) and not FFloating then
@@ -680,9 +684,11 @@ procedure TStackItem.OnDragEnter;
 begin
   if not FFreed then
   try
+    FDropIndicator := DII_ADD;
     FDragOver := true;
     KillTimer(FHWnd, ID_TIMER_CLOSE);
     SetTimer(FHWnd, ID_TIMER_OPEN, 1000, nil);
+    Redraw;
   except
     on e: Exception do raise Exception.Create('StackItem.OnDragEnter'#10#13 + e.message);
   end;
@@ -697,9 +703,11 @@ begin
   if not FFreed then
   try
     cmd(icSelect, 0);
+    FDropIndicator := 0;
     FDragOver := false;
     KillTimer(FHWnd, ID_TIMER_OPEN);
     SetTimer(FHWnd, ID_TIMER_CLOSE, 1000, nil);
+    Redraw;
   except
     on e: Exception do raise Exception.Create('StackItem.OnDragLeave'#10#13 + e.message);
   end;

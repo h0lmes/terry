@@ -54,6 +54,7 @@ begin
     if assigned(theme.Separator.Image) then GdipCloneBitmapAreaI(0, 0, FIW, FIH, PixelFormat32bppPARGB, theme.Separator.Image, FImage);
     //
     FItemsArea := theme.ItemsArea;
+    FBorder := max(FItemsArea.Bottom, max(FReflectionSize, MIN_BORDER));
     //
     Redraw;
   except
@@ -173,9 +174,9 @@ begin
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
           GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
           GdipDeleteBrush(brush);
-          if (FSeparatorAlpha > 0) and not FFloating then
+          if FSeparatorAlpha > 0 then
             DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch, FSeparatorAlpha);
-          if FFloating then customitemu.DrawItemIndicator(dst, DII_MOVE, ItemRect.Left, ItemRect.Top, FSize, FSize);
+          if FFloating then DrawItemIndicator(dst, DII_MOVE, ItemRect.Left, ItemRect.Top, FSize, FSize);
           UpdateLWindow(FHWnd, bmp, 255);
         finally
           DeleteGraphics(dst);
