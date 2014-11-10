@@ -1142,24 +1142,23 @@ end;
 procedure _ItemManager.CalcDropPlace(pt: windows.TPoint);
 var
   tmp: extended;
-  cx, cy, prevDropPlace, prevDropPlaceEx: integer;
+  prevDropPlace, prevDropPlaceEx: integer;
 begin
   prevDropPlace := DropPlace;
   prevDropPlaceEx := DropPlaceEx;
 
   if Enabled then
   try
-    cx := pt.x;
-    cy := pt.y;
-    if BaseSiteVertical then dec(cy, ItemSize div 2) else dec(cx, ItemSize div 2);
-
     // DropPlace //
-    tmp := ItemFromPoint(cx, cy, DropDistance);
+    tmp := ItemFromPoint(pt.x, pt.y, DropDistance);
     if tmp = NOT_AN_ITEM then
     begin
       DropPlace := NOT_AN_ITEM;
     end else begin
-      if (abs(DropPlace - tmp) > 1.2) or (tmp = -1) then DropPlace := round(tmp);
+      if DropPlace = NOT_AN_ITEM then DropPlace := round(tmp)
+      else
+      if (abs(DropPlace + 0.5 - tmp) > 1.2) or (tmp = -1) then DropPlace := round(tmp - 0.5);
+      // "+ 0.5" to count from the center of the DropPlace. And "- 0.5" to compensate the "+ 0.5"
     end;
 
     if DropPlace <> NOT_AN_ITEM then
@@ -1284,19 +1283,17 @@ begin
 
     // correct disallowed drop cases //
     if DropPlaceEx <> NOT_AN_ITEM then
-    begin
-      Inst := TCustomItem(GetWindowLong(items[DropPlaceEx].h, GWL_USERDATA));
-      if DraggingItem and not DraggingFile then
+      if DraggingItem then
       begin
+        Inst := TCustomItem(GetWindowLong(items[DropPlaceEx].h, GWL_USERDATA));
         DragInst := TCustomItem(GetWindowLong(DragHWnd, GWL_USERDATA));
         if ((Inst is TStackItem) and (DragInst is TStackItem)) or
           ((Inst is TStackItem) and (DragInst is TShortcutItem)) or
           ((Inst is TShortcutItem) and (DragInst is TShortcutItem)) then atype := DII_ADD; // add
         if atype = 0 then DropPlaceEx := DropPlace;
       end;
-    end;
 
-    if DraggingItem and not DraggingFile then
+    if DraggingItem then
     begin
       AllItemCmd(icDropIndicator, 0);
       if atype > 0 then ItemCmd(items[DropPlaceEx].h, icDropIndicator, atype);
@@ -1623,6 +1620,7 @@ begin
   if enabled and not DraggingItem then
   try
     AllItemCmd(icHover, 0);
+    DraggingFile := false;
     DraggingItem := true;
     DragHWnd := HWnd;
     index := ItemIndex(HWnd);
