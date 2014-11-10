@@ -7,6 +7,8 @@ uses Windows, SysUtils, Controls, Classes, Math,
 type TSeparatorItem = class(TCustomItem)
   private
     Margins: windows.TRect;
+    FItemsArea: windows.TRect;
+    FSeparatorAlpha: integer;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
@@ -26,6 +28,7 @@ implementation
 constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
+  FSeparatorAlpha := AParams.SeparatorAlpha;
   FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
   FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
   UpdateItemInternal;
@@ -33,7 +36,8 @@ end;
 //------------------------------------------------------------------------------
 destructor TSeparatorItem.Destroy;
 begin
-  try GdipDisposeImage(FImage);
+  FFreed := true;
+  try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   inherited;
 end;
@@ -42,12 +46,15 @@ procedure TSeparatorItem.UpdateItemInternal;
 begin
   if not FFreed and assigned(theme) then
   try
-    if FImage <> nil then GdipDisposeImage(FImage);
+    if assigned(FImage) then GdipDisposeImage(FImage);
     FImage := nil;
     Margins := theme.CorrectMargins(theme.Separator.Margins);
     FIW := theme.Separator.W;
     FIH := theme.Separator.H;
     if assigned(theme.Separator.Image) then GdipCloneBitmapAreaI(0, 0, FIW, FIH, PixelFormat32bppPARGB, theme.Separator.Image, FImage);
+    //
+    FItemsArea := theme.ItemsArea;
+    //
     Redraw;
   except
     on e: Exception do raise Exception.Create('SeparatorItem.UpdateItemInternal'#10#13 + e.message);
@@ -61,6 +68,12 @@ begin
     case id of
       tcThemeChanged: UpdateItemInternal;
       gpSite: UpdateItemInternal;
+      gpSeparatorAlpha:
+        if FSeparatorAlpha <> param then
+        begin
+          FSeparatorAlpha := param;
+          Redraw;
+        end;
     end;
   except
     on e: Exception do raise Exception.Create('SeparatorItem.Cmd'#10#13 + e.message);
@@ -116,7 +129,7 @@ begin
       try
         if FSite = 0 then
         begin
-          sepw:= FItemSize;
+          sepw:= FItemSize + FItemsArea.Bottom;
           seph:= FIH;
           sepx:= xBitmap;
           sepy:= yBitmap + (FSize - seph) div 2;
@@ -124,13 +137,13 @@ begin
         if FSite = 1 then
         begin
           sepw:= FIW;
-          seph:= FItemSize;
+          seph:= FItemSize + FItemsArea.Bottom;
           sepx:= xBitmap + (FSize - sepw) div 2;
           sepy:= yBitmap;
         end;
         if FSite = 2 then
         begin
-          sepw:= FItemSize;
+          sepw:= FItemSize + FItemsArea.Bottom;
           seph:= FIH;
           sepx:= xBitmap + FSize - FItemSize;
           sepy:= yBitmap + (FSize - seph) div 2;
@@ -138,7 +151,7 @@ begin
         if FSite = 3 then
         begin
           sepw:= FIW;
-          seph:= FItemSize;
+          seph:= FItemSize + FItemsArea.Bottom;
           sepx:= xBitmap + (FSize - sepw) div 2;
           sepy:= yBitmap + FSize - FItemSize;
         end;
@@ -160,7 +173,9 @@ begin
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
           GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
           GdipDeleteBrush(brush);
-          DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch);
+          if (FSeparatorAlpha > 0) and not FFloating then
+            DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch, FSeparatorAlpha);
+          if FFloating then customitemu.DrawItemIndicator(dst, DII_MOVE, ItemRect.Left, ItemRect.Top, FSize, FSize);
           UpdateLWindow(FHWnd, bmp, 255);
         finally
           DeleteGraphics(dst);

@@ -409,6 +409,7 @@ begin
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
     ItemMgr.SetParam(gpTaskbarSameMonitor, integer(sets.container.TaskbarSameMonitor));
+    ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
 
     ItemMgr.SetFont(sets.container.Font);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
@@ -542,19 +543,20 @@ begin
   message.result := 0;
   case message.msg of
     WM_INPUT:
-    begin
-      dwSize := 0;
-      GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
-      if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
-        raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
-      if ri.header.dwType = RIM_TYPEMOUSE then
+      if not closing then
       begin
-        if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
-        if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
-        WHMouseMove(0);
+        dwSize := 0;
+        GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
+        if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
+          raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
+        if ri.header.dwType = RIM_TYPEMOUSE then
+        begin
+          if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
+          if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
+          WHMouseMove(0);
+        end;
+        exit;
       end;
-      exit;
-    end;
     WM_TIMER : WMTimer(message);
     WM_USER : WMUser(message);
     WM_COMMAND : WMCommand(message);

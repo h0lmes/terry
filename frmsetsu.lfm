@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsStyle
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 2
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -148,7 +148,7 @@ object frmsets: Tfrmsets
         Height = 31
         Top = 140
         Width = 271
-        Frequency = 10
+        Frequency = 20
         Max = 200
         OnChange = tbReserveScreenEdgePercentChange
         PageSize = 10
@@ -262,16 +262,16 @@ object frmsets: Tfrmsets
       object lblCenterOffsetPercent: TLabel
         Left = 15
         Height = 13
-        Top = 195
+        Top = 130
         Width = 90
         Alignment = taCenter
         Caption = 'Offset from center'
         ParentColor = False
       end
       object lblEdge: TLabel
-        Left = 15
+        Left = 245
         Height = 13
-        Top = 75
+        Top = 15
         Width = 72
         Caption = 'Edge of screen'
         ParentColor = False
@@ -287,17 +287,17 @@ object frmsets: Tfrmsets
       object lblEdgeOffset: TLabel
         Left = 15
         Height = 13
-        Top = 255
+        Top = 190
         Width = 83
         Alignment = taCenter
         Caption = 'Offset from edge'
         ParentColor = False
       end
       object cboBaseSite: TComboBox
-        Left = 30
+        Left = 245
         Height = 21
-        Top = 100
-        Width = 277
+        Top = 40
+        Width = 200
         ItemHeight = 13
         OnChange = cboBaseSiteChange
         Style = csDropDownList
@@ -306,7 +306,7 @@ object frmsets: Tfrmsets
       object tbCenterOffsetPercent: TTrackBar
         Left = 30
         Height = 31
-        Top = 215
+        Top = 150
         Width = 362
         Frequency = 5
         Max = 100
@@ -316,10 +316,10 @@ object frmsets: Tfrmsets
         TabOrder = 2
       end
       object cbo_monitor: TComboBox
-        Left = 30
+        Left = 15
         Height = 21
         Top = 40
-        Width = 277
+        Width = 200
         ItemHeight = 13
         OnChange = cbo_monitorChange
         Style = csDropDownList
@@ -328,7 +328,7 @@ object frmsets: Tfrmsets
       object tbEdgeOffset: TTrackBar
         Left = 30
         Height = 31
-        Top = 275
+        Top = 210
         Width = 362
         Frequency = 10
         Max = 100
@@ -341,7 +341,7 @@ object frmsets: Tfrmsets
       object gbAutoSlide: TGroupBox
         Left = 15
         Height = 131
-        Top = 345
+        Top = 280
         Width = 430
         ClientHeight = 113
         ClientWidth = 426
@@ -407,7 +407,7 @@ object frmsets: Tfrmsets
       object cbStayOnTop: TCheckBox
         Left = 15
         Height = 19
-        Top = 320
+        Top = 255
         Width = 162
         Caption = 'Stay on top of other windows'
         OnClick = cbStayOnTopClick
@@ -416,8 +416,8 @@ object frmsets: Tfrmsets
       object stMoveDockHint: TStaticText
         Left = 15
         Height = 50
-        Top = 135
-        Width = 377
+        Top = 75
+        Width = 430
         Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
         Color = clDefault
         ParentColor = False
@@ -431,7 +431,7 @@ object frmsets: Tfrmsets
       object chbBlur: TCheckBox
         Left = 240
         Height = 19
-        Top = 85
+        Top = 15
         Width = 106
         Caption = 'Enable Aero Glass'
         OnClick = chbBlurClick
@@ -440,16 +440,16 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency: TLabel
         Left = 240
         Height = 13
-        Top = 20
+        Top = 50
         Width = 98
         Caption = 'Background opacity:'
         ParentColor = False
       end
       object tbBaseAlpha: TTrackBar
-        Left = 240
+        Left = 235
         Height = 30
-        Top = 40
-        Width = 200
+        Top = 70
+        Width = 215
         Frequency = 20
         Max = 255
         OnChange = tbBaseAlphaChange
@@ -586,6 +586,27 @@ object frmsets: Tfrmsets
         Top = 445
         Width = 205
         OnPaint = pboxPaint
+      end
+      object lblBackgroundTransparency1: TLabel
+        Left = 240
+        Height = 13
+        Top = 115
+        Width = 95
+        Caption = 'Separators opacity:'
+        ParentColor = False
+      end
+      object tbSeparatorAlpha: TTrackBar
+        Left = 235
+        Height = 30
+        Top = 135
+        Width = 215
+        Frequency = 20
+        Max = 255
+        OnChange = tbSeparatorAlphaChange
+        Position = 0
+        ScalePos = trLeft
+        ShowSelRange = False
+        TabOrder = 10
       end
     end
     object tsIcons: TTabSheet

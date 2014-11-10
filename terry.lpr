@@ -382,7 +382,8 @@ end;
 //------------------------------------------------------------------------------
 procedure Dock(id: HWND); stdcall;
 begin
-  if assigned(frmmain) then if assigned(frmmain.ItemMgr) then frmmain.ItemMgr.Dock(id);
+  if assigned(frmmain) then
+    if assigned(frmmain.ItemMgr) then frmmain.ItemMgr.Dock(id);
 end;
 //------------------------------------------------------------------------------
 function DockCreateItem(data: pchar): uint; stdcall;

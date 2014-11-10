@@ -16,6 +16,9 @@ const
   DWM_TNP_VISIBLE              = $8; // A value for the fVisible member has been specified.
   DWM_TNP_SOURCECLIENTAREAONLY = $10; // A value for the fSourceClientAreaOnly member has been specified.
 
+  PEEK_TYPE_DESKTOP = 1;
+  PEEK_TYPE_WINDOW = 3;
+
 type
   _DWMWINDOWATTRIBUTE = (
       DWMWA_NCRENDERING_ENABLED = 1, // Discovers whether non-client rendering is enabled
@@ -72,6 +75,9 @@ type
       DwmUnregisterThumbnail: function(hThumbnailId: THandle): HRESULT; stdcall;
       DwmUpdateThumbnailProperties: function(hThumbnailId: THandle; ptnProperties: P_DWM_THUMBNAIL_PROPERTIES): HRESULT; stdcall;
       DwmQueryThumbnailSourceSize: function(hThumbnailId: THandle; pSize: PSize): HRESULT; stdcall;
+      //
+      //DwmInvokeAeroPeek: function(Enable: integer; Target, Caller: THandle; PeekType: integer; p: pointer; x3244: IntPtr): HRESULT; stdcall;
+      DwmInvokeAeroPeek: function(Enable: integer; Target, Caller: THandle; PeekType: integer): HRESULT; stdcall;
     public
       constructor Create;
       destructor Destroy; override;
@@ -88,11 +94,14 @@ type
       function SetThumbnailRect(hThumbnailId: THandle; destRect: TRect): boolean;
       function SetThumbnailVisible(hThumbnailId: THandle; visible: boolean): boolean;
       procedure UnregisterThumbnail(hThumbnailId: THandle);
+      //
+      procedure InvokeAeroPeek(Enable: integer; Target, Caller: THandle);
   end;
 
 var DWM: TDWMHelper;
 
 implementation
+uses frmmainu;
 //------------------------------------------------------------------------------
 constructor TDWMHelper.Create;
 var
@@ -116,6 +125,8 @@ begin
     @DwmUnregisterThumbnail := GetProcAddress(hDwmLib, 'DwmUnregisterThumbnail');
     @DwmUpdateThumbnailProperties := GetProcAddress(hDwmLib, 'DwmUpdateThumbnailProperties');
     @DwmQueryThumbnailSourceSize := GetProcAddress(hDwmLib, 'DwmQueryThumbnailSourceSize');
+    //
+    @DwmInvokeAeroPeek := GetProcAddress(hDwmLib, pchar(113));
   end;
 end;
 //------------------------------------------------------------------------------
@@ -304,8 +315,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.UnregisterThumbnail(hThumbnailId: THandle);
 begin
-  if @DwmUnregisterThumbnail <> nil then
-     DwmUnregisterThumbnail(hThumbnailId);
+  if @DwmUnregisterThumbnail <> nil then DwmUnregisterThumbnail(hThumbnailId);
+end;
+//------------------------------------------------------------------------------
+procedure TDWMHelper.InvokeAeroPeek(Enable: integer; Target, Caller: THandle);
+var
+  ip: pinteger;
+begin
+  //ip := pinteger(32);
+  //if assigned(DwmInvokeAeroPeek) then DwmInvokeAeroPeek(Enable, Target, Caller, 1, ip, $3244);
+  if assigned(DwmInvokeAeroPeek) then DwmInvokeAeroPeek(Enable, Target, Caller, 1);
 end;
 //------------------------------------------------------------------------------
 initialization

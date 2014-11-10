@@ -362,7 +362,9 @@ begin
         if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
       end
       else ShowPeekWindow(800);
+      //dwm.InvokeAeroPeek(1, THandle(FAppList.Items[0]), 0);
     end else begin
+      //dwm.InvokeAeroPeek(0, THandle(FAppList.Items[0]), 0);
       ClosePeekWindow(800);
     end;
 end;

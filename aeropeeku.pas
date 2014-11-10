@@ -863,6 +863,20 @@ begin
     CloseWindow;
     exit;
   end
+  // WM_MOUSEMOVE
+  else if msg.msg = WM_MOUSEMOVE then
+  begin
+    pt.x := TSmallPoint(msg.lParam).x;
+    pt.y := TSmallPoint(msg.lParam).y;
+    for index := 0 to FItemCount - 1 do
+    begin
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
+        begin
+
+        end;
+    end;
+  end
   // WM_TIMER
   else if msg.msg = WM_TIMER then
   begin

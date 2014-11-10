@@ -43,6 +43,7 @@ type
     gpAutoHideOnFullScreenApp,
     gpUseShellContextMenus,
     gpBaseAlpha,
+    gpSeparatorAlpha,
     gpActivateInvokedApps,
     gpMonitor,
     gpAutoShowTime,
@@ -106,6 +107,7 @@ type
     Animation: integer;
     LockDragging: boolean;
     StackOpenAnimation: boolean;
+    SeparatorAlpha: integer;
     Font: _FontData;
   end;
 

@@ -90,7 +90,7 @@ procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer); overload;
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: Single); overload;
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRectF; radius: Single); overload;
-procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch);
+procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect; margins: windows.TRect; Style: TStretchStyle = ssStretch; Alpha: integer = 255);
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -510,14 +510,16 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure DrawEx(dst, src: Pointer; W, H: uint; dstrect: windows.TRect;
-  margins: windows.TRect; Style: TStretchStyle = ssStretch);
+  margins: windows.TRect; Style: TStretchStyle = ssStretch; Alpha: integer = 255);
 var
   x, y: integer;
   srcwidth, srcheight: uint;
   dstwidth, dstheight: uint;
   part_w, part_h: uint;
+  matrix: ColorMatrix;
+  attr: Pointer;
 begin
-  if dst = nil then exit;
+  if (dst = nil) or (Alpha = 0) then exit;
   if src = nil then
   begin
     GdipGraphicsClear(dst, 0);
@@ -539,184 +541,197 @@ begin
   if Margins.Bottom > dstheight - Margins.Top then Margins.bottom:= dstheight - Margins.Top;
 
   try
-
-  // stretch //
-  if style = ssStretch then
-  begin
-
-    // center //
-    GdipDrawImageRectRectI(dst, src, margins.left + dstrect.left, margins.top + dstrect.top,
-      dstwidth - margins.left - margins.right, dstheight - margins.top - margins.bottom,
-      margins.left, margins.top, srcwidth - margins.left - margins.right,
-      srcheight - margins.top - margins.bottom, UnitPixel, nil, nil, nil);
-
-    // left line //
-    if margins.left > 0 then
-      GdipDrawImageRectRectI(dst, src,
-        dstrect.left, margins.top + dstrect.top,
-        margins.left, dstheight - margins.top - margins.bottom,
-        0, margins.top, margins.left, srcheight - margins.top - margins.bottom,
-        UnitPixel, nil, nil, nil);
-
-    // right line //
-    if margins.right > 0 then
-      GdipDrawImageRectRectI(dst, src,
-        dstwidth - margins.right + dstrect.left, margins.top + dstrect.top,
-        margins.right, dstheight - margins.top - margins.bottom,
-        srcwidth - margins.right,
-        margins.top, margins.right, srcheight - margins.top - margins.bottom,
-        UnitPixel, nil, nil, nil);
-
-    // top line //
-    if margins.top > 0 then
-      GdipDrawImageRectRectI(dst, src,
-        margins.left + dstrect.left, dstrect.top,
-        dstwidth - margins.left - margins.right, margins.top,
-        margins.left, 0, srcwidth - margins.left - margins.right, margins.top,
-        UnitPixel, nil, nil, nil);
-
-    // bottom line //
-    if margins.bottom > 0 then
-      GdipDrawImageRectRectI(dst, src,
-        margins.left + dstrect.left, dstheight - margins.bottom + dstrect.top,
-        dstwidth - margins.left - margins.right, margins.bottom,
-        margins.left, srcheight - margins.bottom,
-        srcwidth - margins.left - margins.right, margins.bottom,
-        UnitPixel, nil, nil, nil);
-
-  // tile //
-  end else if style = ssTile then
-  begin
-
-    // center //
-    x:= Margins.Left + dstrect.left;
-    while x <= dstrect.left + dstWidth - Margins.Right do
+    attr := nil;
+    if Alpha < 255 then
     begin
-
-      part_w:= srcwidth - margins.left - margins.right;
-      if x + part_w > dstrect.left + dstWidth - Margins.right
-      then part_w:= dstrect.left + dstWidth - Margins.right - x;
-
-      y:= Margins.Top + dstrect.top;
-      while y <= dstrect.top + dstHeight - Margins.Bottom do
-      begin
-
-        part_h:= srcheight - margins.top - margins.bottom;
-        if y + part_h > dstrect.top + dstHeight - Margins.Bottom
-        then part_h:= dstrect.top + dstHeight - Margins.Bottom - y;
-
-        GdipDrawImageRectRectI(dst, src,
-          x, y, part_w, part_h,
-          margins.left, margins.top, part_w, part_h,
-          UnitPixel, nil, nil, nil);
-
-        inc(y, srcHeight - Margins.Top - Margins.Bottom);
-      end;
-
-      inc(x, srcWidth - Margins.Left - Margins.Right);
+      CreateAlphaMatrix(Alpha, matrix);
+      GdipCreateImageAttributes(attr);
+      GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
     end;
 
-    // left and right line //
-    if (margins.left > 0) or (margins.right > 0) then
+    try
+
+    // stretch //
+    if style = ssStretch then
     begin
-      y:= Margins.Top + dstrect.top;
-      while y <= dstrect.top + dstHeight - Margins.Bottom do
-      begin
-        part_h:= srcheight - margins.top - margins.bottom;
-        if y + part_h > dstrect.top + dstHeight - Margins.Bottom
-        then part_h:= dstrect.top + dstHeight - Margins.Bottom - y;
 
-        if margins.left > 0 then
+      // center //
+      GdipDrawImageRectRectI(dst, src, margins.left + dstrect.left, margins.top + dstrect.top,
+        dstwidth - margins.left - margins.right, dstheight - margins.top - margins.bottom,
+        margins.left, margins.top, srcwidth - margins.left - margins.right,
+        srcheight - margins.top - margins.bottom, UnitPixel, attr, nil, nil);
+
+      // left line //
+      if margins.left > 0 then
         GdipDrawImageRectRectI(dst, src,
-          dstrect.left, y, margins.left, part_h,
-          0, margins.top, margins.left, part_h,
-          UnitPixel, nil, nil, nil);
+          dstrect.left, margins.top + dstrect.top,
+          margins.left, dstheight - margins.top - margins.bottom,
+          0, margins.top, margins.left, srcheight - margins.top - margins.bottom,
+          UnitPixel, attr, nil, nil);
 
-        if margins.right > 0 then
+      // right line //
+      if margins.right > 0 then
         GdipDrawImageRectRectI(dst, src,
-          dstwidth - margins.right + dstrect.left, y, margins.right, part_h,
-          srcwidth - margins.right, margins.top, margins.right, part_h,
-          UnitPixel, nil, nil, nil);
+          dstwidth - margins.right + dstrect.left, margins.top + dstrect.top,
+          margins.right, dstheight - margins.top - margins.bottom,
+          srcwidth - margins.right,
+          margins.top, margins.right, srcheight - margins.top - margins.bottom,
+          UnitPixel, attr, nil, nil);
 
-        inc(y, srcHeight - Margins.Top - Margins.Bottom);
-      end;
-    end;
+      // top line //
+      if margins.top > 0 then
+        GdipDrawImageRectRectI(dst, src,
+          margins.left + dstrect.left, dstrect.top,
+          dstwidth - margins.left - margins.right, margins.top,
+          margins.left, 0, srcwidth - margins.left - margins.right, margins.top,
+          UnitPixel, attr, nil, nil);
 
-    // top and bottom line //
-    if (margins.top > 0) or (margins.bottom > 0) then
+      // bottom line //
+      if margins.bottom > 0 then
+        GdipDrawImageRectRectI(dst, src,
+          margins.left + dstrect.left, dstheight - margins.bottom + dstrect.top,
+          dstwidth - margins.left - margins.right, margins.bottom,
+          margins.left, srcheight - margins.bottom,
+          srcwidth - margins.left - margins.right, margins.bottom,
+          UnitPixel, attr, nil, nil);
+
+    // tile //
+    end else if style = ssTile then
     begin
+
+      // center //
       x:= Margins.Left + dstrect.left;
       while x <= dstrect.left + dstWidth - Margins.Right do
       begin
+
         part_w:= srcwidth - margins.left - margins.right;
         if x + part_w > dstrect.left + dstWidth - Margins.right
         then part_w:= dstrect.left + dstWidth - Margins.right - x;
 
-        if margins.top > 0 then
-        GdipDrawImageRectRectI(dst, src,
-          x, dstrect.top, part_w, margins.top,
-          margins.left, 0, part_w, margins.top,
-          UnitPixel, nil, nil, nil);
+        y:= Margins.Top + dstrect.top;
+        while y <= dstrect.top + dstHeight - Margins.Bottom do
+        begin
 
-        if margins.bottom > 0 then
-        GdipDrawImageRectRectI(dst, src,
-          x, dstheight - margins.bottom + dstrect.top, part_w, margins.bottom,
-          margins.left, srcheight - margins.bottom, part_w, margins.bottom,
-          UnitPixel, nil, nil, nil);
+          part_h:= srcheight - margins.top - margins.bottom;
+          if y + part_h > dstrect.top + dstHeight - Margins.Bottom
+          then part_h:= dstrect.top + dstHeight - Margins.Bottom - y;
 
-        inc(x, srcWidth - Margins.left - Margins.right);
+          GdipDrawImageRectRectI(dst, src,
+            x, y, part_w, part_h,
+            margins.left, margins.top, part_w, part_h,
+            UnitPixel, attr, nil, nil);
+
+          inc(y, srcHeight - Margins.Top - Margins.Bottom);
+        end;
+
+        inc(x, srcWidth - Margins.Left - Margins.Right);
       end;
+
+      // left and right line //
+      if (margins.left > 0) or (margins.right > 0) then
+      begin
+        y:= Margins.Top + dstrect.top;
+        while y <= dstrect.top + dstHeight - Margins.Bottom do
+        begin
+          part_h:= srcheight - margins.top - margins.bottom;
+          if y + part_h > dstrect.top + dstHeight - Margins.Bottom
+          then part_h:= dstrect.top + dstHeight - Margins.Bottom - y;
+
+          if margins.left > 0 then
+          GdipDrawImageRectRectI(dst, src,
+            dstrect.left, y, margins.left, part_h,
+            0, margins.top, margins.left, part_h,
+            UnitPixel, attr, nil, nil);
+
+          if margins.right > 0 then
+          GdipDrawImageRectRectI(dst, src,
+            dstwidth - margins.right + dstrect.left, y, margins.right, part_h,
+            srcwidth - margins.right, margins.top, margins.right, part_h,
+            UnitPixel, attr, nil, nil);
+
+          inc(y, srcHeight - Margins.Top - Margins.Bottom);
+        end;
+      end;
+
+      // top and bottom line //
+      if (margins.top > 0) or (margins.bottom > 0) then
+      begin
+        x:= Margins.Left + dstrect.left;
+        while x <= dstrect.left + dstWidth - Margins.Right do
+        begin
+          part_w:= srcwidth - margins.left - margins.right;
+          if x + part_w > dstrect.left + dstWidth - Margins.right
+          then part_w:= dstrect.left + dstWidth - Margins.right - x;
+
+          if margins.top > 0 then
+          GdipDrawImageRectRectI(dst, src,
+            x, dstrect.top, part_w, margins.top,
+            margins.left, 0, part_w, margins.top,
+            UnitPixel, attr, nil, nil);
+
+          if margins.bottom > 0 then
+          GdipDrawImageRectRectI(dst, src,
+            x, dstheight - margins.bottom + dstrect.top, part_w, margins.bottom,
+            margins.left, srcheight - margins.bottom, part_w, margins.bottom,
+            UnitPixel, attr, nil, nil);
+
+          inc(x, srcWidth - Margins.left - Margins.right);
+        end;
+      end;
+
     end;
 
-  end;
+    except
+    end;
 
-  except
-  end;
+    // end of center area //
 
-  // end of center area //
+    // top-left corner //
+    try
+      if (margins.top > 0) and (margins.left > 0) then
+        GdipDrawImageRectRectI(dst, src,
+        dstrect.left, dstrect.top, margins.left, margins.top,
+        0, 0, margins.left, margins.top, UnitPixel, attr, nil, nil);
+    except
+    end;
 
-  // top-left corner //
-  try
-    if (margins.top > 0) and (margins.left > 0) then
-      GdipDrawImageRectRectI(dst, src,
-      dstrect.left, dstrect.top, margins.left, margins.top,
-      0, 0, margins.left, margins.top, UnitPixel, nil, nil, nil);
-  except
-  end;
+    // top-right corner //
+    try
+      if (margins.top > 0) and (margins.right > 0) then
+        GdipDrawImageRectRectI(dst, src,
+        dstwidth - margins.right + dstrect.left, dstrect.top,
+        margins.right, margins.top,
+        srcwidth - margins.right, 0, margins.right, margins.top,
+        UnitPixel, attr, nil, nil);
+    except
+    end;
 
-  // top-right corner //
-  try
-    if (margins.top > 0) and (margins.right > 0) then
-      GdipDrawImageRectRectI(dst, src,
-      dstwidth - margins.right + dstrect.left, dstrect.top,
-      margins.right, margins.top,
-      srcwidth - margins.right, 0, margins.right, margins.top,
-      UnitPixel, nil, nil, nil);
-  except
-  end;
+    // bottom-left corner //
+    try
+      if (margins.bottom > 0) and (margins.left > 0) then
+        GdipDrawImageRectRectI(dst, src,
+        dstrect.left, dstheight - margins.bottom + dstrect.top,
+        margins.left, margins.bottom,
+        0, srcheight - margins.bottom, margins.left, margins.bottom,
+        UnitPixel, attr, nil, nil);
+    except
+    end;
 
-  // bottom-left corner //
-  try
-    if (margins.bottom > 0) and (margins.left > 0) then
-      GdipDrawImageRectRectI(dst, src,
-      dstrect.left, dstheight - margins.bottom + dstrect.top,
-      margins.left, margins.bottom,
-      0, srcheight - margins.bottom, margins.left, margins.bottom,
-      UnitPixel, nil, nil, nil);
-  except
-  end;
+    // bottom-right corner //
+    try
+      if (margins.bottom > 0) and (margins.right > 0) then
+        GdipDrawImageRectRectI(dst, src,
+        dstwidth - margins.right + dstrect.left,
+        dstheight - margins.bottom + dstrect.top,
+        margins.right, margins.bottom,
+        srcwidth - margins.right, srcheight - margins.bottom,
+        margins.right, margins.bottom,
+        UnitPixel, attr, nil, nil);
+    except
+    end;
 
-  // bottom-right corner //
-  try
-    if (margins.bottom > 0) and (margins.right > 0) then
-      GdipDrawImageRectRectI(dst, src,
-      dstwidth - margins.right + dstrect.left,
-      dstheight - margins.bottom + dstrect.top,
-      margins.right, margins.bottom,
-      srcwidth - margins.right, srcheight - margins.bottom,
-      margins.right, margins.bottom,
-      UnitPixel, nil, nil, nil);
-  except
+  finally
+    if assigned(attr) then GdipDisposeImageAttributes(attr);
   end;
 end;
 //--------------------------------------------------------------------------------------------------

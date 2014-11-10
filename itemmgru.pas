@@ -40,6 +40,7 @@ type
     ShowHint: boolean;
     StackOpenAnimation: boolean;
     FTaskbarSameMonitor: boolean;
+    FSeparatorAlpha: integer;
     FFont: _FontData;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
@@ -323,6 +324,7 @@ begin
       gpStackOpenAnimation:     StackOpenAnimation := value <> 0;
       gpZoomTime:               ZoomTime := value;
       gpLockMouseEffect:        LockMouseEffect := value <> 0;
+      gpSeparatorAlpha:         FSeparatorAlpha := value;
     end;
   except
     on e: Exception do err('ItemManager.SetParam', e);
@@ -517,7 +519,6 @@ begin
     end;
     ItemCount := 0;
     TaskItemCount := 0;
-    //ItemsChanged;
   except
     on e: Exception do err('ItemManager.Clear', e);
   end;
@@ -1048,6 +1049,7 @@ begin
     icp.Animation := ItemAnimation;
     icp.LockDragging := LockDragging;
     icp.StackOpenAnimation := StackOpenAnimation;
+    icp.SeparatorAlpha := FSeparatorAlpha;
     CopyFontData(FFont, icp.Font);
 
     if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)

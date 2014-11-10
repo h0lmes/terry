@@ -482,7 +482,7 @@ begin
     if assigned(FPreviewImage) and (FState = stsClosed) then
       GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
     // drop indicator
-    customitemu.DrawDropIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
+    customitemu.DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
     ////
     if FReflection and (FReflectionSize > 0) and not FFloating then

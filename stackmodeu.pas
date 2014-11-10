@@ -239,6 +239,16 @@ begin
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
   rows := ceil(ItemCount / cols);
+  if rows * cols > ItemCount then
+  begin
+    inc(cols);
+    rows := ceil(ItemCount / cols);
+  end;
+  if rows * cols > ItemCount then
+  begin
+    dec(cols);
+    rows := ceil(ItemCount / cols);
+  end;
   inc(Offset, 10 + HSPACE);
   case Site of
     0: begin
@@ -292,6 +302,16 @@ begin
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
   rows := ceil(ItemCount / cols);
+  if rows * cols > ItemCount then
+  begin
+    inc(cols);
+    rows := ceil(ItemCount / cols);
+  end;
+  if rows * cols > ItemCount then
+  begin
+    dec(cols);
+    rows := ceil(ItemCount / cols);
+  end;
   inc(Offset, 10 + HSPACE);
   case Site of
     0: begin

@@ -48,6 +48,7 @@ type
     Hello: boolean;
     Reflection: boolean;
     BaseAlpha: integer;
+    SeparatorAlpha: integer;
     Blur: boolean;
     Font: _FontData;
     Shell: array [0..MAX_PATH] of char;
@@ -111,6 +112,7 @@ begin
   container.site := bsBottom;
   container.CloseCmdWindow := true;
   container.BaseAlpha := 255;
+  container.SeparatorAlpha := 255;
   container.Hello := true;
   SetsPathFile := ASetsFile;
   PluginsPath := AProgPath + '\Docklets';
@@ -198,7 +200,8 @@ begin
   container.Font.bold:= ini.ReadBool('Font', 'bold', true);
   container.Font.italic:= ini.ReadBool('Font', 'italic', false);
   // gfx //
-  container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 0, 255);
+  container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 13, 255);
+  container.SeparatorAlpha := SetRange(ini.ReadInteger('gfx', 'SeparatorAlpha', 255), 0, 255);
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
   container.Blur := ini.ReadBool('gfx', 'Blur', true);
 
@@ -278,6 +281,7 @@ begin
   ini.WriteBool   ('base', 'Hello', false);
   // gfx //
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
+  ini.WriteInteger('gfx', 'SeparatorAlpha', container.SeparatorAlpha);
   ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
   ini.WriteBool   ('gfx', 'Blur', container.Blur);
   // font //
@@ -410,6 +414,7 @@ begin
   gpUseShellContextMenus: container.UseShellContextMenus := boolean(value);
   gpStackOpenAnimation: container.StackOpenAnimation := boolean(value);
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
+  gpSeparatorAlpha: container.SeparatorAlpha := SetRange(value, 0, 255);
   gpBlur: container.Blur := boolean(value);
   end;
 
@@ -461,6 +466,7 @@ begin
   gpUseShellContextMenus: result := integer(container.UseShellContextMenus);
   gpStackOpenAnimation: result := integer(container.StackOpenAnimation);
   gpBaseAlpha: result := container.BaseAlpha;
+  gpSeparatorAlpha: result := container.SeparatorAlpha;
   gpBlur: result := integer(container.Blur);
   end;
 end;
@@ -516,6 +522,7 @@ begin
   dst.AutoHideOnFullScreenApp := src.AutoHideOnFullScreenApp;
   dst.Reflection := src.Reflection;
   dst.BaseAlpha := src.BaseAlpha;
+  dst.SeparatorAlpha := src.SeparatorAlpha;
   dst.Blur := src.Blur;
   dst.useShell := src.useShell;
   dst.RunInThread := src.RunInThread;

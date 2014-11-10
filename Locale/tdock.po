@@ -802,6 +802,10 @@ msgstr ""
 msgid "Background opacity:"
 msgstr ""
 
+#: tfrmsets.lblbackgroundtransparency1.caption
+msgid "Separators opacity:"
+msgstr ""
+
 #: tfrmsets.lblcenteroffsetpercent.caption
 msgid "Offset from center"
 msgstr ""

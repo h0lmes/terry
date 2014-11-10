@@ -94,7 +94,6 @@ begin
   except end;
   try if is_pidl then PIDL_Free(apidl);
   except end;
-
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -516,7 +515,7 @@ begin
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     // drop indicator
-    customitemu.DrawDropIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
+    customitemu.DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
     ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);

@@ -9,6 +9,10 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
   MIN_BORDER = 20;
+  DII_ADD = 1;
+  DII_RUN = 2;
+  DII_ICON = 3;
+  DII_MOVE = 4;
 
 type
 
@@ -116,7 +120,7 @@ type
     class procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
   end;
 
-procedure DrawDropIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
+procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
 
 implementation
 //------------------------------------------------------------------------------
@@ -508,6 +512,7 @@ var
   filecount: integer;
   filename: array [0..MAX_PATH - 1] of char;
 begin
+  if not FFreed then
   try
     WndMessage(message);
   except
@@ -515,6 +520,7 @@ begin
   end;
 
   try
+    if not FFreed then
     with message do
     begin
         result := 0;
@@ -615,12 +621,24 @@ begin
         end
         else if (msg = wm_close) or (msg = wm_quit) then exit;
 
-        message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
     end;
+    message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
   except
     on e: Exception do raise Exception.Create('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
   end;
 end;
+//------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
 //------------------------------------------------------------------------------
 class procedure TCustomItem.CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
 var
@@ -646,12 +664,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure DrawDropIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
+procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: integer);
 var
   brush, pen, path: pointer;
   rect: GDIPAPI.TRectF;
   cell, cell2, cell3, cell4: single;
-  points: array [0..11] of GDIPAPI.TPointF;
+  points: array [0..23] of GDIPAPI.TPointF;
 begin
   if iType > 0 then
   try
@@ -660,7 +678,7 @@ begin
     GdipDeleteBrush(brush);
     GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
 
-    if iType = 1 then // add
+    if iType = DII_ADD then // add
     begin
       GdipCreateSolidFill($ff303030, brush);
       GdipCreatePath(FillModeWinding, path);
@@ -697,7 +715,8 @@ begin
       GdipDeletePath(path);
       GdipDeleteBrush(brush);
     end
-    else if iType = 2 then // run
+    else
+    if iType = DII_RUN then // run
     begin
       GdipCreateSolidFill($ff303030, brush);
       GdipCreatePath(FillModeWinding, path);
@@ -732,6 +751,64 @@ begin
       GdipCreatePen1($ff303030, 2, UnitPixel, pen);
       GdipDrawLine(dst, pen, X + Width * 0.33, Y + Height * 0.37, X + Width * 0.3, Y + Height * 0.53);
       GdipDeletePen(pen);
+    end
+    else
+    if iType = DII_MOVE then // move
+    begin
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * 0.5; // top arrow point
+      points[0].y := Y + Height * 0.2;
+      points[1].x := X + Width * 0.62; // next point clockwise
+      points[1].y := Y + Height * 0.36;
+      points[2].x := X + Width * 0.56;
+      points[2].y := Y + Height * 0.36;
+      points[3].x := X + Width * 0.56;
+      points[3].y := Y + Height * 0.44;
+      points[4].x := X + Width * 0.64;
+      points[4].y := Y + Height * 0.44;
+      points[5].x := X + Width * 0.64;
+      points[5].y := Y + Height * 0.38;
+      points[6].x := X + Width * 0.8; // right arrow point
+      points[6].y := Y + Height * 0.5;
+      points[7].x := X + Width * 0.64;
+      points[7].y := Y + Height * 0.62;
+      points[8].x := X + Width * 0.64;
+      points[8].y := Y + Height * 0.56;
+      points[9].x := X + Width * 0.56;
+      points[9].y := Y + Height * 0.56;
+      points[10].x := X + Width * 0.56;
+      points[10].y := Y + Height * 0.64;
+      points[11].x := X + Width * 0.62;
+      points[11].y := Y + Height * 0.64;
+      points[12].x := X + Width * 0.5; // bottom arrow point
+      points[12].y := Y + Height * 0.8;
+      points[13].x := X + Width * 0.38;
+      points[13].y := Y + Height * 0.64;
+      points[14].x := X + Width * 0.44;
+      points[14].y := Y + Height * 0.64;
+      points[15].x := X + Width * 0.44;
+      points[15].y := Y + Height * 0.56;
+      points[16].x := X + Width * 0.36;
+      points[16].y := Y + Height * 0.56;
+      points[17].x := X + Width * 0.36;
+      points[17].y := Y + Height * 0.62;
+      points[18].x := X + Width * 0.2; // left arrow point
+      points[18].y := Y + Height * 0.5;
+      points[19].x := X + Width * 0.36;
+      points[19].y := Y + Height * 0.38;
+      points[20].x := X + Width * 0.36;
+      points[20].y := Y + Height * 0.44;
+      points[21].x := X + Width * 0.44;
+      points[21].y := Y + Height * 0.44;
+      points[22].x := X + Width * 0.44;
+      points[22].y := Y + Height * 0.36;
+      points[23].x := X + Width * 0.38;
+      points[23].y := Y + Height * 0.36;
+      GdipAddPathClosedCurve2(path, points, 24, 0);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      GdipDeleteBrush(brush);
     end;
 
   except

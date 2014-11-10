@@ -38,6 +38,7 @@ type
     gbAutostart: TGroupBox;
     GroupBox1: TGroupBox;
     Label1: TLabel;
+    lblBackgroundTransparency1: TLabel;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
     lblIconSpacing: TLabel;
@@ -60,6 +61,7 @@ type
     pbox: TPaintBox;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
+    tbSeparatorAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
     tbAeroPeekThumbSize: TTrackBar;
     tbZoomTime: TTrackBar;
@@ -181,6 +183,7 @@ type
     procedure tbBigIconSizeChange(Sender: TObject);
     procedure tbIconSpacingChange(Sender: TObject);
     procedure tbReserveScreenEdgePercentChange(Sender: TObject);
+    procedure tbSeparatorAlphaChange(Sender: TObject);
     procedure tbZoomTimeChange(Sender: TObject);
     procedure tbZoomWidthChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
@@ -361,10 +364,6 @@ begin
   tbEdgeOffset.OnChange := tbEdgeOffsetChange;
   UpdateLblCenterOffsetPercent;
 
-  tbBaseAlpha.OnChange := nil;
-  tbBaseAlpha.Position := sets.container.BaseAlpha;
-  tbBaseAlpha.OnChange := tbBaseAlphaChange;
-
   //
   // тема
   //
@@ -376,6 +375,12 @@ begin
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
   chbBlur.OnClick := chbBlurClick;
+  tbBaseAlpha.OnChange := nil;
+  tbBaseAlpha.Position := sets.container.BaseAlpha;
+  tbBaseAlpha.OnChange := tbBaseAlphaChange;
+  tbSeparatorAlpha.OnChange := nil;
+  tbSeparatorAlpha.Position := sets.container.SeparatorAlpha;
+  tbSeparatorAlpha.OnChange := tbSeparatorAlphaChange;
 
   CopyFontData(sets.container.Font, FFont);
   listFont.Items := screen.Fonts;
@@ -689,6 +694,11 @@ end;
 procedure Tfrmsets.tbBaseAlphaChange(Sender: TObject);
 begin
   frmmain.SetParam(gpBaseAlpha, tbBaseAlpha.Position);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.tbSeparatorAlphaChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpSeparatorAlpha, tbSeparatorAlpha.Position);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lbThemeDblClick(Sender: TObject);
