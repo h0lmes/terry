@@ -32,6 +32,7 @@ type
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
+    chb_reflection: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
@@ -119,7 +120,6 @@ type
     cbStayOnTop: TCheckBox;
     cbHideTaskBar: TCheckBox;
     chbBlur: TCheckBox;
-    chb_reflection: TCheckBox;
     chb_show_running_indicator: TCheckBox;
     chb_activate_running: TCheckBox;
     lblActivateRunningProgramTip: TLabel;

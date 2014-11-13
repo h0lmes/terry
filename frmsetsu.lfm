@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -612,6 +612,15 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 10
       end
+      object chb_reflection: TCheckBox
+        Left = 240
+        Height = 19
+        Top = 180
+        Width = 121
+        Caption = 'Show icon reflections'
+        OnClick = chb_reflectionClick
+        TabOrder = 11
+      end
     end
     object tsIcons: TTabSheet
       Caption = 'Icons'
@@ -620,7 +629,7 @@ object frmsets: Tfrmsets
       object lblZoomWideness: TLabel
         Left = 295
         Height = 13
-        Top = 317
+        Top = 292
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -628,7 +637,7 @@ object frmsets: Tfrmsets
       object lblIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 207
+        Top = 182
         Width = 42
         Caption = 'Icon size'
         ParentColor = False
@@ -636,7 +645,7 @@ object frmsets: Tfrmsets
       object lblZoomedIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 262
+        Top = 237
         Width = 65
         Caption = 'Icon size max'
         ParentColor = False
@@ -644,7 +653,7 @@ object frmsets: Tfrmsets
       object lblActivateRunningProgramTip: TLabel
         Left = 15
         Height = 13
-        Top = 92
+        Top = 67
         Width = 184
         Caption = '<Ctrl + Click> to run program anyway'
         Font.CharSet = RUSSIAN_CHARSET
@@ -658,63 +667,54 @@ object frmsets: Tfrmsets
       object cbZoomItems: TCheckBox
         Left = 15
         Height = 19
-        Top = 175
+        Top = 150
         Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnClick = cbZoomItemsClick
         TabOrder = 0
       end
-      object chb_reflection: TCheckBox
-        Left = 15
-        Height = 19
-        Top = 15
-        Width = 121
-        Caption = 'Show icon reflections'
-        OnClick = chb_reflectionClick
-        TabOrder = 1
-      end
       object chb_show_running_indicator: TCheckBox
         Left = 15
         Height = 19
-        Top = 40
+        Top = 15
         Width = 194
         Caption = 'Show indicator for running programs'
         OnClick = chb_show_running_indicatorClick
-        TabOrder = 2
+        TabOrder = 1
       end
       object chb_activate_running: TCheckBox
         Left = 15
         Height = 19
-        Top = 65
+        Top = 40
         Width = 190
         Caption = 'Activate program if already running'
         OnClick = chb_activate_runningClick
-        TabOrder = 3
+        TabOrder = 2
       end
       object chb_use_shell_context_menus: TCheckBox
         Left = 15
         Height = 19
-        Top = 117
+        Top = 92
         Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnClick = chb_use_shell_context_menusClick
-        TabOrder = 4
+        TabOrder = 3
       end
       object cboItemAnimationType: TComboBox
         Left = 40
         Height = 21
-        Top = 455
+        Top = 430
         Width = 400
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
         Style = csDropDownList
-        TabOrder = 8
+        TabOrder = 7
       end
       object lblAnimateIcons: TLabel
         Left = 15
         Height = 13
-        Top = 432
+        Top = 407
         Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
@@ -722,7 +722,7 @@ object frmsets: Tfrmsets
       object tbIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 227
+        Top = 202
         Width = 421
         Frequency = 8
         Max = 128
@@ -731,12 +731,12 @@ object frmsets: Tfrmsets
         PageSize = 8
         Position = 16
         ShowSelRange = False
-        TabOrder = 5
+        TabOrder = 4
       end
       object tbBigIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 282
+        Top = 257
         Width = 421
         Frequency = 16
         Max = 256
@@ -745,12 +745,12 @@ object frmsets: Tfrmsets
         PageSize = 8
         Position = 16
         ShowSelRange = False
-        TabOrder = 6
+        TabOrder = 5
       end
       object tbZoomWidth: TTrackBar
         Left = 310
         Height = 30
-        Top = 337
+        Top = 312
         Width = 106
         Max = 5
         Min = 2
@@ -758,12 +758,12 @@ object frmsets: Tfrmsets
         PageSize = 1
         Position = 2
         ShowSelRange = False
-        TabOrder = 7
+        TabOrder = 6
       end
       object lblIconSpacing: TLabel
         Left = 15
         Height = 13
-        Top = 317
+        Top = 292
         Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
@@ -771,28 +771,28 @@ object frmsets: Tfrmsets
       object tbIconSpacing: TTrackBar
         Left = 30
         Height = 30
-        Top = 337
+        Top = 312
         Width = 250
         Frequency = 2
         Max = 20
         OnChange = tbIconSpacingChange
         Position = 0
         ShowSelRange = False
-        TabOrder = 9
+        TabOrder = 8
       end
       object chbStackOpenAnimation: TCheckBox
         Left = 15
         Height = 19
-        Top = 145
+        Top = 120
         Width = 150
         Caption = 'Stack open/close animation'
         OnChange = chbStackOpenAnimationChange
-        TabOrder = 10
+        TabOrder = 9
       end
       object lblZoomTime: TLabel
         Left = 15
         Height = 13
-        Top = 375
+        Top = 350
         Width = 49
         Caption = 'Zoom time'
         ParentColor = False
@@ -800,7 +800,7 @@ object frmsets: Tfrmsets
       object tbZoomTime: TTrackBar
         Left = 30
         Height = 30
-        Top = 395
+        Top = 370
         Width = 386
         Frequency = 60
         Max = 600
@@ -808,7 +808,7 @@ object frmsets: Tfrmsets
         PageSize = 60
         Position = 0
         ShowSelRange = False
-        TabOrder = 11
+        TabOrder = 10
       end
     end
     object tsSystem: TTabSheet

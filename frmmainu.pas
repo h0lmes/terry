@@ -466,6 +466,7 @@ begin
       if assigned(ItemMgr) then
       begin
         ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
+        ItemMgr.ItemArea2 := classes.rect(5, 5, 5, 5);
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
         ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
         ItemMgr.SetTheme;
@@ -503,7 +504,11 @@ begin
       begin
         UnreserveScreenEdge(sets.container.Site);
         if assigned(theme) then theme.Site := sets.container.Site;
-        if assigned(ItemMgr) then ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
+        if assigned(ItemMgr) then
+        begin
+          ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
+          ItemMgr.ItemArea2 := classes.rect(5, 5, 5, 5);
+        end;
       end;
     gpAutoHide:               if value = 0 then Rollup;
     gpHideTaskBar:            HideTaskbar(value <> 0);

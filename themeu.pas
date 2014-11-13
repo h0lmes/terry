@@ -200,7 +200,7 @@ begin
     end;
     // Terry-specific keys //
     BlurRegion := ini.ReadString(section, 'BlurRegion', '');
-    ReflectionSize := StrToInt(ini.ReadString(section, 'ReflectionHeight', '0'));
+    ReflectionSize := StrToInt(ini.ReadString(section, 'ReflectionHeight', '16'));
     ini.Free;
 
     // separator //
@@ -210,10 +210,20 @@ begin
       section := 'Separator';
       if ini.SectionExists('SeparatorBottom') then section := 'SeparatorBottom';
       Separator.ImageFile := Trim(ini.ReadString(section, 'Image', 'separator.png'));
-      Separator.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftWidth', '0')));
-      Separator.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopHeight', '0')));
-      Separator.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightWidth', '0')));
-      Separator.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomHeight', '0')));
+      if ini.ValueExists(section, 'LeftWidth') then
+      begin
+        Separator.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftWidth', '0')));
+        Separator.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopHeight', '0')));
+        Separator.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightWidth', '0')));
+        Separator.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomHeight', '0')));
+      end;
+      if ini.ValueExists(section, 'LeftMargin') or ini.ValueExists(section, 'TopMargin') then
+      begin
+        Separator.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftMargin', '0')));
+        Separator.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopMargin', '0')));
+        Separator.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightMargin', '0')));
+        Separator.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomMargin', '0')));
+      end;
       ini.Free;
     end else begin
       Separator.ImageFile := 'separator.png';
@@ -454,9 +464,14 @@ end;
 //------------------------------------------------------------------------------
 procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect);
 var
-  marg: Windows.TRect;
+  marg, area: Windows.TRect;
 begin
   marg := CorrectMargins(Background.Margins);
+  area := CorrectMargins(ItemsArea);
+  inc(marg.Left, area.Left);
+  inc(marg.Top, area.Top);
+  inc(marg.Right, area.Right);
+  inc(marg.Bottom, area.Bottom);
   gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
     rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle);
 end;
@@ -484,6 +499,11 @@ begin
     result := CreateRoundRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom, br.cx, br.cy);
   end else begin
     bm := CorrectMargins(Background.Margins);
+    ba := CorrectMargins(ItemsArea);
+    inc(bm.Left, ba.Left);
+    inc(bm.Top, ba.Top);
+    inc(bm.Right, ba.Right);
+    inc(bm.Bottom, ba.Bottom);
     idx := 0;
     while idx < FBlurRegionPointsCount do
     begin
@@ -512,10 +532,10 @@ begin
   is_default := True;
 
   Background.StretchStyle := ssStretch;
-  Background.Margins := rect(15, 15, 15, 2);
+  Background.Margins := rect(0, 4, 0, 0);
   ItemsArea := rect(16, 11, 16, 3);
   BlurRegion := '';
-  ReflectionSize := 0;
+  ReflectionSize := 8;
   Separator.Margins := rect(0, 0, 0, 0);
 
   Path := '';

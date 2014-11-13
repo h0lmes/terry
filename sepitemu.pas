@@ -130,31 +130,31 @@ begin
       try
         if FSite = 0 then
         begin
-          sepw:= FItemSize + FItemsArea.Bottom;
+          sepw:= FItemSize + 10; // +10 to compensate for ItemArea.Bottom = 10
           seph:= FIH;
-          sepx:= xBitmap;
+          sepx:= xBitmap - 5; // -5 to compensate for ItemArea2
           sepy:= yBitmap + (FSize - seph) div 2;
         end;
         if FSite = 1 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + FItemsArea.Bottom;
+          seph:= FItemSize + 10;
           sepx:= xBitmap + (FSize - sepw) div 2;
-          sepy:= yBitmap;
+          sepy:= yBitmap - 5;
         end;
         if FSite = 2 then
         begin
-          sepw:= FItemSize + FItemsArea.Bottom;
+          sepw:= FItemSize + 10;
           seph:= FIH;
-          sepx:= xBitmap + FSize - FItemSize;
+          sepx:= xBitmap + FSize - FItemSize - 5;
           sepy:= yBitmap + (FSize - seph) div 2;
         end;
         if FSite = 3 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + FItemsArea.Bottom;
+          seph:= FItemSize + 10;
           sepx:= xBitmap + (FSize - sepw) div 2;
-          sepy:= yBitmap + FSize - FItemSize;
+          sepy:= yBitmap + FSize - FItemSize - 5;
         end;
 
         try
