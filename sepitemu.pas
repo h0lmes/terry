@@ -8,8 +8,8 @@ type TSeparatorItem = class(TCustomItem)
   private
     Margins: windows.TRect;
     FItemsArea: windows.TRect;
+    FItemsArea2: windows.TRect;
     FSeparatorAlpha: integer;
-    FBaseOffset: integer;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
@@ -29,7 +29,6 @@ implementation
 constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
-  FBaseOffset := 10;
   FSeparatorAlpha := AParams.SeparatorAlpha;
   FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
   FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
@@ -56,6 +55,7 @@ begin
     if assigned(theme.Separator.Image) then GdipCloneBitmapAreaI(0, 0, FIW, FIH, PixelFormat32bppPARGB, theme.Separator.Image, FImage);
     //
     FItemsArea := theme.ItemsArea;
+    FItemsArea2 := theme.ItemsArea2;
     FBorder := max(FItemsArea.Bottom, max(FReflectionSize, MIN_BORDER));
     //
     Redraw;
@@ -69,7 +69,6 @@ begin
   try
     result := inherited cmd(id, param);
     case id of
-      gpBaseOffset:     FBaseOffset := param;
       tcThemeChanged:   UpdateItemInternal;
       gpSite:           UpdateItemInternal;
       gpSeparatorAlpha:
@@ -133,31 +132,31 @@ begin
       try
         if FSite = 0 then
         begin
-          sepw:= FItemSize + FBaseOffset; // +10 to compensate for ItemArea.Bottom = 10
+          sepw:= FItemSize + FItemsArea2.Bottom + FItemsArea2.Top;
           seph:= FIH;
-          sepx:= xBitmap - 5; // -5 to compensate for ItemArea2
+          sepx:= xBitmap - FItemsArea2.Top;
           sepy:= yBitmap + (FSize - seph) div 2;
         end;
         if FSite = 1 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + FBaseOffset;
+          seph:= FItemSize + FItemsArea2.Bottom + FItemsArea2.Top;
           sepx:= xBitmap + (FSize - sepw) div 2;
-          sepy:= yBitmap - 5;
+          sepy:= yBitmap - FItemsArea2.Top;
         end;
         if FSite = 2 then
         begin
-          sepw:= FItemSize + FBaseOffset;
+          sepw:= FItemSize + FItemsArea2.Bottom + FItemsArea2.Top;
           seph:= FIH;
-          sepx:= xBitmap + FSize - FItemSize - 5;
+          sepx:= xBitmap + FSize - FItemSize - FItemsArea2.Top;
           sepy:= yBitmap + (FSize - seph) div 2;
         end;
         if FSite = 3 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + FBaseOffset;
+          seph:= FItemSize + FItemsArea2.Bottom + FItemsArea2.Top;
           sepx:= xBitmap + (FSize - sepw) div 2;
-          sepy:= yBitmap + FSize - FItemSize - 5;
+          sepy:= yBitmap + FSize - FItemSize - FItemsArea2.Top;
         end;
 
         try

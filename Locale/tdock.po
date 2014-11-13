@@ -1096,6 +1096,10 @@ msgstr ""
 msgid "Base offset"
 msgstr ""
 
+#: tfrmthemeeditor.label2.caption
+msgid "Items area border 2"
+msgstr ""
+
 #: tfrmthemeeditor.label9.caption
 msgid "Background margins"
 msgstr ""

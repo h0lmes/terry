@@ -55,7 +55,6 @@ type
     gpLockMouseEffect,
     gpReflection,
     gpReflectionSize,
-    gpBaseOffset,
     gpBlur,
     gpMax,
     // terry commands //

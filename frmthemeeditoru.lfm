@@ -1,19 +1,19 @@
 object frmThemeEditor: TfrmThemeEditor
   Left = 649
-  Height = 359
+  Height = 414
   Top = 338
   Width = 445
   Caption = 'Theme parameters'
   ChildSizing.LeftRightSpacing = 10
   ChildSizing.TopBottomSpacing = 10
-  ClientHeight = 339
+  ClientHeight = 394
   ClientWidth = 445
   Constraints.MinWidth = 300
   Menu = mmenu
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object Label1: TLabel
     Left = 10
     Height = 15
@@ -25,7 +25,7 @@ object frmThemeEditor: TfrmThemeEditor
   object Label16: TLabel
     Left = 10
     Height = 15
-    Top = 175
+    Top = 230
     Width = 103
     Caption = 'Icons reflection size'
     ParentColor = False
@@ -33,7 +33,7 @@ object frmThemeEditor: TfrmThemeEditor
   object Label15: TLabel
     Left = 10
     Height = 15
-    Top = 230
+    Top = 285
     Width = 96
     Caption = 'Separator margins'
     ParentColor = False
@@ -41,7 +41,7 @@ object frmThemeEditor: TfrmThemeEditor
   object Label9: TLabel
     Left = 10
     Height = 15
-    Top = 65
+    Top = 120
     Width = 110
     Caption = 'Background margins'
     ParentColor = False
@@ -49,7 +49,7 @@ object frmThemeEditor: TfrmThemeEditor
   object Label14: TLabel
     Left = 10
     Height = 15
-    Top = 120
+    Top = 175
     Width = 58
     Caption = 'Blur region'
     ParentColor = False
@@ -57,7 +57,7 @@ object frmThemeEditor: TfrmThemeEditor
   object edBlurRegion: TEdit
     Left = 10
     Height = 23
-    Top = 140
+    Top = 195
     Width = 426
     Anchors = [akTop, akLeft, akRight]
     OnChange = edItemsAreaChange
@@ -66,7 +66,7 @@ object frmThemeEditor: TfrmThemeEditor
   object edmargin: TEdit
     Left = 10
     Height = 23
-    Top = 85
+    Top = 140
     Width = 426
     Anchors = [akTop, akLeft, akRight]
     OnChange = edImageChange
@@ -75,7 +75,7 @@ object frmThemeEditor: TfrmThemeEditor
   object edSeparatorMargins: TEdit
     Left = 10
     Height = 23
-    Top = 250
+    Top = 305
     Width = 426
     Anchors = [akTop, akLeft, akRight]
     OnChange = edItemsAreaChange
@@ -84,7 +84,7 @@ object frmThemeEditor: TfrmThemeEditor
   object edReflectionSize: TEdit
     Left = 10
     Height = 23
-    Top = 195
+    Top = 250
     Width = 426
     Anchors = [akTop, akLeft, akRight]
     OnChange = edItemsAreaChange
@@ -102,7 +102,7 @@ object frmThemeEditor: TfrmThemeEditor
   object Label17: TLabel
     Left = 10
     Height = 15
-    Top = 285
+    Top = 340
     Width = 57
     Caption = 'Base offset'
     ParentColor = False
@@ -110,11 +110,28 @@ object frmThemeEditor: TfrmThemeEditor
   object edBaseOffset: TEdit
     Left = 10
     Height = 23
-    Top = 305
+    Top = 360
     Width = 426
     Anchors = [akTop, akLeft, akRight]
     OnChange = edItemsAreaChange
     TabOrder = 5
+  end
+  object Label2: TLabel
+    Left = 10
+    Height = 15
+    Top = 65
+    Width = 101
+    Caption = 'Items area border 2'
+    ParentColor = False
+  end
+  object edItemsArea2: TEdit
+    Left = 10
+    Height = 23
+    Top = 85
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 6
   end
   object mmenu: TMainMenu
     left = 195

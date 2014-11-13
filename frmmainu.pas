@@ -410,7 +410,6 @@ begin
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
     ItemMgr.SetParam(gpTaskbarSameMonitor, integer(sets.container.TaskbarSameMonitor));
     ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
-    ItemMgr.SetParam(gpBaseOffset, theme.BaseOffset);
 
     ItemMgr.SetFont(sets.container.Font);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
@@ -467,9 +466,9 @@ begin
       if assigned(ItemMgr) then
       begin
         ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
-        ItemMgr.ItemArea2 := classes.rect(5, 5, 5, 5);
+        ItemMgr.ItemArea2 := theme.CorrectMargins(theme.ItemsArea2);
+        ItemMgr.BaseOffset := theme.BaseOffset;
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
-        ItemMgr.SetParam(gpBaseOffset, theme.BaseOffset);
         ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
         ItemMgr.SetTheme;
       end;

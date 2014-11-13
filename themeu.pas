@@ -53,6 +53,7 @@ type
     Stack: TLayerImage;
     ReflectionSize: integer;
     ItemsArea: Windows.TRect;
+    ItemsArea2: Windows.TRect;
     BaseOffset: integer;
     Path: string;
     property BlurRegion: string read FBlurRegion write SetBlurRegion;
@@ -102,6 +103,7 @@ begin
   Background.StretchStyle := ssStretch;
   Background.Margins := rect(0, 0, 0, 0);
   ItemsArea := rect(0, 0, 0, 0);
+  ItemsArea2 := rect(5, 5, 5, 5);
   BaseOffset := 10;
   Separator.Margins := rect(0, 0, 0, 0);
   ReflectionSize := 0;
@@ -179,30 +181,34 @@ begin
     if ini.SectionExists('BackgroundBottom') then section := 'BackgroundBottom';
     if ini.ValueExists(section, 'LeftWidth') then
     begin
-      ItemsArea.Left := strtoint(Trim(ini.ReadString(section, 'OutsideBorderLeft', '0')));
-      ItemsArea.Top := strtoint(Trim(ini.ReadString(section, 'OutsideBorderTop', '0')));
-      ItemsArea.Right := strtoint(Trim(ini.ReadString(section, 'OutsideBorderRight', '0')));
-      ItemsArea.Bottom := strtoint(Trim(ini.ReadString(section, 'OutsideBorderBottom', '0')));
-      Background.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftWidth', '0')));
-      Background.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopHeight', '0')));
-      Background.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightWidth', '0')));
-      Background.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomHeight', '0')));
+      ItemsArea.Left := ini.ReadInteger(section, 'OutsideBorderLeft', 0);
+      ItemsArea.Top := ini.ReadInteger(section, 'OutsideBorderTop', 0);
+      ItemsArea.Right := ini.ReadInteger(section, 'OutsideBorderRight', 0);
+      ItemsArea.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', 0);
+      Background.Margins.Left := ini.ReadInteger(section, 'LeftWidth', 0);
+      Background.Margins.Top := ini.ReadInteger(section, 'TopHeight', 0);
+      Background.Margins.Right := ini.ReadInteger(section, 'RightWidth', 0);
+      Background.Margins.Bottom := ini.ReadInteger(section, 'BottomHeight', 0);
     end;
     // RocketDock format //
     if ini.ValueExists(section, 'LeftMargin') then
     begin
-      Background.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftMargin', '0')));
-      Background.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopMargin', '0')));
-      Background.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightMargin', '0')));
-      Background.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomMargin', '0')));
-      ItemsArea.Left := strtoint(Trim(ini.ReadString(section, 'Outside-LeftMargin', '0')));
-      ItemsArea.Top := strtoint(Trim(ini.ReadString(section, 'Outside-TopMargin', '0')));
-      ItemsArea.Right := strtoint(Trim(ini.ReadString(section, 'Outside-RightMargin', '0')));
-      ItemsArea.Bottom := strtoint(Trim(ini.ReadString(section, 'Outside-BottomMargin', '0')));
+      Background.Margins.Left := ini.ReadInteger(section, 'LeftMargin', 0);
+      Background.Margins.Top := ini.ReadInteger(section, 'TopMargin', 0);
+      Background.Margins.Right := ini.ReadInteger(section, 'RightMargin', 0);
+      Background.Margins.Bottom := ini.ReadInteger(section, 'BottomMargin', 0);
+      ItemsArea.Left := ini.ReadInteger(section, 'Outside-LeftMargin', 0);
+      ItemsArea.Top := ini.ReadInteger(section, 'Outside-TopMargin', 0);
+      ItemsArea.Right := ini.ReadInteger(section, 'Outside-RightMargin', 0);
+      ItemsArea.Bottom := ini.ReadInteger(section, 'Outside-BottomMargin', 0);
     end;
     // Terry-specific keys //
+    ItemsArea2.Left := ini.ReadInteger(section, 'OutsideBorderLeft2', 5);
+    ItemsArea2.Top := ini.ReadInteger(section, 'OutsideBorderTop2', 5);
+    ItemsArea2.Right := ini.ReadInteger(section, 'OutsideBorderRight2', 5);
+    ItemsArea2.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom2', 5);
     BaseOffset :=     ini.ReadInteger(section, 'BaseOffset', 10);
-    ReflectionSize := ini.ReadInteger(section, 'ReflectionHeight', 16);
+    ReflectionSize := ini.ReadInteger(section, 'ReflectionSize', 16);
     BlurRegion :=     ini.ReadString (section, 'BlurRegion', '');
     ini.Free;
 
@@ -213,20 +219,14 @@ begin
       section := 'Separator';
       if ini.SectionExists('SeparatorBottom') then section := 'SeparatorBottom';
       Separator.ImageFile := Trim(ini.ReadString(section, 'Image', 'separator.png'));
-      if ini.ValueExists(section, 'LeftWidth') then
-      begin
-        Separator.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftWidth', '0')));
-        Separator.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopHeight', '0')));
-        Separator.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightWidth', '0')));
-        Separator.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomHeight', '0')));
-      end;
-      if ini.ValueExists(section, 'LeftMargin') or ini.ValueExists(section, 'TopMargin') then
-      begin
-        Separator.Margins.Left := strtoint(Trim(ini.ReadString(section, 'LeftMargin', '0')));
-        Separator.Margins.Top := strtoint(Trim(ini.ReadString(section, 'TopMargin', '0')));
-        Separator.Margins.Right := strtoint(Trim(ini.ReadString(section, 'RightMargin', '0')));
-        Separator.Margins.Bottom := strtoint(Trim(ini.ReadString(section, 'BottomMargin', '0')));
-      end;
+      if ini.ValueExists(section, 'LeftWidth') then Separator.Margins.Left := ini.ReadInteger(section, 'LeftWidth', 0);
+      if ini.ValueExists(section, 'RightWidth') then Separator.Margins.Right := ini.ReadInteger(section, 'RightWidth', 0);
+      if ini.ValueExists(section, 'TopHeight') then Separator.Margins.Top := ini.ReadInteger(section, 'TopHeight', 0);
+      if ini.ValueExists(section, 'BottomHeight') then Separator.Margins.Bottom := ini.ReadInteger(section, 'BottomHeight', 0);
+      if ini.ValueExists(section, 'LeftMargin') then Separator.Margins.Left := ini.ReadInteger(section, 'LeftMargin', 0);
+      if ini.ValueExists(section, 'RightMargin') then Separator.Margins.Right := ini.ReadInteger(section, 'RightMargin', 0);
+      if ini.ValueExists(section, 'TopMargin') then Separator.Margins.Top := ini.ReadInteger(section, 'TopMargin', 0);
+      if ini.ValueExists(section, 'BottomMargin') then Separator.Margins.Bottom := ini.ReadInteger(section, 'BottomMargin', 0);
       ini.Free;
     end else begin
       Separator.ImageFile := 'separator.png';
@@ -261,17 +261,22 @@ begin
     // background //
     ini := TIniFile.Create(themes_path + FThemeName + '\background.ini');
     ini.WriteString('Background', 'Image', Background.ImageFile);
-    ini.WriteInteger('Background', 'OutsideBorderLeft', ItemsArea.Left);
-    ini.WriteInteger('Background', 'OutsideBorderTop', ItemsArea.Top);
-    ini.WriteInteger('Background', 'OutsideBorderRight', ItemsArea.Right);
+    ini.WriteInteger('Background', 'OutsideBorderLeft',   ItemsArea.Left);
+    ini.WriteInteger('Background', 'OutsideBorderTop',    ItemsArea.Top);
+    ini.WriteInteger('Background', 'OutsideBorderRight',  ItemsArea.Right);
     ini.WriteInteger('Background', 'OutsideBorderBottom', ItemsArea.Bottom);
-    ini.WriteInteger('Background', 'LeftWidth', Background.Margins.Left);
-    ini.WriteInteger('Background', 'TopHeight', Background.Margins.Top);
-    ini.WriteInteger('Background', 'RightWidth', Background.Margins.Right);
+    ini.WriteInteger('Background', 'LeftWidth',    Background.Margins.Left);
+    ini.WriteInteger('Background', 'TopHeight',    Background.Margins.Top);
+    ini.WriteInteger('Background', 'RightWidth',   Background.Margins.Right);
     ini.WriteInteger('Background', 'BottomHeight', Background.Margins.Bottom);
-    ini.WriteInteger('Background', 'BaseOffset', BaseOffset);
-    ini.WriteInteger('Background', 'ReflectionHeight', ReflectionSize);
-    ini.WriteString('Background', 'BlurRegion', BlurRegion);
+    // terry-specific
+    if ItemsArea2.Left <> 5 then   ini.WriteInteger('Background', 'OutsideBorderLeft2',   ItemsArea2.Left);
+    if ItemsArea2.Top <> 5 then    ini.WriteInteger('Background', 'OutsideBorderTop2',    ItemsArea2.Top);
+    if ItemsArea2.Right <> 5 then  ini.WriteInteger('Background', 'OutsideBorderRight2',  ItemsArea2.Right);
+    if ItemsArea2.Bottom <> 5 then ini.WriteInteger('Background', 'OutsideBorderBottom2', ItemsArea2.Bottom);
+    if BaseOffset <> 10 then       ini.WriteInteger('Background', 'BaseOffset', BaseOffset);
+    if ReflectionSize <> 16 then   ini.WriteInteger('Background', 'ReflectionSize', ReflectionSize);
+    if BlurRegion <> '' then       ini.WriteString ('Background', 'BlurRegion', BlurRegion);
     ini.Free;
     // separator //
     ini := TIniFile.Create(themes_path + FThemeName + '\separator.ini');

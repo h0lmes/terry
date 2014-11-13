@@ -115,6 +115,7 @@ type
     property Visible: boolean read FVisible write SetVisible;
     property ItemArea: windows.TRect read FItemArea write FItemArea;
     property ItemArea2: windows.TRect read FItemArea2 write FItemArea2;
+    property BaseOffset: integer read FBaseOffset write FBaseOffset;
     property WndOffset: integer read FWndOffset write FWndOffset;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
@@ -312,7 +313,6 @@ begin
           ReflectionSize := value;
           ItemsChanged(true);
         end;
-      gpBaseOffset:             FBaseOffset := value;
       gpTaskbar:                if value = 0 then ClearTaskbar;
       gpTaskbarLivePreviews:    ClearTaskbar;
       gpTaskbarGrouping:        ClearTaskbar;
