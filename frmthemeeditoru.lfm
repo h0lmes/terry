@@ -1,19 +1,19 @@
 object frmThemeEditor: TfrmThemeEditor
   Left = 649
-  Height = 306
+  Height = 359
   Top = 338
   Width = 445
   Caption = 'Theme parameters'
   ChildSizing.LeftRightSpacing = 10
   ChildSizing.TopBottomSpacing = 10
-  ClientHeight = 286
+  ClientHeight = 339
   ClientWidth = 445
   Constraints.MinWidth = 300
   Menu = mmenu
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object Label1: TLabel
     Left = 10
     Height = 15
@@ -98,6 +98,23 @@ object frmThemeEditor: TfrmThemeEditor
     Anchors = [akTop, akLeft, akRight]
     OnChange = edItemsAreaChange
     TabOrder = 0
+  end
+  object Label17: TLabel
+    Left = 10
+    Height = 15
+    Top = 285
+    Width = 57
+    Caption = 'Base offset'
+    ParentColor = False
+  end
+  object edBaseOffset: TEdit
+    Left = 10
+    Height = 23
+    Top = 305
+    Width = 426
+    Anchors = [akTop, akLeft, akRight]
+    OnChange = edItemsAreaChange
+    TabOrder = 5
   end
   object mmenu: TMainMenu
     left = 195

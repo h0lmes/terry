@@ -410,6 +410,7 @@ begin
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
     ItemMgr.SetParam(gpTaskbarSameMonitor, integer(sets.container.TaskbarSameMonitor));
     ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
+    ItemMgr.SetParam(gpBaseOffset, theme.BaseOffset);
 
     ItemMgr.SetFont(sets.container.Font);
     ItemMgr.SetParam(gpShowHint, integer(sets.container.ShowHint));
@@ -468,6 +469,7 @@ begin
         ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
         ItemMgr.ItemArea2 := classes.rect(5, 5, 5, 5);
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
+        ItemMgr.SetParam(gpBaseOffset, theme.BaseOffset);
         ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
         ItemMgr.SetTheme;
       end;
@@ -504,11 +506,7 @@ begin
       begin
         UnreserveScreenEdge(sets.container.Site);
         if assigned(theme) then theme.Site := sets.container.Site;
-        if assigned(ItemMgr) then
-        begin
-          ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
-          ItemMgr.ItemArea2 := classes.rect(5, 5, 5, 5);
-        end;
+        BaseCmd(tcThemeChanged, 0);
       end;
     gpAutoHide:               if value = 0 then Rollup;
     gpHideTaskBar:            HideTaskbar(value <> 0);

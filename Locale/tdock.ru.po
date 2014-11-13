@@ -90,6 +90,10 @@ msgstr "Искажение: %d"
 msgid "New dock"
 msgstr "Новый док"
 
+#: declu.xemptybin
+msgid "Empty bin"
+msgstr "Очистить корзину"
+
 #: declu.xemptyicon
 msgctxt "declu.xemptyicon"
 msgid "Empty icon"
@@ -236,25 +240,7 @@ msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
 #, fuzzy
-#| msgid ""
-#| "Icon parameters changed. If you will proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
-#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
-#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
-#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
-#| "parameters changed. If you choose to proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
-#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
-#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
-#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
-#| "parameters changed. If you choose to proceed all changes will be lost. "
-#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
-#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
-#| "all changes will be lost. Proceed?"
+#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
 
@@ -970,16 +956,7 @@ msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
 #, fuzzy
-#| msgid ""
-#| "Move mouse pointer to the edge of screen to bring panel to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foregroundMove "
-#| "mouse pointer to the edge of the screen to put the dock to foreground"
+#| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
 msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
 msgstr "Подведите указатель мыши к краю экрана чтобы показать  док"
@@ -1209,6 +1186,10 @@ msgstr "Границы разделителя (нерастягиваемые)"
 msgctxt "tfrmthemeeditor.label16.caption"
 msgid "Icons reflection size"
 msgstr "Размер отражения значков"
+
+#: tfrmthemeeditor.label17.caption
+msgid "Base offset"
+msgstr ""
 
 #: tfrmthemeeditor.label9.caption
 msgctxt "tfrmthemeeditor.label9.caption"

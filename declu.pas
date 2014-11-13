@@ -55,6 +55,7 @@ type
     gpLockMouseEffect,
     gpReflection,
     gpReflectionSize,
+    gpBaseOffset,
     gpBlur,
     gpMax,
     // terry commands //
@@ -227,6 +228,7 @@ resourcestring
   XExit = 'Exit';
   XCloseWindow = 'Close window';
   XCloseAllWindows = 'Close all windows';
+  XEmptyBin = 'Empty bin';
 
   XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
   XShortcut = 'Shortcut';

@@ -9,6 +9,7 @@ type TSeparatorItem = class(TCustomItem)
     Margins: windows.TRect;
     FItemsArea: windows.TRect;
     FSeparatorAlpha: integer;
+    FBaseOffset: integer;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
@@ -28,6 +29,7 @@ implementation
 constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
+  FBaseOffset := 10;
   FSeparatorAlpha := AParams.SeparatorAlpha;
   FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
   FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
@@ -67,8 +69,9 @@ begin
   try
     result := inherited cmd(id, param);
     case id of
-      tcThemeChanged: UpdateItemInternal;
-      gpSite: UpdateItemInternal;
+      gpBaseOffset:     FBaseOffset := param;
+      tcThemeChanged:   UpdateItemInternal;
+      gpSite:           UpdateItemInternal;
       gpSeparatorAlpha:
         if FSeparatorAlpha <> param then
         begin
@@ -130,7 +133,7 @@ begin
       try
         if FSite = 0 then
         begin
-          sepw:= FItemSize + 10; // +10 to compensate for ItemArea.Bottom = 10
+          sepw:= FItemSize + FBaseOffset; // +10 to compensate for ItemArea.Bottom = 10
           seph:= FIH;
           sepx:= xBitmap - 5; // -5 to compensate for ItemArea2
           sepy:= yBitmap + (FSize - seph) div 2;
@@ -138,13 +141,13 @@ begin
         if FSite = 1 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + 10;
+          seph:= FItemSize + FBaseOffset;
           sepx:= xBitmap + (FSize - sepw) div 2;
           sepy:= yBitmap - 5;
         end;
         if FSite = 2 then
         begin
-          sepw:= FItemSize + 10;
+          sepw:= FItemSize + FBaseOffset;
           seph:= FIH;
           sepx:= xBitmap + FSize - FItemSize - 5;
           sepy:= yBitmap + (FSize - seph) div 2;
@@ -152,7 +155,7 @@ begin
         if FSite = 3 then
         begin
           sepw:= FIW;
-          seph:= FItemSize + 10;
+          seph:= FItemSize + FBaseOffset;
           sepx:= xBitmap + (FSize - sepw) div 2;
           sepy:= yBitmap + FSize - FItemSize - 5;
         end;

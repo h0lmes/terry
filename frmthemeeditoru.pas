@@ -16,10 +16,12 @@ type
     edmargin: TEdit;
     edReflectionSize: TEdit;
     edSeparatorMargins: TEdit;
+    edBaseOffset: TEdit;
     Label1: TLabel;
     Label14: TLabel;
     Label15: TLabel;
     Label16: TLabel;
+    Label17: TLabel;
     Label9: TLabel;
     mclose: TMenuItem;
     msave: TMenuItem;
@@ -63,16 +65,19 @@ begin
 
   edItemsArea.OnChange:= nil;
   edReflectionSize.OnChange:= nil;
+  edBaseOffset.OnChange:= nil;
   edSeparatorMargins.OnChange:= nil;
   edBlurRegion.OnChange:= nil;
 
   edItemsArea.text:= RectToString(theme.ItemsArea);
   edReflectionSize.text:= inttostr(theme.ReflectionSize);
+  edBaseOffset.text:= inttostr(theme.BaseOffset);
   edSeparatorMargins.text:= RectToString(theme.Separator.Margins);
   edBlurRegion.text:= theme.BlurRegion;
 
   edItemsArea.OnChange:= edItemsAreaChange;
   edReflectionSize.OnChange:= edItemsAreaChange;
+  edBaseOffset.OnChange:= edItemsAreaChange;
   edSeparatorMargins.OnChange:= edItemsAreaChange;
   edBlurRegion.OnChange:= edItemsAreaChange;
 
@@ -91,6 +96,9 @@ begin
     theme.BlurRegion := edBlurRegion.Text;
     try theme.ReflectionSize := StrToInt(edReflectionSize.text);
     except theme.ReflectionSize := 0;
+    end;
+    try theme.BaseOffset := StrToInt(edBaseOffset.text);
+    except theme.BaseOffset := 10;
     end;
     frmmain.BaseCmd(tcThemeChanged, 0);
   end;

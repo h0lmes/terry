@@ -53,6 +53,7 @@ type
     Stack: TLayerImage;
     ReflectionSize: integer;
     ItemsArea: Windows.TRect;
+    BaseOffset: integer;
     Path: string;
     property BlurRegion: string read FBlurRegion write SetBlurRegion;
     property Site: TBaseSite read FSite write SetSite;
@@ -101,6 +102,7 @@ begin
   Background.StretchStyle := ssStretch;
   Background.Margins := rect(0, 0, 0, 0);
   ItemsArea := rect(0, 0, 0, 0);
+  BaseOffset := 10;
   Separator.Margins := rect(0, 0, 0, 0);
   ReflectionSize := 0;
 end;
@@ -199,8 +201,9 @@ begin
       ItemsArea.Bottom := strtoint(Trim(ini.ReadString(section, 'Outside-BottomMargin', '0')));
     end;
     // Terry-specific keys //
-    BlurRegion := ini.ReadString(section, 'BlurRegion', '');
-    ReflectionSize := StrToInt(ini.ReadString(section, 'ReflectionHeight', '16'));
+    BaseOffset :=     ini.ReadInteger(section, 'BaseOffset', 10);
+    ReflectionSize := ini.ReadInteger(section, 'ReflectionHeight', 16);
+    BlurRegion :=     ini.ReadString (section, 'BlurRegion', '');
     ini.Free;
 
     // separator //
@@ -258,24 +261,25 @@ begin
     // background //
     ini := TIniFile.Create(themes_path + FThemeName + '\background.ini');
     ini.WriteString('Background', 'Image', Background.ImageFile);
-    ini.WriteString('Background', 'OutsideBorderLeft', inttostr(ItemsArea.Left));
-    ini.WriteString('Background', 'OutsideBorderTop', inttostr(ItemsArea.Top));
-    ini.WriteString('Background', 'OutsideBorderRight', inttostr(ItemsArea.Right));
-    ini.WriteString('Background', 'OutsideBorderBottom', inttostr(ItemsArea.Bottom));
-    ini.WriteString('Background', 'LeftWidth', inttostr(Background.Margins.Left));
-    ini.WriteString('Background', 'TopHeight', inttostr(Background.Margins.Top));
-    ini.WriteString('Background', 'RightWidth', inttostr(Background.Margins.Right));
-    ini.WriteString('Background', 'BottomHeight', inttostr(Background.Margins.Bottom));
+    ini.WriteInteger('Background', 'OutsideBorderLeft', ItemsArea.Left);
+    ini.WriteInteger('Background', 'OutsideBorderTop', ItemsArea.Top);
+    ini.WriteInteger('Background', 'OutsideBorderRight', ItemsArea.Right);
+    ini.WriteInteger('Background', 'OutsideBorderBottom', ItemsArea.Bottom);
+    ini.WriteInteger('Background', 'LeftWidth', Background.Margins.Left);
+    ini.WriteInteger('Background', 'TopHeight', Background.Margins.Top);
+    ini.WriteInteger('Background', 'RightWidth', Background.Margins.Right);
+    ini.WriteInteger('Background', 'BottomHeight', Background.Margins.Bottom);
+    ini.WriteInteger('Background', 'BaseOffset', BaseOffset);
+    ini.WriteInteger('Background', 'ReflectionHeight', ReflectionSize);
     ini.WriteString('Background', 'BlurRegion', BlurRegion);
-    ini.WriteString('Background', 'ReflectionHeight', IntToStr(ReflectionSize));
     ini.Free;
     // separator //
     ini := TIniFile.Create(themes_path + FThemeName + '\separator.ini');
     ini.WriteString('Separator', 'Image', Separator.ImageFile);
-    ini.WriteString('Separator', 'LeftWidth', inttostr(Separator.Margins.Left));
-    ini.WriteString('Separator', 'TopHeight', inttostr(Separator.Margins.Top));
-    ini.WriteString('Separator', 'RightWidth', inttostr(Separator.Margins.Right));
-    ini.WriteString('Separator', 'BottomHeight', inttostr(Separator.Margins.Bottom));
+    ini.WriteInteger('Separator', 'LeftWidth', Separator.Margins.Left);
+    ini.WriteInteger('Separator', 'TopHeight', Separator.Margins.Top);
+    ini.WriteInteger('Separator', 'RightWidth', Separator.Margins.Right);
+    ini.WriteInteger('Separator', 'BottomHeight', Separator.Margins.Bottom);
     ini.Free;
 
     result := true;

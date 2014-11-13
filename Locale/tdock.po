@@ -79,6 +79,10 @@ msgstr ""
 msgid "New dock"
 msgstr ""
 
+#: declu.xemptybin
+msgid "Empty bin"
+msgstr ""
+
 #: declu.xemptyicon
 msgid "Empty icon"
 msgstr ""
@@ -1086,6 +1090,10 @@ msgstr ""
 
 #: tfrmthemeeditor.label16.caption
 msgid "Icons reflection size"
+msgstr ""
+
+#: tfrmthemeeditor.label17.caption
+msgid "Base offset"
 msgstr ""
 
 #: tfrmthemeeditor.label9.caption

@@ -638,7 +638,7 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  if FBitBucketFiles > 0 then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi('Empty bin')));
+  if FBitBucketFiles > 0 then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
