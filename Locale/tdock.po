@@ -1072,6 +1072,14 @@ msgctxt "TFRMSTACKPROP.TSPROPERTIES.CAPTION"
 msgid "Properties"
 msgstr ""
 
+#: tfrmthemeeditor.btnclose.caption
+msgid "Close (Esc)"
+msgstr ""
+
+#: tfrmthemeeditor.btnsave.caption
+msgid "Save"
+msgstr ""
+
 #: tfrmthemeeditor.caption
 msgid "Theme parameters"
 msgstr ""
@@ -1102,14 +1110,6 @@ msgstr ""
 
 #: tfrmthemeeditor.label9.caption
 msgid "Background margins"
-msgstr ""
-
-#: tfrmthemeeditor.mclose.caption
-msgid "Close editor <Esc>"
-msgstr ""
-
-#: tfrmthemeeditor.msave.caption
-msgid "Save theme <F2>"
 msgstr ""
 
 #: tfrmtip.btnenough.caption

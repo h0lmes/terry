@@ -208,7 +208,7 @@ begin
     ItemsArea2.Right := ini.ReadInteger(section, 'OutsideBorderRight2', 5);
     ItemsArea2.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom2', 5);
     BaseOffset :=     ini.ReadInteger(section, 'BaseOffset', 10);
-    ReflectionSize := ini.ReadInteger(section, 'ReflectionSize', 16);
+    ReflectionSize := ini.ReadInteger(section, 'ReflectionSize', 8);
     BlurRegion :=     ini.ReadString (section, 'BlurRegion', '');
     ini.Free;
 
@@ -275,7 +275,7 @@ begin
     if ItemsArea2.Right <> 5 then  ini.WriteInteger('Background', 'OutsideBorderRight2',  ItemsArea2.Right);
     if ItemsArea2.Bottom <> 5 then ini.WriteInteger('Background', 'OutsideBorderBottom2', ItemsArea2.Bottom);
     if BaseOffset <> 10 then       ini.WriteInteger('Background', 'BaseOffset', BaseOffset);
-    if ReflectionSize <> 16 then   ini.WriteInteger('Background', 'ReflectionSize', ReflectionSize);
+    if ReflectionSize <> 8 then    ini.WriteInteger('Background', 'ReflectionSize', ReflectionSize);
     if BlurRegion <> '' then       ini.WriteString ('Background', 'BlurRegion', BlurRegion);
     ini.Free;
     // separator //

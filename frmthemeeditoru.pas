@@ -11,6 +11,8 @@ type
   { TfrmThemeEditor }
 
   TfrmThemeEditor = class(TForm)
+    btnSave: TButton;
+    btnClose: TButton;
     edBlurRegion: TEdit;
     edItemsArea: TEdit;
     edItemsArea2: TEdit;
@@ -25,12 +27,10 @@ type
     Label17: TLabel;
     Label2: TLabel;
     Label9: TLabel;
-    mclose: TMenuItem;
-    msave: TMenuItem;
-    mmenu: TMainMenu;
     procedure edItemsAreaChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure mcloseClick(Sender: TObject);
     procedure msaveClick(Sender: TObject);
@@ -126,6 +126,11 @@ begin
   frmThemeEditor := nil;
 end;
 //------------------------------------------------------------------------------
+procedure TfrmThemeEditor.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if (key = 27) and (shift = []) then close;
+end;
+//------------------------------------------------------------------------------
 procedure TfrmThemeEditor.mcloseClick(Sender: TObject);
 begin
   close;
@@ -137,7 +142,7 @@ begin
   try
     if theme.Save then frmmain.notify(UTF8ToAnsi(XMsgThemeSaved));
   except
-    on e: Exception do messagebox(Handle, pchar(e.message), 'Terry', MB_ICONERROR);
+    on e: Exception do messagebox(Handle, pchar(e.message), declu.PROGRAM_NAME, MB_ICONERROR);
   end;
 end;
 //------------------------------------------------------------------------------

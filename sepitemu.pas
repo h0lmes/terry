@@ -7,7 +7,6 @@ uses Windows, SysUtils, Controls, Classes, Math,
 type TSeparatorItem = class(TCustomItem)
   private
     Margins: windows.TRect;
-    FItemsArea: windows.TRect;
     FItemsArea2: windows.TRect;
     FSeparatorAlpha: integer;
     procedure UpdateItemInternal;
@@ -54,9 +53,8 @@ begin
     FIH := theme.Separator.H;
     if assigned(theme.Separator.Image) then GdipCloneBitmapAreaI(0, 0, FIW, FIH, PixelFormat32bppPARGB, theme.Separator.Image, FImage);
     //
-    FItemsArea := theme.ItemsArea;
     FItemsArea2 := theme.ItemsArea2;
-    FBorder := max(FItemsArea.Bottom, max(FReflectionSize, MIN_BORDER));
+    FBorder := max(FItemsArea2.Bottom, max(FReflectionSize, MIN_BORDER));
     //
     Redraw;
   except

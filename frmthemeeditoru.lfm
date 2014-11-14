@@ -1,19 +1,20 @@
 object frmThemeEditor: TfrmThemeEditor
   Left = 649
-  Height = 414
+  Height = 275
   Top = 338
-  Width = 445
+  Width = 539
   Caption = 'Theme parameters'
   ChildSizing.LeftRightSpacing = 10
   ChildSizing.TopBottomSpacing = 10
-  ClientHeight = 394
-  ClientWidth = 445
+  ClientHeight = 275
+  ClientWidth = 539
   Constraints.MinWidth = 300
-  Menu = mmenu
+  KeyPreview = True
   OnClose = FormClose
+  OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object Label1: TLabel
     Left = 10
     Height = 15
@@ -23,9 +24,9 @@ object frmThemeEditor: TfrmThemeEditor
     ParentColor = False
   end
   object Label16: TLabel
-    Left = 10
+    Left = 275
     Height = 15
-    Top = 230
+    Top = 120
     Width = 103
     Caption = 'Icons reflection size'
     ParentColor = False
@@ -33,15 +34,15 @@ object frmThemeEditor: TfrmThemeEditor
   object Label15: TLabel
     Left = 10
     Height = 15
-    Top = 285
+    Top = 120
     Width = 96
     Caption = 'Separator margins'
     ParentColor = False
   end
   object Label9: TLabel
-    Left = 10
+    Left = 275
     Height = 15
-    Top = 120
+    Top = 10
     Width = 110
     Caption = 'Background margins'
     ParentColor = False
@@ -58,35 +59,31 @@ object frmThemeEditor: TfrmThemeEditor
     Left = 10
     Height = 23
     Top = 195
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Width = 516
     OnChange = edItemsAreaChange
     TabOrder = 2
   end
   object edmargin: TEdit
-    Left = 10
+    Left = 275
     Height = 23
-    Top = 140
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Top = 30
+    Width = 251
     OnChange = edImageChange
     TabOrder = 1
   end
   object edSeparatorMargins: TEdit
     Left = 10
     Height = 23
-    Top = 305
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Top = 140
+    Width = 255
     OnChange = edItemsAreaChange
     TabOrder = 3
   end
   object edReflectionSize: TEdit
-    Left = 10
+    Left = 275
     Height = 23
-    Top = 250
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Top = 140
+    Width = 251
     OnChange = edItemsAreaChange
     TabOrder = 4
   end
@@ -94,25 +91,23 @@ object frmThemeEditor: TfrmThemeEditor
     Left = 10
     Height = 23
     Top = 30
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Width = 255
     OnChange = edItemsAreaChange
     TabOrder = 0
   end
   object Label17: TLabel
-    Left = 10
+    Left = 275
     Height = 15
-    Top = 340
+    Top = 65
     Width = 57
     Caption = 'Base offset'
     ParentColor = False
   end
   object edBaseOffset: TEdit
-    Left = 10
+    Left = 275
     Height = 23
-    Top = 360
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Top = 85
+    Width = 251
     OnChange = edItemsAreaChange
     TabOrder = 5
   end
@@ -128,23 +123,26 @@ object frmThemeEditor: TfrmThemeEditor
     Left = 10
     Height = 23
     Top = 85
-    Width = 426
-    Anchors = [akTop, akLeft, akRight]
+    Width = 255
     OnChange = edItemsAreaChange
     TabOrder = 6
   end
-  object mmenu: TMainMenu
-    left = 195
-    top = 10
-    object msave: TMenuItem
-      Caption = 'Save theme <F2>'
-      ShortCut = 113
-      OnClick = msaveClick
-    end
-    object mclose: TMenuItem
-      Caption = 'Close editor <Esc>'
-      ShortCut = 27
-      OnClick = mcloseClick
-    end
+  object btnSave: TButton
+    Left = 10
+    Height = 25
+    Top = 235
+    Width = 125
+    Caption = 'Save'
+    OnClick = msaveClick
+    TabOrder = 7
+  end
+  object btnClose: TButton
+    Left = 145
+    Height = 25
+    Top = 235
+    Width = 125
+    Caption = 'Close (Esc)'
+    OnClick = mcloseClick
+    TabOrder = 8
   end
 end
