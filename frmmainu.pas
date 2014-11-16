@@ -400,7 +400,7 @@ begin
     ItemMgr.SetParam(gpZoomTime, sets.container.ZoomTime);
     ItemMgr.SetParam(gpItemSpacing, sets.container.ItemSpacing);
     ItemMgr.SetParam(gpReflection, integer(sets.container.Reflection));
-    ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
+    ItemMgr.SetParam(gpReflectionSize, sets.container.ReflectionSize);
     ItemMgr.SetParam(gpLaunchInterval, sets.container.LaunchInterval);
     ItemMgr.SetParam(gpActivateRunning, integer(sets.container.ActivateRunning));
     ItemMgr.SetParam(gpUseShellContextMenus, integer(sets.container.UseShellContextMenus));
@@ -465,11 +465,11 @@ begin
     tcThemeChanged:
       if assigned(ItemMgr) then
       begin
-        ItemMgr.ItemArea := theme.CorrectMargins(theme.ItemsArea);
-        ItemMgr.ItemArea2 := theme.CorrectMargins(theme.ItemsArea2);
-        ItemMgr.BaseOffset := theme.BaseOffset;
+        ItemMgr.ItemsArea := theme.CorrectMargins(theme.ItemsArea);
+        ItemMgr.ItemsArea2 := theme.CorrectMargins(theme.ItemsArea2);
+        ItemMgr.Margin := theme.Margin;
+        ItemMgr.Margin2 := theme.Margin2;
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
-        ItemMgr.SetParam(gpReflectionSize, theme.ReflectionSize);
         ItemMgr.SetTheme;
       end;
     tcSetVisible:
@@ -1148,7 +1148,7 @@ begin
       GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
-      // workaround to eliminate rumble on certain backgrounds while dragging file //
+      // workaround to eliminate rumble on certain backgrounds while dragging a file //
       if ItemMgr.DraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
       // draw dock background image //
       Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect);

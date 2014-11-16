@@ -43,7 +43,12 @@ type
     FBlurRegionPointsCount: integer;
     FBlurRect: Windows.TRect;
     FBlurR: Windows.TSize;
+    FItemsArea: Windows.TRect;
+    FItemsArea2: Windows.TRect;
+    FMargin: integer;
+    FMargin2: integer;
     procedure SetBlurRegion(value: string);
+    procedure SetItemsArea(value: windows.TRect);
     procedure SetSite(value: TBaseSite);
   public
     is_default: boolean;
@@ -51,13 +56,14 @@ type
     Separator: TLayerSeparator;
     Indicator: TLayerImage;
     Stack: TLayerImage;
-    ReflectionSize: integer;
-    ItemsArea: Windows.TRect;
-    ItemsArea2: Windows.TRect;
-    BaseOffset: integer;
     Path: string;
+
     property BlurRegion: string read FBlurRegion write SetBlurRegion;
     property Site: TBaseSite read FSite write SetSite;
+    property ItemsArea: windows.TRect read FItemsArea write SetItemsArea;
+    property ItemsArea2: windows.TRect read FItemsArea2;
+    property Margin: integer read FMargin;
+    property Margin2: integer read FMargin2;
 
     constructor Create(aTheme: string; aSite: TBaseSite);
     destructor Destroy; override;
@@ -102,11 +108,11 @@ procedure _Theme.Clear;
 begin
   Background.StretchStyle := ssStretch;
   Background.Margins := rect(0, 0, 0, 0);
-  ItemsArea := rect(0, 0, 0, 0);
-  ItemsArea2 := rect(5, 5, 5, 5);
-  BaseOffset := 10;
+  FItemsArea := rect(0, 0, 0, 0);
+  FItemsArea2 := rect(5, 5, 5, 5);
+  FMargin := 10;
+  FMargin2 := 0;
   Separator.Margins := rect(0, 0, 0, 0);
-  ReflectionSize := 0;
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ClearGraphics;
@@ -150,6 +156,7 @@ function _Theme.Load: boolean;
 var
   ini: TIniFile;
   section: string;
+  ia: windows.TRect;
 begin
   Result := false;
   is_default := false;
@@ -175,42 +182,40 @@ begin
 
     // background //
     ini := TIniFile.Create(Path + 'background.ini');
-    Background.ImageFile := Trim(ini.ReadString('Background', 'Image', 'background.png'));
-    // ObjectDock format //
+    ini.CaseSensitive := false;
     section := 'Background';
     if ini.SectionExists('BackgroundBottom') then section := 'BackgroundBottom';
+    //
+    Background.ImageFile := Trim(ini.ReadString(section, 'Image', 'background.png'));
+    // ObjectDock format //
     if ini.ValueExists(section, 'LeftWidth') then
     begin
-      ItemsArea.Left := ini.ReadInteger(section, 'OutsideBorderLeft', 0);
-      ItemsArea.Top := ini.ReadInteger(section, 'OutsideBorderTop', 0);
-      ItemsArea.Right := ini.ReadInteger(section, 'OutsideBorderRight', 0);
-      ItemsArea.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', 0);
-      Background.Margins.Left := ini.ReadInteger(section, 'LeftWidth', 0);
-      Background.Margins.Top := ini.ReadInteger(section, 'TopHeight', 0);
-      Background.Margins.Right := ini.ReadInteger(section, 'RightWidth', 0);
+      ia.Left :=   ini.ReadInteger(section, 'OutsideBorderLeft', 0);
+      ia.Top :=    ini.ReadInteger(section, 'OutsideBorderTop', 0);
+      ia.Right :=  ini.ReadInteger(section, 'OutsideBorderRight', 0);
+      ia.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', 0);
+      Background.Margins.Left :=   ini.ReadInteger(section, 'LeftWidth', 0);
+      Background.Margins.Top :=    ini.ReadInteger(section, 'TopHeight', 0);
+      Background.Margins.Right :=  ini.ReadInteger(section, 'RightWidth', 0);
       Background.Margins.Bottom := ini.ReadInteger(section, 'BottomHeight', 0);
     end;
     // RocketDock format //
     if ini.ValueExists(section, 'LeftMargin') then
     begin
-      Background.Margins.Left := ini.ReadInteger(section, 'LeftMargin', 0);
-      Background.Margins.Top := ini.ReadInteger(section, 'TopMargin', 0);
-      Background.Margins.Right := ini.ReadInteger(section, 'RightMargin', 0);
+      ia.Left :=   ini.ReadInteger(section, 'Outside-LeftMargin', 0);
+      ia.Top :=    ini.ReadInteger(section, 'Outside-TopMargin', 0);
+      ia.Right :=  ini.ReadInteger(section, 'Outside-RightMargin', 0);
+      ia.Bottom := ini.ReadInteger(section, 'Outside-BottomMargin', 0);
+      Background.Margins.Left :=   ini.ReadInteger(section, 'LeftMargin', 0);
+      Background.Margins.Top :=    ini.ReadInteger(section, 'TopMargin', 0);
+      Background.Margins.Right :=  ini.ReadInteger(section, 'RightMargin', 0);
       Background.Margins.Bottom := ini.ReadInteger(section, 'BottomMargin', 0);
-      ItemsArea.Left := ini.ReadInteger(section, 'Outside-LeftMargin', 0);
-      ItemsArea.Top := ini.ReadInteger(section, 'Outside-TopMargin', 0);
-      ItemsArea.Right := ini.ReadInteger(section, 'Outside-RightMargin', 0);
-      ItemsArea.Bottom := ini.ReadInteger(section, 'Outside-BottomMargin', 0);
     end;
     // Terry-specific keys //
-    ItemsArea2.Left := ini.ReadInteger(section, 'OutsideBorderLeft2', 5);
-    ItemsArea2.Top := ini.ReadInteger(section, 'OutsideBorderTop2', 5);
-    ItemsArea2.Right := ini.ReadInteger(section, 'OutsideBorderRight2', 5);
-    ItemsArea2.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom2', 5);
-    BaseOffset :=     ini.ReadInteger(section, 'BaseOffset', 10);
-    ReflectionSize := ini.ReadInteger(section, 'ReflectionSize', 8);
-    BlurRegion :=     ini.ReadString (section, 'BlurRegion', '');
+    BlurRegion :=        ini.ReadString (section, 'BlurRegion', '');
     ini.Free;
+
+    ItemsArea := ia;
 
     // separator //
     if FileExists(Path + 'separator.ini') then
@@ -261,21 +266,15 @@ begin
     // background //
     ini := TIniFile.Create(themes_path + FThemeName + '\background.ini');
     ini.WriteString('Background', 'Image', Background.ImageFile);
-    ini.WriteInteger('Background', 'OutsideBorderLeft',   ItemsArea.Left);
-    ini.WriteInteger('Background', 'OutsideBorderTop',    ItemsArea.Top);
-    ini.WriteInteger('Background', 'OutsideBorderRight',  ItemsArea.Right);
-    ini.WriteInteger('Background', 'OutsideBorderBottom', ItemsArea.Bottom);
+    ini.WriteInteger('Background', 'OutsideBorderLeft',   FItemsArea.Left);
+    ini.WriteInteger('Background', 'OutsideBorderTop',    FItemsArea.Top);
+    ini.WriteInteger('Background', 'OutsideBorderRight',  FItemsArea.Right);
+    ini.WriteInteger('Background', 'OutsideBorderBottom', FItemsArea.Bottom);
     ini.WriteInteger('Background', 'LeftWidth',    Background.Margins.Left);
     ini.WriteInteger('Background', 'TopHeight',    Background.Margins.Top);
     ini.WriteInteger('Background', 'RightWidth',   Background.Margins.Right);
     ini.WriteInteger('Background', 'BottomHeight', Background.Margins.Bottom);
     // terry-specific
-    if ItemsArea2.Left <> 5 then   ini.WriteInteger('Background', 'OutsideBorderLeft2',   ItemsArea2.Left);
-    if ItemsArea2.Top <> 5 then    ini.WriteInteger('Background', 'OutsideBorderTop2',    ItemsArea2.Top);
-    if ItemsArea2.Right <> 5 then  ini.WriteInteger('Background', 'OutsideBorderRight2',  ItemsArea2.Right);
-    if ItemsArea2.Bottom <> 5 then ini.WriteInteger('Background', 'OutsideBorderBottom2', ItemsArea2.Bottom);
-    if BaseOffset <> 10 then       ini.WriteInteger('Background', 'BaseOffset', BaseOffset);
-    if ReflectionSize <> 8 then    ini.WriteInteger('Background', 'ReflectionSize', ReflectionSize);
     if BlurRegion <> '' then       ini.WriteString ('Background', 'BlurRegion', BlurRegion);
     ini.Free;
     // separator //
@@ -328,6 +327,13 @@ procedure _Theme.SetSite(value: TBaseSite);
 begin
   FSite := value;
   ReloadGraphics;
+end;
+//------------------------------------------------------------------------------
+procedure _Theme.SetItemsArea(value: windows.TRect);
+begin
+  FItemsArea := value;
+  FMargin2 := 0;
+  if FItemsArea.Top < 0 then FMargin2 := -FItemsArea.Top;
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ReloadGraphics;
@@ -476,7 +482,7 @@ var
   marg, area: Windows.TRect;
 begin
   marg := CorrectMargins(Background.Margins);
-  area := CorrectMargins(ItemsArea);
+  area := CorrectMargins(FItemsArea);
   inc(marg.Left, area.Left);
   inc(marg.Top, area.Top);
   inc(marg.Right, area.Right);
@@ -508,7 +514,7 @@ begin
     result := CreateRoundRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom, br.cx, br.cy);
   end else begin
     bm := CorrectMargins(Background.Margins);
-    ba := CorrectMargins(ItemsArea);
+    ba := CorrectMargins(FItemsArea);
     inc(bm.Left, ba.Left);
     inc(bm.Top, ba.Top);
     inc(bm.Right, ba.Right);
@@ -544,7 +550,6 @@ begin
   Background.Margins := rect(0, 4, 0, 0);
   ItemsArea := rect(16, 11, 16, 3);
   BlurRegion := '';
-  ReflectionSize := 8;
   Separator.Margins := rect(0, 0, 0, 0);
 
   Path := '';

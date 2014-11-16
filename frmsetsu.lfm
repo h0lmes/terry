@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsStyle
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 2
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -620,6 +620,27 @@ object frmsets: Tfrmsets
         Caption = 'Show icon reflections'
         OnClick = chb_reflectionClick
         TabOrder = 11
+      end
+      object lblBackgroundTransparency2: TLabel
+        Left = 240
+        Height = 13
+        Top = 215
+        Width = 73
+        Caption = 'Reflection size:'
+        ParentColor = False
+      end
+      object tbReflectionSize: TTrackBar
+        Left = 235
+        Height = 30
+        Top = 235
+        Width = 215
+        Max = 20
+        OnChange = tbReflectionSizeChange
+        PageSize = 1
+        Position = 0
+        ScalePos = trLeft
+        ShowSelRange = False
+        TabOrder = 12
       end
     end
     object tsIcons: TTabSheet

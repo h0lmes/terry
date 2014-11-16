@@ -47,6 +47,7 @@ type
     UseShell: boolean;
     Hello: boolean;
     Reflection: boolean;
+    ReflectionSize: integer;
     BaseAlpha: integer;
     SeparatorAlpha: integer;
     Blur: boolean;
@@ -203,6 +204,7 @@ begin
   container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 13, 255);
   container.SeparatorAlpha := SetRange(ini.ReadInteger('gfx', 'SeparatorAlpha', 255), 0, 255);
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
+  container.ReflectionSize := ini.ReadInteger('gfx', 'ReflectionSize', 10);
   container.Blur := ini.ReadBool('gfx', 'Blur', true);
 
   // autoruns //
@@ -283,6 +285,7 @@ begin
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
   ini.WriteInteger('gfx', 'SeparatorAlpha', container.SeparatorAlpha);
   ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
+  ini.WriteInteger('gfx', 'ReflectionSize', container.ReflectionSize);
   ini.WriteBool   ('gfx', 'Blur', container.Blur);
   // font //
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
@@ -410,6 +413,7 @@ begin
   gpHintEffects: container.HintEffects := boolean(value);
   gpLockDragging: container.LockDragging := boolean(value);
   gpReflection: container.Reflection := boolean(value);
+  gpReflectionSize: container.ReflectionSize := value;
   gpAutoHideOnFullScreenApp: container.AutoHideOnFullScreenApp := boolean(value);
   gpUseShellContextMenus: container.UseShellContextMenus := boolean(value);
   gpStackOpenAnimation: container.StackOpenAnimation := boolean(value);
@@ -462,6 +466,7 @@ begin
   gpHintEffects: result := integer(container.HintEffects);
   gpLockDragging: result := integer(container.LockDragging);
   gpReflection: result := integer(container.Reflection);
+  gpReflectionSize: result := container.ReflectionSize;
   gpAutoHideOnFullScreenApp: result := integer(container.AutoHideOnFullScreenApp);
   gpUseShellContextMenus: result := integer(container.UseShellContextMenus);
   gpStackOpenAnimation: result := integer(container.StackOpenAnimation);
@@ -521,6 +526,7 @@ begin
   dst.StackOpenAnimation := src.StackOpenAnimation;
   dst.AutoHideOnFullScreenApp := src.AutoHideOnFullScreenApp;
   dst.Reflection := src.Reflection;
+  dst.ReflectionSize := src.ReflectionSize;
   dst.BaseAlpha := src.BaseAlpha;
   dst.SeparatorAlpha := src.SeparatorAlpha;
   dst.Blur := src.Blur;

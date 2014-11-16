@@ -42,6 +42,10 @@ type
     FTaskbarSameMonitor: boolean;
     FSeparatorAlpha: integer;
     FFont: _FontData;
+    LockMouseEffect: boolean;
+    SetsFilename: string;
+    FVisible: boolean;
+    Enabled: boolean;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
@@ -52,14 +56,11 @@ type
     FCenterOffsetPercent: integer;
     FEdgeOffset: integer;
     FWndOffset: integer;
-    FBaseOffset: integer;
     // Wnd Item Vars //
-    FVisible: boolean;
-    Enabled: boolean;
-    FItemArea: windows.TRect;
-    FItemArea2: windows.TRect;
-    LockMouseEffect: boolean;
-    SetsFilename: string;
+    FItemsArea: windows.TRect;
+    FItemsArea2: windows.TRect;
+    FMargin: integer; // dock icons offset from a monitor edge
+    FMargin2: integer; // dock icons additional offset from a monitor edge
 
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
@@ -113,9 +114,10 @@ type
     BaseCmd: TBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;
-    property ItemArea: windows.TRect read FItemArea write FItemArea;
-    property ItemArea2: windows.TRect read FItemArea2 write FItemArea2;
-    property BaseOffset: integer read FBaseOffset write FBaseOffset;
+    property ItemsArea: windows.TRect read FItemsArea write FItemsArea;
+    property ItemsArea2: windows.TRect read FItemsArea2 write FItemsArea2;
+    property Margin: integer read FMargin write FMargin;
+    property Margin2: integer read FMargin2 write FMargin2;
     property WndOffset: integer read FWndOffset write FWndOffset;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
@@ -308,11 +310,7 @@ begin
           Reflection := boolean(value);
           ItemsChanged(true);
         end;
-      gpReflectionSize:
-        begin
-          ReflectionSize := value;
-          ItemsChanged(true);
-        end;
+      gpReflectionSize: ReflectionSize := value;
       gpTaskbar:                if value = 0 then ClearTaskbar;
       gpTaskbarLivePreviews:    ClearTaskbar;
       gpTaskbarGrouping:        ClearTaskbar;
@@ -773,25 +771,29 @@ begin
       itemPos := i * (ItemSize + ItemSpacing);
       if BaseSite = bsBottom then
       begin
-        items[i].y := MonitorRect.Bottom - items[i].s - FBaseOffset + FWndOffset - FEdgeOffset;
+        items[i].y := MonitorRect.Bottom - items[i].s - FMargin + FWndOffset - FEdgeOffset;
+        if not IsSeparator(items[i].h) then items[i].y -= FMargin2;
         items[i].x := x + itemPos;
       end
       else
       if BaseSite = bsTop then
       begin
-        items[i].y := FBaseOffset - FWndOffset + FEdgeOffset;
+        items[i].y := FMargin + FEdgeOffset - FWndOffset;
+        if not IsSeparator(items[i].h) then items[i].y += FMargin2;
         items[i].x := x + itemPos;
       end
       else
       if BaseSite = bsLeft then
       begin
-        items[i].x := FBaseOffset - FWndOffset + FEdgeOffset;
+        items[i].x := FMargin + FEdgeOffset - FWndOffset;
+        if not IsSeparator(items[i].h) then items[i].x += FMargin2;
         items[i].y := y + itemPos;
       end
       else
       if BaseSite = bsRight then
       begin
-        items[i].x := MonitorRect.Right - items[i].s - FBaseOffset + FWndOffset - FEdgeOffset;
+        items[i].x := MonitorRect.Right - items[i].s - FMargin + FWndOffset - FEdgeOffset;
+        if not IsSeparator(items[i].h) then items[i].x -= FMargin2;
         items[i].y := y + itemPos;
       end;
 
@@ -870,61 +872,61 @@ begin
     heightZoomed := 0;
     if BaseSite = bsLeft then
     begin
-      width := FItemArea.Left + FItemArea2.Left + ItemSize + FItemArea.Right + FItemArea2.Right;
-      widthZoomed := max(width, FItemArea.Left + FItemArea2.Left + ItemSize + ZoomItemSizeDiff);
+      width := FItemsArea.Left + FItemsArea2.Left + ItemSize + FItemsArea.Right + FItemsArea2.Right;
+      widthZoomed := max(width, FItemsArea.Left + FItemsArea2.Left + ItemSize + ZoomItemSizeDiff);
     end else
     if BaseSite = bsRight then
     begin
-      width := FItemArea.Left + FItemArea2.Left + ItemSize + FItemArea.Right + FItemArea2.Right;
-      widthZoomed := max(width, FItemArea.Right + FItemArea2.Right + ItemSize + ZoomItemSizeDiff);
+      width := FItemsArea.Left + FItemsArea2.Left + ItemSize + FItemsArea.Right + FItemsArea2.Right;
+      widthZoomed := max(width, FItemsArea.Right + FItemsArea2.Right + ItemSize + ZoomItemSizeDiff);
     end else
     if BaseSite = bsTop then
     begin
-      height := FItemArea.Top + FItemArea2.Top + ItemSize + FItemArea.Bottom + FItemArea2.Bottom;
-      heightZoomed := max(height, FItemArea.Top + FItemArea2.Top + ItemSize + ZoomItemSizeDiff);
+      height := FItemsArea.Top + FItemsArea2.Top + ItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
+      heightZoomed := max(height, FItemsArea.Top + FItemsArea2.Top + ItemSize + ZoomItemSizeDiff);
     end else
     begin
-      height := FItemArea.Top + FItemArea2.Top + ItemSize + FItemArea.Bottom + FItemArea2.Bottom;
-      heightZoomed := max(height, FItemArea.Bottom + FItemArea2.Bottom + ItemSize + ZoomItemSizeDiff);
+      height := FItemsArea.Top + FItemsArea2.Top + ItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
+      heightZoomed := max(height, FItemsArea.Bottom + FItemsArea2.Bottom + ItemSize + ZoomItemSizeDiff);
     end;
 
     // self XY relative to BaseWindowRect //
     if BaseSiteVertical then
     begin
       x := 0;
-      if BaseSite = bsLeft then x := FBaseOffset - FItemArea.Left - FItemArea2.Left;
+      if BaseSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
     end else
     begin
       if ItemCount = 0 then
       begin
-        width := ItemSize + FItemArea.Left + FItemArea.Right + FItemArea2.Left + FItemArea2.Right;
+        width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
         x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
-          FItemArea.Left - FItemArea2.Left +
-          (IASize - width + FItemArea.Left + FItemArea.Right + FItemArea2.Left + FItemArea2.Right - ItemSpacing) div 2;
+          FItemsArea.Left - FItemsArea2.Left +
+          (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - ItemSpacing) div 2;
       end
       else
       begin
-        x := items[0].x - ItemSpacing div 2 - FItemArea.Left - FItemArea2.Left;
-        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x + ItemSpacing div 2 + FItemArea.Right + FItemArea2.Right;
+        x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left;
+        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x + ItemSpacing div 2 + FItemsArea.Right + FItemsArea2.Right;
       end;
     end;
 
     if not BaseSiteVertical then
     begin
       y := 0;
-      if BaseSite = bsTop then y := FBaseOffset - FItemArea.Top - FItemArea2.Top;
+      if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
     end else
     begin
       if ItemCount = 0 then
       begin
-        height := ItemSize + FItemArea.Top + FItemArea.Bottom + FItemArea2.Top + FItemArea2.Bottom;
+        height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
         y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
-          FItemArea.Top - FItemArea2.Top + (IASize - height + FItemArea.Top + FItemArea.Bottom + FItemArea2.Top + FItemArea2.Bottom - ItemSpacing) div 2;
+          FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
       end
       else
       begin
-        y := items[0].y - ItemSpacing div 2 - FItemArea.Top - FItemArea2.Top;
-        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y + ItemSpacing div 2 + FItemArea.Bottom + FItemArea2.Bottom;
+        y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top;
+        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y + ItemSpacing div 2 + FItemsArea.Bottom + FItemsArea2.Bottom;
       end;
     end;
 
@@ -938,12 +940,12 @@ begin
     if BaseSiteVertical then
     begin
       BaseWindowRect.Width := Width;
-      if BaseSite = bsRight then BaseWindowRect.Width += FBaseOffset - FItemArea.Right - FItemArea2.Right;
+      if BaseSite = bsRight then BaseWindowRect.Width += FMargin - FItemsArea.Right - FItemsArea2.Right;
       BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
     end else begin
       BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
       BaseWindowRect.Height := Height;
-      if BaseSite = bsBottom then BaseWindowRect.Height += FBaseOffset - FItemArea.Bottom - FItemArea2.Bottom;
+      if BaseSite = bsBottom then BaseWindowRect.Height += FMargin - FItemsArea.Bottom - FItemsArea2.Bottom;
     end;
 
     BaseWindowRect.x := MonitorRect.Left;
@@ -1364,7 +1366,7 @@ begin
 
     // check boundaries //
 
-    rItemArea := FItemArea;
+    rItemArea := FItemsArea;
     if BaseSite = bsLeft then rItemArea.Right := 0
     else if BaseSite = bsTop then rItemArea.Bottom := 0
     else if BaseSite = bsRight then rItemArea.Left := 0
@@ -1372,7 +1374,7 @@ begin
 
     if BaseSite = bsBottom then
     begin
-      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - FBaseOffset - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
+      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - FMargin - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
         (Ay > BaseWindowRect.Y + BaseWindowRect.Height + distance) or
         (Ax < BasePoint - BigItemSize) or
         (Ax > BasePoint + width)
@@ -1381,14 +1383,14 @@ begin
     if BaseSite = bsLeft then
     begin
       if (Ax < BaseWindowRect.X - distance) or
-        (Ax > BaseWindowRect.X + x + FBaseOffset + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
+        (Ax > BaseWindowRect.X + x + FMargin + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
         (Ay < BasePoint - BigItemSize) or
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
     if BaseSite = bsRight then
     begin
-      if (Ax < BaseWindowRect.X + BaseWindowRect.Width - FBaseOffset - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
+      if (Ax < BaseWindowRect.X + BaseWindowRect.Width - FMargin - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
         (Ax > BaseWindowRect.X + BaseWindowRect.Width + distance) or
         (Ay < BasePoint - BigItemSize) or
         (Ay > BasePoint + height)
@@ -1396,7 +1398,7 @@ begin
     end else
     begin
       if (Ay < BaseWindowRect.Y - distance) or
-        (Ay > BaseWindowRect.Y + y + FBaseOffset + ItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
+        (Ay > BaseWindowRect.Y + y + FMargin + ItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
         (Ax < BasePoint - BigItemSize) or
         (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;

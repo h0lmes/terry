@@ -40,6 +40,7 @@ type
     GroupBox1: TGroupBox;
     Label1: TLabel;
     lblBackgroundTransparency1: TLabel;
+    lblBackgroundTransparency2: TLabel;
     lblCredits6: TLabel;
     lblCredits7: TLabel;
     lblIconSpacing: TLabel;
@@ -65,6 +66,7 @@ type
     tbSeparatorAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
     tbAeroPeekThumbSize: TTrackBar;
+    tbReflectionSize: TTrackBar;
     tbZoomTime: TTrackBar;
     tbReserveScreenEdgePercent: TTrackBar;
     tbIconSpacing: TTrackBar;
@@ -182,6 +184,7 @@ type
     procedure tbIconSizeChange(Sender: TObject);
     procedure tbBigIconSizeChange(Sender: TObject);
     procedure tbIconSpacingChange(Sender: TObject);
+    procedure tbReflectionSizeChange(Sender: TObject);
     procedure tbReserveScreenEdgePercentChange(Sender: TObject);
     procedure tbSeparatorAlphaChange(Sender: TObject);
     procedure tbZoomTimeChange(Sender: TObject);
@@ -381,6 +384,9 @@ begin
   tbSeparatorAlpha.OnChange := nil;
   tbSeparatorAlpha.Position := sets.container.SeparatorAlpha;
   tbSeparatorAlpha.OnChange := tbSeparatorAlphaChange;
+  tbReflectionSize.OnChange := nil;
+  tbReflectionSize.Position := sets.container.ReflectionSize;
+  tbReflectionSize.OnChange := tbReflectionSizeChange;
 
   CopyFontData(sets.container.Font, FFont);
   listFont.Items := screen.Fonts;
@@ -699,6 +705,11 @@ end;
 procedure Tfrmsets.tbSeparatorAlphaChange(Sender: TObject);
 begin
   frmmain.SetParam(gpSeparatorAlpha, tbSeparatorAlpha.Position);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.tbReflectionSizeChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpReflectionSize, tbReflectionSize.Position);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lbThemeDblClick(Sender: TObject);

@@ -877,6 +877,10 @@ msgstr "Непрозрачность фона:"
 msgid "Separators opacity:"
 msgstr "Непрозрачность разделителей:"
 
+#: tfrmsets.lblbackgroundtransparency2.caption
+msgid "Reflection size:"
+msgstr ""
+
 #: tfrmsets.lblcenteroffsetpercent.caption
 msgid "Offset from center"
 msgstr "Смещение от центра"
@@ -1189,19 +1193,6 @@ msgstr "Регион размытия"
 msgctxt "tfrmthemeeditor.label15.caption"
 msgid "Separator margins"
 msgstr "Границы разделителя (нерастягиваемые)"
-
-#: tfrmthemeeditor.label16.caption
-msgctxt "tfrmthemeeditor.label16.caption"
-msgid "Icons reflection size"
-msgstr "Размер отражения значков"
-
-#: tfrmthemeeditor.label17.caption
-msgid "Base offset"
-msgstr "Отступ"
-
-#: tfrmthemeeditor.label2.caption
-msgid "Items area border 2"
-msgstr "Отступ области значков 2"
 
 #: tfrmthemeeditor.label9.caption
 msgctxt "tfrmthemeeditor.label9.caption"

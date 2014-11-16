@@ -810,6 +810,10 @@ msgstr ""
 msgid "Separators opacity:"
 msgstr ""
 
+#: tfrmsets.lblbackgroundtransparency2.caption
+msgid "Reflection size:"
+msgstr ""
+
 #: tfrmsets.lblcenteroffsetpercent.caption
 msgid "Offset from center"
 msgstr ""
@@ -1094,18 +1098,6 @@ msgstr ""
 
 #: tfrmthemeeditor.label15.caption
 msgid "Separator margins"
-msgstr ""
-
-#: tfrmthemeeditor.label16.caption
-msgid "Icons reflection size"
-msgstr ""
-
-#: tfrmthemeeditor.label17.caption
-msgid "Base offset"
-msgstr ""
-
-#: tfrmthemeeditor.label2.caption
-msgid "Items area border 2"
 msgstr ""
 
 #: tfrmthemeeditor.label9.caption
