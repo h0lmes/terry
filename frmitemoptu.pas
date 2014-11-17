@@ -289,12 +289,24 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnBrowseImage1Click(Sender: TObject);
+var
+  img: string;
+  index: integer;
 begin
   with TOpenDialog.Create(self) do
   try
+    img := toolu.UnzipPath(cut(edImage.text, ';')); // take only first image
     if edImage.text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
-    else InitialDir:= ExtractFilePath(toolu.UnzipPath(edImage.text));
-    if execute then edImage.text := toolu.ZipPath(FileName);
+    else InitialDir:= ExtractFilePath(img);
+    Filename := ExtractFileName(img);
+    Options := DefaultOpenDialogOptions + [ofAllowMultiSelect];
+    if execute then
+    begin
+      edImage.text := toolu.ZipPath(FileName);
+      if Files.Count > 1 then
+        for index := 1 to Files.Count - 1 do
+          edImage.text := edImage.text + ';' + toolu.ZipPath(Files.strings[index]);
+    end;
   finally
     free;
   end;
@@ -399,9 +411,9 @@ var
 begin
   try
     if edImage.text = '' then
-      str := UnzipPath(UTF8ToAnsi(edCmd.Text))
+      str := UnzipPath(UTF8ToAnsi(cut(edCmd.Text, ';'))) // take only first command
     else
-      str := UnzipPath(UTF8ToAnsi(edImage.text));
+      str := UnzipPath(UTF8ToAnsi(cut(edImage.text, ';'))); // take only first image
 
     try if assigned(FImage) then GdipDisposeImage(FImage);
     except end;

@@ -33,7 +33,7 @@ type
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure LoadImageI;
-    procedure BitBucketCheck;
+    procedure CheckIfBitBucket;
     procedure BitBucketUpdate;
     procedure UpdateIndicator;
     procedure DrawIndicator(dst: Pointer);
@@ -116,6 +116,8 @@ begin
       FParams := ini.ReadString(IniSection, 'params', '');
       FDir := ini.ReadString(IniSection, 'dir', '');
       FImageFile := ini.ReadString(IniSection, 'image', '');
+      FImageFile2 := cutafter(FImageFile, ';');
+      FImageFile := cut(FImageFile, ';');
       FHide := boolean(ini.ReadInteger(IniSection, 'hide', 0));
       FColorData := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
       FShowCmd := ini.ReadInteger(IniSection, 'showcmd', sw_shownormal);
@@ -128,6 +130,8 @@ begin
       FParams := FetchValue(AData, 'params="', '";');
       FDir := FetchValue(AData, 'dir="', '";');
       FImageFile := FetchValue(AData, 'image="', '";');
+      FImageFile2 := cutafter(FImageFile, ';');
+      FImageFile := cut(FImageFile, ';');
       FHide := false;
       FColorData := DEFAULT_COLOR_DATA;
       FShowCmd := 1;
@@ -158,7 +162,7 @@ begin
     try
       FUpdating := true;
 
-      // convert CSIDL to path //
+      // convert CSIDL to GUID or path //
       csidl := CSIDL_ToInt(FCommand);
       if csidl > -1 then
       begin
@@ -182,7 +186,7 @@ begin
       end;
 
       // check if it is BITBUCKET //
-      BitBucketCheck;
+      CheckIfBitBucket;
 
       // load appropriate image //
       LoadImageI;
@@ -216,7 +220,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.BitBucketCheck;
+procedure TShortcutItem.CheckIfBitBucket;
 var
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
@@ -245,20 +249,8 @@ begin
     PIDL_Free(pidFolder);
   end;
 
-  FImageFile2 := '';
   if FBitBucket then // if this shortcut is a bitbucket
-  begin
-    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil); // set timer for update
-
-    if FImageFile <> '' then // search an image for full bitbucket
-    begin
-      ext := ExtractFileExt(FImageFile);
-      FImageFile2 := ChangeFileExt(FImageFile, ' full' + ext);
-      if not FileExists(FImageFile2) then FImageFile2 := ChangeFileExt(FImageFile, '_full' + ext);
-      if not FileExists(FImageFile2) then FImageFile2 := ChangeFileExt(FImageFile, '-full' + ext);
-      if not FileExists(FImageFile2) then FImageFile2 := '';
-    end;
-  end
+    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil) // set timer for update
   else // if this shortcut is not a bitbucket
     KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
 end;
@@ -603,8 +595,12 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
+var
+  img: string;
 begin
-  result:= Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  img := FImageFile;
+  if FImageFile2 <> '' then img := img + ';' + FImageFile2;
+  result:= Make(FHWnd, FCaption, FCommand, FParams, FDir, img, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -783,6 +779,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Save(szIni: pchar; szIniGroup: pchar);
+var
+  img: string;
 begin
   if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
 
@@ -792,11 +790,20 @@ begin
   if FCommand <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(FCommand), szIni);
   if FParams <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(FParams), szIni);
   if FDir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(FDir), szIni);
-  if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
+  if FImageFile <> '' then
+  begin
+    img := FImageFile;
+    if FImageFile2 <> '' then img := img + ';' + FImageFile2;
+    WritePrivateProfileString(szIniGroup, 'image', pchar(img), szIni);
+  end;
   if FShowCmd <> sw_shownormal then WritePrivateProfileString(szIniGroup, 'showcmd', pchar(inttostr(FShowCmd)), szIni);
   if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
   if FHide then WritePrivateProfileString(szIniGroup, 'hide', '1', szIni);
 end;
+//------------------------------------------------------------------------------
+//
+//
+//
 //------------------------------------------------------------------------------
 class function TShortcutItem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
