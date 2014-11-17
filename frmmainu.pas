@@ -1711,6 +1711,8 @@ var
   lpsz1, lpsz2: pchar;
   pt: windows.TPoint;
   baseRect: windows.TRect;
+  mii: TMenuItemInfo;
+  mname: array [0..MAX_PATH - 1] of char;
 begin
   if cmd = '' then exit;
 
@@ -1757,6 +1759,28 @@ begin
     baseRect.Right := ItemMgr.BaseWindowRect.X + ItemMgr.X + frmmain.ItemMgr.width;
     baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
     Tray.Show(sets.container.Site, hwnd, baseRect);
+  end
+  else if cmd = 'theme' then
+  begin
+    GetCursorPos(pt);
+    i := CreatePopupMenu;
+    theme.ThemesMenu(pchar(sets.container.ThemeName), i);
+    LockMouseEffect(Handle, true);
+    SetForegroundWindow(handle);
+    SetForeground;
+    i1 := integer(TrackPopupMenuEx(i, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
+    LockMouseEffect(Handle, false);
+    if i1 <> 0 then
+    begin
+      FillChar(mii, sizeof(mii), #0);
+      mii.cbSize := sizeof(mii);
+      mii.dwTypeData := @mname;
+      mii.cch := MAX_PATH;
+      mii.fMask := MIIM_STRING;
+      GetMenuItemInfo(i, i1, false, @mii);
+      str1 := pchar(@mname);
+      if str1 <> '' then setTheme(str1);
+    end;
   end
   else if cmd = 'autotray' then Tray.SwitchAutoTray
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open

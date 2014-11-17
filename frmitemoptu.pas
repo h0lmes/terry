@@ -291,21 +291,22 @@ end;
 procedure TfrmItemProp.btnBrowseImage1Click(Sender: TObject);
 var
   img: string;
-  index: integer;
 begin
   with TOpenDialog.Create(self) do
   try
     img := toolu.UnzipPath(cut(edImage.text, ';')); // take only first image
-    if edImage.text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
-    else InitialDir:= ExtractFilePath(img);
-    Filename := ExtractFileName(img);
-    Options := DefaultOpenDialogOptions + [ofAllowMultiSelect];
+    if img = '' then InitialDir := toolu.UnzipPath('%pp%\images')
+    else
+    begin
+      InitialDir := ExtractFilePath(img);
+      Filename := ExtractFileName(img);
+    end;
+    Options := Options + [ofAllowMultiSelect];
     if execute then
     begin
-      edImage.text := toolu.ZipPath(FileName);
+      edImage.text := toolu.ZipPath(Filename);
       if Files.Count > 1 then
-        for index := 1 to Files.Count - 1 do
-          edImage.text := edImage.text + ';' + toolu.ZipPath(Files.strings[index]);
+        edImage.text := edImage.text + ';' + toolu.ZipPath(Files.strings[1]);
     end;
   finally
     free;

@@ -17,7 +17,7 @@ object frmItemProp: TfrmItemProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
     Left = 10
     Height = 26

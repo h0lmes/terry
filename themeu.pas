@@ -86,6 +86,7 @@ type
     procedure CheckExtractFileFromResource(ResourceName: PChar; Filename: string);
     procedure ExtractFileFromResource(ResourceName: PChar; Filename: string);
     procedure SearchThemes(ThemeName: string; lb: TListBox);
+    procedure ThemesMenu(ThemeName: string; hMenu: THandle);
   end;
 
 var theme: _Theme;
@@ -609,6 +610,37 @@ begin
 
   lb.ItemIndex := lb.items.indexof(AnsiToUTF8(ThemeName));
   lb.items.EndUpdate;
+end;
+//------------------------------------------------------------------------------
+procedure _Theme.ThemesMenu(ThemeName: string; hMenu: THandle);
+  procedure AppendMI(name, ThemesDir: string; var idx: integer);
+  var
+    flags: cardinal;
+  begin
+    if (name <> '.') and (name <> '..') then
+      if FileExists(ThemesDir + name + '\background.ini') then
+      begin
+        flags := MF_STRING;
+        if name = ThemeName then flags += MF_CHECKED;
+        AppendMenu(hMenu, flags, idx, pchar(name));
+        inc(idx);
+      end;
+  end;
+
+var
+  ThemesDir: string;
+  fhandle: HANDLE;
+  f: TWin32FindData;
+  idx: integer;
+begin
+  ThemesDir := toolu.UnzipPath('%pp%\themes\');
+  idx := 1;
+  fhandle := FindFirstFile(PChar(ThemesDir + '*.*'), f);
+  if not (fhandle = HANDLE(-1)) then
+    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, ThemesDir, idx);
+  while FindNextFile(fhandle, f) do
+    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, ThemesDir, idx);
+  if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------
 destructor _Theme.Destroy;
