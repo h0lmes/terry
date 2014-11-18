@@ -253,6 +253,10 @@ msgctxt "declu.xopenfolderof"
 msgid "Open folder of"
 msgstr "Открыть папку"
 
+#: declu.xopenthemesfolder
+msgid "Open themes folder"
+msgstr ""
+
 #: declu.xpageabout
 msgctxt "declu.xpageabout"
 msgid "About"
@@ -879,7 +883,7 @@ msgstr "Непрозрачность разделителей:"
 
 #: tfrmsets.lblbackgroundtransparency2.caption
 msgid "Reflection size:"
-msgstr ""
+msgstr "Размер отражений:"
 
 #: tfrmsets.lblcenteroffsetpercent.caption
 msgid "Offset from center"

@@ -19,6 +19,7 @@ type
     FGrouping: boolean;
     FLivePreviews: boolean;
     FScheduled: boolean;
+    FTaskbarSameMonitor: boolean;
     procedure UpdateImage;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -51,12 +52,15 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
-  FGrouping := true;
   FScheduled := false;
-  try FGrouping := boolean(strtoint(FetchValue(AData, 'grouping="', '";')));
+  FGrouping := true;
+  try FGrouping := boolean(strtoint(FetchValue(AData, 'gr="', '";')));
   except end;
   FLivePreviews := true;
-  try FLivePreviews := boolean(strtoint(FetchValue(AData, 'livepreviews="', '";')));
+  try FLivePreviews := boolean(strtoint(FetchValue(AData, 'lp="', '";')));
+  except end;
+  FTaskbarSameMonitor := false;
+  try FTaskbarSameMonitor := boolean(strtoint(FetchValue(AData, 'sm="', '";')));
   except end;
   FProcName := '';
   FAppList := TFPList.Create;
@@ -161,6 +165,7 @@ begin
           else if FBigItemSize <= 256 then temp := 256;
           if temp <> FIW then UpdateItemInternal;
         end;
+      gpTaskbarSameMonitor: FTaskbarSameMonitor := boolean(param);
 
       // commands //
       icIsItem: result := 0;
@@ -507,6 +512,8 @@ begin
     begin
       hwnd := THandle(FAppList.Items[idx]);
       if ProcessHelper.GetAppWindowIndex(hwnd) < 0 then FAppList.Delete(idx);
+      if FTaskbarSameMonitor then
+        if not ProcessHelper.WindowsOnTheSameMonitor(hwnd, FHWndParent) then FAppList.Delete(idx);
     end;
   end;
   if FAppList.Count <> old_count then

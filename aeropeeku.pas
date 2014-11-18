@@ -254,6 +254,7 @@ begin
       FSite := Site;
       FLayout := apwlHorizontal;
       if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
+      FWorkArea := GetMonitorRect(FMonitor);
       // set items' positions, calulate window size, update workarea
       SetItems(AppList);
       if not FActive then
@@ -419,7 +420,6 @@ begin
   end;
 
   // calc thumbnail width and height
-  FWorkArea := GetMonitorRect(FMonitor);
   if FCompositionEnabled then
   begin
     if FLayout = apwlHorizontal then

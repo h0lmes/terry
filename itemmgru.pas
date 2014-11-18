@@ -743,9 +743,9 @@ begin
   try
     if BaseSiteVertical then
     begin
-      y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
+      y := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
     end else begin
-      x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
+      x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
     end;
 
     // zoomed bubble additional size //
@@ -778,14 +778,14 @@ begin
       else
       if BaseSite = bsTop then
       begin
-        items[i].y := FMargin + FEdgeOffset - FWndOffset;
+        items[i].y := MonitorRect.Top + FMargin + FEdgeOffset - FWndOffset;
         if not IsSeparator(items[i].h) then items[i].y += FMargin2;
         items[i].x := x + itemPos;
       end
       else
       if BaseSite = bsLeft then
       begin
-        items[i].x := FMargin + FEdgeOffset - FWndOffset;
+        items[i].x := MonitorRect.Left + FMargin + FEdgeOffset - FWndOffset;
         if not IsSeparator(items[i].h) then items[i].x += FMargin2;
         items[i].y := y + itemPos;
       end
@@ -865,7 +865,7 @@ procedure _ItemManager.RecalcDock;
 begin
   if Enabled then
   try
-    // width and height //
+    // width if vertical and height if horizontal //
     width := 0;
     height := 0;
     widthZoomed := 0;
@@ -893,10 +893,29 @@ begin
     // self XY relative to BaseWindowRect //
     if BaseSiteVertical then
     begin
+      // x
       x := 0;
       if BaseSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
+      // y, height
+      if ItemCount = 0 then
+      begin
+        height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
+        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
+          FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
+      end
+      else
+      begin
+        y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
+        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y - MonitorRect.Top + ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
+      end;
+
     end else
     begin
+
+      // y
+      y := 0;
+      if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
+      // x, width
       if ItemCount = 0 then
       begin
         width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
@@ -906,28 +925,10 @@ begin
       end
       else
       begin
-        x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left;
-        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x + ItemSpacing div 2 + FItemsArea.Right + FItemsArea2.Right;
+        x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
+        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x - MonitorRect.Left + ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
       end;
-    end;
 
-    if not BaseSiteVertical then
-    begin
-      y := 0;
-      if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
-    end else
-    begin
-      if ItemCount = 0 then
-      begin
-        height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
-        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
-          FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
-      end
-      else
-      begin
-        y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top;
-        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y + ItemSpacing div 2 + FItemsArea.Bottom + FItemsArea2.Bottom;
-      end;
     end;
 
     // background image rect //
@@ -2060,8 +2061,10 @@ begin
         end;
         // add task item at the end of list //
         SetDropPlace(NOT_AN_ITEM);
-        HWndItem := AddItem('class="task";livepreviews="' + inttostr(integer(LivePreviews)) +
-          '";grouping="' + inttostr(integer(Grouping)) + '";', true);
+        HWndItem := AddItem('class="task";' +
+          'gr="' + inttostr(integer(Grouping)) + '";' +
+          'lp="' + inttostr(integer(LivePreviews)) + '";' +
+          'sm="' + inttostr(integer(FTaskbarSameMonitor)) + '";', true);
         Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
         if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
       end;

@@ -37,6 +37,7 @@ type
   _Theme = class
   private
     FSite: TBaseSite;
+    FThemesFolder: string;
     FThemeName: string;
     FBlurRegion: string;
     FBlurRegionPoints: array [0..MAX_REGION_POINTS - 1] of windows.TPoint;
@@ -64,6 +65,7 @@ type
     property ItemsArea2: windows.TRect read FItemsArea2;
     property Margin: integer read FMargin;
     property Margin2: integer read FMargin2;
+    property ThemesFolder: string read FThemesFolder;
 
     constructor Create(aTheme: string; aSite: TBaseSite);
     destructor Destroy; override;
@@ -78,7 +80,7 @@ type
     function CorrectMargins(margins: Windows.TRect): Windows.TRect;
     function CorrectSize(size: Windows.TSize): Windows.TSize;
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
-    procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect);
+    procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -96,6 +98,7 @@ implementation
 constructor _Theme.Create(aTheme: string; aSite: TBaseSite);
 begin
   FThemeName := aTheme;
+  FThemesFolder := toolu.UnzipPath('%pp%\Themes\');
   FSite := aSite;
   Clear;
   ClearGraphics;
@@ -478,7 +481,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect);
+procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
 var
   marg, area: Windows.TRect;
 begin
@@ -489,7 +492,7 @@ begin
   inc(marg.Right, area.Right);
   inc(marg.Bottom, area.Bottom);
   gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
-    rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle);
+    rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, alpha);
 end;
 //------------------------------------------------------------------------------
 function _Theme.BlurEnabled: boolean;
@@ -583,17 +586,14 @@ end;
 //------------------------------------------------------------------------------
 procedure _Theme.SearchThemes(ThemeName: string; lb: TListBox);
 var
-  ThemesDir: string;
   fhandle: HANDLE;
   f: TWin32FindData;
   idx: integer;
 begin
-  ThemesDir := toolu.UnzipPath('%pp%\themes\');
   lb.items.BeginUpdate;
   lb.items.Clear;
-  ThemesDir := IncludeTrailingPathDelimiter(ThemesDir);
 
-  fhandle := FindFirstFile(PChar(ThemesDir + '*.*'), f);
+  fhandle := FindFirstFile(PChar(FThemesFolder + '*.*'), f);
   if not (fhandle = HANDLE(-1)) then
     if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
   while FindNextFile(fhandle, f) do
@@ -603,7 +603,7 @@ begin
   idx := 0;
   while idx < lb.items.Count do
     if (lb.items.strings[idx] = '.') or (lb.items.strings[idx] = '..') or
-      not FileExists(ThemesDir + UTF8ToAnsi(lb.items.strings[idx]) + '\background.ini') then
+      not FileExists(FThemesFolder + UTF8ToAnsi(lb.items.strings[idx]) + '\background.ini') then
       lb.items.Delete(idx)
     else
       Inc(idx);
@@ -613,12 +613,12 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ThemesMenu(ThemeName: string; hMenu: THandle);
-  procedure AppendMI(name, ThemesDir: string; var idx: integer);
+  procedure AppendMI(name: string; var idx: integer);
   var
     flags: cardinal;
   begin
     if (name <> '.') and (name <> '..') then
-      if FileExists(ThemesDir + name + '\background.ini') then
+      if FileExists(FThemesFolder + name + '\background.ini') then
       begin
         flags := MF_STRING;
         if name = ThemeName then flags += MF_CHECKED;
@@ -628,18 +628,16 @@ procedure _Theme.ThemesMenu(ThemeName: string; hMenu: THandle);
   end;
 
 var
-  ThemesDir: string;
   fhandle: HANDLE;
   f: TWin32FindData;
   idx: integer;
 begin
-  ThemesDir := toolu.UnzipPath('%pp%\themes\');
   idx := 1;
-  fhandle := FindFirstFile(PChar(ThemesDir + '*.*'), f);
+  fhandle := FindFirstFile(PChar(FThemesFolder + '*.*'), f);
   if not (fhandle = HANDLE(-1)) then
-    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, ThemesDir, idx);
+    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, idx);
   while FindNextFile(fhandle, f) do
-    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, ThemesDir, idx);
+    if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, idx);
   if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------

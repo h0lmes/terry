@@ -228,6 +228,7 @@ resourcestring
   XCloseWindow = 'Close window';
   XCloseAllWindows = 'Close all windows';
   XEmptyBin = 'Empty bin';
+  XOpenThemesFolder = 'Open themes folder';
 
   XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
   XShortcut = 'Shortcut';

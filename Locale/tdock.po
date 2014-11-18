@@ -220,6 +220,10 @@ msgstr ""
 msgid "Open folder of"
 msgstr ""
 
+#: declu.xopenthemesfolder
+msgid "Open themes folder"
+msgstr ""
+
 #: declu.xpageabout
 msgctxt "declu.xpageabout"
 msgid "About"

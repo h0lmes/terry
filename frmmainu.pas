@@ -1151,9 +1151,9 @@ begin
       // workaround to eliminate rumble on certain backgrounds while dragging a file //
       if ItemMgr.DraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
       // draw dock background image //
-      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect);
+      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, sets.container.BaseAlpha);
       // update dock window //
-      UpdateLWindow(handle, bmp, sets.container.BaseAlpha);
+      UpdateLWindow(handle, bmp, 255);
 
       // deal with blur //
       if dwm.CompositionEnabled and sets.container.Blur and Theme.BlurEnabled then
@@ -1764,12 +1764,16 @@ begin
   begin
     GetCursorPos(pt);
     i := CreatePopupMenu;
+    AppendMenu(i, MF_STRING, $f000, pchar(XOpenThemesFolder));
+    AppendMenu(i, MF_SEPARATOR, 0, pchar('-'));
     theme.ThemesMenu(pchar(sets.container.ThemeName), i);
     LockMouseEffect(Handle, true);
     SetForegroundWindow(handle);
     SetForeground;
     i1 := integer(TrackPopupMenuEx(i, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
     LockMouseEffect(Handle, false);
+    if i1 = $f000 then execute_cmdline(theme.ThemesFolder)
+    else
     if i1 <> 0 then
     begin
       FillChar(mii, sizeof(mii), #0);

@@ -163,7 +163,7 @@ begin
   container.ItemAnimation := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
   container.ItemSize := SetRange(ini.ReadInteger('base', 'ItemSize', 48), 16, 128);
   container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 96), container.ItemSize, 256);
-  container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 0), 0, 20);
+  container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 4), 0, 20);
   container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 4, 10);
   container.ZoomTime := SetRange(ini.ReadInteger('base', 'ZoomTime', 120), 0, 600);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
