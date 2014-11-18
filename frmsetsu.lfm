@@ -32,7 +32,6 @@ object frmsets: Tfrmsets
       Caption = 'General'
       ClientHeight = 492
       ClientWidth = 462
-      OnContextPopup = tsGeneralContextPopup
       object lblMouseOverTip: TLabel
         Left = 15
         Height = 13
@@ -433,7 +432,7 @@ object frmsets: Tfrmsets
       object chbBlur: TCheckBox
         Left = 240
         Height = 19
-        Top = 15
+        Top = 45
         Width = 106
         Caption = 'Enable Aero Glass'
         OnClick = chbBlurClick
@@ -442,7 +441,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency: TLabel
         Left = 240
         Height = 13
-        Top = 50
+        Top = 75
         Width = 98
         Caption = 'Background opacity:'
         ParentColor = False
@@ -450,7 +449,7 @@ object frmsets: Tfrmsets
       object tbBaseAlpha: TTrackBar
         Left = 235
         Height = 30
-        Top = 70
+        Top = 95
         Width = 215
         Frequency = 20
         Max = 255
@@ -593,7 +592,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency1: TLabel
         Left = 240
         Height = 13
-        Top = 115
+        Top = 130
         Width = 95
         Caption = 'Separators opacity:'
         ParentColor = False
@@ -601,7 +600,7 @@ object frmsets: Tfrmsets
       object tbSeparatorAlpha: TTrackBar
         Left = 235
         Height = 30
-        Top = 135
+        Top = 150
         Width = 215
         Frequency = 20
         Max = 255
@@ -615,7 +614,7 @@ object frmsets: Tfrmsets
       object chb_reflection: TCheckBox
         Left = 240
         Height = 19
-        Top = 180
+        Top = 190
         Width = 121
         Caption = 'Show icon reflections'
         OnClick = chb_reflectionClick
@@ -624,7 +623,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency2: TLabel
         Left = 240
         Height = 13
-        Top = 215
+        Top = 225
         Width = 73
         Caption = 'Reflection size:'
         ParentColor = False
@@ -632,7 +631,7 @@ object frmsets: Tfrmsets
       object tbReflectionSize: TTrackBar
         Left = 235
         Height = 30
-        Top = 235
+        Top = 245
         Width = 215
         Max = 20
         OnChange = tbReflectionSizeChange
@@ -641,6 +640,15 @@ object frmsets: Tfrmsets
         ScalePos = trLeft
         ShowSelRange = False
         TabOrder = 12
+      end
+      object chbUseFullMonitor: TCheckBox
+        Left = 240
+        Height = 19
+        Top = 15
+        Width = 94
+        Caption = 'Use full monitor'
+        OnChange = chbUseFullMonitorChange
+        TabOrder = 13
       end
     end
     object tsIcons: TTabSheet

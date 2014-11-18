@@ -41,6 +41,7 @@ type
     StackOpenAnimation: boolean;
     FTaskbarSameMonitor: boolean;
     FSeparatorAlpha: integer;
+    FUseFullMonitor: boolean;
     FFont: _FontData;
     LockMouseEffect: boolean;
     SetsFilename: string;
@@ -328,6 +329,7 @@ begin
       gpZoomTime:               ZoomTime := value;
       gpLockMouseEffect:        LockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
+      gpUseFullMonitor:         FUseFullMonitor := value <> 0;
     end;
   except
     on e: Exception do err('ItemManager.SetParam', e);
@@ -897,16 +899,23 @@ begin
       x := 0;
       if BaseSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
       // y, height
-      if ItemCount = 0 then
+      if FUseFullMonitor then
       begin
-        height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
-        y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
-          FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
-      end
-      else
+        y := 0;
+        height := MonitorRect.Bottom - MonitorRect.Top;
+      end else
       begin
-        y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
-        height := items[ItemCount - 1].y + items[ItemCount - 1].s - y - MonitorRect.Top + ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
+        if ItemCount = 0 then
+        begin
+          height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
+          y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
+            FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
+        end
+        else
+        begin
+          y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
+          height := items[ItemCount - 1].y + items[ItemCount - 1].s - y - MonitorRect.Top + ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
+        end;
       end;
 
     end else
@@ -916,17 +925,24 @@ begin
       y := 0;
       if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
       // x, width
-      if ItemCount = 0 then
+      if FUseFullMonitor then
       begin
-        width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
-        x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
-          FItemsArea.Left - FItemsArea2.Left +
-          (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - ItemSpacing) div 2;
-      end
-      else
+        x := 0;
+        width := MonitorRect.Right - MonitorRect.Left;
+      end else
       begin
-        x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
-        width := items[ItemCount - 1].x + items[ItemCount - 1].s - x - MonitorRect.Left + ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
+        if ItemCount = 0 then
+        begin
+          width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
+          x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
+            FItemsArea.Left - FItemsArea2.Left +
+            (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - ItemSpacing) div 2;
+        end
+        else
+        begin
+          x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
+          width := items[ItemCount - 1].x + items[ItemCount - 1].s - x - MonitorRect.Left + ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
+        end;
       end;
 
     end;

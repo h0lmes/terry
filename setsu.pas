@@ -51,6 +51,7 @@ type
     BaseAlpha: integer;
     SeparatorAlpha: integer;
     Blur: boolean;
+    UseFullMonitor: boolean;
     Font: _FontData;
     Shell: array [0..MAX_PATH] of char;
     ThemeName: array [0..MAX_PATH] of char;
@@ -206,6 +207,7 @@ begin
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
   container.ReflectionSize := ini.ReadInteger('gfx', 'ReflectionSize', 10);
   container.Blur := ini.ReadBool('gfx', 'Blur', true);
+  container.UseFullMonitor := ini.ReadBool('gfx', 'UseFullMonitor', false);
 
   // autoruns //
   tmpList := TStringList.Create;
@@ -287,6 +289,7 @@ begin
   ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
   ini.WriteInteger('gfx', 'ReflectionSize', container.ReflectionSize);
   ini.WriteBool   ('gfx', 'Blur', container.Blur);
+  ini.WriteBool   ('gfx', 'UseFullMonitor', container.UseFullMonitor);
   // font //
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
@@ -420,6 +423,7 @@ begin
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpSeparatorAlpha: container.SeparatorAlpha := SetRange(value, 0, 255);
   gpBlur: container.Blur := boolean(value);
+  gpUseFullMonitor: container.UseFullMonitor := boolean(value);
   end;
 
   result := value;
@@ -473,6 +477,7 @@ begin
   gpBaseAlpha: result := container.BaseAlpha;
   gpSeparatorAlpha: result := container.SeparatorAlpha;
   gpBlur: result := integer(container.Blur);
+  gpUseFullMonitor: result := integer(container.UseFullMonitor);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -530,6 +535,7 @@ begin
   dst.BaseAlpha := src.BaseAlpha;
   dst.SeparatorAlpha := src.SeparatorAlpha;
   dst.Blur := src.Blur;
+  dst.UseFullMonitor := src.UseFullMonitor;
   dst.useShell := src.useShell;
   dst.RunInThread := src.RunInThread;
 

@@ -392,6 +392,7 @@ begin
     SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
+    SetParam(gpUseFullMonitor, integer(sets.container.UseFullMonitor));
 
     ItemMgr.SetParam(gpItemSize, sets.container.itemsize);
     ItemMgr.SetParam(gpBigItemSize, sets.container.BigItemSize);
@@ -524,6 +525,7 @@ begin
 
   // placed after ItemMgr because WHMouseMove locked while mouse is locked //
   if id = gpLockMouseEffect then WHMouseMove(0);
+  if id = gpUseFullMonitor then BaseCmd(tcThemeChanged, 0);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RegisterRawInput;
@@ -1760,11 +1762,12 @@ begin
     baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
     Tray.Show(sets.container.Site, hwnd, baseRect);
   end
+  else if cmd = 'monitoroff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'theme' then
   begin
     GetCursorPos(pt);
     i := CreatePopupMenu;
-    AppendMenu(i, MF_STRING, $f000, pchar(XOpenThemesFolder));
+    AppendMenu(i, MF_STRING, $f000, pchar(UTF8ToAnsi(XOpenThemesFolder)));
     AppendMenu(i, MF_SEPARATOR, 0, pchar('-'));
     theme.ThemesMenu(pchar(sets.container.ThemeName), i);
     LockMouseEffect(Handle, true);

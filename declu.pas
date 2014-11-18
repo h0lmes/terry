@@ -56,6 +56,7 @@ type
     gpReflection,
     gpReflectionSize,
     gpBlur,
+    gpUseFullMonitor,
     gpMax,
     // terry commands //
     tcMin = $1000,

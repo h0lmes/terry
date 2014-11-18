@@ -765,6 +765,10 @@ msgstr ""
 msgid "Show only tasks from the same monitor"
 msgstr ""
 
+#: tfrmsets.chbusefullmonitor.caption
+msgid "Use full monitor"
+msgstr ""
+
 #: tfrmsets.chb_activate_running.caption
 msgid "Activate program if already running"
 msgstr ""

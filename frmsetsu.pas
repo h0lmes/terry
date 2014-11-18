@@ -33,6 +33,7 @@ type
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
     chb_reflection: TCheckBox;
+    chbUseFullMonitor: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
@@ -145,6 +146,7 @@ type
     procedure chbTaskbarGroupingChange(Sender: TObject);
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure chbTaskbarSameMonitorChange(Sender: TObject);
+    procedure chbUseFullMonitorChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btn_cancelClick(Sender: TObject);
@@ -195,8 +197,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
-    procedure tsGeneralContextPopup(Sender: TObject; MousePos: TPoint;
-      var Handled: Boolean);
   private
     AutorunListChanged: boolean;
     FFont: _FontData;
@@ -374,6 +374,9 @@ begin
   lbTheme.OnSelectionChange := nil;
   theme.SearchThemes(sets.container.ThemeName, lbTheme);
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
+  chbUseFullMonitor.OnChange := nil;
+  chbUseFullMonitor.Checked := sets.container.UseFullMonitor;
+  chbUseFullMonitor.OnChange := chbUseFullMonitorChange;
   chbBlur.Enabled := dwm.CompositionEnabled;
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
@@ -692,6 +695,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.chbUseFullMonitorChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpUseFullMonitor, integer(chbUseFullMonitor.checked));
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmsets.chbBlurClick(Sender: TObject);
 begin
   frmmain.SetParam(gpBlur, integer(chbBlur.checked));
@@ -991,13 +999,6 @@ begin
     free;
   end;
 end;
-
-procedure Tfrmsets.tsGeneralContextPopup(Sender: TObject; MousePos: TPoint;
-  var Handled: Boolean);
-begin
-
-end;
-
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnAutoRunAddMinimizedClick(Sender: TObject);
 begin
