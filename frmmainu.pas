@@ -392,7 +392,7 @@ begin
     SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
-    SetParam(gpUseFullMonitor, integer(sets.container.UseFullMonitor));
+    SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
 
     ItemMgr.SetParam(gpItemSize, sets.container.itemsize);
     ItemMgr.SetParam(gpBigItemSize, sets.container.BigItemSize);
@@ -463,6 +463,7 @@ begin
     tcMenu: DoMenu(param);
     tcSaveSets: SaveSets;
     tcZOrder: SetForeground;
+    // a big command to rearrange everything
     tcThemeChanged:
       if assigned(ItemMgr) then
       begin
@@ -471,8 +472,21 @@ begin
         ItemMgr.Margin := theme.Margin;
         ItemMgr.Margin2 := theme.Margin2;
         ItemMgr.MonitorRect := GetMonitorBoundsRect;
+        case sets.container.Site of
+          bsLeft, bsRight:
+            begin
+              ItemMgr.MonitorRect.Top += sets.container.StartOffset;
+              ItemMgr.MonitorRect.Bottom -= sets.container.EndOffset;
+            end;
+          bsTop, bsBottom:
+            begin
+              ItemMgr.MonitorRect.Left += sets.container.StartOffset;
+              ItemMgr.MonitorRect.Right -= sets.container.EndOffset;
+            end;
+        end;
         ItemMgr.SetTheme;
       end;
+    // set dock visibility
     tcSetVisible:
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
@@ -524,8 +538,10 @@ begin
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
 
   // placed after ItemMgr because WHMouseMove locked while mouse is locked //
-  if id = gpLockMouseEffect then WHMouseMove(0);
-  if id = gpUseFullMonitor then BaseCmd(tcThemeChanged, 0);
+  case id of
+    gpLockMouseEffect: WHMouseMove(0);
+    gpOccupyFullMonitor, gpStartOffset, gpEndOffset: BaseCmd(tcThemeChanged, 0);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RegisterRawInput;

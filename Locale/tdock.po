@@ -739,6 +739,10 @@ msgstr ""
 msgid "Enable hint effects"
 msgstr ""
 
+#: tfrmsets.chboccupyfullmonitor.caption
+msgid "Occupy full monitor width or height"
+msgstr ""
+
 #: tfrmsets.chbreservescreenedge.caption
 msgid "Reserve screen edge"
 msgstr ""
@@ -769,10 +773,6 @@ msgstr ""
 msgid "Show only tasks from the same monitor"
 msgstr ""
 
-#: tfrmsets.chbusefullmonitor.caption
-msgid "Use full monitor"
-msgstr ""
-
 #: tfrmsets.chb_activate_running.caption
 msgid "Activate program if already running"
 msgstr ""
@@ -800,6 +800,10 @@ msgstr ""
 
 #: tfrmsets.label1.caption
 msgid "Stack font size:"
+msgstr ""
+
+#: tfrmsets.label2.caption
+msgid "Do not occupy at the start - end, pixel"
 msgstr ""
 
 #: tfrmsets.label6.caption

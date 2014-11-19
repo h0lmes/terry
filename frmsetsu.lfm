@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsStyle
+    ActivePage = tsPosition
     ShowTabs = False
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -284,9 +284,9 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object lblEdgeOffset: TLabel
-        Left = 15
+        Left = 245
         Height = 13
-        Top = 190
+        Top = 130
         Width = 83
         Alignment = taCenter
         Caption = 'Offset from edge'
@@ -303,10 +303,10 @@ object frmsets: Tfrmsets
         TabOrder = 1
       end
       object tbCenterOffsetPercent: TTrackBar
-        Left = 30
+        Left = 15
         Height = 31
         Top = 150
-        Width = 362
+        Width = 202
         Frequency = 5
         Max = 100
         OnChange = tbCenterOffsetPercentChange
@@ -326,10 +326,10 @@ object frmsets: Tfrmsets
         TabOrder = 0
       end
       object tbEdgeOffset: TTrackBar
-        Left = 30
+        Left = 245
         Height = 31
-        Top = 210
-        Width = 362
+        Top = 150
+        Width = 202
         Frequency = 10
         Max = 100
         Min = -100
@@ -342,7 +342,7 @@ object frmsets: Tfrmsets
       object gbAutoSlide: TGroupBox
         Left = 15
         Height = 131
-        Top = 280
+        Top = 345
         Width = 430
         ClientHeight = 113
         ClientWidth = 426
@@ -408,9 +408,10 @@ object frmsets: Tfrmsets
       object cbStayOnTop: TCheckBox
         Left = 15
         Height = 19
-        Top = 255
+        Top = 320
         Width = 162
         Caption = 'Stay on top of other windows'
+        Enabled = False
         OnClick = cbStayOnTopClick
         TabOrder = 4
       end
@@ -424,6 +425,39 @@ object frmsets: Tfrmsets
         ParentColor = False
         TabOrder = 6
       end
+      object chbOccupyFullMonitor: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 200
+        Width = 187
+        Caption = 'Occupy full monitor width or height'
+        OnChange = chbOccupyFullMonitorChange
+        TabOrder = 7
+      end
+      object Label2: TLabel
+        Left = 15
+        Height = 13
+        Top = 230
+        Width = 184
+        Caption = 'Do not occupy at the start - end, pixel'
+        ParentColor = False
+      end
+      object edStartOffset: TEdit
+        Left = 305
+        Height = 21
+        Top = 225
+        Width = 65
+        OnChange = edStartOffsetChange
+        TabOrder = 8
+      end
+      object edEndOffset: TEdit
+        Left = 380
+        Height = 21
+        Top = 225
+        Width = 65
+        OnChange = edEndOffsetChange
+        TabOrder = 9
+      end
     end
     object tsStyle: TTabSheet
       Caption = 'Style'
@@ -432,7 +466,7 @@ object frmsets: Tfrmsets
       object chbBlur: TCheckBox
         Left = 240
         Height = 19
-        Top = 45
+        Top = 15
         Width = 106
         Caption = 'Enable Aero Glass'
         OnClick = chbBlurClick
@@ -441,7 +475,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency: TLabel
         Left = 240
         Height = 13
-        Top = 75
+        Top = 45
         Width = 98
         Caption = 'Background opacity:'
         ParentColor = False
@@ -449,7 +483,7 @@ object frmsets: Tfrmsets
       object tbBaseAlpha: TTrackBar
         Left = 235
         Height = 30
-        Top = 95
+        Top = 65
         Width = 215
         Frequency = 20
         Max = 255
@@ -592,7 +626,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency1: TLabel
         Left = 240
         Height = 13
-        Top = 130
+        Top = 100
         Width = 95
         Caption = 'Separators opacity:'
         ParentColor = False
@@ -600,7 +634,7 @@ object frmsets: Tfrmsets
       object tbSeparatorAlpha: TTrackBar
         Left = 235
         Height = 30
-        Top = 150
+        Top = 120
         Width = 215
         Frequency = 20
         Max = 255
@@ -614,7 +648,7 @@ object frmsets: Tfrmsets
       object chb_reflection: TCheckBox
         Left = 240
         Height = 19
-        Top = 190
+        Top = 160
         Width = 121
         Caption = 'Show icon reflections'
         OnClick = chb_reflectionClick
@@ -623,7 +657,7 @@ object frmsets: Tfrmsets
       object lblBackgroundTransparency2: TLabel
         Left = 240
         Height = 13
-        Top = 225
+        Top = 195
         Width = 73
         Caption = 'Reflection size:'
         ParentColor = False
@@ -631,7 +665,7 @@ object frmsets: Tfrmsets
       object tbReflectionSize: TTrackBar
         Left = 235
         Height = 30
-        Top = 245
+        Top = 215
         Width = 215
         Max = 20
         OnChange = tbReflectionSizeChange
@@ -640,15 +674,6 @@ object frmsets: Tfrmsets
         ScalePos = trLeft
         ShowSelRange = False
         TabOrder = 12
-      end
-      object chbUseFullMonitor: TCheckBox
-        Left = 240
-        Height = 19
-        Top = 15
-        Width = 94
-        Caption = 'Use full monitor'
-        OnChange = chbUseFullMonitorChange
-        TabOrder = 13
       end
     end
     object tsIcons: TTabSheet

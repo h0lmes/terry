@@ -36,9 +36,6 @@ type
   TStackItem = class(TCustomItem)
   private
     FRunning: boolean;
-    FIndicator: Pointer;
-    FIndicatorW: integer;
-    FIndicatorH: integer;
     FUseShellContextMenus: boolean;
     FImageFile: string;
     FColorData: integer;
@@ -58,8 +55,6 @@ type
     FPreviewImageW: uint;
     FPreviewImageH: uint;
     procedure UpdateItemInternal;
-    procedure UpdateIndicator;
-    procedure DrawIndicator(dst: Pointer);
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure OnDragEnter;
@@ -126,7 +121,6 @@ begin
   FUseShellContextMenus := AParams.UseShellContextMenus;
   FOpenAnimation := AParams.StackOpenAnimation;
   UpdateItem(AData);
-  UpdateIndicator;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Init;
@@ -286,22 +280,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.UpdateIndicator;
-begin
-  // make a local copy //
-  // gdiplus does not like invalid pointers //
-  if not FFreed then
-  try
-    if FIndicator <> nil then GdipDisposeImage(FIndicator);
-    FIndicatorW := theme.Indicator.W and $ffff;
-    FIndicatorH := theme.Indicator.H and $ffff;
-    GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
-    if FRunning then Redraw;
-  except
-    on e: Exception do raise Exception.Create('StackItem.UpdateIndicator'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
 function TStackItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
@@ -331,16 +309,16 @@ begin
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
+      gpStackOpenAnimation: FOpenAnimation := param <> 0;
       gpSite:
         begin
-          if FIndicator <> nil then UpdateIndicator;
+          if FRunning then Redraw;
           CloseStack;
         end;
-      gpStackOpenAnimation: FOpenAnimation := param <> 0;
       tcThemeChanged:
         begin
           UpdateItemInternal; // in order to update default stack image //
-          if FIndicator <> nil then UpdateIndicator;
+          if FRunning then Redraw;
         end;
 
       // commands //
@@ -355,7 +333,6 @@ begin
             if items[idx].item.Running then b := true;
             inc(idx);
           end;
-          if b and (FIndicator = nil) then UpdateIndicator;
           if b <> FRunning then
           begin
             FRunning := b;
@@ -491,7 +468,7 @@ begin
     ////
     if FReflection and (FReflectionSize > 0) and not FFloating then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-    if FRunning then DrawIndicator(dst);
+    if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
     // cleanup //
@@ -499,41 +476,6 @@ begin
     DeleteBitmap(bmp);
   except
     on e: Exception do raise Exception.Create('StackItem.Draw(' + FCaption + ')'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.DrawIndicator(dst: Pointer);
-var
-  xBitmap, yBitmap: integer;
-  ItemRect: windows.TRect;
-begin
-  try
-    if FIndicator = nil then exit;
-    ItemRect := Rect;
-
-    xBitmap := ItemRect.Left + (FSize - FIndicatorW) div 2;
-    yBitmap := ItemRect.Bottom - FIndicatorH div 2;
-    if FSite = 0 then
-    begin
-      xBitmap := ItemRect.Left - FIndicatorW div 2;
-      yBitmap := ItemRect.Top + (FSize - FIndicatorH) div 2;
-    end
-    else
-    if FSite = 1 then
-    begin
-      xBitmap := ItemRect.Left + (FSize - FIndicatorW) div 2;
-      yBitmap := ItemRect.Top - FIndicatorH div 2;
-    end
-    else
-    if FSite = 2 then
-    begin
-      xBitmap := ItemRect.Right - FIndicatorW div 2;
-      yBitmap := ItemRect.Top + (FSize - FIndicatorH) div 2;
-    end;
-
-    GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH, 0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
-  except
-    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

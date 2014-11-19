@@ -41,7 +41,7 @@ type
     StackOpenAnimation: boolean;
     FTaskbarSameMonitor: boolean;
     FSeparatorAlpha: integer;
-    FUseFullMonitor: boolean;
+    FOccupyFullMonitor: boolean;
     FFont: _FontData;
     LockMouseEffect: boolean;
     SetsFilename: string;
@@ -331,7 +331,7 @@ begin
       gpZoomTime:               ZoomTime := value;
       gpLockMouseEffect:        LockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
-      gpUseFullMonitor:         FUseFullMonitor := value <> 0;
+      gpOccupyFullMonitor:         FOccupyFullMonitor := value <> 0;
     end;
   except
     on e: Exception do err('ItemManager.SetParam', e);
@@ -366,24 +366,6 @@ end;
 procedure _ItemManager.DoBaseDraw(flags: integer);
 begin
   if assigned(BaseCmd) then BaseCmd(tcRepaintBase, flags);
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.GetRect: windows.TRect;
-begin
-  result.Left := x;
-  result.Top := y;
-  result.Right := x + Width;
-  result.Bottom := y + Height;
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.GetZoomEdge: integer;
-begin
-  case BaseSite of
-    bsLeft: result := BaseWindowRect.X + x + widthZoomed;
-    bsTop: result := BaseWindowRect.Y + y + heightZoomed;
-    bsRight: result := BaseWindowRect.X + x + width - widthZoomed;
-    bsBottom: result := BaseWindowRect.Y + y + height - heightZoomed;
-  end;
 end;
 //------------------------------------------------------------------------------
 //
@@ -903,7 +885,7 @@ begin
       x := 0;
       if BaseSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
       // y, height
-      if FUseFullMonitor then
+      if FOccupyFullMonitor then
       begin
         y := 0;
         height := MonitorRect.Bottom - MonitorRect.Top;
@@ -929,7 +911,7 @@ begin
       y := 0;
       if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
       // x, width
-      if FUseFullMonitor then
+      if FOccupyFullMonitor then
       begin
         x := 0;
         width := MonitorRect.Right - MonitorRect.Left;
@@ -977,6 +959,30 @@ begin
     else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - BaseWindowRect.Height + FWndOffset - FEdgeOffset;
   except
     on e: Exception do raise Exception.Create('ItemManager.RecalcDock'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function _ItemManager.GetRect: windows.TRect;
+begin
+  result.Left := BaseWindowRect.X + X;
+  result.Top := BaseWindowRect.Y + Y;
+  result.Right := result.Left + Width;
+  result.Bottom := result.Top + Height;
+  case BaseSite of
+    bsLeft: result.Right := max(result.Right, GetZoomEdge);
+    bsTop: result.Bottom := max(result.Bottom, GetZoomEdge);
+    bsRight: result.Left := min(result.Left, GetZoomEdge);
+    bsBottom: result.Top := min(result.Top, GetZoomEdge);
+  end;
+end;
+//------------------------------------------------------------------------------
+function _ItemManager.GetZoomEdge: integer;
+begin
+  case BaseSite of
+    bsLeft: result := BaseWindowRect.X + x + widthZoomed;
+    bsTop: result := BaseWindowRect.Y + y + heightZoomed;
+    bsRight: result := BaseWindowRect.X + x + width - widthZoomed;
+    bsBottom: result := BaseWindowRect.Y + y + height - heightZoomed;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -22,9 +22,6 @@ type
     FColorData: integer;
     FUseShellContextMenus: boolean;
     FRunning: boolean;
-    FIndicator: Pointer;
-    FIndicatorW: integer;
-    FIndicatorH: integer;
     is_pidl: boolean;
     apidl: PItemIDList;
     LastMouseUp: cardinal;
@@ -35,8 +32,6 @@ type
     procedure LoadImageI;
     procedure CheckIfBitBucket;
     procedure BitBucketUpdate;
-    procedure UpdateIndicator;
-    procedure DrawIndicator(dst: Pointer);
     procedure Exec;
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -83,7 +78,6 @@ begin
   FRunning:= false;
 
   UpdateItem(AData);
-  UpdateIndicator;
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutItem.Destroy;
@@ -286,22 +280,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateIndicator;
-begin
-  // make a local copy //
-  // gdiplus does not like invalid pointers //
-  if not FFreed then
-  try
-    if FIndicator <> nil then GdipDisposeImage(FIndicator);
-    FIndicatorW := theme.Indicator.W and $ffff;
-    FIndicatorH := theme.Indicator.H and $ffff;
-    GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
-    if FRunning then Redraw;
-  except
-    on e: Exception do raise Exception.Create('ShortcutItem.UpdateIndicator'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure TShortcutItem.UpdateItemRunningState;
 var
   b: boolean;
@@ -309,10 +287,9 @@ begin
   if length(FCommand) > 0 then
   begin
     b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
-    if b and (FIndicator = nil) then UpdateIndicator;
     if b <> FRunning then
     begin
-      FRunning:= b;
+      FRunning := b;
       Redraw;
     end;
   end;
@@ -338,16 +315,14 @@ begin
           if temp <> FIW then UpdateItemI;
         end;
       gpShowRunningIndicator:
+        if FRunning and not boolean(param) then
         begin
-          if FRunning and not boolean(param) then
-          begin
-            FRunning:= false;
-            Redraw;
-          end;
+          FRunning := false;
+          Redraw;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpSite: if FIndicator <> nil then UpdateIndicator;
-      tcThemeChanged: if FIndicator <> nil then UpdateIndicator;
+      gpSite: if FRunning then Redraw;
+      tcThemeChanged: if FRunning then Redraw;
 
       // commands //
       icUpdateRunning: UpdateItemRunningState;
@@ -526,7 +501,7 @@ begin
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
     if FReflection and (FReflectionSize > 0) and not FFloating then
       BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-    if FRunning then DrawIndicator(dst);
+    if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
     // cleanup //
@@ -535,41 +510,6 @@ begin
 
   except
     on e: Exception do raise Exception.Create('ShortcutItem.Draw(' + FCaption + ')'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutItem.DrawIndicator(dst: Pointer);
-var
-  xBitmap, yBitmap: integer;
-  ItemRect: windows.TRect;
-begin
-  try
-    if FIndicator = nil then exit;
-    ItemRect := Rect;
-
-    xBitmap := ItemRect.Left + (FSize - FIndicatorW) div 2;
-    yBitmap := ItemRect.Bottom - FIndicatorH div 2;
-    if FSite = 0 then
-    begin
-      xBitmap := ItemRect.Left - FIndicatorW div 2;
-      yBitmap := ItemRect.Top + (FSize - FIndicatorH) div 2;
-    end
-    else
-    if FSite = 1 then
-    begin
-      xBitmap := ItemRect.Left + (FSize - FIndicatorW) div 2;
-      yBitmap := ItemRect.Top - FIndicatorH div 2;
-    end
-    else
-    if FSite = 2 then
-    begin
-      xBitmap := ItemRect.Right - FIndicatorW div 2;
-      yBitmap := ItemRect.Top + (FSize - FIndicatorH) div 2;
-    end;
-
-    GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH, 0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
-  except
-    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

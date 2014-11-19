@@ -32,14 +32,17 @@ type
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
+    chbOccupyFullMonitor: TCheckBox;
     chb_reflection: TCheckBox;
-    chbUseFullMonitor: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
+    edStartOffset: TEdit;
+    edEndOffset: TEdit;
     gbAutostart: TGroupBox;
     GroupBox1: TGroupBox;
     Label1: TLabel;
+    Label2: TLabel;
     lblBackgroundTransparency1: TLabel;
     lblBackgroundTransparency2: TLabel;
     lblCredits6: TLabel;
@@ -146,7 +149,9 @@ type
     procedure chbTaskbarGroupingChange(Sender: TObject);
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure chbTaskbarSameMonitorChange(Sender: TObject);
-    procedure chbUseFullMonitorChange(Sender: TObject);
+    procedure chbOccupyFullMonitorChange(Sender: TObject);
+    procedure edEndOffsetChange(Sender: TObject);
+    procedure edStartOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btn_cancelClick(Sender: TObject);
@@ -367,6 +372,16 @@ begin
   tbEdgeOffset.OnChange := tbEdgeOffsetChange;
   UpdateLblCenterOffsetPercent;
 
+  chbOccupyFullMonitor.OnChange := nil;
+  chbOccupyFullMonitor.Checked := sets.container.OccupyFullMonitor;
+  chbOccupyFullMonitor.OnChange := chbOccupyFullMonitorChange;
+  edStartOffset.OnChange := nil;
+  edStartOffset.Text := inttostr(sets.container.StartOffset);
+  edStartOffset.OnChange := edStartOffsetChange;
+  edEndOffset.OnChange := nil;
+  edEndOffset.Text := inttostr(sets.container.EndOffset);
+  edEndOffset.OnChange := edEndOffsetChange;
+
   //
   // тема
   //
@@ -374,9 +389,6 @@ begin
   lbTheme.OnSelectionChange := nil;
   theme.SearchThemes(sets.container.ThemeName, lbTheme);
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
-  chbUseFullMonitor.OnChange := nil;
-  chbUseFullMonitor.Checked := sets.container.UseFullMonitor;
-  chbUseFullMonitor.OnChange := chbUseFullMonitorChange;
   chbBlur.Enabled := dwm.CompositionEnabled;
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
@@ -695,9 +707,25 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbUseFullMonitorChange(Sender: TObject);
+procedure Tfrmsets.chbOccupyFullMonitorChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpUseFullMonitor, integer(chbUseFullMonitor.checked));
+  frmmain.SetParam(gpOccupyFullMonitor, integer(chbOccupyFullMonitor.checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.edEndOffsetChange(Sender: TObject);
+var
+  offset: integer;
+begin
+  if not trystrtoint(edEndOffset.Text, offset) then offset := 0;
+  frmmain.SetParam(gpEndOffset, offset);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.edStartOffsetChange(Sender: TObject);
+var
+  offset: integer;
+begin
+  if not trystrtoint(edStartOffset.Text, offset) then offset := 0;
+  frmmain.SetParam(gpStartOffset, offset);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbBlurClick(Sender: TObject);

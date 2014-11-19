@@ -340,20 +340,9 @@ begin
   result.Top := 0;
   result.Right := 0;
   result.Bottom := 0;
-  if assigned(frmmain) and assigned(sets) then
-  if assigned(frmmain.ItemMgr) then
-  begin
-    result.Left := frmmain.ItemMgr.BaseWindowRect.X + frmmain.ItemMgr.X;
-    result.Top := frmmain.ItemMgr.BaseWindowRect.Y + frmmain.ItemMgr.Y;
-    result.Right := frmmain.ItemMgr.BaseWindowRect.X + frmmain.ItemMgr.X + frmmain.ItemMgr.width;
-    result.Bottom := frmmain.ItemMgr.BaseWindowRect.Y + frmmain.ItemMgr.Y + frmmain.ItemMgr.height;
-    case sets.GetParam(gpSite) of
-      0: result.Right := max(result.Right, frmmain.ItemMgr.GetZoomEdge);
-      1: result.Bottom := max(result.Bottom, frmmain.ItemMgr.GetZoomEdge);
-      2: result.Left := min(result.Left, frmmain.ItemMgr.GetZoomEdge);
-      3: result.Top := min(result.Top, frmmain.ItemMgr.GetZoomEdge);
-    end;
-  end;
+  if assigned(frmmain) then
+    if assigned(frmmain.ItemMgr) then
+      result := frmmain.ItemMgr.GetRect;
 end;
 //------------------------------------------------------------------------------
 procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer); stdcall;

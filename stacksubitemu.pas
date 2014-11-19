@@ -48,6 +48,7 @@ type
     FPrevWndProc: TFarProc;
 
     procedure Init; virtual;
+    procedure Redraw;
     function GetRectFromSize(ASize: integer): windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
@@ -105,16 +106,11 @@ type
     FHide: boolean;
     FColorData: integer;
     FUseShellContextMenus: boolean;
-    FIndicator: Pointer;
-    FIndicatorW: integer;
-    FIndicatorH: integer;
     is_pidl: boolean;
     apidl: PITEMIDLIST;
     LastMouseUp: cardinal;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
-    procedure UpdateIndicator;
-    procedure DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
     procedure Exec;
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -161,7 +157,6 @@ begin
   FHide:= false;
 
   UpdateItem(AData);
-  UpdateIndicator;
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutSubitem.Destroy;
@@ -192,13 +187,13 @@ begin
           if FRunning and not boolean(param) then
           begin
             FRunning := false;
-            if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+            Redraw;
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpSite: if FIndicator <> nil then UpdateIndicator;
       gpShowHint: UpdateItemI;
-      tcThemeChanged: if FIndicator <> nil then UpdateIndicator;
+      gpSite: if FRunning then Redraw;
+      tcThemeChanged: if FRunning then Redraw;
 
       // commands //
       icUpdateRunning: UpdateItemRunningState;
@@ -287,7 +282,7 @@ begin
       FUpdating:= false;
     end;
 
-    Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+    Redraw;
     sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
     on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal'#10#13 + e.message);
@@ -301,27 +296,11 @@ begin
   if length(FCommand) > 0 then
   begin
     b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
-    if b and (FIndicator = nil) then UpdateIndicator;
     if b <> FRunning then
     begin
       FRunning := b;
-      if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+      Redraw;
     end;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateIndicator;
-begin
-  // make a local copy //
-  // gdiplus does not like invalid pointers //
-  try
-    if FIndicator <> nil then GdipDisposeImage(FIndicator);
-    FIndicatorW := theme.Indicator.W and $ffff;
-    FIndicatorH := theme.Indicator.H and $ffff;
-    GdipCloneBitmapAreaI(0, 0, FIndicatorW, FIndicatorH, PixelFormat32bppPARGB, theme.Indicator.Image, FIndicator);
-    if FRunning and IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
-  except
-    on e: Exception do raise Exception.Create('StackSubitem.UpdateIndicator'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -400,9 +379,9 @@ begin
     CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
-    GdipSetCompositingMode(dst, CompositingModeSourceOver);
 
-    if FRunning and (AAlpha > 10) then DrawIndicator(dst, xBitmap, yBitmap);
+    GdipSetCompositingMode(dst, CompositingModeSourceOver);
+    if FRunning and (AAlpha > 10) then theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
     if AAngle > 0 then GdipResetWorldTransform(dst);
 
     // hint (caption) //
@@ -506,36 +485,6 @@ begin
   except
     on e: Exception do raise Exception.Create('StackSubitem.DrawPreview'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.DrawIndicator(dst: Pointer; xBitmap: integer; yBitmap: integer);
-begin
-  if FIndicator = nil then exit;
-  if FSite = 0 then
-  begin
-    xBitmap -= FIndicatorW div 2;
-    yBitmap += (FSize - FIndicatorH) div 2;
-  end
-  else
-  if FSite = 1 then
-  begin
-    xBitmap += (FSize - FIndicatorW) div 2;
-    yBitmap -= FIndicatorH div 2;
-  end
-  else
-  if FSite = 2 then
-  begin
-    xBitmap += FSize - FIndicatorW div 2;
-    yBitmap += (FSize - FIndicatorH) div 2;
-  end
-  else
-  if FSite = 3 then
-  begin
-    xBitmap += (FSize - FIndicatorW) div 2;
-    yBitmap += FSize - FIndicatorH div 2;
-  end;
-  GdipDrawImageRectRectI(dst, FIndicator, xBitmap, yBitmap, FIndicatorW, FIndicatorH,
-    0, 0, FIndicatorW, FIndicatorH, UnitPixel, nil, nil, nil);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.ToString: string;
@@ -848,6 +797,11 @@ begin
   if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
   inherited;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.Redraw;
+begin
+  if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
 end;
 //------------------------------------------------------------------------------
 function TCustomSubitem.cmd(id: TGParam; param: integer): integer;

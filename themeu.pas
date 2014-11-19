@@ -90,6 +90,7 @@ type
     function CorrectSize(size: Windows.TSize): Windows.TSize;
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
+    procedure DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
     procedure DrawButton(dst: Pointer; Left, Top, Size: integer);
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
@@ -128,7 +129,7 @@ begin
   FMargin2 := 0;
   Separator.Margins := rect(0, 0, 0, 0);
   Button.Margins := rect(2, 2, 2, 2);
-  Button.Area := rect(0, 0, 0, 0);
+  Button.Area := rect(-2, -2, -2, -2);
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ClearGraphics;
@@ -188,10 +189,10 @@ begin
 
   // default theme //
 
-  if not DirectoryExists(UnzipPath('%pp%\themes\') + FThemeName + '\') then
+  if not DirectoryExists(FThemesFolder + FThemeName + '\') then
   begin
     FThemeName := 'Aero';
-    if not DirectoryExists(UnzipPath('%pp%\themes\') + FThemeName + '\') then
+    if not DirectoryExists(FThemesFolder + FThemeName + '\') then
     begin
       MakeDefaultTheme;
       Result := True;
@@ -201,7 +202,7 @@ begin
 
   // loading theme data //
   try
-    Path := toolu.UnzipPath('%pp%\themes\') + FThemeName + '\';
+    Path := FThemesFolder + FThemeName + '\';
 
     // background //
     ini := TIniFile.Create(Path + 'background.ini');
@@ -235,7 +236,7 @@ begin
       Background.Margins.Bottom := ini.ReadInteger(section, 'BottomMargin', 0);
     end;
     // Terry-specific keys //
-    BlurRegion :=        ini.ReadString (section, 'BlurRegion', '');
+    BlurRegion := ini.ReadString (section, 'BlurRegion', '');
     ini.Free;
 
     ItemsArea := ia;
@@ -261,6 +262,25 @@ begin
       Separator.Margins := rect(0, 0, 0, 0);
     end;
 
+    // button //
+    if FileExists(Path + 'button.ini') then
+    begin
+      ini := TIniFile.Create(Path + 'button.ini');
+      section := 'Button';
+      Button.Area.Left :=   ini.ReadInteger(section, 'OutsideBorderLeft', -2);
+      Button.Area.Top :=    ini.ReadInteger(section, 'OutsideBorderTop', -2);
+      Button.Area.Right :=  ini.ReadInteger(section, 'OutsideBorderRight', -2);
+      Button.Area.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', -2);
+      Button.Margins.Left :=   ini.ReadInteger(section, 'LeftWidth', 2);
+      Button.Margins.Right :=  ini.ReadInteger(section, 'RightWidth', 2);
+      Button.Margins.Top :=    ini.ReadInteger(section, 'TopHeight', 2);
+      Button.Margins.Bottom := ini.ReadInteger(section, 'BottomHeight', 2);
+      ini.Free;
+    end else begin
+      Button.Margins := rect(2, 2, 2, 2);
+      Button.Area := rect(-2, -2, -2, -2);
+    end;
+
     ReloadGraphics;
     Result := True;
   except
@@ -271,24 +291,21 @@ end;
 function _Theme.Save: boolean;
 var
   ini: TIniFile;
-  themes_path: string;
 begin
   result := false;
-  themes_path := toolu.UnzipPath('%pp%\themes\');
 
-  if not DirectoryExists(themes_path) then CreateDirectory(PChar(themes_path), nil);
-
+  if not DirectoryExists(FThemesFolder) then CreateDirectory(PChar(FThemesFolder), nil);
   if FThemeName = '' then FThemeName := 'Aero';
-  if not DirectoryExists(themes_path + FThemeName + '\') then
-    CreateDirectory(PChar(themes_path + FThemeName + '\'), nil);
+  if not DirectoryExists(FThemesFolder + FThemeName + '\') then
+    CreateDirectory(PChar(FThemesFolder + FThemeName + '\'), nil);
 
   try
-    windows.DeleteFile(PChar(themes_path + FThemeName + '\background.ini'));
-    windows.DeleteFile(PChar(themes_path + FThemeName + '\separator.ini'));
+    windows.DeleteFile(PChar(FThemesFolder + FThemeName + '\background.ini'));
+    windows.DeleteFile(PChar(FThemesFolder + FThemeName + '\separator.ini'));
 
     // background //
-    ini := TIniFile.Create(themes_path + FThemeName + '\background.ini');
-    ini.WriteString('Background', 'Image', Background.ImageFile);
+    ini := TIniFile.Create(FThemesFolder + FThemeName + '\background.ini');
+    ini.WriteString ('Background', 'Image',        Background.ImageFile);
     ini.WriteInteger('Background', 'OutsideBorderLeft',   FItemsArea.Left);
     ini.WriteInteger('Background', 'OutsideBorderTop',    FItemsArea.Top);
     ini.WriteInteger('Background', 'OutsideBorderRight',  FItemsArea.Right);
@@ -298,14 +315,14 @@ begin
     ini.WriteInteger('Background', 'RightWidth',   Background.Margins.Right);
     ini.WriteInteger('Background', 'BottomHeight', Background.Margins.Bottom);
     // terry-specific
-    if BlurRegion <> '' then       ini.WriteString ('Background', 'BlurRegion', BlurRegion);
+    if BlurRegion <> '' then ini.WriteString ('Background', 'BlurRegion', BlurRegion);
     ini.Free;
     // separator //
-    ini := TIniFile.Create(themes_path + FThemeName + '\separator.ini');
-    ini.WriteString('Separator', 'Image', Separator.ImageFile);
-    ini.WriteInteger('Separator', 'LeftWidth', Separator.Margins.Left);
-    ini.WriteInteger('Separator', 'TopHeight', Separator.Margins.Top);
-    ini.WriteInteger('Separator', 'RightWidth', Separator.Margins.Right);
+    ini := TIniFile.Create(FThemesFolder + FThemeName + '\separator.ini');
+    ini.WriteString ('Separator', 'Image',        Separator.ImageFile);
+    ini.WriteInteger('Separator', 'LeftWidth',    Separator.Margins.Left);
+    ini.WriteInteger('Separator', 'TopHeight',    Separator.Margins.Top);
+    ini.WriteInteger('Separator', 'RightWidth',   Separator.Margins.Right);
     ini.WriteInteger('Separator', 'BottomHeight', Separator.Margins.Bottom);
     ini.Free;
 
@@ -371,22 +388,21 @@ begin
       if FileExists(Path + Background.ImageFile) then
         GdipLoadImageFromFile(PWideChar(WideString(Path + Background.ImageFile)), Background.Image);
       if Background.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\themes\background.png'))), Background.Image);
+        GdipLoadImageFromFile(PWideChar(WideString(FThemesFolder + 'background.png')), Background.Image);
       if Background.image <> nil then
       begin
         ImageAdjustRotate(Background.Image);
         GdipGetImageWidth(Background.Image, Background.W);
         GdipGetImageHeight(Background.Image, Background.H);
-        GdipCloneBitmapAreaI(0, 0, Background.W, Background.H, PixelFormat32bppPARGB, Background.Image, img);
-        GdipDisposeImage(Background.Image);
-        Background.Image := img;
-        img := nil;
+        img := Background.Image;
+        GdipCloneBitmapAreaI(0, 0, Background.W, Background.H, PixelFormat32bppPARGB, img, Background.Image);
+        GdipDisposeImage(img);
       end;
     except
       on e: Exception do raise Exception.Create('Error loading background: ' + Path + Background.ImageFile + #13#10#13#10 + e.message);
     end;
 
-    // separator //
+    // separator image //
     try
       if FileExists(Path + Separator.ImageFile) then
         GdipLoadImageFromFile(PWideChar(WideString(Path + Separator.ImageFile)), Separator.Image);
@@ -405,7 +421,7 @@ begin
       if FileExists(Path + 'stack.png') then
         GdipLoadImageFromFile(PWideChar(WideString(Path + 'stack.png')), Stack.Image);
       if Stack.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\themes\stack.png'))), Stack.Image);
+        GdipLoadImageFromFile(PWideChar(WideString(FThemesFolder + 'stack.png')), Stack.Image);
       if Stack.Image <> nil then
       begin
         GdipGetImageWidth(Stack.Image, Stack.W);
@@ -415,23 +431,26 @@ begin
       on e: Exception do raise Exception.Create('Error loading stack icon: ' + Path + 'stack.png' + #13#10#13#10 + e.message);
     end;
 
-    // running indicator //
+    // running indicator image //
     try
       if FileExists(Path + 'indicator.png') then
         GdipLoadImageFromFile(PWideChar(WideString(Path + 'indicator.png')), Indicator.Image);
       if Indicator.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(UnzipPath('%pp%\themes\indicator.png'))), Indicator.Image);
+        GdipLoadImageFromFile(PWideChar(WideString(FThemesFolder + 'indicator.png')), Indicator.Image);
       if Indicator.Image <> nil then
       begin
         ImageAdjustRotate(Indicator.Image);
         GdipGetImageWidth(Indicator.Image, Indicator.W);
         GdipGetImageHeight(Indicator.Image, Indicator.H);
+        img := Indicator.Image;
+        GdipCloneBitmapAreaI(0, 0, Indicator.W, Indicator.H, PixelFormat32bppPARGB, img, Indicator.Image);
+        GdipDisposeImage(img);
       end;
     except
       on e: Exception do raise Exception.Create('Error loading indicator: ' + Path + 'indicator.png' + #13#10#13#10 + e.message);
     end;
 
-    // running button //
+    // running button image //
     try
       if FileExists(Path + 'button.png') then
         GdipLoadImageFromFile(PWideChar(WideString(Path + 'button.png')), Button.Image);
@@ -439,11 +458,15 @@ begin
       begin
         GdipGetImageWidth(Button.Image, Button.W);
         GdipGetImageHeight(Button.Image, Button.H);
+        img := Button.Image;
+        GdipCloneBitmapAreaI(0, 0, Button.W, Button.H, PixelFormat32bppPARGB, img, Button.Image);
+        GdipDisposeImage(img);
       end;
     except
       on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'button.png' + #13#10#13#10 + e.message);
     end;
 
+    img := nil;
   except
     on e: Exception do raise Exception.Create('Error loading theme files. ' + e.message);
   end;
@@ -525,6 +548,44 @@ begin
   inc(marg.Bottom, area.Bottom);
   gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
     rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, alpha);
+end;
+//------------------------------------------------------------------------------
+procedure _Theme.DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
+begin
+  if assigned(Indicator.Image) then
+  try
+    GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
+    GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
+
+    if Site = 0 then
+    begin
+      Left -= Indicator.W div 2;
+      Top += (Size - Indicator.H) div 2;
+    end
+    else
+    if Site = 1 then
+    begin
+      Left += (Size - Indicator.W) div 2;
+      Top -= Indicator.H div 2;
+    end
+    else
+    if Site = 2 then
+    begin
+      Left += Size - Indicator.W div 2;
+      Top += (Size - Indicator.H) div 2;
+    end
+    else
+    if Site = 3 then
+    begin
+      Left += (Size - Indicator.W) div 2;
+      Top += Size - Indicator.H div 2;
+    end;
+
+    GdipDrawImageRectRectI(dst, Indicator.Image, Left, Top, Indicator.W, Indicator.H,
+      0, 0, Indicator.W, Indicator.H, UnitPixel, nil, nil, nil);
+  except
+    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer);

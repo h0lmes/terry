@@ -10,6 +10,9 @@ type
     Site: TBaseSite;
     CenterOffsetPercent: integer;
     EdgeOffset: integer;
+    OccupyFullMonitor: boolean; // draw background to full monitor width (or height)
+    StartOffset: integer; // f.e. when Site=bsBottom this is at the left side of monitor
+    EndOffset: integer; // and this is at the right side of monitor
     AutoHide: boolean;
     AutoHideTime: integer;
     AutoShowTime: integer;
@@ -51,7 +54,6 @@ type
     BaseAlpha: integer;
     SeparatorAlpha: integer;
     Blur: boolean;
-    UseFullMonitor: boolean;
     Font: _FontData;
     Shell: array [0..MAX_PATH] of char;
     ThemeName: array [0..MAX_PATH] of char;
@@ -156,6 +158,9 @@ begin
   container.Site := StringToSite(ini.ReadString('base', 'Site', 'top'));
   container.CenterOffsetPercent := SetRange(ini.ReadInteger('base', 'CenterOffsetPercent', 50), 0, 100);
   container.EdgeOffset := SetRange(ini.ReadInteger('base', 'EdgeOffset', 0), -100, 100);
+  container.OccupyFullMonitor := ini.ReadBool('base', 'OccupyFullMonitor', false);
+  container.StartOffset := SetRange(ini.ReadInteger('base', 'StartOffset', 0), -10000, 10000);
+  container.EndOffset := SetRange(ini.ReadInteger('base', 'EndOffset', 0), -10000, 10000);
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
   container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 500), 0, 9999);
@@ -207,7 +212,6 @@ begin
   container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
   container.ReflectionSize := ini.ReadInteger('gfx', 'ReflectionSize', 10);
   container.Blur := ini.ReadBool('gfx', 'Blur', true);
-  container.UseFullMonitor := ini.ReadBool('gfx', 'UseFullMonitor', false);
 
   // autoruns //
   tmpList := TStringList.Create;
@@ -247,6 +251,9 @@ begin
   ini.WriteString ('base', 'Site', SiteToString(container.Site));
   ini.WriteInteger('base', 'CenterOffsetPercent', container.CenterOffsetPercent);
   ini.WriteInteger('base', 'EdgeOffset', container.EdgeOffset);
+  ini.WriteBool   ('base', 'OccupyFullMonitor', container.OccupyFullMonitor);
+  ini.WriteInteger('base', 'StartOffset', container.StartOffset);
+  ini.WriteInteger('base', 'EndOffset', container.EndOffset);
   ini.WriteString ('base', 'Shell', pchar(@container.Shell[0]));
   ini.WriteBool   ('base', 'AutoHide', container.autohide);
   ini.WriteInteger('base', 'AutoHideTime', container.autohidetime);
@@ -289,7 +296,6 @@ begin
   ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
   ini.WriteInteger('gfx', 'ReflectionSize', container.ReflectionSize);
   ini.WriteBool   ('gfx', 'Blur', container.Blur);
-  ini.WriteBool   ('gfx', 'UseFullMonitor', container.UseFullMonitor);
   // font //
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
@@ -389,6 +395,9 @@ begin
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
   gpEdgeOffset: container.EdgeOffset := SetRange(value, -100, 100);
+  gpOccupyFullMonitor: container.OccupyFullMonitor := boolean(value);
+  gpStartOffset: container.StartOffset := SetRange(value, -10000, 10000);
+  gpEndOffset: container.EndOffset := SetRange(value, -10000, 10000);
   gpAutoHideTime: container.AutoHideTime := value;
   gpAutoShowTime: container.AutoShowTime := value;
   gpAutoHidePixels: container.AutoHidePixels := SetRange(value, 0, 9999);
@@ -423,7 +432,6 @@ begin
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpSeparatorAlpha: container.SeparatorAlpha := SetRange(value, 0, 255);
   gpBlur: container.Blur := boolean(value);
-  gpUseFullMonitor: container.UseFullMonitor := boolean(value);
   end;
 
   result := value;
@@ -443,6 +451,9 @@ begin
   gpSite: result := integer(container.Site);
   gpCenterOffsetPercent: result := container.CenterOffsetPercent;
   gpEdgeOffset: result := container.EdgeOffset;
+  gpOccupyFullMonitor: result := integer(container.OccupyFullMonitor);
+  gpStartOffset: result := container.StartOffset;
+  gpEndOffset: result := container.EndOffset;
   gpAutoHideTime: result := container.AutoHideTime;
   gpAutoShowTime: result := container.AutoShowTime;
   gpAutoHidePixels: result := container.AutoHidePixels;
@@ -477,7 +488,6 @@ begin
   gpBaseAlpha: result := container.BaseAlpha;
   gpSeparatorAlpha: result := container.SeparatorAlpha;
   gpBlur: result := integer(container.Blur);
-  gpUseFullMonitor: result := integer(container.UseFullMonitor);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -497,6 +507,8 @@ begin
   dst.site := src.site;
   dst.CenterOffsetPercent := src.CenterOffsetPercent;
   dst.EdgeOffset := src.EdgeOffset;
+  dst.StartOffset := src.StartOffset;
+  dst.EndOffset := src.EndOffset;
   dst.autohide := src.autohide;
   dst.autohidetime := src.autohidetime;
   dst.autoshowtime := src.autoshowtime;
@@ -535,7 +547,7 @@ begin
   dst.BaseAlpha := src.BaseAlpha;
   dst.SeparatorAlpha := src.SeparatorAlpha;
   dst.Blur := src.Blur;
-  dst.UseFullMonitor := src.UseFullMonitor;
+  dst.OccupyFullMonitor := src.OccupyFullMonitor;
   dst.useShell := src.useShell;
   dst.RunInThread := src.RunInThread;
 
