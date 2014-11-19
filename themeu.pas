@@ -26,10 +26,18 @@ type
     Margins: Windows.TRect;
   end;
 
-  TLayerImage = record
+  TLayerSimpleImage = record
     Image: Pointer;
     W: uint;
     H: uint;
+  end;
+
+  TLayerButton = record
+    Image: Pointer;
+    W: uint;
+    H: uint;
+    Margins: Windows.TRect;
+    Area: Windows.TRect;
   end;
 
   { _Theme }
@@ -55,8 +63,9 @@ type
     is_default: boolean;
     Background: TLayerBackground;
     Separator: TLayerSeparator;
-    Indicator: TLayerImage;
-    Stack: TLayerImage;
+    Indicator: TLayerSimpleImage;
+    Button: TLayerButton;
+    Stack: TLayerSimpleImage;
     Path: string;
 
     property BlurRegion: string read FBlurRegion write SetBlurRegion;
@@ -81,6 +90,7 @@ type
     function CorrectSize(size: Windows.TSize): Windows.TSize;
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
+    procedure DrawButton(dst: Pointer; Left, Top, Size: integer);
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -117,6 +127,8 @@ begin
   FMargin := 10;
   FMargin2 := 0;
   Separator.Margins := rect(0, 0, 0, 0);
+  Button.Margins := rect(2, 2, 2, 2);
+  Button.Area := rect(0, 0, 0, 0);
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.ClearGraphics;
@@ -126,6 +138,13 @@ begin
     try GdipDisposeImage(Indicator.image);
     except end;
     Indicator.image := nil;
+  end;
+
+  if Button.Image <> nil then
+  begin
+    try GdipDisposeImage(Button.Image);
+    except end;
+    Button.Image := nil;
   end;
 
   if Separator.image <> nil then
@@ -412,6 +431,19 @@ begin
       on e: Exception do raise Exception.Create('Error loading indicator: ' + Path + 'indicator.png' + #13#10#13#10 + e.message);
     end;
 
+    // running button //
+    try
+      if FileExists(Path + 'button.png') then
+        GdipLoadImageFromFile(PWideChar(WideString(Path + 'button.png')), Button.Image);
+      if assigned(Button.Image) then
+      begin
+        GdipGetImageWidth(Button.Image, Button.W);
+        GdipGetImageHeight(Button.Image, Button.H);
+      end;
+    except
+      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'button.png' + #13#10#13#10 + e.message);
+    end;
+
   except
     on e: Exception do raise Exception.Create('Error loading theme files. ' + e.message);
   end;
@@ -493,6 +525,18 @@ begin
   inc(marg.Bottom, area.Bottom);
   gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
     rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, alpha);
+end;
+//------------------------------------------------------------------------------
+procedure _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer);
+begin
+  if assigned(Button.Image) then
+  begin
+    GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
+    GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
+    gdip_gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
+      rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
+      Button.Margins, ssStretch, 255);
+  end;
 end;
 //------------------------------------------------------------------------------
 function _Theme.BlurEnabled: boolean;

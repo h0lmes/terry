@@ -446,6 +446,8 @@ begin
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
 
+      if FRunning then theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
+
       xBitmap := 0;
       yBitmap := 0;
 

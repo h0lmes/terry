@@ -177,13 +177,34 @@ end;
 procedure TProcessHelper.Kill(Name: string);
 var
   hProc: HANDLE;
+  index: integer;
+  pid: DWORD;
+  full: boolean;
 begin
   if not FReady then exit;
   EnumProc;
   Name := AnsiLowerCase(Name);
-  if listProcess.indexof(Name) < 0 then exit;
-  hProc := OpenProcess(PROCESS_TERMINATE, true, dword(listProcess.Objects[listProcess.indexof(Name)]));
-  TerminateProcess(hProc, 0);
+  full := Name <> ExtractFilename(Name);
+  pid := 0;
+  if full then
+  begin
+    index := listProcessFullName.indexof(Name);
+    if index >= 0 then pid := dword(listProcessFullName.Objects[index]);
+    if pid = 0 then
+    begin
+      index := listProcess.indexof(ExtractFilename(Name));
+      if index >= 0 then pid := dword(listProcess.Objects[index]);
+    end;
+  end else
+  begin
+    index := listProcess.indexof(Name);
+    if index >= 0 then pid := dword(listProcess.Objects[index]);
+  end;
+  if pid <> 0 then
+  begin
+    hProc := OpenProcess(PROCESS_TERMINATE, true, pid);
+    TerminateProcess(hProc, 0);
+  end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.Exists(Name: string): boolean;

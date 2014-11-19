@@ -1762,7 +1762,7 @@ begin
     baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
     Tray.Show(sets.container.Site, hwnd, baseRect);
   end
-  else if cmd = 'monitoroff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
+  else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'theme' then
   begin
     GetCursorPos(pt);

@@ -287,12 +287,14 @@ begin
         begin
           Monitor := value;
           ItemsChanged(true);
+          Unzoom(true);
         end;
       gpSite:
         begin
           BaseSite := TBaseSite(value);
           BaseSiteVertical := (BaseSite = bsLeft) or (BaseSite = bsRight);
           ItemsChanged(true);
+          Unzoom(true);
         end;
       gpCenterOffsetPercent:
         begin
@@ -445,6 +447,7 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\default\reboot.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
+        stack.AddSubitem(TShortcutItem.Make(0, 'Display off', '/displayoff', '', '', 'images\default\displayoff.png'));
       end;
       AddItem('class="separator";');
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
@@ -452,6 +455,7 @@ begin
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
+      AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);

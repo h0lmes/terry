@@ -166,6 +166,8 @@ begin
           if temp <> FIW then UpdateItemInternal;
         end;
       gpTaskbarSameMonitor: FTaskbarSameMonitor := boolean(param);
+      gpMonitor: ClosePeekWindow(0);
+      gpSite: ClosePeekWindow(0);
 
       // commands //
       icIsItem: result := 0;
@@ -322,6 +324,8 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
+  AppendMenu(FHMenu, MF_STRING + ifthen(FProcName = '', MF_DISABLED, 0), $f003, pchar(UTF8ToAnsi(XKillProcess)));
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
   AppendMenu(FHMenu, MF_STRING + ifthen(FProcName = '', MF_DISABLED, 0), $f002, pchar(UTF8ToAnsi(XPinToDock)));
@@ -348,7 +352,9 @@ begin
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
     $f002:
         if FProcName <> '' then dockh.DockAddProgram(pchar(FProcName));
-    $f003..$f020: ;
+    $f003:
+        if FProcName <> '' then ProcessHelper.Kill(FProcName);
+    $f004..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
@@ -461,7 +467,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FMonitor, FSite, FLivePreviews);
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------
@@ -496,7 +502,7 @@ begin
     2: dec(pt.x, 10);
     3: dec(pt.y, 10);
   end;
-  TAeroPeekWindow.SetPosition(pt.x, pt.y, FMonitor);
+  TAeroPeekWindow.SetPosition(pt.x, pt.y);
 end;
 //------------------------------------------------------------------------------
 // delete non-existing windows from the list
@@ -508,6 +514,10 @@ begin
   old_count := FAppList.Count;
   if FAppList.Count > 0 then
   begin
+    // try to get process executable path
+    if FProcName = '' then
+      FProcName := ProcessHelper.GetWindowProcessFullName(THandle(FAppList.Items[0]));
+    // check if any window does not exist any more or was moved to another monitor
     for idx := FAppList.Count - 1 downto 0 do
     begin
       hwnd := THandle(FAppList.Items[idx]);
@@ -516,9 +526,10 @@ begin
         if not ProcessHelper.WindowsOnTheSameMonitor(hwnd, FHWndParent) then FAppList.Delete(idx);
     end;
   end;
+  // if changed - do update
   if FAppList.Count <> old_count then
   begin
-    if FIsOpen then ShowPeekWindow; // full update
+    if FIsOpen then ShowPeekWindow; // update peek window
     Redraw;
   end;
 end;

@@ -45,7 +45,6 @@ type
     FActivating: boolean;
     FActive: boolean;
     FHostWnd: THandle;
-    FMonitor: integer;
     FSite: integer;
     FWorkArea: windows.TRect;
     FAnimate: boolean;
@@ -73,8 +72,8 @@ type
     property HostHandle: uint read FHostWnd;
     property Active: boolean read FActive;
 
-    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
-    class procedure SetPosition(AX, AY: integer; AMonitor: integer);
+    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+    class procedure SetPosition(AX, AY: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
     class function ActivatedBy(HostWnd: THandle): boolean;
@@ -82,8 +81,8 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
-    procedure SetWindowPosition(AX, AY: integer; AMonitor: integer);
+    function OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+    procedure SetWindowPosition(AX, AY: integer);
     procedure CloseWindow;
   end;
 
@@ -92,21 +91,21 @@ var AeroPeekWindow: TAeroPeekWindow;
 implementation
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
+class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
   if assigned(AeroPeekWindow) then
   begin
     KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
-    result := AeroPeekWindow.OpenWindow(HostWnd, AppList, AX, AY, AMonitor, Site, LivePreviews);
+    result := AeroPeekWindow.OpenWindow(HostWnd, AppList, AX, AY, Site, LivePreviews);
   end;
 end;
 //------------------------------------------------------------------------------
 // set new position
-class procedure TAeroPeekWindow.SetPosition(AX, AY: integer; AMonitor: integer);
+class procedure TAeroPeekWindow.SetPosition(AX, AY: integer);
 begin
-  if assigned(AeroPeekWindow) then AeroPeekWindow.SetWindowPosition(AX, AY, AMonitor);
+  if assigned(AeroPeekWindow) then AeroPeekWindow.SetWindowPosition(AX, AY);
 end;
 //------------------------------------------------------------------------------
 // close AeroPeekWindow
@@ -147,7 +146,7 @@ begin
   FActive := false;
   FAnimate := true;
   FFontFamily := toolu.GetFont;
-  FFontSize := round(toolu.GetFontSize * 1.6);
+  FFontSize := round(toolu.GetFontSize * 1.5);
   FCloseButtonDownIndex := -1;
   FItemCount := 0;
 
@@ -223,12 +222,14 @@ begin
       end;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, AMonitor, Site: integer; LivePreviews: boolean): boolean;
+function TAeroPeekWindow.OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
   wa: windows.TRect;
   opaque: bool;
-  hwnd: THandle;
+  hwnd, mon: THandle;
+  pt: windows.TPoint;
+  mi: MONITORINFO;
 begin
   result := false;
   if not FActivating then
@@ -250,11 +251,17 @@ begin
 
       // size
       FHostWnd := HostWnd;
-      FMonitor := AMonitor;
       FSite := Site;
       FLayout := apwlHorizontal;
       if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
-      FWorkArea := GetMonitorRect(FMonitor);
+      // get monitor work area
+      pt.x := AX;
+      pt.y := AY;
+      mon := MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+      FillChar(mi, sizeof(mi), 0);
+      mi.cbSize := sizeof(mi);
+      GetMonitorInfoA(mon, @mi);
+      FWorkArea := mi.rcWork;
       // set items' positions, calulate window size, update workarea
       SetItems(AppList);
       if not FActive then
@@ -490,8 +497,14 @@ begin
         items[index].rect.Right := items[index].rect.Left + ThumbW;
         items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
       end else begin
-        items[index].rect.Right := items[index].rect.Left + 10;
-        items[index].rect.Bottom := items[index].rect.Top + 2;
+        if FLayout = apwlHorizontal then
+        begin
+          items[index].rect.Right := items[index].rect.Left + 10;
+          items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
+        end else begin
+          items[index].rect.Right := items[index].rect.Left + ThumbW;
+          items[index].rect.Bottom := items[index].rect.Top + 2;
+        end;
       end;
       if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
       if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
@@ -565,7 +578,7 @@ var
   pt: GDIPAPI.TPoint;
   shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
-  count, index: integer;
+  count, index, tmp: integer;
   title: array [0..255] of WideChar;
 begin
   try
@@ -577,7 +590,7 @@ begin
     if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-    GdipSetTextRenderingHint(hgdip, TextRenderingHintClearTypeGridFit);
+    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
     //
@@ -649,7 +662,31 @@ begin
     GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap or StringFormatFlagsNoFitBlackBox);
     GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
     for index := 0 to FItemCount - 1 do
-      if items[index].hwnd <> 0 then
+      if items[index].hwnd = 0 then // separator
+      begin
+        if FLayout = apwlHorizontal then
+        begin
+          // vertical lines
+          tmp := items[index].rect.Left + (items[index].rect.Right - items[index].rect.Left) div 2;
+          GdipCreatePen1($80000000, 1, UnitPixel, pen);
+          GdipDrawLineI(hgdip, pen, tmp, items[index].rect.Top, tmp, items[index].rect.Bottom);
+          GdipDeletePen(pen);
+          inc(tmp);
+          GdipCreatePen1($80ffffff, 1, UnitPixel, pen);
+          GdipDrawLineI(hgdip, pen, tmp, items[index].rect.Top, tmp, items[index].rect.Bottom);
+          GdipDeletePen(pen);
+        end else begin
+          // horizontal lines
+          tmp := items[index].rect.Top + (items[index].rect.Bottom - items[index].rect.Top) div 2;
+          GdipCreatePen1($80000000, 1, UnitPixel, pen);
+          GdipDrawLineI(hgdip, pen, items[index].rect.Left, tmp, items[index].rect.Right, tmp);
+          GdipDeletePen(pen);
+          inc(tmp);
+          GdipCreatePen1($80ffffff, 1, UnitPixel, pen);
+          GdipDrawLineI(hgdip, pen, items[index].rect.Left, tmp, items[index].rect.Right, tmp);
+          GdipDeletePen(pen);
+        end;
+      end else // regular item
       begin
         // icon
         if assigned(items[index].image) then
@@ -732,7 +769,7 @@ begin
   GdipDeletePen(pen);
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetWindowPosition(AX, AY: integer; AMonitor: integer);
+procedure TAeroPeekWindow.SetWindowPosition(AX, AY: integer);
 begin
   if FActive then
   begin

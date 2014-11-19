@@ -147,6 +147,10 @@ msgstr ""
 msgid "Installed application"
 msgstr ""
 
+#: declu.xkillprocess
+msgid "Kill process"
+msgstr ""
+
 #: declu.xlabelcenteroffset
 msgid "Offset from center: %d %%"
 msgstr ""

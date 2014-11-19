@@ -151,7 +151,11 @@ type
     dwFlags: dword;
   end;
 
+const
+  MONITOR_DEFAULTTONEAREST = 2;
+
   function MonitorFromWindow(HWND: hwnd; dwFlags: DWORD): THandle; stdcall; external 'user32.dll';
+  function MonitorFromPoint(pt: windows.TPoint; dwFlags: DWORD): THandle; stdcall; external 'user32.dll';
   function GetMonitorInfoA(hMonitor: THandle; lpmi: pointer): bool; stdcall; external 'user32.dll';
   function SHGetNameFromIDList(_para1:LPCITEMIDLIST; sigdnName: longint; _para2:LPTSTR):WINBOOL; external 'shell32.dll' name 'SHGetNameFromIDList';
 
@@ -236,6 +240,7 @@ resourcestring
   XFile = 'File';
   XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
   XPinToDock = 'Pin to dock';
+  XKillProcess = 'Kill process';
 
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';
