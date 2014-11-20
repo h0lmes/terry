@@ -5,7 +5,7 @@ unit taskitemu;
 interface
 uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes,
   Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp,
-  aeropeeku, dwm_unit;
+  aeropeeku, dwm_unit, themeu;
 
 type
 
@@ -187,6 +187,7 @@ var
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
   rect: GDIPAPI.TRectF;
+  button: boolean;
 begin
   try
     if FFreed or FUpdating or (FFloating and not AForce) then exit;
@@ -242,10 +243,12 @@ begin
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
 
-      xBitmap := 0;
-      yBitmap := 0;
-      inc(xBitmap, ItemRect.Left);
-      inc(yBitmap, ItemRect.Top);
+      xBitmap := ItemRect.Left;
+      yBitmap := ItemRect.Top;
+
+      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;
@@ -284,8 +287,11 @@ begin
         GdipDeleteFontFamily(family);
       end;
 
-    if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
-      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+    if not button then
+    begin
+      if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
+        BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+    end;
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
     DeleteGraphics(dst);

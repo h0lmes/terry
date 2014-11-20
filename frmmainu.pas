@@ -1778,7 +1778,6 @@ begin
     baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
     Tray.Show(sets.container.Site, hwnd, baseRect);
   end
-  else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'theme' then
   begin
     GetCursorPos(pt);
@@ -1814,6 +1813,8 @@ begin
   else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))
   else if cmd = 'suspend' then ProcessHelper.SetSuspendState(false)
   else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
+  else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
+  else if cmd = 'startmenu' then sendmessage(handle, WM_SYSCOMMAND, SC_TASKLIST, 0)
   else if cmd = 'kill' then ProcessHelper.Kill(params)
   else if cmd = 'emptybin' then
   begin

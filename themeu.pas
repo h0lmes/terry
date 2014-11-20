@@ -91,7 +91,7 @@ type
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
     procedure DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
-    procedure DrawButton(dst: Pointer; Left, Top, Size: integer);
+    function DrawButton(dst: Pointer; Left, Top, Size: integer): boolean;
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -267,18 +267,18 @@ begin
     begin
       ini := TIniFile.Create(Path + 'button.ini');
       section := 'Button';
-      Button.Area.Left :=   ini.ReadInteger(section, 'OutsideBorderLeft', -2);
-      Button.Area.Top :=    ini.ReadInteger(section, 'OutsideBorderTop', -2);
-      Button.Area.Right :=  ini.ReadInteger(section, 'OutsideBorderRight', -2);
-      Button.Area.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', -2);
       Button.Margins.Left :=   ini.ReadInteger(section, 'LeftWidth', 2);
       Button.Margins.Right :=  ini.ReadInteger(section, 'RightWidth', 2);
       Button.Margins.Top :=    ini.ReadInteger(section, 'TopHeight', 2);
       Button.Margins.Bottom := ini.ReadInteger(section, 'BottomHeight', 2);
+      Button.Area.Left :=   ini.ReadInteger(section, 'OutsideBorderLeft', -5);
+      Button.Area.Top :=    ini.ReadInteger(section, 'OutsideBorderTop', -5);
+      Button.Area.Right :=  ini.ReadInteger(section, 'OutsideBorderRight', -5);
+      Button.Area.Bottom := ini.ReadInteger(section, 'OutsideBorderBottom', -5);
       ini.Free;
     end else begin
       Button.Margins := rect(2, 2, 2, 2);
-      Button.Area := rect(-2, -2, -2, -2);
+      Button.Area := rect(-5, -5, -5, -5);
     end;
 
     ReloadGraphics;
@@ -554,8 +554,8 @@ procedure _Theme.DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
 begin
   if assigned(Indicator.Image) then
   try
-    GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
-    GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
+    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
 
     if Site = 0 then
     begin
@@ -588,8 +588,9 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer);
+function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer): boolean;
 begin
+  result := false;
   if assigned(Button.Image) then
   begin
     GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
@@ -597,6 +598,7 @@ begin
     gdip_gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
       rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
       Button.Margins, ssStretch, 255);
+    result := true;
   end;
 end;
 //------------------------------------------------------------------------------

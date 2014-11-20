@@ -50,7 +50,7 @@ type
     FAnimate: boolean;
     FCloseButtonDownIndex: integer;
     FForegroundWindowIndex: integer;
-    FColor1, FColor2: cardinal;
+    FColor1, FColor2, FTextColor: cardinal;
     FCompositionEnabled: boolean;
     FFontFamily: string;
     FFontSize: integer;
@@ -334,6 +334,8 @@ begin
         dwm.GetColorizationColor(FColor1, opaque);
         if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000;
         if opaque then FColor2 := FColor2 or $ff000000;
+        FTextColor := $ffffffff;
+        if ((FColor1 and $ff) div 3) + ((FColor1 shr 8 and $ff) div 3) + ((FColor1 shr 16 and $ff) div 3) > 160 then FTextColor := $ff000000;
       end;
 
       // show the window
@@ -580,6 +582,9 @@ var
   rgn: HRGN;
   count, index, tmp: integer;
   title: array [0..255] of WideChar;
+  //
+  //ThemeData: HTHEME;
+  //Opts: TDTTOpts;
 begin
   try
     // prepare //
@@ -654,7 +659,16 @@ begin
       GdipDeletePath(path);
     end;
 
-    // icons, titles, close buttons
+    // icons, titles, close buttons ... or separators
+    {ThemeData := OpenThemeData(Handle, 'textstyle');
+    FillChar(Opts, SizeOf(Opts), 0);
+    Opts.dwSize := SizeOf(Opts);
+    Opts.crText := $ff000000;
+    Opts.iGlowSize := 2;
+    Opts.iTextShadowType := TST_NONE;
+    Opts.fApplyOverlay := true;
+    Opts.dwFlags := DTT_TEXTCOLOR or DTT_GLOWSIZE or DTT_APPLYOVERLAY or DTT_SHADOWTYPE;}
+    //
     GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
     GdipCreateFont(family, FFontSize, 0, 2, font);
     GdipCreateSolidFill($ffffffff, brush);
@@ -694,8 +708,9 @@ begin
             items[index].rectIcon.Left, items[index].rectIcon.Top, items[index].iw, items[index].ih,
             0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
         // window title
-        titleRect := WinRectToGDIPRectF(items[index].rectTitle);
         GetWindowTextW(items[index].hwnd, title, 255);
+        //DrawThemeTextEx(ThemeData, bmp.dc, TEXT_BODYTITLE, 0, PWideChar(@title), -1, DT_END_ELLIPSIS, @items[index].rectTitle, @Opts);
+        titleRect := WinRectToGDIPRectF(items[index].rectTitle);
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
         // close button
         rect := WinRectToGDIPRect(items[index].rectClose);
@@ -705,6 +720,7 @@ begin
     GdipDeleteBrush(brush);
     GdipDeleteFont(font);
     GdipDeleteFontFamily(family);
+    //CloseThemeData(ThemeData);
 
     // update window //
     UpdateLWindow(FHWnd, bmp, 255);

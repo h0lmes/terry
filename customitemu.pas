@@ -15,6 +15,8 @@ type
   { TCustomItem }
 
   TCustomItem = class
+  private
+    function ExpandRect(r: windows.TRect; value: integer): windows.TRect;
   protected
     FFreed: boolean;
     FHWnd: uint;
@@ -53,6 +55,7 @@ type
     FLockMouseEffect: boolean;
     FItemSize: integer;
     FBigItemSize: integer;
+    FItemSpacing: integer;
     FLaunchInterval: integer;
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
@@ -187,6 +190,7 @@ begin
   FLockMouseEffect := false;
   FItemSize := 32;
   FBigItemSize := 32;
+  FItemSpacing := 0;
   FAnimationProgress := 0;
   FImage := nil;
   FIW := 32;
@@ -211,8 +215,8 @@ begin
           FItemSize := param;
           Redraw;
         end;
-      gpBigItemSize:
-          FBigItemSize := word(param);
+      gpBigItemSize: FBigItemSize := word(param);
+      gpItemSpacing: FItemSpacing := word(param);
       gpReflection:
         begin
           FReflection := boolean(param);
@@ -464,14 +468,24 @@ begin
   inc(result.Bottom, r.Top);
 end;
 //------------------------------------------------------------------------------
+// item rect in screen coordinates
+function TCustomItem.ExpandRect(r: windows.TRect; value: integer): windows.TRect;
+begin
+  result := r;
+  dec(result.Left, value);
+  dec(result.Top, value);
+  inc(result.Right, value);
+  inc(result.Bottom, value);
+end;
+//------------------------------------------------------------------------------
 function TCustomItem.HitTest(Ax, Ay: integer): boolean;
 begin
-  result := ptinrect(GetClientRect, classes.Point(Ax, Ay));
+  result := ptinrect(ExpandRect(GetClientRect, FBorder div 2), classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.ScreenHitTest(Ax, Ay: integer): boolean;
 begin
-  result := ptinrect(GetScreenRect, classes.Point(Ax, Ay));
+  result := ptinrect(ExpandRect(GetScreenRect, FBorder div 2), classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Animate(AAnimationType: integer);

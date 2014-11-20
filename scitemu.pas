@@ -354,6 +354,7 @@ var
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
   animation_offset_x, animation_offset_y, animation_size: integer;
+  button: boolean;
 begin
   try
     if FFreed or FUpdating or (FFloating and not AForce)
@@ -421,7 +422,13 @@ begin
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
 
-      if FRunning then theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
+      button := false;
+      if FRunning then
+      begin
+        button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
+        GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+        GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      end;
 
       xBitmap := 0;
       yBitmap := 0;
@@ -499,9 +506,12 @@ begin
 
     ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
-    if FReflection and (FReflectionSize > 0) and not FFloating then
-      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-    if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
+    if not button then
+    begin
+      if FReflection and (FReflectionSize > 0) and not FFloating then
+        BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+      if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
+    end;
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
     // cleanup //

@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsPosition
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -758,7 +758,7 @@ object frmsets: Tfrmsets
         Left = 40
         Height = 21
         Top = 430
-        Width = 400
+        Width = 395
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
@@ -777,7 +777,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 202
-        Width = 421
+        Width = 410
         Frequency = 8
         Max = 128
         Min = 16
@@ -791,7 +791,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 257
-        Width = 421
+        Width = 410
         Frequency = 16
         Max = 256
         Min = 16
@@ -828,7 +828,7 @@ object frmsets: Tfrmsets
         Top = 312
         Width = 250
         Frequency = 2
-        Max = 20
+        Max = 30
         OnChange = tbIconSpacingChange
         Position = 0
         ShowSelRange = False

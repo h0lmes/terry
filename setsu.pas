@@ -169,7 +169,7 @@ begin
   container.ItemAnimation := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
   container.ItemSize := SetRange(ini.ReadInteger('base', 'ItemSize', 48), 16, 128);
   container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 96), container.ItemSize, 256);
-  container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 4), 0, 20);
+  container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 4), 0, 30);
   container.ZoomWidth := SetRange(ini.ReadInteger('base', 'ZoomWidth', 6), 4, 10);
   container.ZoomTime := SetRange(ini.ReadInteger('base', 'ZoomTime', 120), 0, 600);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
@@ -387,7 +387,7 @@ begin
   case id of
   gpItemSize: container.ItemSize := SetRange(value, 16, 128);
   gpBigItemSize: container.BigItemSize := SetRange(value, container.ItemSize, 256);
-  gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 20);
+  gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 30);
   gpZoomWidth: container.ZoomWidth := SetRange((value div 2) * 2, 4, 10);
   gpZoomTime: container.ZoomTime := SetRange(value, 0, 600);
   gpZoomItems: container.ZoomItems := boolean(value);
