@@ -83,9 +83,8 @@ type
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
-    function GetTaskWindowItemIndex(hwnd: THandle): integer;
-    procedure RemoveTaskWindow(hwnd: THandle);
-    procedure DeleteEmptyTaskItems;
+    procedure AddTaskWindow(HWndTask: THandle; LivePreviews, Grouping: boolean);
+    procedure RemoveTaskWindow(HWndTask: THandle);
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
@@ -327,7 +326,7 @@ begin
       gpZoomTime:               ZoomTime := value;
       gpLockMouseEffect:        LockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
-      gpOccupyFullMonitor:         FOccupyFullMonitor := value <> 0;
+      gpOccupyFullMonitor:      FOccupyFullMonitor := value <> 0;
     end;
   except
     on e: Exception do err('ItemManager.SetParam', e);
@@ -1150,26 +1149,7 @@ begin
       end;
       // decrement item count
       dec(ItemCount);
-
-      // special handling for task items
-      if is_task then
-      begin
-        if TaskItemCount > 0 then dec(TaskItemCount);
-        // if there is no more task items in the dock - delete task items separator //
-        if TaskItemCount = 1 then
-        begin
-          idx := ItemCount - 1;
-          while (idx >= 0) and (TaskItemCount > 0) do
-          begin
-            Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
-            if Inst is TSeparatorItem then
-              if Inst.DontSave then Inst.Delete;
-            dec(idx);
-          end;
-          TaskItemCount := 0;
-        end;
-      end;
-
+      if is_task and (TaskItemCount > 0) then dec(TaskItemCount);
     end;
 
     // update dock //
@@ -2041,7 +2021,7 @@ begin
   try
     result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TTaskItem;
   except
-    on e: Exception do err('ItemManager.IsSeparator', e);
+    on e: Exception do err('ItemManager.IsTask', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -2057,17 +2037,13 @@ procedure _ItemManager.Taskbar(LivePreviews, Grouping: boolean);
 var
   index: integer;
   Inst: TCustomItem;
-  found: integer;
-  HWndTask, HWndItem: THandle;
-  check: boolean;
 begin
   try
     // remove deleted windows //
     index := 0;
     while index < ProcessHelper.GetAppWindowsDeletedCount do
     begin
-      HWndTask := ProcessHelper.GetAppWindowDeletedHandle(index);
-      RemoveTaskWindow(HWndTask);
+      RemoveTaskWindow(ProcessHelper.GetAppWindowDeletedHandle(index));
       inc(index);
     end;
 
@@ -2075,89 +2051,72 @@ begin
     index := 0;
     while index < ProcessHelper.GetAppWindowsCount do
     begin
-      HWndTask := ProcessHelper.GetAppWindowHandle(index);
-      found := GetTaskWindowItemIndex(HWndTask);
-      // there is no item for the window
-      if found = -1 then
-      begin
-        // if there is no task items yet - add separator
-        if TaskItemCount = 0 then
-        begin
-          AddItem('class="separator";dontsave="1";candrag="0";', true);
-          inc(TaskItemCount);
-        end;
-        // add task item at the end of list //
-        SetDropPlace(NOT_AN_ITEM);
-        HWndItem := AddItem(TTaskItem.Make(Grouping, LivePreviews), true);
-        Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
-        if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
-      end;
+      AddTaskWindow(ProcessHelper.GetAppWindowHandle(index), LivePreviews, Grouping);
       inc(index);
     end;
 
-    // cleanup
-    DeleteEmptyTaskItems;
-  except
-    on e: Exception do err('ItemManager.Taskbar', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-function _ItemManager.GetTaskWindowItemIndex(hwnd: THandle): integer;
-var
-  index: integer;
-  Inst: TCustomItem;
-begin
-  try
-    result := -1;
-    index := ItemCount - TaskItemCount;
-    while index < ItemCount do
-    begin
-      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
-      if Inst is TTaskItem then
-        if TTaskItem(Inst).WindowInList(hwnd) then
-        begin
-          result := index;
-          break;
-        end;
-      inc(index);
-    end;
-  except
-    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.RemoveTaskWindow(hwnd: THandle);
-var
-  index: integer;
-  Inst: TCustomItem;
-begin
-  try
-    index := ItemCount - TaskItemCount;
-    while index < ItemCount do
-    begin
-      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
-      if Inst is TTaskItem then
-        if TTaskItem(Inst).RemoveWindow(hwnd) then break;
-      inc(index);
-    end;
-  except
-    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.DeleteEmptyTaskItems;
-var
-  index: integer;
-  Inst: TCustomItem;
-begin
-  try
+    // delete empty items and update not empty ones
     index := ItemCount - 1;
     while index >= ItemCount - TaskItemCount do
     begin
       Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
-        if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete;
+        if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete else TTaskItem(Inst).UpdateCaption;
       dec(index);
+    end;
+  except
+    on e: Exception do err('ItemManager.Taskbar', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.AddTaskWindow(HWndTask: THandle; LivePreviews, Grouping: boolean);
+var
+  index, found: integer;
+  HWndItem: THandle;
+  Inst: TCustomItem;
+begin
+  try
+    // search existing TaskItem for the given window
+    found := -1;
+    index := ItemCount - TaskItemCount;
+    while index < ItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      if Inst is TTaskItem then
+        if TTaskItem(Inst).WindowInList(HWndTask) then
+        begin
+          found := index;
+          break;
+        end;
+      inc(index);
+    end;
+
+    // if there is no item for the window - add a new one //
+    if found = -1 then
+    begin
+      SetDropPlace(NOT_AN_ITEM);
+      HWndItem := AddItem(TTaskItem.Make(Grouping, LivePreviews), true);
+      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
+    end;
+  except
+    on e: Exception do err('ItemManager.AddTaskWindow', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.RemoveTaskWindow(HWndTask: THandle);
+var
+  index: integer;
+  Inst: TCustomItem;
+begin
+  try
+    index := ItemCount - TaskItemCount;
+    while index < ItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      if Inst is TTaskItem then
+        if TTaskItem(Inst).RemoveWindow(HWndTask) then break;
+      inc(index);
     end;
   except
     on e: Exception do err('ItemManager.GetTaskItemIndex', e);
@@ -2176,7 +2135,6 @@ begin
       begin
         Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
         if Inst is TTaskItem then Inst.Delete;
-        if Inst is TSeparatorItem then if Inst.DontSave then Inst.Delete;
         dec(idx);
       end;
       TaskItemCount := 0;

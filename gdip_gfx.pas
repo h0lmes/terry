@@ -989,18 +989,21 @@ end;
 procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 var
   ico: HICON;
-  iIcon: word;
 begin
   try
     image := nil;
     if fileexists(appFile) then
     begin
       ico := GetIconFromFileSH(appFile);
-      if ico = 0 then ico := ExtractAssociatedIcon(hInstance, pchar(appFile), @iIcon);
       if ico <> 0 then
       begin
         image := IconToGdipBitmap(ico);
-        DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+        GdipGetImageWidth(image, srcwidth);
+        if srcwidth > 32 then DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true)
+        else begin
+          GdipDisposeImage(image);
+          image := nil;
+        end;
       end;
     end;
     if image = nil then LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);

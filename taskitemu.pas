@@ -30,6 +30,7 @@ type
     function IsEmpty: boolean;
     procedure UpdateTaskItem(hwnd: THandle);
     function RemoveWindow(hwnd: THandle): boolean;
+    procedure UpdateCaption;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -134,8 +135,12 @@ begin
     end;
   end;
 end;
-//if FAppList.Count = 1 then
-//        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+//------------------------------------------------------------------------------
+procedure TTaskItem.UpdateCaption;
+begin
+  if FAppList.Count = 1 then
+    Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItemInternal;
 var
@@ -317,7 +322,8 @@ begin
     if not button then
     begin
       if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
-        BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
+        BitmapReflection(bmp, xBitmap, yBitmap, FSize, FReflectionSize, FSite);
+      theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
     end;
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
 
