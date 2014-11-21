@@ -50,7 +50,7 @@ type
     FAnimate: boolean;
     FCloseButtonDownIndex: integer;
     FForegroundWindowIndex: integer;
-    FColor1, FColor2, FTextColor: cardinal;
+    FColor1, FColor2, FTextColor, FTextBackColor: cardinal;
     FCompositionEnabled: boolean;
     FFontFamily: string;
     FFontSize: integer;
@@ -335,7 +335,7 @@ begin
         if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000;
         if opaque then FColor2 := FColor2 or $ff000000;
         FTextColor := $ffffffff;
-        if ((FColor1 and $ff) div 3) + ((FColor1 shr 8 and $ff) div 3) + ((FColor1 shr 16 and $ff) div 3) > 160 then FTextColor := $ff000000;
+        FTextBackColor := $a0000000;
       end;
 
       // show the window
@@ -574,7 +574,7 @@ end;
 procedure TAeroPeekWindow.Paint;
 var
   bmp: _SimpleBitmap;
-  hgdip, brush, pen, path, shadow_path, family, font, format: Pointer;
+  hgdip, brush, brush2, pen, path, shadow_path, family, font, format: Pointer;
   titleRect: GDIPAPI.TRectF;
   rect: GDIPAPI.TRect;
   pt: GDIPAPI.TPoint;
@@ -595,7 +595,6 @@ begin
     if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
 
     //
@@ -669,9 +668,11 @@ begin
     Opts.fApplyOverlay := true;
     Opts.dwFlags := DTT_TEXTCOLOR or DTT_GLOWSIZE or DTT_APPLYOVERLAY or DTT_SHADOWTYPE;}
     //
+    GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAliasGridFit);
     GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
     GdipCreateFont(family, FFontSize, 0, 2, font);
-    GdipCreateSolidFill($ffffffff, brush);
+    GdipCreateSolidFill(FTextColor, brush);
+    GdipCreateSolidFill(FTextBackColor, brush2);
     GdipCreateStringFormat(0, 0, format);
     GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap or StringFormatFlagsNoFitBlackBox);
     GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
@@ -711,6 +712,26 @@ begin
         GetWindowTextW(items[index].hwnd, title, 255);
         //DrawThemeTextEx(ThemeData, bmp.dc, TEXT_BODYTITLE, 0, PWideChar(@title), -1, DT_END_ELLIPSIS, @items[index].rectTitle, @Opts);
         titleRect := WinRectToGDIPRectF(items[index].rectTitle);
+        if FCompositionEnabled then // title shadow
+        begin
+          titleRect.X -= 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.X += 1;
+          titleRect.Y -= 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.Y += 2;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.X += 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.Y -= 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.X += 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.Y += 1;
+          GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush2);
+          titleRect.X -= 2;
+          titleRect.Y -= 1;
+        end;
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
         // close button
         rect := WinRectToGDIPRect(items[index].rectClose);
@@ -718,6 +739,7 @@ begin
       end;
     GdipDeleteStringFormat(format);
     GdipDeleteBrush(brush);
+    GdipDeleteBrush(brush2);
     GdipDeleteFont(font);
     GdipDeleteFontFamily(family);
     //CloseThemeData(ThemeData);

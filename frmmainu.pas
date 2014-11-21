@@ -932,10 +932,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.UpdateRunning;
+var
+  parent: THandle;
 begin
   if not IsLockedMouseEffect then
   try
-    if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows;
+    parent := 0;
+    if sets.container.TaskbarSameMonitor then parent := Handle;
+    if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows(parent);
     if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
     if sets.container.Taskbar then ItemMgr.Taskbar(sets.container.TaskbarLivePreviews, sets.container.TaskbarGrouping);
   except

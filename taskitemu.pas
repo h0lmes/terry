@@ -18,19 +18,18 @@ type
     FIsOpen: boolean;
     FGrouping: boolean;
     FLivePreviews: boolean;
-    FScheduled: boolean;
-    FTaskbarSameMonitor: boolean;
     procedure UpdateImage;
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure CheckAppList;
     procedure Exec;
     procedure ClosePeekWindow(Timeout: cardinal = 0);
     procedure ShowPeekWindow(Timeout: cardinal = 0);
     procedure UpdatePeekWindow;
   public
     function WindowInList(hwnd: THandle): boolean;
+    function IsEmpty: boolean;
     procedure UpdateTaskItem(hwnd: THandle);
+    function RemoveWindow(hwnd: THandle): boolean;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -41,8 +40,9 @@ type
     procedure MouseHover(AHover: boolean); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    procedure Timer; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    //
+    class function Make(Grouping, LivePreviews: boolean): string;
   end;
 
 implementation
@@ -52,15 +52,11 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
-  FScheduled := false;
   FGrouping := true;
   try FGrouping := boolean(strtoint(FetchValue(AData, 'gr="', '";')));
   except end;
   FLivePreviews := true;
   try FLivePreviews := boolean(strtoint(FetchValue(AData, 'lp="', '";')));
-  except end;
-  FTaskbarSameMonitor := false;
-  try FTaskbarSameMonitor := boolean(strtoint(FetchValue(AData, 'sm="', '";')));
   except end;
   FProcName := '';
   FAppList := TFPList.Create;
@@ -84,13 +80,18 @@ begin
   result := FAppList.IndexOf(pointer(hwnd)) >= 0;
 end;
 //------------------------------------------------------------------------------
+function TTaskItem.IsEmpty: boolean;
+begin
+  result := FAppList.Count = 0;
+end;
+//------------------------------------------------------------------------------
 procedure TTaskItem.UpdateTaskItem(hwnd: THandle);
 var
   ProcName: string;
 begin
   if FFreed or (not FGrouping and (FAppList.Count > 0)) then exit;
 
-  if FAppList.Count = 0 then
+  if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
   begin
     FAppList.Add(pointer(hwnd));
     FProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
@@ -98,9 +99,14 @@ begin
     exit;
   end;
 
+  // try to get process executable path
+  if FProcName = '' then
+    FProcName := ProcessHelper.GetWindowProcessFullName(THandle(FAppList.Items[0]));
+
+  // if the window is already in this group - do nothing
   if FAppList.IndexOf(pointer(hwnd)) >= 0 then exit;
 
-  // if the window belong to the same process add the window to the list
+  // if the window belong to the same process - add the window to the list
   ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
   if ProcName <> '' then
     if ProcName = FProcName then
@@ -109,6 +115,27 @@ begin
       UpdateItemInternal;
     end;
 end;
+//------------------------------------------------------------------------------
+function TTaskItem.RemoveWindow(hwnd: THandle): boolean;
+var
+  index: integer;
+begin
+  result := false;
+  if FFreed then exit;
+
+  if FAppList.Count > 0 then
+  begin
+    index := FAppList.IndexOf(pointer(hwnd));
+    if index >= 0 then
+    begin
+      FAppList.Delete(index);
+      UpdateItemInternal;
+      result := true;
+    end;
+  end;
+end;
+//if FAppList.Count = 1 then
+//        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItemInternal;
 var
@@ -129,6 +156,7 @@ begin
       FUpdating:= false;
     end;
 
+    if FIsOpen then ShowPeekWindow; // update peek window
     Redraw;
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
@@ -165,7 +193,6 @@ begin
           else if FBigItemSize <= 256 then temp := 256;
           if temp <> FIW then UpdateItemInternal;
         end;
-      gpTaskbarSameMonitor: FTaskbarSameMonitor := boolean(param);
       gpMonitor: ClosePeekWindow(0);
       gpSite: ClosePeekWindow(0);
 
@@ -384,37 +411,6 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.Timer;
-begin
-  try
-    inherited;
-    if FFreed or FUpdating then exit;
-
-    if FScheduled then
-    begin
-      FScheduled := false;
-      // validate windows
-      CheckAppList;
-      if FAppList.Count = 0 then
-      begin
-        Delete;
-        exit;
-      end;
-      // update image
-      if not assigned(FImage) then
-      begin
-        UpdateImage;
-        Redraw;
-      end;
-      // update item caption
-      if FAppList.Count = 1 then
-        Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
-    end;
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Timer'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
 begin
   if FFreed then exit;
@@ -425,8 +421,6 @@ begin
   // WM_TIMER
   if msg.msg = WM_TIMER then
   begin
-    // GENERAL TIMER
-    if msg.wParam = ID_TIMER then FScheduled := true; // do in sync with main timer
     // "OPEN" TIMER
     if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
   end;
@@ -511,33 +505,15 @@ begin
   TAeroPeekWindow.SetPosition(pt.x, pt.y);
 end;
 //------------------------------------------------------------------------------
-// delete non-existing windows from the list
-procedure TTaskItem.CheckAppList;
-var
-  idx, old_count: integer;
-  hwnd: THandle;
+//
+//
+//
+//------------------------------------------------------------------------------
+class function TTaskItem.Make(Grouping, LivePreviews: boolean): string;
 begin
-  old_count := FAppList.Count;
-  if FAppList.Count > 0 then
-  begin
-    // try to get process executable path
-    if FProcName = '' then
-      FProcName := ProcessHelper.GetWindowProcessFullName(THandle(FAppList.Items[0]));
-    // check if any window does not exist any more or was moved to another monitor
-    for idx := FAppList.Count - 1 downto 0 do
-    begin
-      hwnd := THandle(FAppList.Items[idx]);
-      if ProcessHelper.GetAppWindowIndex(hwnd) < 0 then FAppList.Delete(idx);
-      if FTaskbarSameMonitor then
-        if not ProcessHelper.WindowsOnTheSameMonitor(hwnd, FHWndParent) then FAppList.Delete(idx);
-    end;
-  end;
-  // if changed - do update
-  if FAppList.Count <> old_count then
-  begin
-    if FIsOpen then ShowPeekWindow; // update peek window
-    Redraw;
-  end;
+  result := 'class="task";' +
+    'gr="' + inttostr(integer(Grouping)) + '";' +
+    'lp="' + inttostr(integer(LivePreviews)) + '";';
 end;
 //------------------------------------------------------------------------------
 end.

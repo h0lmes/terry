@@ -39,7 +39,6 @@ type
     UseShellContextMenus: boolean;
     ShowHint: boolean;
     StackOpenAnimation: boolean;
-    FTaskbarSameMonitor: boolean;
     FSeparatorAlpha: integer;
     FOccupyFullMonitor: boolean;
     FFont: _FontData;
@@ -84,7 +83,9 @@ type
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
-    function GetTaskItemIndex(hwnd: THandle): integer;
+    function GetTaskWindowItemIndex(hwnd: THandle): integer;
+    procedure RemoveTaskWindow(hwnd: THandle);
+    procedure DeleteEmptyTaskItems;
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
@@ -317,11 +318,6 @@ begin
       gpTaskbar:                if value = 0 then ClearTaskbar;
       gpTaskbarLivePreviews:    ClearTaskbar;
       gpTaskbarGrouping:        ClearTaskbar;
-      gpTaskbarSameMonitor:
-        begin
-          FTaskbarSameMonitor := value <> 0;
-          ClearTaskbar;
-        end;
       gpItemAnimation:          ItemAnimation := value;
       gpLaunchInterval:         LaunchInterval := value;
       gpActivateRunning:        ActivateRunning := value <> 0;
@@ -756,7 +752,7 @@ begin
       items[i].s := round(items[i].se);
 
       // icon position when not zooming //
-      itemPos := i * (ItemSize + ItemSpacing);
+      itemPos := ItemSpacing div 2 + i * (ItemSize + ItemSpacing);
       if BaseSite = bsBottom then
       begin
         items[i].y := MonitorRect.Bottom - items[i].s - FMargin + FWndOffset - FEdgeOffset;
@@ -2059,25 +2055,30 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Taskbar(LivePreviews, Grouping: boolean);
 var
-  idx: integer;
-  Inst: TCustomItem;
   index: integer;
+  Inst: TCustomItem;
+  found: integer;
   HWndTask, HWndItem: THandle;
   check: boolean;
 begin
   try
-    // add items //
-    idx := 0;
-    while idx < ProcessHelper.GetAppWindowsCount do
+    // remove deleted windows //
+    index := 0;
+    while index < ProcessHelper.GetAppWindowsDeletedCount do
     begin
-      HWndTask := ProcessHelper.GetAppWindowHandle(idx);
-      index := 0;
-      check := not FTaskbarSameMonitor;
-      if FTaskbarSameMonitor then
-        if ProcessHelper.WindowsOnTheSameMonitor(HWndTask, ParentHWnd) then check := true;
-      if check then index := GetTaskItemIndex(HWndTask);
+      HWndTask := ProcessHelper.GetAppWindowDeletedHandle(index);
+      RemoveTaskWindow(HWndTask);
+      inc(index);
+    end;
+
+    // add existing windows //
+    index := 0;
+    while index < ProcessHelper.GetAppWindowsCount do
+    begin
+      HWndTask := ProcessHelper.GetAppWindowHandle(index);
+      found := GetTaskWindowItemIndex(HWndTask);
       // there is no item for the window
-      if index = -1 then
+      if found = -1 then
       begin
         // if there is no task items yet - add separator
         if TaskItemCount = 0 then
@@ -2087,38 +2088,76 @@ begin
         end;
         // add task item at the end of list //
         SetDropPlace(NOT_AN_ITEM);
-        HWndItem := AddItem('class="task";' +
-          'gr="' + inttostr(integer(Grouping)) + '";' +
-          'lp="' + inttostr(integer(LivePreviews)) + '";' +
-          'sm="' + inttostr(integer(FTaskbarSameMonitor)) + '";', true);
+        HWndItem := AddItem(TTaskItem.Make(Grouping, LivePreviews), true);
         Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
         if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
       end;
-      inc(idx);
+      inc(index);
     end;
+
+    // cleanup
+    DeleteEmptyTaskItems;
   except
     on e: Exception do err('ItemManager.Taskbar', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetTaskItemIndex(hwnd: THandle): integer;
+function _ItemManager.GetTaskWindowItemIndex(hwnd: THandle): integer;
 var
-  idx: integer;
+  index: integer;
   Inst: TCustomItem;
 begin
   try
     result := -1;
-    idx := 0;
-    while idx < ItemCount do
+    index := ItemCount - TaskItemCount;
+    while index < ItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
         if TTaskItem(Inst).WindowInList(hwnd) then
         begin
-          result := idx;
+          result := index;
           break;
         end;
-      inc(idx);
+      inc(index);
+    end;
+  except
+    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.RemoveTaskWindow(hwnd: THandle);
+var
+  index: integer;
+  Inst: TCustomItem;
+begin
+  try
+    index := ItemCount - TaskItemCount;
+    while index < ItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      if Inst is TTaskItem then
+        if TTaskItem(Inst).RemoveWindow(hwnd) then break;
+      inc(index);
+    end;
+  except
+    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure _ItemManager.DeleteEmptyTaskItems;
+var
+  index: integer;
+  Inst: TCustomItem;
+begin
+  try
+    index := ItemCount - 1;
+    while index >= ItemCount - TaskItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      if Inst is TTaskItem then
+        if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete;
+      dec(index);
     end;
   except
     on e: Exception do err('ItemManager.GetTaskItemIndex', e);
