@@ -295,7 +295,7 @@ var
 begin
   if length(FCommand) > 0 then
   begin
-    b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
+    b := ProcessHelper.ProcessExists(UnzipPath(FCommand));
     if b <> FRunning then
     begin
       FRunning := b;

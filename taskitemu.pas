@@ -95,20 +95,20 @@ begin
   if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
   begin
     FAppList.Add(pointer(hwnd));
-    FProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
+    FProcName := ProcessHelper.GetWindowProcessName(hwnd);
     UpdateItemInternal;
     exit;
   end;
 
   // try to get process executable path
   if FProcName = '' then
-    FProcName := ProcessHelper.GetWindowProcessFullName(THandle(FAppList.Items[0]));
+    FProcName := ProcessHelper.GetWindowProcessName(THandle(FAppList.Items[0]));
 
   // if the window is already in this group - do nothing
   if FAppList.IndexOf(pointer(hwnd)) >= 0 then exit;
 
   // if the window belong to the same process - add the window to the list
-  ProcName := ProcessHelper.GetWindowProcessFullName(hwnd);
+  ProcName := ProcessHelper.GetWindowProcessName(hwnd);
   if ProcName <> '' then
     if ProcName = FProcName then
     begin
@@ -390,7 +390,11 @@ begin
         for idx := FAppList.Count - 1 downto 0 do
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
     $f002:
-        if FProcName <> '' then dockh.DockAddProgram(pchar(FProcName));
+        if FProcName <> '' then
+        begin
+          dockh.DockAddProgram(pchar(FProcName));
+          Delete;
+        end;
     $f003:
         if FProcName <> '' then ProcessHelper.Kill(FProcName);
     $f004..$f020: ;
@@ -445,6 +449,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);
 begin
+  // not saveable
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.ShowPeekWindow(Timeout: cardinal = 0);

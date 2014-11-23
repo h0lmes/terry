@@ -26,16 +26,11 @@ type
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
     queryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
     // processes //
+    function GetProcessPID(Name: string): dword;
+    function GetFullNameByPID_Internal(pid: uint): string;
+    function IsMDIWindow(h: THandle): boolean;
     procedure ActivateMDIWindow(h: THandle);
     procedure CloseMDIWindow(h: THandle);
-    function IndexOf(Name: string): integer;
-    function IndexOfFullName(Name: string): integer;
-    function IndexOfPID(pid: dword): integer;
-    function IndexOfPIDFullName(pid: dword): integer;
-    function GetName(index: integer): string;
-    function GetFullName(index: integer): string;
-    function GetFullNameByPID(pid: uint): string;
-    function IsMDIWindow(h: THandle): boolean;
   public
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
@@ -48,10 +43,9 @@ type
     // processes //
     procedure EnumProc;
     procedure Kill(Name: string);
-    function Exists(Name: string): boolean;
-    function FullNameExists(Name: string): boolean;
+    function ProcessExists(Name: string): boolean;
     function GetWindowProcessName(h: THandle): string;
-    function GetWindowProcessFullName(h: THandle): string;
+    procedure GetProcessWindows(Name: string; var AppList: TFPList);
     // windows //
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
@@ -65,8 +59,6 @@ type
     function GetAppWindowsDeletedCount: integer;
     function GetAppWindowHandle(index: integer): THandle;
     function GetAppWindowDeletedHandle(index: integer): THandle;
-    function GetAppWindowIndex(h: THandle): integer;
-    function GetWindowClassName(h: THandle): string;
     function WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
     // system //
     procedure SetSuspendState(Hibernate: boolean);
@@ -104,7 +96,8 @@ begin
 
   if IsWindowsVista then
   begin
-    hKernel32 := LoadLibrary('kernel32.dll');
+    hKernel32 := GetModuleHandle('KERNEL32.DLL');
+    if hKernel32 = 0 then hKernel32 := LoadLibrary('KERNEL32.DLL');
     if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
   end;
   hUser32 := GetModuleHandle('USER32.DLL');
@@ -164,12 +157,12 @@ begin
     begin
       listProcess.AddObject(AnsiLowerCase(lp.szExeFile), TObject(lp.th32ProcessID));
       if listProcessFullName.IndexOfObject(tobject(lp.th32ProcessID)) < 0 then
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID(lp.th32ProcessID)), TObject(lp.th32ProcessID));
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(lp.th32ProcessID)), TObject(lp.th32ProcessID));
       f := Process32Next(snap, lp);
     end;
     CloseHandle(snap);
 
-    // delete non-existing //
+    // delete non-existing processes from listProcessFullName //
     idx := listProcessFullName.Count - 1;
     while idx >= 0 do
     begin
@@ -181,82 +174,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.Kill(Name: string);
-var
-  hProc: HANDLE;
-  index: integer;
-  pid: DWORD;
-  full: boolean;
-begin
-  if not FReady then exit;
-  EnumProc;
-  Name := AnsiLowerCase(Name);
-  full := Name <> ExtractFilename(Name);
-  pid := 0;
-  if full then
-  begin
-    index := listProcessFullName.indexof(Name);
-    if index >= 0 then pid := dword(listProcessFullName.Objects[index]);
-    if pid = 0 then
-    begin
-      index := listProcess.indexof(ExtractFilename(Name));
-      if index >= 0 then pid := dword(listProcess.Objects[index]);
-    end;
-  end else
-  begin
-    index := listProcess.indexof(Name);
-    if index >= 0 then pid := dword(listProcess.Objects[index]);
-  end;
-  if pid <> 0 then
-  begin
-    hProc := OpenProcess(PROCESS_TERMINATE, true, pid);
-    TerminateProcess(hProc, 0);
-  end;
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.Exists(Name: string): boolean;
-begin
-  result := IndexOf(Name) >= 0;
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.FullNameExists(Name: string): boolean;
-begin
-  result := IndexOfFullName(AnsiLowerCase(Name)) >= 0;
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.IndexOf(Name: string): integer;
-begin
-  result := listProcess.IndexOf(AnsiLowerCase(Name));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.IndexOfFullName(Name: string): integer;
-begin
-  result := listProcessFullName.IndexOf(AnsiLowerCase(Name));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.IndexOfPID(pid: dword): integer;
-begin
-  result := listProcess.IndexOfObject(TObject(pid));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.IndexOfPIDFullName(pid: dword): integer;
-begin
-  result := listProcessFullName.IndexOfObject(TObject(pid));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetName(index: integer): string;
-begin
-  result := '';
-  if (index >= 0) and (index < listProcess.Count) then result := listProcess.strings[index];
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetFullName(index: integer): string;
-begin
-  result := '';
-  if (index >= 0) and (index < listProcessFullName.Count) then result := listProcessFullName.strings[index];
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetFullNameByPID(pid: uint): string;
+function TProcessHelper.GetFullNameByPID_Internal(pid: uint): string;
 var
   hProcess: HANDLE;
   size: dword;
@@ -283,6 +201,77 @@ begin
       end;
 
       CloseHandle(hProcess);
+  end;
+end;
+//------------------------------------------------------------------------------
+// kill a process by its name
+// name must be either a fully qualified pathname or just a filename.exe
+procedure TProcessHelper.Kill(Name: string);
+var
+  hProc: HANDLE;
+  pid: DWORD;
+begin
+  if not FReady then exit;
+  EnumProc;
+  pid := GetProcessPID(Name);
+  if pid <> 0 then
+  begin
+    hProc := OpenProcess(PROCESS_TERMINATE, true, pid);
+    TerminateProcess(hProc, 0);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TProcessHelper.ProcessExists(Name: string): boolean;
+begin
+  result := GetProcessPID(Name) <> 0;
+end;
+//------------------------------------------------------------------------------
+// get main window handles belonging to a specified process
+// name must be either a fully qualified pathname or just a filename.exe
+procedure TProcessHelper.GetProcessWindows(Name: string; var AppList: TFPList);
+var
+  index: integer;
+  wnd: THandle;
+  pid, wpid: DWORD;
+begin
+  if not FReady then exit;
+  AppList.Clear;
+  pid := GetProcessPID(Name);
+  if pid = 0 then exit;
+
+  index := 0;
+  while index < listAppWindows.count do
+  begin
+    wnd := THandle(listAppWindows.items[index]);
+    GetWindowThreadProcessId(wnd, @wpid);
+    if pid = wpid then AppList.Add(pointer(wnd));
+    inc(index);
+  end;
+end;
+//------------------------------------------------------------------------------
+// get PID (process identifier) by process name
+// name must be either a fully qualified pathname or just a filename.exe
+function TProcessHelper.GetProcessPID(Name: string): dword;
+var
+  index: integer;
+  fullyQualified: boolean;
+begin
+  Name := AnsiLowerCase(Name);
+  fullyQualified := Name <> ExtractFilename(Name);
+  result := 0;
+  if fullyQualified then
+  begin
+    index := listProcessFullName.indexof(Name);
+    if index >= 0 then result := dword(listProcessFullName.Objects[index]);
+    if result = 0 then
+    begin
+      index := listProcess.indexof(ExtractFilename(Name));
+      if index >= 0 then result := dword(listProcess.Objects[index]);
+    end;
+  end else
+  begin
+    index := listProcess.indexof(Name);
+    if index >= 0 then result := dword(listProcess.Objects[index]);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -493,14 +482,13 @@ var
   idx, cmd: integer;
   hMenu, menu_align: cardinal;
   wnd: THandle;
-  wtpid: dword;
   wlist: TFPList;
 begin
   result := false;
 
   EnumProc;
 
-  if FullNameExists(ProcessName) then
+  if ProcessExists(ProcessName) then
   begin
 
     EnumAppWindows;
@@ -509,8 +497,7 @@ begin
     while idx < listAppWindows.count do
     begin
       wnd := THandle(listAppWindows.items[idx]);
-      GetWindowThreadProcessId(wnd, @wtpid);
-      if GetFullName(IndexOfPIDFullName(wtpid)) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
+      if GetWindowProcessName(wnd) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
       inc(idx);
     end;
     result := wlist.Count > 0;
@@ -571,16 +558,6 @@ begin
   result := THandle(listAppWindowsDeleted.items[index]);
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowIndex(h: THandle): integer;
-begin
-  crsection.Acquire;
-  try
-    result := listAppWindows.IndexOf(pointer(h));
-  finally
-    crsection.Leave;
-  end;
-end;
-//------------------------------------------------------------------------------
 function TProcessHelper.WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
 begin
   result := MonitorFromWindow(h1, MONITOR_DEFAULTTOPRIMARY) = MonitorFromWindow(h2, MONITOR_DEFAULTTOPRIMARY);
@@ -588,27 +565,19 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetWindowProcessName(h: THandle): string;
 var
-  wtpid: dword;
+  pid: dword;
+  index: integer;
 begin
-  GetWindowThreadProcessId(h, @wtpid);
-  result := GetName(IndexOfPID(wtpid));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetWindowProcessFullName(h: THandle): string;
-var
-  wtpid: dword;
-begin
-  GetWindowThreadProcessId(h, @wtpid);
-  result := GetFullName(IndexOfPIDFullName(wtpid));
-  if result = '' then result := GetName(IndexOfPID(wtpid));
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetWindowClassName(h: THandle): string;
-var
-  cls: array [0..255] of char;
-begin
-  GetClassName(h, @cls, 255);
-  result := strpas(pchar(@cls));
+  GetWindowThreadProcessId(h, @pid);
+  result := '';
+  index := listProcessFullName.IndexOfObject(TObject(pid));
+  if index >= 0 then
+  begin
+    result := listProcessFullName.Strings[index];
+  end else begin
+    index := listProcess.IndexOfObject(TObject(pid));
+    if index >= 0 then result := listProcess.Strings[index];
+  end;
 end;
 //------------------------------------------------------------------------------
 //

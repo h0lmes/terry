@@ -15,8 +15,6 @@ type
   { TCustomItem }
 
   TCustomItem = class
-  private
-    function ExpandRect(r: windows.TRect; value: integer): windows.TRect;
   protected
     FFreed: boolean;
     FHWnd: uint;
@@ -75,6 +73,7 @@ type
     procedure SetCaption(value: string);
     procedure UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
     function GetRectFromSize(ASize: integer): windows.TRect;
+    function ExpandRect(r: windows.TRect; value: integer): windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
     procedure WindowProc(var message: TMessage);
@@ -108,6 +107,7 @@ type
     procedure Configure; virtual;
     function CanOpenFolder: boolean; virtual;
     procedure OpenFolder; virtual;
+    function RegisterProgram: string; virtual;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(szIni: pchar; szIniGroup: pchar); virtual; abstract;
 
@@ -385,6 +385,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.OpenFolder;
 begin
+end;
+//------------------------------------------------------------------------------
+function TCustomItem.RegisterProgram: string;
+begin
+  result := '';
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.SetCaption(value: string);

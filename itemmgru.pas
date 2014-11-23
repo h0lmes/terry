@@ -61,6 +61,8 @@ type
     FItemsArea2: windows.TRect;
     FMargin: integer; // dock icons offset from a monitor edge
     FMargin2: integer; // dock icons additional offset from a monitor edge
+    //
+    FRegisteredPrograms: TStrings;
 
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
@@ -222,6 +224,7 @@ begin
   FEdgeOffset := 0;
   FWndOffset := 0;
   itemsDeleted := TFPList.Create;
+  FRegisteredPrograms := TStringList.Create;
 end;
 //------------------------------------------------------------------------------
 destructor _ItemManager.Destroy;
@@ -230,6 +233,7 @@ begin
   Clear;
   ClearDeleted;
   itemsDeleted.Free;
+  FRegisteredPrograms.free;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -1075,7 +1079,7 @@ end;
 // in this case each one starting from the 2nd should be of shortcut class
 function _ItemManager.CreateItem(data: string): THandle;
 var
-  class_name: string;
+  class_name, str: string;
   Inst: TCustomItem;
   icp: _ItemCreateParams;
 begin
@@ -1114,7 +1118,16 @@ begin
 
   try
     if assigned(Inst) then
-      if Inst.Freed then FreeAndNil(Inst) else result := Inst.HWnd;
+      if Inst.Freed then // if something went wrong
+      begin
+        FreeAndNil(Inst);
+      end else // if everything is okay
+      begin
+        result := Inst.HWnd;
+        // add to registered programs list
+        str := Inst.RegisterProgram;
+        if str <> '' then FRegisteredPrograms.Add(AnsiLowerCase(str));
+      end;
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin'#10#13 + e.message);
   end;
@@ -1125,27 +1138,31 @@ end;
 // use TCustomItem.Delete instead
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
-  idx: integer;
+  index, rpIndex: integer;
   is_task: boolean;
   Inst: TCustomItem;
 begin
   if Enabled then
   try
-    idx := ItemIndex(HWnd);
+    index := ItemIndex(HWnd);
     is_task := IsTask(HWnd);
     // add to "deleted" list //
     itemsDeleted.Add(Pointer(HWnd));
+    // remove from registered programs list
+    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    rpIndex := FRegisteredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
+    if rpIndex >= 0 then FRegisteredPrograms.Delete(rpIndex);
 
-    if idx <> NOT_AN_ITEM then
+    if index <> NOT_AN_ITEM then
     begin
       // erase it from "items" list //
-      while idx < ItemCount - 1 do
+      while index < ItemCount - 1 do
       begin
-        items[idx].h := items[idx + 1].h;
-        items[idx].x := items[idx + 1].x;
-        items[idx].y := items[idx + 1].y;
-        items[idx].s := items[idx + 1].s;
-        inc(idx);
+        items[index].h := items[index + 1].h;
+        items[index].x := items[index + 1].x;
+        items[index].y := items[index + 1].y;
+        items[index].s := items[index + 1].s;
+        inc(index);
       end;
       // decrement item count
       dec(ItemCount);
@@ -2074,8 +2091,14 @@ var
   index, found: integer;
   HWndItem: THandle;
   Inst: TCustomItem;
+  str: string;
 begin
   try
+    // do not add registered programs, so check for it
+    str := AnsiLowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
+    index := FRegisteredPrograms.IndexOf(str);
+    if index >= 0 then exit;
+
     // search existing TaskItem for the given window
     found := -1;
     index := ItemCount - TaskItemCount;
@@ -2091,7 +2114,7 @@ begin
       inc(index);
     end;
 
-    // if there is no item for the window - add a new one //
+    // if there is no item for the window - add a new item //
     if found = -1 then
     begin
       SetDropPlace(NOT_AN_ITEM);

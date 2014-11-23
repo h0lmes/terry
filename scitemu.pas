@@ -4,7 +4,8 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu, processhlp;
+  IniFiles, GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
+  processhlp, aeropeeku;
 
 type
 
@@ -21,10 +22,13 @@ type
     FHide: boolean;
     FColorData: integer;
     FUseShellContextMenus: boolean;
+    FIsExecutable: boolean;
     FRunning: boolean;
     is_pidl: boolean;
     apidl: PItemIDList;
     LastMouseUp: cardinal;
+    FAppList: TFPList;
+    FIsOpen: boolean; // is PeekWindow open or not
     FBitBucket: boolean;
     FBitBucketFiles: integer;
     procedure UpdateItemI;
@@ -35,6 +39,9 @@ type
     procedure Exec;
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
+    procedure ClosePeekWindow(Timeout: cardinal = 0);
+    procedure ShowPeekWindow(Timeout: cardinal = 0);
+    procedure UpdatePeekWindow;
   public
     procedure UpdateItem(AData: string);
     //
@@ -46,11 +53,13 @@ type
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
+    procedure MouseHover(AHover: boolean); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
     procedure Configure; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
+    function RegisterProgram: string; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     //
@@ -76,6 +85,8 @@ begin
   FShowCmd:= 0;
   FHide:= false;
   FRunning:= false;
+  FAppList := TFPList.Create;
+  FIsOpen := false;
 
   UpdateItem(AData);
 end;
@@ -88,6 +99,7 @@ begin
   except end;
   try if is_pidl then PIDL_Free(apidl);
   except end;
+  FAppList.free;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -179,7 +191,11 @@ begin
         FCaption := sfi.szDisplayName;
       end;
 
-      // check if it is BITBUCKET //
+      // check if this is the shortcut to an executable file
+      FIsExecutable := false;
+      if not is_pidl then FIsExecutable := SameText(ExtractFileExt(FCommand), '.exe');
+
+      // check if this is a Recycle Bin //
       CheckIfBitBucket;
 
       // load appropriate image //
@@ -283,11 +299,14 @@ end;
 procedure TShortcutItem.UpdateItemRunningState;
 var
   b: boolean;
+  appCount: integer;
 begin
-  if length(FCommand) > 0 then
+  if FIsExecutable then
   begin
-    b := ProcessHelper.FullNameExists(UnzipPath(FCommand));
-    if b <> FRunning then
+    appCount := FAppList.Count;
+    ProcessHelper.GetProcessWindows(UnzipPath(FCommand), FAppList);
+    b := FAppList.Count > 0;
+    if (b <> FRunning) or (appCount <> FAppList.Count) then
     begin
       FRunning := b;
       Redraw;
@@ -348,11 +367,11 @@ end;
 procedure TShortcutItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
   bmp: _SimpleBitmap;
-  dst: Pointer;
-  hattr, brush: Pointer;
+  dst, hattr, brush, family, hfont, format, path: Pointer;
   xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
+  rect: GDIPAPI.TRectF;
   animation_offset_x, animation_offset_y, animation_size: integer;
   button: boolean;
 begin
@@ -392,6 +411,7 @@ begin
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
         else SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
         UpdateHint(xReal, yReal);
+        if FIsOpen then UpdatePeekWindow;
         exit;
       end else
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
@@ -399,6 +419,7 @@ begin
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
       UpdateHint(xReal, yReal);
+      if FIsOpen then UpdatePeekWindow;
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
@@ -500,6 +521,37 @@ begin
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
+
+    // draw windows count indicator
+    if assigned(FAppList) then
+      if FAppList.Count > 1 then
+      begin
+        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+        GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+        // background
+        rect.Width := FItemSize / 2;
+        rect.Height := FItemSize / 3;
+        rect.X := ItemRect.Right - rect.Width + 1;
+        rect.Y := ItemRect.Top - 1;
+        GdipCreatePath(FillModeWinding, path);
+        AddPathRoundRect(path, rect, rect.Height / 2);
+        GdipCreateSolidFill($ffff0000, brush);
+        GdipFillPath(dst, brush, path);
+        GdipDeleteBrush(brush);
+        GdipDeletePath(path);
+        // number
+        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+        GdipCreateFont(family, FItemSize div 4, 1, 2, hfont);
+        GdipCreateSolidFill($ffffffff, brush);
+        GdipCreateStringFormat(0, 0, format);
+        GdipSetStringFormatAlign(format, StringAlignmentCenter);
+        GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+        GdipDrawString(dst, PWideChar(WideString(inttostr(FAppList.Count))), -1, hfont, @rect, format, brush);
+        GdipDeleteStringFormat(format);
+        GdipDeleteBrush(brush);
+        GdipDeleteFont(hfont);
+        GdipDeleteFontFamily(family);
+      end;
 
     // drop indicator
     DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
@@ -636,11 +688,43 @@ begin
   begin
       Result := 0;
 
-      if (Msg = WM_TIMER) and (wParam = ID_TIMER_UPDATE_SHORTCUT) then
+      // WM_ACTIVATEAPP
+      if (msg = WM_ACTIVATEAPP) and (wParam = 0) then ClosePeekWindow;
+
+      // WM_TIMER
+      if msg = WM_TIMER then
       begin
-        if FBitBucket then BitBucketUpdate;
+        // "OPEN" TIMER
+        if wParam = ID_TIMER_OPEN then ShowPeekWindow;
+
+        // update bitbucket
+        if wParam = ID_TIMER_UPDATE_SHORTCUT then
+          if FBitBucket then BitBucketUpdate;
       end;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.MouseHover(AHover: boolean);
+var
+  appCount: integer;
+begin
+  appCount := FAppList.Count;
+
+  FHideHint := TAeroPeekWindow.IsActive and (appCount > 0);
+  inherited;
+  FHideHint := false;
+
+  if not FFreed and (appCount > 0) then
+    if AHover then
+    begin
+      if TAeroPeekWindow.IsActive then
+      begin
+        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
+      end
+      else ShowPeekWindow(800);
+    end else begin
+      ClosePeekWindow(800);
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Exec;
@@ -679,14 +763,87 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ActivateProcessMainWindow: boolean;
+var
+  pt: windows.TPoint;
 begin
-  try
-    result := false;
-    LME(true);
-    result := ProcessHelper.ActivateProcessMainWindow(UnzipPath(FCommand), FHWnd, ScreenRect, FSite);
-  finally
-    LME(false);
+  result := false;
+  if not FIsExecutable then exit;
+
+  ProcessHelper.EnumAppWindows;
+  ProcessHelper.GetProcessWindows(UnzipPath(FCommand), FAppList);
+  if FAppList.Count = 1 then
+  begin
+    result := true;
+    KillTimer(FHWnd, ID_TIMER_OPEN);
+    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
+  end else
+  if FAppList.Count > 1 then
+  begin
+    result := true;
+    if TAeroPeekWindow.IsActive then ClosePeekWindow else ShowPeekWindow;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.ShowPeekWindow(Timeout: cardinal = 0);
+var
+  pt: windows.TPoint;
+begin
+  if Timeout > 0 then
+  begin
+    SetTimer(FHWnd, ID_TIMER_OPEN, Timeout, nil);
+    exit;
+  end;
+
+  KillTimer(FHWnd, ID_TIMER_OPEN);
+
+  pt := GetScreenRect.TopLeft;
+  if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
+  if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
+  if FSite = 0 then inc(pt.x, FSize);
+  if FSite = 1 then inc(pt.y, FSize);
+  case FSite of
+    0: inc(pt.x, 10);
+    1: inc(pt.y, 10);
+    2: dec(pt.x, 10);
+    3: dec(pt.y, 10);
+  end;
+  FHideHint := true;
+  UpdateHint;
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, true {FLivePreviews});
+  FIsOpen := true;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.ClosePeekWindow(Timeout: cardinal = 0);
+begin
+  KillTimer(FHWnd, ID_TIMER_OPEN);
+  if FHideHint then
+  begin
+    FHideHint := false;
+    UpdateHint;
+  end;
+  if FIsOpen then
+  begin
+    FIsOpen := false;
+    TAeroPeekWindow.Close(Timeout);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.UpdatePeekWindow;
+var
+  pt: windows.TPoint;
+begin
+  pt := GetScreenRect.TopLeft;
+  if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
+  if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
+  if FSite = 0 then inc(pt.x, FSize);
+  if FSite = 1 then inc(pt.y, FSize);
+  case FSite of
+    0: inc(pt.x, 10);
+    1: inc(pt.y, 10);
+    2: dec(pt.x, 10);
+    3: dec(pt.y, 10);
+  end;
+  TAeroPeekWindow.SetPosition(pt.x, pt.y);
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.CanOpenFolder: boolean;
@@ -707,6 +864,12 @@ begin
   then _file := ExtractFilePath(toolu.FindFile(_file))
   else _file := ExtractFilePath(_file);
   DockExecute(FHWnd, pchar(_file), nil, nil, sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+function TShortcutItem.RegisterProgram: string;
+begin
+  result := toolu.UnzipPath(FCommand);
+  if not FileExists(result) then inherited;
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
