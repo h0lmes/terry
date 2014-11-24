@@ -30,7 +30,7 @@ begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;
   FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
-  FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
+  //FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
   UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------

@@ -65,6 +65,7 @@ type
     procedure TimerSlow;
     procedure TimerFSA;
     procedure TimerRoll;
+    procedure TimerDragLeave;
     procedure UpdateRunning;
     procedure UpdateRunningI;
     function IsHiddenDown: boolean;
@@ -848,7 +849,8 @@ begin
     if msg.WParam = ID_TIMER then TimerMain
     else if msg.WParam = ID_TIMER_SLOW then TimerSlow
     else if msg.WParam = ID_TIMER_FSA then TimerFSA
-    else if msg.WParam = ID_TIMER_ROLL then TimerRoll;
+    else if msg.WParam = ID_TIMER_ROLL then TimerRoll
+    else if msg.WParam = ID_TIMER_DRAGLEAVE then TimerDragLeave;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
@@ -1464,6 +1466,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: uint);
 begin
+  KillTimer(Handle, ID_TIMER_DRAGLEAVE);
   ItemMgr.DragEnter;
   BasePaint(1);
 end;
@@ -1475,6 +1478,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragLeave;
 begin
+  SetTimer(Handle, ID_TIMER_DRAGLEAVE, 1000, nil);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.TimerDragLeave;
+begin
+  KillTimer(Handle, ID_TIMER_DRAGLEAVE);
   ItemMgr.DragLeave;
   BasePaint(1);
 end;
@@ -1484,6 +1493,7 @@ var
   pt: Windows.TPoint;
 begin
   try
+    KillTimer(Handle, ID_TIMER_DRAGLEAVE);
     Windows.GetCursorPos(pt);
     if files.Count > 0 then
       if not ItemMgr.ItemDropFiles(hWnd, pt, files) then DropFiles(files);

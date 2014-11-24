@@ -12,9 +12,15 @@ const
 
 type
 
+  TOnMouseHover = procedure(param: boolean) of object;
+  TOnBeforeMouseHover = procedure(param: boolean) of object;
+  TOnBeforeUndock = procedure of object;
+
   { TCustomItem }
 
   TCustomItem = class
+  private
+    FHover: boolean;
   protected
     FFreed: boolean;
     FHWnd: uint;
@@ -48,7 +54,6 @@ type
     FHintVisible: boolean; // is hint currently visible?
     FMonitor: integer;
     FSite: integer;
-    FHover: boolean;
     FLockDragging: boolean;
     FLockMouseEffect: boolean;
     FItemSize: integer;
@@ -68,9 +73,14 @@ type
     FAnimationEnd: integer;
     FAnimationProgress: integer; // animation progress 0..FAnimationEnd
 
+    OnMouseHover: TOnMouseHover;
+    OnBeforeMouseHover: TOnBeforeMouseHover;
+    OnBeforeUndock: TOnBeforeUndock;
+
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
     procedure SetCaption(value: string);
+    procedure MouseHover(AHover: boolean);
     procedure UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
     function GetRectFromSize(ASize: integer): windows.TRect;
     function ExpandRect(r: windows.TRect; value: integer): windows.TRect;
@@ -99,7 +109,6 @@ type
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     procedure MouseHeld(button: TMouseButton); virtual;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
-    procedure MouseHover(AHover: boolean); virtual;
     procedure WndMessage(var msg: TMessage); virtual; abstract;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
     function cmd(id: TGParam; param: integer): integer; virtual;
@@ -363,14 +372,23 @@ end;
 procedure TCustomItem.MouseHeld(button: TMouseButton);
 begin
   cmd(icSelect, 0);
-  if button = mbLeft then cmd(icFloat, 1); // undock
+  if button = mbLeft then
+  begin
+    if assigned(OnBeforeUndock) then OnBeforeUndock;
+    cmd(icFloat, 1); // undock
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseHover(AHover: boolean);
 begin
-  FHover := AHover;
-  if not FHover then KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
-  UpdateHint;
+  if not FFreed then
+  begin
+    if assigned(OnBeforeMouseHover) then OnBeforeMouseHover(AHover);
+    FHover := AHover;
+    if not FHover then KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
+    UpdateHint;
+    if assigned(OnMouseHover) then OnMouseHover(FHover);
+  end;
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;

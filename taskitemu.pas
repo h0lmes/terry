@@ -18,8 +18,12 @@ type
     FIsOpen: boolean;
     FGrouping: boolean;
     FLivePreviews: boolean;
+    FIsExecutable: boolean;
+    procedure BeforeUndock;
     procedure UpdateImage;
     procedure UpdateItemInternal;
+    procedure BeforeMouseHover(AHover: boolean);
+    procedure MouseHover(AHover: boolean);
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure Exec;
     procedure ClosePeekWindow(Timeout: cardinal = 0);
@@ -38,7 +42,6 @@ type
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
-    procedure MouseHover(AHover: boolean); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
@@ -62,6 +65,9 @@ begin
   FProcName := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
+  OnBeforeMouseHover := BeforeMouseHover;
+  OnMouseHover := MouseHover;
+  OnBeforeUndock := BeforeUndock;
   SetTimer(FHWnd, ID_TIMER, 1000, nil);
 end;
 //------------------------------------------------------------------------------
@@ -356,18 +362,27 @@ begin
   UpdateItemInternal; // update item icon and text //
 end;
 //------------------------------------------------------------------------------
+procedure TTaskItem.BeforeUndock;
+begin
+  ClosePeekWindow;
+end;
+//------------------------------------------------------------------------------
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
 begin
   result := true;
 
+  // check if this is the shortcut to an executable file
+  FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
+
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING + ifthen(FProcName = '', MF_DISABLED, 0), $f003, pchar(UTF8ToAnsi(XKillProcess)));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
-  AppendMenu(FHMenu, MF_STRING + ifthen(FProcName = '', MF_DISABLED, 0), $f002, pchar(UTF8ToAnsi(XPinToDock)));
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   LME(true);
 
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -390,35 +405,34 @@ begin
         for idx := FAppList.Count - 1 downto 0 do
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
     $f002:
-        if FProcName <> '' then
+        if FIsExecutable then
         begin
           dockh.DockAddProgram(pchar(FProcName));
           Delete;
         end;
-    $f003:
-        if FProcName <> '' then ProcessHelper.Kill(FProcName);
+    $f003: if FIsExecutable then ProcessHelper.Kill(FProcName);
     $f004..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.MouseHover(AHover: boolean);
+procedure TTaskItem.BeforeMouseHover(AHover: boolean);
 begin
   FHideHint := TAeroPeekWindow.IsActive;
-  inherited;
-  FHideHint := false;
-
-  if not FFreed then
-    if AHover then
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.MouseHover(AHover: boolean);
+begin
+  if AHover then
+  begin
+    if TAeroPeekWindow.IsActive then
     begin
-      if TAeroPeekWindow.IsActive then
-      begin
-        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
-      end
-      else ShowPeekWindow(800);
-    end else begin
-      ClosePeekWindow(800);
-    end;
+      if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
+    end
+    else ShowPeekWindow(800);
+  end else begin
+    ClosePeekWindow(800);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);

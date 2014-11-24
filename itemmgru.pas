@@ -890,16 +890,17 @@ begin
         height := MonitorRect.Bottom - MonitorRect.Top;
       end else
       begin
-        if ItemCount = 0 then
+        if ItemCount > 0 then
+        begin
+          y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
+          height := FItemsArea.Top + FItemsArea2.Top + items[ItemCount - 1].y + items[ItemCount - 1].s - items[0].y +
+            ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
+        end
+        else
         begin
           height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
           y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
             FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
-        end
-        else
-        begin
-          y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
-          height := items[ItemCount - 1].y + items[ItemCount - 1].s - y - MonitorRect.Top + ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
         end;
       end;
 
@@ -916,17 +917,18 @@ begin
         width := MonitorRect.Right - MonitorRect.Left;
       end else
       begin
-        if ItemCount = 0 then
+        if ItemCount > 0 then
+        begin
+          x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
+          width := FItemsArea.Left + FItemsArea2.Left + items[ItemCount - 1].x + items[ItemCount - 1].s - items[0].x +
+            ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
+        end
+        else
         begin
           width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
           x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
             FItemsArea.Left - FItemsArea2.Left +
             (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - ItemSpacing) div 2;
-        end
-        else
-        begin
-          x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
-          width := items[ItemCount - 1].x + items[ItemCount - 1].s - x - MonitorRect.Left + ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
         end;
       end;
 

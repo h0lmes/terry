@@ -31,11 +31,14 @@ type
     FIsOpen: boolean; // is PeekWindow open or not
     FBitBucket: boolean;
     FBitBucketFiles: integer;
+    procedure BeforeUndock;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure LoadImageI;
     procedure CheckIfBitBucket;
     procedure BitBucketUpdate;
+    procedure BeforeMouseHover(AHover: boolean);
+    procedure MouseHover(AHover: boolean);
     procedure Exec;
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -53,7 +56,6 @@ type
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    procedure MouseHover(AHover: boolean); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
     procedure Configure; override;
@@ -87,6 +89,9 @@ begin
   FRunning:= false;
   FAppList := TFPList.Create;
   FIsOpen := false;
+  OnBeforeMouseHover := BeforeMouseHover;
+  OnMouseHover := MouseHover;
+  OnBeforeUndock := BeforeUndock;
 
   UpdateItem(AData);
 end;
@@ -619,6 +624,7 @@ begin
 
   if button = mbRight then
   begin
+    ClosePeekWindow;
     windows.GetCursorPos(pt);
     ContextMenu(pt);
   end;
@@ -628,6 +634,11 @@ procedure TShortcutItem.MouseHeld(button: TMouseButton);
 begin
   inherited;
   if button = mbRight then Configure;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.BeforeUndock;
+begin
+  ClosePeekWindow;
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ContextMenu(pt: Windows.TPoint): boolean;
@@ -704,17 +715,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.MouseHover(AHover: boolean);
-var
-  appCount: integer;
+procedure TShortcutItem.BeforeMouseHover(AHover: boolean);
 begin
-  appCount := FAppList.Count;
-
-  FHideHint := TAeroPeekWindow.IsActive and (appCount > 0);
-  inherited;
-  FHideHint := false;
-
-  if not FFreed and (appCount > 0) then
+  FHideHint := TAeroPeekWindow.IsActive and (FAppList.Count > 0);
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.MouseHover(AHover: boolean);
+begin
+  if FAppList.Count > 0 then
     if AHover then
     begin
       if TAeroPeekWindow.IsActive then
@@ -869,7 +877,7 @@ end;
 function TShortcutItem.RegisterProgram: string;
 begin
   result := toolu.UnzipPath(FCommand);
-  if not FileExists(result) then inherited;
+  if not FileExists(result) then result := '';
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
