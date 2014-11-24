@@ -140,7 +140,9 @@ begin
   d := Distort;
   result.s := ItemSize;
   result.alpha := round(255 * max(0, (progress - index / ItemCount) * 1 / (1 - index / ItemCount)));
-  result.hint_alpha := round(max(progress - 0.5, 0) * 510);
+  result.hint_alpha := 0;
+  if Progress = 1 then result.hint_alpha := 255;
+  //result.hint_alpha := round(max(progress - 0.5, 0) * 510);
   // one degree per step (per icon) //
   inc(index);
   x := (ItemSize + 4) * index * cos(progress * index / 360 * PI * d) * progress;
@@ -187,7 +189,9 @@ begin
   d := Distort;
   result.s := ItemSize;
   result.alpha := round(255 * max(0, (progress - index / ItemCount) * 1 / (1 - index / ItemCount)));
-  result.hint_alpha := round(max(progress - 0.5, 0) * 510);
+  result.hint_alpha := 0;
+  if Progress = 1 then result.hint_alpha := 255;
+  //result.hint_alpha := round(max(progress - 0.5, 0) * 510);
   // one degree per step (per icon) //
   inc(index);
   x := (ItemSize + 4) * index * cos(progress * index / 360 * PI * d) * progress;
@@ -294,9 +298,11 @@ begin
   result.angle := 0;
 
   s := 0.9 + (sin(progress * PI / 2) * 0.1);
-  result.alpha := round(255 * progress); //round(255 * s);
-  result.hint_alpha := round(510 * progress) - 255;
-  if result.hint_alpha < 0 then result.hint_alpha := 0;
+  result.alpha := round(255 * progress);
+  result.hint_alpha := 0;
+  if Progress = 1 then result.hint_alpha := 255;
+  //result.hint_alpha := round(510 * progress) - 255;
+  //if result.hint_alpha < 0 then result.hint_alpha := 0;
   result.hint_align := 0;
   d := Distort * 3;
   result.s := ItemSize;
@@ -464,10 +470,10 @@ begin
   x := Offset + d * ItemSize * 2.5 - ItemSize;
   if Opening then
   begin
-    y := (ItemSize + 3) * ((index - (ItemCount - 1) / 2)); //* (0.5 + d / 2) * sin(d * 1.3 * PI / 2) / sin(1.3 * PI / 2);
+    y := (ItemSize + 3) * ((index - (ItemCount - 1) / 2));
     result.s := round(ItemSize * d * sin(d * 1.3 * PI / 2) / sin(1.3 * PI / 2));
   end else begin
-    y := (ItemSize + 3) * ((index - (ItemCount - 1) / 2)); //* (0.5 + d / 2);
+    y := (ItemSize + 3) * ((index - (ItemCount - 1) / 2));
     result.s := round(ItemSize * d);
   end;
   result.angle := 0;

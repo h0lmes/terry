@@ -1175,7 +1175,6 @@ begin
   begin
     xyaa := mc.GetItemData(FMode, (FState = stsOpening) or (FState = stsOpen), idx, FStateProgress,
       FItemCount, FSite, FItemSize, FOffset + (FSize - FItemSize) div 2, FDistort);
-    //items[idx].draw := (items[idx].alpha > 0) or (xyaa.alpha > 0);
     items[idx].draw := true;
     items[idx].x := wr.left + xyaa.x;
     items[idx].y := wr.top + xyaa.y;

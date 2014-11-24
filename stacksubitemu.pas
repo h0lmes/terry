@@ -376,16 +376,16 @@ begin
     end;
 
     // draw icon //
-    CreateColorAttributes(FColorData, FSelected, hattr);
+    CreateColorAlphaAttributes(FColorData, AAlpha, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    if FRunning and (AAlpha > 10) then theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
+    if FRunning and (AAlpha > 127) then theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
     if AAngle > 0 then GdipResetWorldTransform(dst);
 
     // hint (caption) //
-    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 24) then
+    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
     begin
       if AHintAlign = 4 then
       begin
@@ -456,7 +456,7 @@ begin
     end;
 
     // update window content //
-    UpdateLWindow(FHWnd, bmp, AAlpha);
+    UpdateLWindow(FHWnd, bmp, 255);
 
     // cleanup //
     DeleteGraphics(dst);
