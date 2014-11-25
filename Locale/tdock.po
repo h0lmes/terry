@@ -592,7 +592,8 @@ msgstr ""
 msgid "Parameters"
 msgstr ""
 
-#: tfrmitemprop.lbltip1.caption
+#: tfrmitemprop.lbltip.caption
+msgctxt "TFRMITEMPROP.LBLTIP.CAPTION"
 msgid "Use semicolon to separate multiple commands and parameters"
 msgstr ""
 

@@ -430,6 +430,7 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Display off', '/displayoff', '', '', 'images\default\displayoff.png'));
       end;
+      // basic items //
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));

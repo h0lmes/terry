@@ -152,7 +152,7 @@ object frmItemProp: TfrmItemProp
         Caption = 'Hide Terry when application runs'
         TabOrder = 9
       end
-      object lblTip1: TLabel
+      object lblTip: TLabel
         Left = 115
         Height = 13
         Top = 263

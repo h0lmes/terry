@@ -280,14 +280,14 @@ begin
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
+      GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
+      GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
 
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;
 
       // draw the button
       button := theme.DrawButton(dst, xBitmap, yBitmap, FSize);
-      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;

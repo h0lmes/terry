@@ -142,7 +142,7 @@ var frmmain: Tfrmmain;
 
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
-  frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
+  frmStackPropu, frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
   frmtipu, multidocku;
 {$R *.lfm}
 {$R Resource\res.res}
@@ -1016,18 +1016,30 @@ begin
   else HideKeysPressed := false;
 end;
 //------------------------------------------------------------------------------
+// bring the dock along with all items to foreground
 procedure Tfrmmain.SetForeground;
 begin
   if closing then exit;
+  // set all items topmost and place the dock window right underneath
   SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  // set dock window not topmost
   SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  // set all items not topmost
   ItemMgr.ZOrder(HWND_NOTOPMOST);
+  // place all the items right underneath ZOrderWindow
   ItemMgr.ZOrder(ZOrderWindow);
 
+  // bring to foreground other application windows if exist
   if assigned(frmItemProp) then
   try
     SetWindowPos(frmItemProp.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
     SetWindowPos(frmItemProp.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  except
+  end;
+  if assigned(frmStackProp) then
+  try
+    SetWindowPos(frmStackProp.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(frmStackProp.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   except
   end;
   if assigned(frmSets) then
@@ -1044,6 +1056,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// its complicated. describe later ...
 procedure Tfrmmain.SetNotForeground;
 
 function IsDockWnd(wnd: uint): boolean;
@@ -1466,7 +1479,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: uint);
 begin
-  KillTimer(Handle, ID_TIMER_DRAGLEAVE);
+  KillTimer(Handle, ID_TIMER_DRAGLEAVE); // stop tracing mouse pointer
   ItemMgr.DragEnter;
   BasePaint(1);
 end;
@@ -1478,14 +1491,23 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragLeave;
 begin
-  SetTimer(Handle, ID_TIMER_DRAGLEAVE, 1000, nil);
+  // do not actually take OnDragLeave actions
+  // but start to trace mouse pointer
+  SetTimer(Handle, ID_TIMER_DRAGLEAVE, 200, nil);
 end;
 //------------------------------------------------------------------------------
+// trace mouse pointer until it actually leaves the dock area
 procedure Tfrmmain.TimerDragLeave;
+var
+  pt: windows.TPoint;
 begin
-  KillTimer(Handle, ID_TIMER_DRAGLEAVE);
-  ItemMgr.DragLeave;
-  BasePaint(1);
+  GetCursorPos(pt);
+  if not PtInRect(ItemMgr.GetRect, pt) then
+  begin
+    KillTimer(Handle, ID_TIMER_DRAGLEAVE);
+    ItemMgr.DragLeave;
+    BasePaint(1);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnDrop(files: TStrings; hWnd: uint);
@@ -1493,7 +1515,7 @@ var
   pt: Windows.TPoint;
 begin
   try
-    KillTimer(Handle, ID_TIMER_DRAGLEAVE);
+    KillTimer(Handle, ID_TIMER_DRAGLEAVE); // stop tracing mouse pointer
     Windows.GetCursorPos(pt);
     if files.Count > 0 then
       if not ItemMgr.ItemDropFiles(hWnd, pt, files) then DropFiles(files);
@@ -1907,19 +1929,19 @@ function RunThread(p: pointer): PtrInt;
 var
   Data: PRunData absolute p;
   params, dir: pchar;
-  handle: THandle;
+  hostHandle: THandle;
   notifyHost: boolean;
 begin
   notifyHost := Data.notifyHost;
-  handle := Data.handle;
+  hostHandle := Data.handle;
   params := nil;
   dir := nil;
   if pchar(@Data.params) <> '' then params := PChar(@Data.params);
   if pchar(@Data.dir) <> '' then dir := PChar(@Data.dir);
-  shellexecute(handle, nil, pchar(@Data.exename), params, dir, Data.showcmd);
+  shellexecute(hostHandle, nil, pchar(@Data.exename), params, dir, Data.showcmd);
   Dispose(Data);
   // request main form to close thread handle
-  if notifyHost then postmessage(handle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
+  if notifyHost then postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
 end;
 //------------------------------------------------------------------------------
 // creates a new thread to run a program

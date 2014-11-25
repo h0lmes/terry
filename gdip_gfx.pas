@@ -1006,14 +1006,13 @@ begin
         begin
           DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
           exit;
-        end else
-        begin
-          appImage := image;
-          image := nil;
         end;
       end;
     end;
-    if image = nil then LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);
+
+    appImage := image;
+    image := nil;
+    LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);
 
     if (srcwidth < imageWidth) and assigned(appImage) then
     begin
@@ -1040,9 +1039,9 @@ begin
 
   try
     if not IsWindow(h) then exit;
-    icon := THandle(0);
+    icon := 0;
     if MaxSize > 16 then SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, icon);
-    if icon = THandle(0) then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, icon);
+    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, icon);
     if icon = THandle(0) then icon := GetClassLongPtr(h, GCL_HICON);
     if (icon = THandle(0)) and default then icon := windows.LoadIcon(0, IDI_APPLICATION);
     if icon <> THandle(0) then

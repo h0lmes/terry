@@ -32,7 +32,7 @@ type
     edImage: TEdit;
     edParams: TEdit;
     iPic: TPaintBox;
-    lblTip1: TLabel;
+    lblTip: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -341,6 +341,7 @@ end;
 procedure TfrmItemProp.edCmdChange(Sender: TObject);
 begin
   FChanged := true;
+  btnConvertLink.Visible := SameText(ExtractFileExt(edCmd.Text), '.lnk');
   if edImage.text = '' then Draw;
 end;
 //------------------------------------------------------------------------------

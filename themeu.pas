@@ -593,8 +593,6 @@ begin
   result := false;
   if assigned(Button.Image) then
   begin
-    GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
-    GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
     gdip_gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
       rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
       Button.Margins, ssStretch, 255);
