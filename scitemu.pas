@@ -373,7 +373,7 @@ procedure TShortcutItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShow
 var
   bmp: _SimpleBitmap;
   dst, hattr, brush, family, hfont, format, path: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
+  xBitmap, yBitmap, tmpItemSize: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
   rect: GDIPAPI.TRectF;
@@ -448,12 +448,13 @@ begin
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
 
+      // draw the button
       button := false;
       if FRunning then
       begin
         button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
-        GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-        GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+        //GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+        //GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
       end;
 
       xBitmap := 0;
@@ -534,8 +535,9 @@ begin
         GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         // background
-        rect.Width := FItemSize / 2;
-        rect.Height := FItemSize / 3;
+        tmpItemSize := max(FItemSize, 40);
+        rect.Width := tmpItemSize / 2;
+        rect.Height := tmpItemSize / 3;
         rect.X := ItemRect.Right - rect.Width + 1;
         rect.Y := ItemRect.Top - 1;
         GdipCreatePath(FillModeWinding, path);
@@ -546,7 +548,7 @@ begin
         GdipDeletePath(path);
         // number
         GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-        GdipCreateFont(family, FItemSize div 4, 1, 2, hfont);
+        GdipCreateFont(family, tmpItemSize div 4, 1, 2, hfont);
         GdipCreateSolidFill($ffffffff, brush);
         GdipCreateStringFormat(0, 0, format);
         GdipSetStringFormatAlign(format, StringAlignmentCenter);

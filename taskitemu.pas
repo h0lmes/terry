@@ -108,7 +108,7 @@ begin
 
   // try to get process executable path
   if FProcName = '' then
-    FProcName := ProcessHelper.GetWindowProcessName(THandle(FAppList.Items[0]));
+    FProcName := ProcessHelper.GetWindowProcessName(THandle(FAppList.First));
 
   // if the window is already in this group - do nothing
   if FAppList.IndexOf(pointer(hwnd)) >= 0 then exit;
@@ -221,7 +221,7 @@ procedure TTaskItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem
 var
   bmp: _SimpleBitmap;
   dst, brush, family, hfont, format, path: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
+  xBitmap, yBitmap, tmpItemSize: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
   rect: GDIPAPI.TRectF;
@@ -284,6 +284,7 @@ begin
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;
 
+      // draw the button
       button := theme.DrawButton(dst, xBitmap, yBitmap, FSize);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
       GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
@@ -301,8 +302,9 @@ begin
         GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         // background
-        rect.Width := FItemSize / 2;
-        rect.Height := FItemSize / 3;
+        tmpItemSize := max(FItemSize, 40);
+        rect.Width := tmpItemSize / 2;
+        rect.Height := tmpItemSize / 3;
         rect.X := ItemRect.Right - rect.Width + 1;
         rect.Y := ItemRect.Top - 1;
         GdipCreatePath(FillModeWinding, path);
@@ -313,7 +315,7 @@ begin
         GdipDeletePath(path);
         // number
         GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-        GdipCreateFont(family, FItemSize div 4, 1, 2, hfont);
+        GdipCreateFont(family, tmpItemSize div 4, 1, 2, hfont);
         GdipCreateSolidFill($ffffffff, brush);
         GdipCreateStringFormat(0, 0, format);
         GdipSetStringFormatAlign(format, StringAlignmentCenter);

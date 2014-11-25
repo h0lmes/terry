@@ -376,7 +376,7 @@ begin
     end;
 
     // draw icon //
-    CreateColorAlphaAttributes(FColorData, AAlpha, FSelected, hattr);
+    CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
@@ -456,7 +456,7 @@ begin
     end;
 
     // update window content //
-    UpdateLWindow(FHWnd, bmp, 255);
+    UpdateLWindow(FHWnd, bmp, AAlpha);
 
     // cleanup //
     DeleteGraphics(dst);

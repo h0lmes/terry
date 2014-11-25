@@ -90,7 +90,6 @@ procedure CreateColorMatrix(color_data: integer; var clMatrix: ColorMatrix);
 procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
-procedure CreateColorAlphaAttributes(ColorData: cardinal; Alpha: integer; Selected: boolean; out attr: Pointer);
 function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload;
@@ -494,35 +493,6 @@ begin
     end;
   except
     on e: Exception do raise Exception.Create('CreateColorAttributes'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure CreateColorAlphaAttributes(ColorData: cardinal; Alpha: integer; Selected: boolean; out attr: Pointer);
-var
-  lMatrix, aMatrix: ColorMatrix;
-  brightness, tmpColorData: integer;
-begin
-  try
-    attr := nil;
-    tmpColorData := ColorData;
-    if Selected then
-    begin
-      brightness := max(byte(ColorData shr 16) - $10, 0);
-      tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
-    end;
-    if (tmpColorData <> DEFAULT_COLOR_DATA) or (Alpha < 255) then
-    begin
-      CreateColorMatrix(tmpColorData, lMatrix);
-      if Alpha < 255 then
-      begin
-        CreateAlphaMatrix(Alpha, aMatrix);
-        MultiplyMatrix(lMatrix, aMatrix);
-      end;
-      GdipCreateImageAttributes(attr);
-      GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
-    end;
-  except
-    on e: Exception do raise Exception.Create('CreateColorAlphaAttributes'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
