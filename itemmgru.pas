@@ -2080,7 +2080,7 @@ begin
     begin
       Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
-        if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete else TTaskItem(Inst).UpdateCaption;
+        if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete else TTaskItem(Inst).UpdateItem;
       dec(index);
     end;
   except

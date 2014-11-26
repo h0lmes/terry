@@ -34,7 +34,7 @@ type
     function IsEmpty: boolean;
     procedure UpdateTaskItem(hwnd: THandle);
     function RemoveWindow(hwnd: THandle): boolean;
-    procedure UpdateCaption;
+    procedure UpdateItem;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
@@ -142,10 +142,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.UpdateCaption;
+procedure TTaskItem.UpdateItem;
 begin
-  if FAppList.Count = 1 then
-    Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+  try
+    if FAppList.Count = 1 then
+      Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+    if not assigned(FImage) then UpdateImage;
+  except
+    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateItemInternal;
@@ -176,14 +181,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.UpdateImage;
 begin
-  try
-    if FAppList.Count > 0 then
-    begin
-      LoadAppImage(FProcName, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
-    end;
-  except
-    on e: Exception do raise Exception.Create('TaskItem.UpdateImage'#10#13 + e.message);
-  end;
+  if FAppList.Count > 0 then
+    LoadAppImage(FProcName, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
