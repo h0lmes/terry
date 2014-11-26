@@ -438,17 +438,11 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipSetCompositingMode(dst, CompositingModeSourceOver);
-      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
-      GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
-      GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       // draw the button
       button := false;
@@ -787,7 +781,7 @@ begin
   if FAppList.Count > 1 then
   begin
     result := true;
-    if TAeroPeekWindow.IsActive then ClosePeekWindow else ShowPeekWindow;
+    if not TAeroPeekWindow.IsActive then ShowPeekWindow;
   end;
 end;
 //------------------------------------------------------------------------------

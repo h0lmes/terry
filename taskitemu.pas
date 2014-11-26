@@ -271,17 +271,11 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipSetCompositingMode(dst, CompositingModeSourceOver);
-      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
-      GdipSetCompositingQuality(dst, CompositingQualityHighQuality);
-      GdipSetSmoothingMode(dst, SmoothingModeHighQuality);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;
@@ -362,6 +356,17 @@ begin
   end;
 
   UpdateItemInternal; // update item icon and text //
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.Exec;
+begin
+  if FAppList.Count = 1 then
+  begin
+    KillTimer(FHWnd, ID_TIMER_OPEN);
+    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
+  end;
+  if FAppList.Count > 1 then
+    if not TAeroPeekWindow.IsActive then ShowPeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.BeforeUndock;
@@ -450,17 +455,6 @@ begin
     // "OPEN" TIMER
     if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TTaskItem.Exec;
-begin
-  if FAppList.Count = 1 then
-  begin
-    KillTimer(FHWnd, ID_TIMER_OPEN);
-    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
-  end;
-  if FAppList.Count > 1 then
-    if TAeroPeekWindow.IsActive then ClosePeekWindow else ShowPeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);

@@ -436,15 +436,11 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipSetCompositingMode(dst, CompositingModeSourceOver);
-      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
       GdipDeleteBrush(brush);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       xBitmap := 0;
       yBitmap := 0;
@@ -458,7 +454,7 @@ begin
     CreateColorAttributes(FColorData, FSelected, hattr);
     if assigned(FImage) then
       GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if FSelected or (FColorData <> DEFAULT_COLOR_DATA) then GdipDisposeImageAttributes(hattr);
+    if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     if assigned(FPreviewImage) and (FState = stsClosed) then
       GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);

@@ -196,8 +196,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="themeu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="588"/>
-        <CursorPos X="1" Y="596"/>
+        <TopLine Value="550"/>
+        <CursorPos X="57" Y="573"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
@@ -215,7 +215,6 @@
         <Filename Value="gdip_gfx.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gdip_gfx"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1021"/>
@@ -237,7 +236,7 @@
         <Filename Value="toolu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolu"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="12"/>
         <WindowIndex Value="0"/>
         <TopLine Value="714"/>
         <CursorPos X="3" Y="744"/>
@@ -263,8 +262,8 @@
         <UnitName Value="scitemu"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="429"/>
-        <CursorPos X="1" Y="451"/>
+        <TopLine Value="749"/>
+        <CursorPos X="42" Y="784"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -304,8 +303,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="plgitemu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="221"/>
-        <CursorPos X="13" Y="254"/>
+        <TopLine Value="316"/>
+        <CursorPos X="1" Y="275"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
@@ -325,8 +324,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="sepitemu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="25"/>
-        <CursorPos X="5" Y="33"/>
+        <TopLine Value="109"/>
+        <CursorPos X="1" Y="168"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
@@ -420,8 +419,8 @@
         <UnitName Value="taskitemu"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="272"/>
-        <CursorPos X="1" Y="291"/>
+        <TopLine Value="336"/>
+        <CursorPos X="18" Y="363"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -571,8 +570,8 @@
         <UnitName Value="stackitemu"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="765"/>
-        <CursorPos X="51" Y="768"/>
+        <TopLine Value="426"/>
+        <CursorPos X="60" Y="457"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -596,8 +595,8 @@
         <UnitName Value="stacksubitemu"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="365"/>
-        <CursorPos X="79" Y="390"/>
+        <TopLine Value="341"/>
+        <CursorPos X="21" Y="355"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1057,13 +1056,16 @@
         <Filename Value="aeropeeku.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="aeropeeku"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="116"/>
-        <CursorPos X="59" Y="149"/>
+        <TopLine Value="312"/>
+        <CursorPos X="48" Y="330"/>
         <UsageCount Value="200"/>
         <Bookmarks Count="1">
-          <Item0 X="19" Y="714" ID="1"/>
+          <Item0 X="19" Y="712" ID="1"/>
         </Bookmarks>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit107>
       <Unit108>

@@ -146,7 +146,7 @@ begin
   FActive := false;
   FAnimate := true;
   FFontFamily := toolu.GetFont;
-  FFontSize := round(toolu.GetFontSize * 1.35);
+  FFontSize := round(toolu.GetFontSize * 1.45);
   FCloseButtonDownIndex := -1;
   FItemCount := 0;
 
@@ -320,24 +320,22 @@ begin
         Fy := FYTarget;
       end;
 
-      // update colors
+      // assign colors
       if not FActive then
       begin
-        if FCompositionEnabled then
-        begin
-          FColor1 := $50000000;
-          FColor2 := $10ffffff;
-        end else begin
-          FColor1 := $ff101010;
-          FColor2 := $ff808080;
-        end;
         dwm.GetColorizationColor(FColor1, opaque);
-        if not FCompositionEnabled or opaque then FColor1 := FColor1 or $ff000000
-        else begin
-          FColor1 := FColor1 and $ffffff;
-          FColor1 := FColor1 or $a0000000;
+        FColor1 := FColor1 and $ffffff or $a0000000;
+        FColor2 := $10ffffff;
+        if not FCompositionEnabled then
+        begin
+          FColor1 := $ff5d78a0;
+          FColor2 := $ff5d78a0;
         end;
-        if opaque then FColor2 := FColor2 or $ff000000;
+        if opaque then
+        begin
+          FColor1 := FColor1 or $ff000000;
+          FColor2 := FColor2 or $ff000000;
+        end;
         FTextColor := $ffffffff;
         if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > 128 then FTextColor := $ff000000;
       end;
@@ -374,7 +372,7 @@ begin
   // set primary params
   if FCompositionEnabled then
   begin
-    FBorderX := 26;
+    FBorderX := 24;
     FBorderY := 22;
     FShadow := 8;
     FIconSize := 16;
@@ -385,11 +383,11 @@ begin
     FRadius := 6;
     FSelectionRadius := 2;
   end else begin
-    FBorderX := 24;
-    FBorderY := 14;
+    FBorderX := 18;
+    FBorderY := 12;
     FShadow := 0;
     FIconSize := 16;
-    FTitleHeight := 24;
+    FTitleHeight := 22;
     FTitleSplit := 0;
     ItemSplit := 10;
     FCloseButtonSize := 17;
@@ -472,7 +470,7 @@ begin
           rect.Width := 0;
           rect.Height := 0;
           GdipMeasureString(hgdip, PWideChar(@title), -1, font, @rect, nil, @rect, nil, nil);
-          maxw := round(rect.Width) + 3 + FIconSize + 3 + FCloseButtonSize + 10;
+          maxw := round(rect.Width) + 3 + FIconSize + 3 + FCloseButtonSize + 3;
           if maxw > (FWorkArea.Right - FWorkArea.Left) div 2 then maxw := (FWorkArea.Right - FWorkArea.Left) div 2;
           if maxw > ThumbW then ThumbW := maxw;
         end;

@@ -350,15 +350,11 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       dst := CreateGraphics(bmp.dc, 0);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-      GdipSetCompositingMode(dst, CompositingModeSourceOver);
-      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(dst, InterpolationModeBilinear);
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
       GdipDeleteBrush(brush);
+      GdipSetInterpolationMode(dst, InterpolationModeBilinear);
 
       xBitmap := ItemRect.Left;
       yBitmap := ItemRect.Top;

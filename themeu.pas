@@ -352,14 +352,19 @@ begin
   end;
   FBlurRegionPointsCount := idx;
 
-  if FBlurRegionPointsCount = 3 then
+  if (FBlurRegionPointsCount = 2) or (FBlurRegionPointsCount = 3) then
   begin
     FBlurRect.Left := FBlurRegionPoints[0].x;
     FBlurRect.Top := FBlurRegionPoints[0].y;
     FBlurRect.Right := FBlurRegionPoints[1].x;
     FBlurRect.Bottom := FBlurRegionPoints[1].y;
-    FBlurR.cx := FBlurRegionPoints[2].x;
-    FBlurR.cy := FBlurRegionPoints[2].y;
+    FBlurR.cx := 0;
+    FBlurR.cy := 0;
+    if FBlurRegionPointsCount = 3 then
+    begin
+      FBlurR.cx := FBlurRegionPoints[2].x;
+      FBlurR.cy := FBlurRegionPoints[2].y;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -554,12 +559,10 @@ procedure _Theme.DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
 begin
   if assigned(Indicator.Image) then
   try
-    GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
-    GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
-
     if Site = 0 then
     begin
       Left -= Indicator.W div 2;
+      if FItemsArea.Top < 0 then Left += FItemsArea.Top + FItemsArea2.Top;
       Top += (Size - Indicator.H) div 2;
     end
     else
@@ -567,11 +570,13 @@ begin
     begin
       Left += (Size - Indicator.W) div 2;
       Top -= Indicator.H div 2;
+      if FItemsArea.Top < 0 then Top += FItemsArea.Top + FItemsArea2.Top;
     end
     else
     if Site = 2 then
     begin
       Left += Size - Indicator.W div 2;
+      if FItemsArea.Top < 0 then Left -= FItemsArea.Top + FItemsArea2.Top;
       Top += (Size - Indicator.H) div 2;
     end
     else
@@ -579,6 +584,7 @@ begin
     begin
       Left += (Size - Indicator.W) div 2;
       Top += Size - Indicator.H div 2;
+      if FItemsArea.Top < 0 then Top -= FItemsArea.Top + FItemsArea2.Top;
     end;
 
     GdipDrawImageRectRectI(dst, Indicator.Image, Left, Top, Indicator.W, Indicator.H,
@@ -602,7 +608,7 @@ end;
 //------------------------------------------------------------------------------
 function _Theme.BlurEnabled: boolean;
 begin
-  result := FBlurRegionPointsCount > 2;
+  result := FBlurRegionPointsCount > 1;
 end;
 //------------------------------------------------------------------------------
 function _Theme.GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
@@ -616,12 +622,18 @@ begin
   result := 0;
   if not BlurEnabled then exit;
 
+  if FBlurRegionPointsCount = 2 then
+  begin
+    ba := CorrectMargins(FBlurRect);
+    result := CreateRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom);
+  end else
   if FBlurRegionPointsCount = 3 then
   begin
     ba := CorrectMargins(FBlurRect);
     br := CorrectSize(FBlurR);
     result := CreateRoundRectRgn(r.x + ba.Left, r.y + ba.Top, r.x + r.Width - ba.Right, r.y + r.Height - ba.Bottom, br.cx, br.cy);
-  end else begin
+  end else
+  begin
     bm := CorrectMargins(Background.Margins);
     ba := CorrectMargins(FItemsArea);
     inc(bm.Left, ba.Left);
