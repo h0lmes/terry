@@ -447,6 +447,7 @@ begin
       // draw the button
       button := false;
       if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
+      FNCHitText := button;
 
       xBitmap := 0;
       yBitmap := 0;

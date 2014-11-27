@@ -41,6 +41,7 @@ type
     FDockingProgress: single;
     FCanDrag: boolean;
     FDontSave: boolean;
+    FNCHitText: boolean; // if true - HitTest returns true for non-client area
 
     FEnabled: boolean;
     FUpdating: boolean;
@@ -209,6 +210,7 @@ begin
   FyDocking := 0;
   need_dock := false;
   FDontSave := false;
+  FNCHitText := false;
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.cmd(id: TGParam; param: integer): integer;
@@ -503,12 +505,22 @@ end;
 //------------------------------------------------------------------------------
 function TCustomItem.HitTest(Ax, Ay: integer): boolean;
 begin
-  result := ptinrect(ExpandRect(GetClientRect, FBorder div 2), classes.Point(Ax, Ay));
+  if FNCHitText then
+  begin
+    result := true;
+    exit;
+  end;
+  result := ptinrect(GetClientRect, classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.ScreenHitTest(Ax, Ay: integer): boolean;
 begin
-  result := ptinrect(ExpandRect(GetScreenRect, FBorder div 2), classes.Point(Ax, Ay));
+  if FNCHitText then
+  begin
+    result := true;
+    exit;
+  end;
+  result := ptinrect(GetScreenRect, classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Animate(AAnimationType: integer);

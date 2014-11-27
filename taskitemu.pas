@@ -281,6 +281,7 @@ begin
 
       // draw the button
       button := theme.DrawButton(dst, xBitmap, yBitmap, FSize);
+      FNCHitText := button;
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;

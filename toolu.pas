@@ -8,6 +8,116 @@ uses Windows, jwaWindows, Messages, SysUtils, Variants, Classes,
 //function AddClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
 //function RemoveClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
 
+type
+  KNOWNFOLDERID = TGuid;
+  TSHGetKnownFolderPath = function(const rfid: KNOWNFOLDERID; dwFlags: DWord; hToken: THandle; var ppSzPath: LPWSTR) : HResult; stdcall;
+
+const
+  FOLDERID_AddNewPrograms: KNOWNFOLDERID = '{de61d971-5ebc-4f02-a3a9-6c82895e5c04}';
+  FOLDERID_AdminTools: KNOWNFOLDERID = '{724EF170-A42D-4FEF-9F26-B60E846FBA4F}';
+  FOLDERID_AppUpdates: KNOWNFOLDERID = '{a305ce99-f527-492b-8b1a-7e76fa98d6e4}';
+  FOLDERID_CDBurning: KNOWNFOLDERID = '{9E52AB10-F80D-49DF-ACB8-4330F5687855}';
+  FOLDERID_ChangeRemovePrograms: KNOWNFOLDERID = '{df7266ac-9274-4867-8d55-3bd661de872d}';
+  FOLDERID_CommonAdminTools: KNOWNFOLDERID = '{D0384E7D-BAC3-4797-8F14-CBA229B392B5}';
+  FOLDERID_CommonOEMLinks: KNOWNFOLDERID = '{C1BAE2D0-10DF-4334-BEDD-7AA20B227A9D}';
+  FOLDERID_CommonPrograms: KNOWNFOLDERID = '{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}';
+  FOLDERID_CommonStartMenu: KNOWNFOLDERID = '{A4115719-D62E-491D-AA7C-E74B8BE3B067}';
+  FOLDERID_CommonStartup: KNOWNFOLDERID = '{82A5EA35-D9CD-47C5-9629-E15D2F714E6E}';
+  FOLDERID_CommonTemplates: KNOWNFOLDERID = '{B94237E7-57AC-4347-9151-B08C6C32D1F7}';
+  FOLDERID_ComputerFolder: KNOWNFOLDERID = '{0AC0837C-BBF8-452A-850D-79D08E667CA7}';
+  FOLDERID_ConflictFolder: KNOWNFOLDERID = '{4bfefb45-347d-4006-a5be-ac0cb0567192}';
+  FOLDERID_ConnectionsFolder: KNOWNFOLDERID = '{6F0CD92B-2E97-45D1-88FF-B0D186B8DEDD}';
+  FOLDERID_Contacts: KNOWNFOLDERID = '{56784854-C6CB-462b-8169-88E350ACB882}';
+  FOLDERID_ControlPanelFolder: KNOWNFOLDERID = '{82A74AEB-AEB4-465C-A014-D097EE346D63}';
+  FOLDERID_Cookies: KNOWNFOLDERID = '{2B0F765D-C0E9-4171-908E-08A611B84FF6}';
+  FOLDERID_Desktop: KNOWNFOLDERID = '{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}';
+  FOLDERID_DeviceMetadataStore: KNOWNFOLDERID = '{5CE4A5E9-E4EB-479D-B89F-130C02886155}';
+  FOLDERID_Documents: KNOWNFOLDERID = '{FDD39AD0-238F-46AF-ADB4-6C85480369C7}';
+  FOLDERID_DocumentsLibrary: KNOWNFOLDERID = '{7B0DB17D-9CD2-4A93-9733-46CC89022E7C}';
+  FOLDERID_Downloads: KNOWNFOLDERID = '{374DE290-123F-4565-9164-39C4925E467B}';
+  FOLDERID_Favorites: KNOWNFOLDERID = '{1777F761-68AD-4D8A-87BD-30B759FA33DD}';
+  FOLDERID_Fonts : KNOWNFOLDERID ='{FD228CB7-AE11-4AE3-864C-16F3910AB8FE}';
+  FOLDERID_Games : KNOWNFOLDERID ='{CAC52C1A-B53D-4edc-92D7-6B2E8AC19434}';
+  FOLDERID_GameTasks : KNOWNFOLDERID ='{054FAE61-4DD8-4787-80B6-090220C4B700}';
+  FOLDERID_History : KNOWNFOLDERID ='{D9DC8A3B-B784-432E-A781-5A1130A75963}';
+  FOLDERID_HomeGroup : KNOWNFOLDERID ='{52528A6B-B9E3-4ADD-B60D-588C2DBA842D}';
+  FOLDERID_ImplicitAppShortcuts : KNOWNFOLDERID ='{BCB5256F-79F6-4CEE-B725-DC34E402FD46}';
+  FOLDERID_InternetCache : KNOWNFOLDERID ='{352481E8-33BE-4251-BA85-6007CAEDCF9D}';
+  FOLDERID_InternetFolder : KNOWNFOLDERID ='{4D9F7874-4E0C-4904-967B-40B0D20C3E4B}';
+  FOLDERID_Libraries : KNOWNFOLDERID ='{1B3EA5DC-B587-4786-B4EF-BD1DC332AEAE}';
+  FOLDERID_Links : KNOWNFOLDERID ='{bfb9d5e0-c6a9-404c-b2b2-ae6db6af4968}';
+  FOLDERID_LocalAppData : KNOWNFOLDERID ='{F1B32785-6FBA-4FCF-9D55-7B8E7F157091}';
+  FOLDERID_LocalAppDataLow : KNOWNFOLDERID ='{A520A1A4-1780-4FF6-BD18-167343C5AF16}';
+  FOLDERID_LocalizedResourcesDir : KNOWNFOLDERID ='{2A00375E-224C-49DE-B8D1-440DF7EF3DDC}';
+  FOLDERID_Music : KNOWNFOLDERID ='{4BD8D571-6D19-48D3-BE97-422220080E43}';
+  FOLDERID_MusicLibrary : KNOWNFOLDERID ='{2112AB0A-C86A-4FFE-A368-0DE96E47012E}';
+  FOLDERID_NetHood : KNOWNFOLDERID ='{C5ABBF53-E17F-4121-8900-86626FC2C973}';
+  FOLDERID_NetworkFolder : KNOWNFOLDERID ='{D20BEEC4-5CA8-4905-AE3B-BF251EA09B53}';
+  FOLDERID_OriginalImages : KNOWNFOLDERID ='{2C36C0AA-5812-4b87-BFD0-4CD0DFB19B39}';
+  FOLDERID_PhotoAlbums : KNOWNFOLDERID ='{69D2CF90-FC33-4FB7-9A0C-EBB0F0FCB43C}';
+  FOLDERID_PicturesLibrary : KNOWNFOLDERID ='{A990AE9F-A03B-4E80-94BC-9912D7504104}';
+  FOLDERID_Pictures : KNOWNFOLDERID ='{33E28130-4E1E-4676-835A-98395C3BC3BB}';
+  FOLDERID_Playlists : KNOWNFOLDERID ='{DE92C1C7-837F-4F69-A3BB-86E631204A23}';
+  FOLDERID_PrintersFolder : KNOWNFOLDERID ='{76FC4E2D-D6AD-4519-A663-37BD56068185}';
+  FOLDERID_PrintHood : KNOWNFOLDERID ='{9274BD8D-CFD1-41C3-B35E-B13F55A758F4}';
+  FOLDERID_Profile : KNOWNFOLDERID ='{5E6C858F-0E22-4760-9AFE-EA3317B67173}';
+  FOLDERID_ProgramData : KNOWNFOLDERID ='{62AB5D82-FDC1-4DC3-A9DD-070D1D495D97}';
+  FOLDERID_ProgramFiles: KNOWNFOLDERID ='{905e63b6-c1bf-494e-b29c-65b732d3d21a}';
+  FOLDERID_ProgramFilesX64: KNOWNFOLDERID ='{6D809377-6AF0-444b-8957-A3773F02200E}';
+  FOLDERID_ProgramFilesX86: KNOWNFOLDERID ='{7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E}';
+  FOLDERID_ProgramFilesCommon: KNOWNFOLDERID ='{F7F1ED05-9F6D-47A2-AAAE-29D317C6F066}';
+  FOLDERID_ProgramFilesCommonX64: KNOWNFOLDERID ='{6365D5A7-0F0D-45E5-87F6-0DA56B6A4F7D}';
+  FOLDERID_ProgramFilesCommonX86: KNOWNFOLDERID ='{DE974D24-D9C6-4D3E-BF91-F4455120B917}';
+  FOLDERID_Programs : KNOWNFOLDERID ='{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}';
+  FOLDERID_Public : KNOWNFOLDERID ='{DFDF76A2-C82A-4D63-906A-5644AC457385}';
+  FOLDERID_PublicDesktop : KNOWNFOLDERID ='{C4AA340D-F20F-4863-AFEF-F87EF2E6BA25}';
+  FOLDERID_PublicDocuments : KNOWNFOLDERID ='{ED4824AF-DCE4-45A8-81E2-FC7965083634}';
+  FOLDERID_PublicDownloads : KNOWNFOLDERID ='{3D644C9B-1FB8-4f30-9B45-F670235F79C0}';
+  FOLDERID_PublicGameTasks : KNOWNFOLDERID ='{DEBF2536-E1A8-4c59-B6A2-414586476AEA}';
+  FOLDERID_PublicLibraries : KNOWNFOLDERID ='{48DAF80B-E6CF-4F4E-B800-0E69D84EE384}';
+  FOLDERID_PublicMusic : KNOWNFOLDERID ='{3214FAB5-9757-4298-BB61-92A9DEAA44FF}';
+  FOLDERID_PublicPictures : KNOWNFOLDERID ='{B6EBFB86-6907-413C-9AF7-4FC2ABF07CC5}';
+  FOLDERID_PublicRingtones : KNOWNFOLDERID ='{E555AB60-153B-4D17-9F04-A5FE99FC15EC}';
+  FOLDERID_PublicVideos : KNOWNFOLDERID ='{2400183A-6185-49FB-A2D8-4A392A602BA3}';
+  FOLDERID_QuickLaunch : KNOWNFOLDERID ='{52a4f021-7b75-48a9-9f6b-4b87a210bc8f}';
+  FOLDERID_Recent : KNOWNFOLDERID ='{AE50C081-EBD2-438A-8655-8A092E34987A}';
+  FOLDERID_RecordedTVLibrary : KNOWNFOLDERID ='{1A6FDBA2-F42D-4358-A798-B74D745926C5}';
+  FOLDERID_RecycleBinFolder : KNOWNFOLDERID ='{B7534046-3ECB-4C18-BE4E-64CD4CB7D6AC}';
+  FOLDERID_ResourceDir : KNOWNFOLDERID ='{8AD10C31-2ADB-4296-A8F7-E4701232C972}';
+  FOLDERID_Ringtones : KNOWNFOLDERID ='{C870044B-F49E-4126-A9C3-B52A1FF411E8}';
+  FOLDERID_RoamingAppData : KNOWNFOLDERID ='{3EB685DB-65F9-4CF6-A03A-E3EF65729F3D}';
+  FOLDERID_SampleMusic : KNOWNFOLDERID ='{B250C668-F57D-4EE1-A63C-290EE7D1AA1F}';
+  FOLDERID_SamplePictures : KNOWNFOLDERID ='{C4900540-2379-4C75-844B-64E6FAF8716B}';
+  FOLDERID_SamplePlaylists : KNOWNFOLDERID ='{15CA69B3-30EE-49C1-ACE1-6B5EC372AFB5}';
+  FOLDERID_SampleVideos : KNOWNFOLDERID ='{859EAD94-2E85-48AD-A71A-0969CB56A6CD}';
+  FOLDERID_SavedGames : KNOWNFOLDERID ='{4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4}';
+  FOLDERID_SavedSearches : KNOWNFOLDERID ='{7d1d3a04-debb-4115-95cf-2f29da2920da}';
+  FOLDERID_SEARCH_CSC : KNOWNFOLDERID ='{ee32e446-31ca-4aba-814f-a5ebd2fd6d5e}';
+  FOLDERID_SEARCH_MAPI : KNOWNFOLDERID ='{98ec0e18-2098-4d44-8644-66979315a281}';
+  FOLDERID_SearchHome : KNOWNFOLDERID ='{190337d1-b8ca-4121-a639-6d472d16972a}';
+  FOLDERID_SendTo : KNOWNFOLDERID ='{8983036C-27C0-404B-8F08-102D10DCFD74}';
+  FOLDERID_SidebarDefaultParts : KNOWNFOLDERID ='{7B396E54-9EC5-4300-BE0A-2482EBAE1A26}';
+  FOLDERID_SidebarParts : KNOWNFOLDERID ='{A75D362E-50FC-4fb7-AC2C-A8BEAA314493}';
+  FOLDERID_StartMenu : KNOWNFOLDERID ='{625B53C3-AB48-4EC1-BA1F-A1EF4146FC19}';
+  FOLDERID_Startup : KNOWNFOLDERID ='{B97D20BB-F46A-4C97-BA10-5E3608430854}';
+  FOLDERID_SyncManagerFolder : KNOWNFOLDERID ='{43668BF8-C14E-49B2-97C9-747784D784B7}';
+  FOLDERID_SyncResultsFolder : KNOWNFOLDERID ='{289a9a43-be44-4057-a41b-587a76d7e7f9}';
+  FOLDERID_SyncSetupFolder : KNOWNFOLDERID ='{0F214138-B1D3-4a90-BBA9-27CBC0C5389A}';
+  FOLDERID_System : KNOWNFOLDERID ='{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}';
+  FOLDERID_SystemX86 : KNOWNFOLDERID ='{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}';
+  FOLDERID_Templates : KNOWNFOLDERID ='{A63293E8-664E-48DB-A079-DF759E0509F7}';
+  FOLDERID_UserPinned : KNOWNFOLDERID ='{9E3995AB-1F9C-4F13-B827-48B24B6C7174}';
+  FOLDERID_UserProfiles : KNOWNFOLDERID ='{0762D272-C50A-4BB0-A382-697DCD729B80}';
+  FOLDERID_UserProgramFiles : KNOWNFOLDERID ='{5CD7AEE2-2219-4A67-B85D-6C9CE15660CB}';
+  FOLDERID_UserProgramFilesCommon : KNOWNFOLDERID ='{BCBD3057-CA5C-4622-B42D-BC56DB0AE516}';
+  FOLDERID_UsersFiles : KNOWNFOLDERID ='{f3ce0f7c-4901-4acc-8648-d5d44b04ef8f}';
+  FOLDERID_UsersLibraries : KNOWNFOLDERID ='{A302545D-DEFF-464b-ABE8-61C8648D939B}';
+  FOLDERID_Videos : KNOWNFOLDERID ='{18989B1D-99B5-455B-841C-AB7C74E4DDFC}';
+  FOLDERID_VideosLibrary : KNOWNFOLDERID ='{491E922F-5643-4AF4-A7EB-4E7A138D8174}';
+  FOLDERID_Windows : KNOWNFOLDERID ='{F38BF404-1D43-42F2-9305-67DE0B28FC23}';
+  KF_FLAG_NO_ALIAS = $1000;
+  KF_FLAG_NO_APPCONTAINER_REDIRECTION = $10000;
+
 function IsWindowsVista: boolean;
 function IsWin64: boolean;
 function GetFont: string;
@@ -52,6 +162,7 @@ function ZipPath(path: string): string;
 function GetSystemDir: string;
 function GetWinDir: string;
 function GetSystemPath(path: string): string;
+function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
 procedure ResolveShortcut(wnd: HWND; var ShortcutPath: string; out params, dir, icon: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -67,6 +178,9 @@ function wacmd(cmd: cardinal): boolean;
 procedure AddLog(LogString: string);
 procedure TruncLog(fs: TFileStream);
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
+
+var
+  ShGetKnownFolderPath: TShGetKnownFolderPath;
 
 implementation
 //------------------------------------------------------------------------------
@@ -690,11 +804,20 @@ begin
   Result := ReplaceEx(Result, '%pp%', pp);
   Result := ReplaceEx(Result, '%windir%', windir);
   Result := ReplaceEx(Result, '%systemroot%', windir);
-  Result := ReplaceEx(Result, '%sysdir%', getsystemdir);
-  Result := ReplaceEx(Result, '%doc%', getsystempath('personal'));
-  Result := ReplaceEx(Result, '%desktop%', getsystempath('desktop'));
-  Result := ReplaceEx(Result, '%startmenu%', getsystempath('start menu'));
-  Result := ReplaceEx(Result, '%commonstartmenu%', getsystempath('common start menu'));
+  if pos('%sysdir%', Result) > 0 then Result := ReplaceEx(Result, '%sysdir%', getsystemdir);
+  if IsWindowsVista then
+  begin
+    if pos('%doc%', Result) > 0 then Result := ReplaceEx(Result, '%doc%', getKnownPath(FOLDERID_Documents));
+    if pos('%appdata%', Result) > 0 then Result := ReplaceEx(Result, '%appdata%', getKnownPath(FOLDERID_RoamingAppData));
+    if pos('%recent%', Result) > 0 then Result := ReplaceEx(Result, '%recent%', getKnownPath(FOLDERID_Recent));
+    if pos('%desktop%', Result) > 0 then Result := ReplaceEx(Result, '%desktop%', getKnownPath(FOLDERID_Desktop));
+    if pos('%userpinned%', Result) > 0 then Result := ReplaceEx(Result, '%userpinned%', getKnownPath(FOLDERID_UserPinned));
+    if pos('%startmenu%', Result) > 0 then Result := ReplaceEx(Result, '%startmenu%', getKnownPath(FOLDERID_StartMenu));
+    if pos('%commonstartmenu%', Result) > 0 then Result := ReplaceEx(Result, '%commonstartmenu%', getKnownPath(FOLDERID_CommonStartMenu));
+  end else begin
+    if pos('%doc%', Result) > 0 then Result := ReplaceEx(Result, '%doc%', GetSystemPath('personal'));
+    if pos('%desktop%', Result) > 0 then Result := ReplaceEx(Result, '%desktop%', GetSystemPath('desktop'));
+  end;
   Result := ReplaceEx(Result, '%pfx86%', windir[1] + ':\Program Files (x86)');
   Result := ReplaceEx(Result, '%pf%', windir[1] + ':\Program Files');
   Result := ReplaceEx(Result, '%programfiles%', windir[1] + ':\Program Files');
@@ -712,10 +835,15 @@ begin
   path := ReplaceEx(path, IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))), '');
   path := ReplaceEx(path, getsystemdir, '%sysdir%');
   path := ReplaceEx(path, windir, '%windir%');
-  path := ReplaceEx(path, getsystempath('personal'), '%doc%');
-  path := ReplaceEx(path, getsystempath('desktop'), '%desktop%');
-  path := ReplaceEx(path, getsystempath('start menu'), '%startmenu%');
-  path := ReplaceEx(path, getsystempath('common start menu'), '%commonstartmenu%');
+  if IsWindowsVista then
+  begin
+    path := ReplaceEx(path, getKnownPath(FOLDERID_Documents), '%doc%');
+    path := ReplaceEx(path, getKnownPath(FOLDERID_Desktop), '%desktop%');
+    path := ReplaceEx(path, getKnownPath(FOLDERID_RoamingAppData), '%appdata%');
+  end else begin
+    path := ReplaceEx(path, GetSystemPath('personal'), '%doc%');
+    path := ReplaceEx(path, GetSystemPath('desktop'), '%desktop%');
+  end;
   path := ReplaceEx(path, windir[1] + ':\program files (x86)', '%pfx86%');
   path := ReplaceEx(path, windir[1] + ':\program files', '%pf%');
   Result := path;
@@ -745,6 +873,30 @@ begin
   if pos('common', path) > 0 then reg.RootKey := hkey_local_machine else reg.RootKey := hkey_current_user;
   Result := ExcludeTrailingPathDelimiter(reg.ReadString('Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', path, ''));
   reg.Free;
+end;
+//------------------------------------------------------------------------------
+function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
+var
+  hShell32: HMODULE;
+  buffer: LPWSTR;
+begin
+  result := '';
+  if not assigned(ShGetKnownFolderPath) then
+  begin
+    hShell32 := GetModuleHandle('shell32.dll');
+    if hShell32 <> 0 then
+      @ShGetKnownFolderPath := GetProcAddress(hShell32, 'SHGetKnownFolderPath');
+  end;
+  if assigned(ShGetKnownFolderPath) then
+  begin
+    buffer := nil;
+    if S_OK = ShGetKnownFolderPath(rfid, 0, 0, buffer) then
+    begin
+      try result := buffer;
+      finally CoTaskMemFree(buffer);
+      end;
+    end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
