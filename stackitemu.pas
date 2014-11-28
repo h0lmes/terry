@@ -263,7 +263,7 @@ begin
     try
       FUpdating := true;
       // load images from files //
-      LoadImage(FImageFile, FBigItemSize, false, false, FImage, FIW, FIH);
+      LoadImage(UnzipPath(FImageFile), FBigItemSize, false, false, FImage, FIW, FIH);
       // default stack image //
       if FImage = nil then
       begin

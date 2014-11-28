@@ -224,14 +224,14 @@ begin
   if FImageFile <> '' then // if custom image set
   begin
     if (FImageFile2 <> '') and (FBitBucketFiles > 0) then // if bitbucket is full and appropriate image exists
-       LoadImage(FImageFile2, FBigItemSize, false, true, FImage, FIW, FIH)
+       LoadImage(UnzipPath(FImageFile2), FBigItemSize, false, true, FImage, FIW, FIH)
     else // if not a bitbucket or it is empty or no image for full bitbucket
-      LoadImage(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
+      LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
   end
   else // if no custom image
   begin
     if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
-    else LoadImage(FCommand, FBigItemSize, false, true, FImage, FIW, FIH);
+    else LoadImage(UnzipPath(FCommand), FBigItemSize, false, true, FImage, FIW, FIH);
   end;
 end;
 //------------------------------------------------------------------------------

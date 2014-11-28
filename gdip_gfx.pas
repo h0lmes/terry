@@ -2,18 +2,17 @@ unit gdip_gfx;
 
 interface
 
-uses Windows, Classes, SysUtils, Graphics, ShlObj, ShellAPI, PIDL, ActiveX,
-  CommCtrl, GDIPAPI, declu, toolu, dockh;
+uses Windows, Classes, SysUtils, ShellAPI, ActiveX, CommCtrl, GDIPAPI, declu;
 
 const
-  HLSMAX = 240;
-  RGBMAX = 255;
+  HLSMAX    = 240;
+  RGBMAX    = 255;
   UNDEFINED = (HLSMAX * 2) div 3;
-  DEFAULT_COLOR_DATA = $3c803c00; // contrast, brightness, saturation, color_offset //
+  DEFAULT_COLOR_DATA   = $3c803c00; // contrast, brightness, saturation, color_offset //
   DEFAULT_COLOR_OFFSET = $00;
-  DEFAULT_SATURATION = $3c;
-  DEFAULT_BRIGHTNESS = $80;
-  DEFAULT_CONTRAST = $3c;
+  DEFAULT_SATURATION   = $3c;
+  DEFAULT_BRIGHTNESS   = $80;
+  DEFAULT_CONTRAST     = $3c;
 
   LWA_COLORKEY = 1;
   LWA_ALPHA    = 2;
@@ -21,15 +20,15 @@ const
   ULW_ALPHA    = 2;
   ULW_OPAQUE   = 4;
 
-  SHIL_LARGE      = $00;  //The image size is normally 32x32 pixels. However, if the Use large icons option is selected from the Effects section of the Appearance tab in Display Properties, the image is 48x48 pixels.
-  SHIL_SMALL      = $01;  //These images are the Shell standard small icon size of 16x16, but the size can be customized by the user.
-  SHIL_EXTRALARGE = $02;  //These images are the Shell standard extra-large icon size. This is typically 48x48, but the size can be customized by the user.
-  SHIL_SYSSMALL   = $03;  //These images are the size specified by GetSystemMetrics called with SM_CXSMICON and GetSystemMetrics called with SM_CYSMICON.
-  SHIL_JUMBO      = $04;  //Windows Vista and later. The image is normally 256x256 pixels.
+  SHIL_LARGE      = 0; // The image size is normally 32x32 pixels. However, if the Use large icons option is selected from the Effects section of the Appearance tab in Display Properties, the image is 48x48 pixels.
+  SHIL_SMALL      = 1; // These images are the Shell standard small icon size of 16x16, but the size can be customized by the user.
+  SHIL_EXTRALARGE = 2; // These images are the Shell standard extra-large icon size. This is typically 48x48, but the size can be customized by the user.
+  SHIL_SYSSMALL   = 3; // These images are the size specified by GetSystemMetrics called with SM_CXSMICON and GetSystemMetrics called with SM_CYSMICON.
+  SHIL_JUMBO      = 4; // Windows Vista and later. The image is normally 256x256 pixels.
   IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
 
-  DII_ADD = 1;
-  DII_RUN = 2;
+  DII_ADD  = 1;
+  DII_RUN  = 2;
   DII_ICON = 3;
   DII_MOVE = 4;
 
@@ -105,6 +104,7 @@ procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boo
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure CreateDefaultGdipBitmap(var image: pointer);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
 function IsJumboIcon(AIcon: HICON): boolean;
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
@@ -118,6 +118,7 @@ function WinRectToGDIPRectF(rect: windows.TRect): GDIPAPI.TRectF;
 var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
+  bIsWindowsVista: boolean; // must be externally set to "true" if running Vista or greater
 
 implementation
 //--------------------------------------------------------------------------------------------------
@@ -957,7 +958,7 @@ var
   hil: HIMAGELIST;
   ico: HICON;
   shil: cardinal;
-  vista, jumbo: boolean;
+  jumbo: boolean;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
@@ -965,17 +966,16 @@ begin
   if not Assigned(pidl) then exit;
 
   try
-    vista := IsWindowsVista;
     shil := SHIL_EXTRALARGE;
-    if vista then shil := SHIL_JUMBO;
+    if bIsWindowsVista then shil := SHIL_JUMBO;
 
     SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
     if S_OK = SHGetImageList(shil, IID_IImageList, @hil) then
         ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
 
     jumbo := false;
-    if vista then jumbo := IsJumboIcon(ico);
-    if jumbo or not vista then image := IconToGdipBitmap(ico)
+    if bIsWindowsVista then jumbo := IsJumboIcon(ico);
+    if jumbo or not bIsWindowsVista then image := IconToGdipBitmap(ico)
     else image := IconToGdipBitmap(sfi.hIcon);
     DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
 
@@ -1059,23 +1059,66 @@ var
   imageList: HIMAGELIST;
   sfi: TSHFileInfo;
   shil: cardinal;
-  vista: boolean;
 begin
   try
     result := 0;
-    vista := IsWindowsVista;
     shil := SHIL_EXTRALARGE;
-    if vista then shil := SHIL_JUMBO;
+    if bIsWindowsVista then shil := SHIL_JUMBO;
 
     SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
     if S_OK = SHGetImageList(shil, IID_IImageList, @imageList) then
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
 
-    if vista then
+    if bIsWindowsVista then
       if not IsJumboIcon(result) then result := 0;
   except
     on e: Exception do raise Exception.Create('GetIconFromFileSH'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+function cuttolast(itext, ch: string): string;
+var
+  i, len: integer;
+begin
+  Result := '';
+  if itext = '' then
+    exit;
+
+  i := length(itext);
+  len := length(ch);
+  while i > 0 do
+  begin
+    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    begin
+      Result := copy(itext, 1, i - 1);
+      exit;
+    end;
+    Dec(i);
+  end;
+  Result := itext;
+end;
+//------------------------------------------------------------------------------
+function cutafterlast(itext, ch: string): string;
+var
+  i, ilen, len: integer;
+begin
+  Result := '';
+  if itext = '' then
+    exit;
+
+  ilen := length(itext);
+  i := ilen;
+  len := length(ch);
+  while i > 0 do
+  begin
+    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    begin
+      Result := copy(itext, i + len, ilen);
+      exit;
+    end;
+    Dec(i);
+  end;
+  Result := itext;
 end;
 //--------------------------------------------------------------------------------------------------
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
@@ -1090,14 +1133,13 @@ begin
   image := nil;
 
   try
-    imagefile := UnzipPath(imagefile);
     icoIndex := 0;
     if trystrtoint(cutafterlast(imagefile, ','), icoIndex) then imagefile := cuttolast(imagefile, ',');
     iIcon := icoIndex;
 
     if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin
-      if default then GdipCreateBitmapFromFile(PWideChar(WideString(UnzipPath('%pp%\default.png'))), image);
+      if default then CreateDefaultGdipBitmap(image);
     end
     else
     begin
@@ -1124,6 +1166,17 @@ begin
   except
     on e: Exception do raise Exception.Create('LoadImage'#10#13 + e.message);
   end;
+end;
+//--------------------------------------------------------------------------------------------------
+procedure CreateDefaultGdipBitmap(var image: pointer);
+var
+  dst: pointer;
+begin
+  GdipCreateBitmapFromScan0(128, 128, 0, PixelFormat32bppPARGB, nil, image);
+  GdipGetImageGraphicsContext(image, dst);
+  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+  // TODO
+  GdipDeleteGraphics(dst);
 end;
 //--------------------------------------------------------------------------------------------------
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;

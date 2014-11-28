@@ -119,7 +119,7 @@ const
   KF_FLAG_NO_APPCONTAINER_REDIRECTION = $10000;
 
 function IsWindowsVista: boolean;
-function IsWin64: boolean;
+function IsWow64: boolean;
 function GetFont: string;
 function GetContentFont: string;
 function GetFontSize: integer;
@@ -193,12 +193,12 @@ begin
   Result := VerInfo.dwMajorVersion >= 6;
 end;
 //------------------------------------------------------------------------------
-function IsWin64: boolean;
+function IsWow64: boolean;
 var
   IsWow64Process: function(Handle: THandle; var Res: boolean): boolean; stdcall;
   res: boolean;
 begin
-  res := False;
+  res := false;
   IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
   if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, res);
   Result := res;

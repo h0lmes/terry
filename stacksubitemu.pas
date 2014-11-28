@@ -269,11 +269,11 @@ begin
       try if FImage <> nil then GdipDisposeImage(FImage);
       except end;
       FImage := nil;
-      if FImageFile <> '' then LoadImage(FImageFile, FItemSize, true, true, FImage, FIW, FIH)
+      if FImageFile <> '' then LoadImage(UnzipPath(FImageFile), FItemSize, true, true, FImage, FIW, FIH)
       else
       begin
         if is_pidl then LoadImageFromPIDL(apidl, FItemSize, true, true, FImage, FIW, FIH)
-        else LoadImage(FCommand, FItemSize, true, true, FImage, FIW, FIH);
+        else LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
       end;
 
       // measure caption and adjust border size //
