@@ -113,10 +113,8 @@ begin
   FSite := aSite;
   Clear;
   ClearGraphics;
-  CheckExtractFileFromResource('DEFAULT_ICON', UnzipPath('%pp%\default.png'));
   CheckExtractFileFromResource('DEFAULT_BACKGROUND', UnzipPath('%pp%\themes\background.png'));
   CheckExtractFileFromResource('DEFAULT_INDICATOR', UnzipPath('%pp%\themes\indicator.png'));
-  CheckExtractFileFromResource('DEFAULT_STACK', UnzipPath('%pp%\themes\stack.png'));
 end;
 //------------------------------------------------------------------------------
 procedure _Theme.Clear;
@@ -423,15 +421,10 @@ begin
 
     // stack default icon //
     try
-      if FileExists(Path + 'stack.png') then
-        GdipLoadImageFromFile(PWideChar(WideString(Path + 'stack.png')), Stack.Image);
-      if Stack.image = nil then
-        GdipLoadImageFromFile(PWideChar(WideString(FThemesFolder + 'stack.png')), Stack.Image);
-      if Stack.Image <> nil then
-      begin
-        GdipGetImageWidth(Stack.Image, Stack.W);
-        GdipGetImageHeight(Stack.Image, Stack.H);
-      end;
+      if FileExists(Path + 'stack.png') then GdipLoadImageFromFile(PWideChar(WideString(Path + 'stack.png')), Stack.Image);
+      if Stack.image = nil then CreateDefaultImage(Stack.Image);
+      GdipGetImageWidth(Stack.Image, Stack.W);
+      GdipGetImageHeight(Stack.Image, Stack.H);
     except
       on e: Exception do raise Exception.Create('Error loading stack icon: ' + Path + 'stack.png' + #13#10#13#10 + e.message);
     end;

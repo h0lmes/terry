@@ -4,7 +4,7 @@ unit processhlp;
 
 interface
 
-uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, toolu, declu;
+uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu;
 
 type
   {TProcessHelper}
@@ -31,12 +31,13 @@ type
     function IsMDIWindow(h: THandle): boolean;
     procedure ActivateMDIWindow(h: THandle);
     procedure CloseMDIWindow(h: THandle);
+    function SetPrivilege(Name: string): boolean;
   public
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
     // //
     class procedure Cleanup;
-    constructor Create;
+    constructor Create(bVistaOrGreater: boolean);
     destructor Destroy; override;
     procedure EnterCRS;
     procedure LeaveCRS;
@@ -61,6 +62,7 @@ type
     function GetAppWindowDeletedHandle(index: integer): THandle;
     function WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
     // system //
+    procedure Shutdown(mode: integer);
     procedure SetSuspendState(Hibernate: boolean);
   end;
 
@@ -75,7 +77,7 @@ begin
   ProcessHelper := nil;
 end;
 //------------------------------------------------------------------------------
-constructor TProcessHelper.Create;
+constructor TProcessHelper.Create(bVistaOrGreater: boolean);
 begin
   FReady := false;
   inherited Create;
@@ -94,7 +96,7 @@ begin
   @QueryFullProcessImageName := nil;
   @AllowSetForegroundWindow := nil;
 
-  if IsWindowsVista then
+  if bVistaOrGreater then
   begin
     hKernel32 := GetModuleHandle('KERNEL32.DLL');
     if hKernel32 = 0 then hKernel32 := LoadLibrary('KERNEL32.DLL');
@@ -587,6 +589,11 @@ end;
 //
 //
 //
+//----------------------------------------------------------------------
+procedure TProcessHelper.Shutdown(mode: integer);
+begin
+  if SetPrivilege('SeShutdownPrivilege') then ExitWindowsEx(mode, 0);
+end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.SetSuspendState(Hibernate: boolean);
 var
@@ -600,6 +607,23 @@ begin
     if hPowrprofDll <> 0 then @susp := GetProcAddress(hPowrprofDll, 'SetSuspendState');
     if assigned(susp) then susp(Hibernate, false, false);
   end;
+end;
+//----------------------------------------------------------------------
+function TProcessHelper.SetPrivilege(Name: string): boolean;
+var
+  hToken: cardinal;
+  tkp, tkpo: Windows.TTokenPrivileges;
+  rl: dword;
+begin
+  Result := False;
+  rl := 0;
+  if not OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken) then exit;
+  if not OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES or TOKEN_QUERY, hToken) then exit;
+  if not Windows.LookupPrivilegeValue(nil, PChar(Name), tkp.Privileges[0].Luid) then exit;
+  tkp.PrivilegeCount := 1;
+  tkp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+  Windows.AdjustTokenPrivileges(hToken, False, tkp, sizeof(TTokenPrivileges), tkpo, rl);
+  Result := GetLastError() = 0;
 end;
 //------------------------------------------------------------------------------
 end.

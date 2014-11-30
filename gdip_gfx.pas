@@ -104,7 +104,7 @@ procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boo
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-procedure CreateDefaultGdipBitmap(var image: pointer);
+procedure CreateDefaultImage(var image: pointer);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
 function IsJumboIcon(AIcon: HICON): boolean;
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
@@ -1139,7 +1139,7 @@ begin
 
     if not fileexists(imagefile) and not directoryexists(imagefile) then
     begin
-      if default then CreateDefaultGdipBitmap(image);
+      if default then CreateDefaultImage(image);
     end
     else
     begin
@@ -1168,14 +1168,24 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure CreateDefaultGdipBitmap(var image: pointer);
+procedure CreateDefaultImage(var image: pointer);
 var
-  dst: pointer;
+  dst, brush, pen, path: pointer;
 begin
   GdipCreateBitmapFromScan0(128, 128, 0, PixelFormat32bppPARGB, nil, image);
   GdipGetImageGraphicsContext(image, dst);
   GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-  // TODO
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, 2, 2, 124, 124, 24);
+  // fill
+  GdipCreateSolidFill($a0505050, brush);
+  GdipFillPath(dst, brush, path);
+  GdipDeleteBrush(brush);
+  // border
+  GdipCreatePen1($a0ffffff, 2, UnitPixel, pen);
+  GdipDrawPath(dst, pen, path);
+  GdipDeletePen(pen);
+  GdipDeletePath(path);
   GdipDeleteGraphics(dst);
 end;
 //--------------------------------------------------------------------------------------------------

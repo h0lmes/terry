@@ -1,4 +1,2 @@
-DEFAULT_ICON RCDATA "default.png"
 DEFAULT_BACKGROUND RCDATA "background.png"
 DEFAULT_INDICATOR RCDATA "indicator.png"
-DEFAULT_STACK RCDATA "stack.png"

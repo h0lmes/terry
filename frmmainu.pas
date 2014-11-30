@@ -181,7 +181,7 @@ begin
     //if FileExists(theFile) then hHook := LoadLibrary(pchar(theFile));
 
     // ProcessHelper //
-    ProcessHelper := TProcessHelper.Create;
+    ProcessHelper := TProcessHelper.Create(toolu.bIsWindowsVista);
 
     // Sets //
     AddLog('Init.Sets');
@@ -1844,14 +1844,14 @@ begin
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
   else if cmd = 'site' then SetParam(gpSite, integer(StringToSite(params)))
-  else if cmd = 'logoff' then toolu.ShutDown(ifthen(params = 'force', 4, 0))
-  else if cmd = 'shutdown' then toolu.ShutDown(ifthen(params = 'force', 5, 1))
-  else if cmd = 'reboot' then toolu.ShutDown(ifthen(params = 'force', 6, 2))
-  else if cmd = 'suspend' then ProcessHelper.SetSuspendState(false)
+  else if cmd = 'logoff' then    ProcessHelper.Shutdown(ifthen(params = 'force', 4, 0))
+  else if cmd = 'shutdown' then  ProcessHelper.Shutdown(ifthen(params = 'force', 5, 1))
+  else if cmd = 'reboot' then    ProcessHelper.Shutdown(ifthen(params = 'force', 6, 2))
+  else if cmd = 'suspend' then   ProcessHelper.SetSuspendState(false)
   else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
+  else if cmd = 'kill' then      ProcessHelper.Kill(params)
   else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'startmenu' then sendmessage(handle, WM_SYSCOMMAND, SC_TASKLIST, 0)
-  else if cmd = 'kill' then ProcessHelper.Kill(params)
   else if cmd = 'emptybin' then
   begin
     SHEmptyRecycleBin(Handle, nil, 0);

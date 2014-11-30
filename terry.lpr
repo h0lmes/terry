@@ -501,6 +501,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 var
+  VerInfo: TOSVersioninfo;
+  IsWow64Process: function(Handle: THandle; var Res: boolean): boolean; stdcall;
+  w64: boolean;
   idx: integer;
   setsFiles: TStrings;
   SetsFilename, ProgramPath: string;
@@ -509,6 +512,18 @@ var
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
+
+  // set global vars, though this is not a good practice
+  // os version
+  VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
+  GetVersionEx(@VerInfo);
+  toolu.bIsWindowsVista := VerInfo.dwMajorVersion >= 6;
+  gdip_gfx.bIsWindowsVista := toolu.bIsWindowsVista;
+  // running on win64
+  w64 := false;
+  IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
+  if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, w64);
+  toolu.bIsWow64 := w64;
 
 
   // multi-dock support //
@@ -575,8 +590,6 @@ begin
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
-
-  gdip_gfx.bIsWindowsVista := toolu.IsWindowsVista;
 
   AddLog('RegisterWindowItemClass');
   RegisterWindowItemClass;
