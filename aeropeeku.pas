@@ -56,6 +56,7 @@ type
     FFontSize: integer;
     FLayout: TAPWLayout;
     FWindowCount, FProcessCount, FItemCount: integer;
+    FHoverIndex: integer;
     items: array of TAeroPeekWindowItem;
     procedure ClearImages;
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
@@ -149,6 +150,7 @@ begin
   FFontSize := round(toolu.GetFontSize * 1.45);
   FCloseButtonDownIndex := -1;
   FItemCount := 0;
+  FHoverIndex := -1;
 
   // create window //
   FHWnd := 0;
@@ -328,8 +330,8 @@ begin
         FColor2 := $10ffffff;
         if not FCompositionEnabled then
         begin
-          FColor1 := $ff5d78a0;
-          FColor2 := $ff5d78a0;
+          FColor1 := $ff6083a7;
+          FColor2 := $ff6083a7;
         end;
         if opaque then
         begin
@@ -337,7 +339,7 @@ begin
           FColor2 := FColor2 or $ff000000;
         end;
         FTextColor := $ffffffff;
-        if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > 128 then FTextColor := $ff000000;
+        if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > $90 then FTextColor := $ff000000;
       end;
 
       // show the window
@@ -384,7 +386,7 @@ begin
     FSelectionRadius := 2;
   end else begin
     FBorderX := 18;
-    FBorderY := 12;
+    FBorderY := 14;
     FShadow := 0;
     FIconSize := 16;
     FTitleHeight := 22;
@@ -654,10 +656,30 @@ begin
       GdipFillPath(hgdip, brush, path);
       GdipDeleteBrush(brush);
       // selection border
-      GdipCreatePen1($a0b0d0ff, 1, UnitPixel, pen);
+      GdipCreatePen1($c0ffffff, 1, UnitPixel, pen);
       GdipDrawPath(hgdip, pen, path);
       GdipDeletePen(pen);
       GdipDeletePath(path);
+    end;
+
+    // item hover selection
+    if (FItemCount > 0) and (FHoverIndex > -1) then
+    begin
+      GdipCreatePath(FillModeWinding, path);
+      // selection fill
+      rect := WinRectToGDIPRect(items[FHoverIndex].rectSel);
+      AddPathRoundRect(path, rect, FSelectionRadius);
+      GdipCreateSolidFill($30ffffff, brush);
+      GdipFillPath(hgdip, brush, path);
+      GdipDeleteBrush(brush);
+      // selection border
+      GdipCreatePen1($50ffffff, 1, UnitPixel, pen);
+      GdipDrawPath(hgdip, pen, path);
+      GdipDeletePen(pen);
+      GdipDeletePath(path);
+      // close button
+      rect := WinRectToGDIPRect(items[FHoverIndex].rectClose);
+      DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = FHoverIndex);
     end;
 
     // icons, titles, close buttons ... or separators
@@ -714,9 +736,6 @@ begin
         //DrawThemeTextEx(ThemeData, bmp.dc, TEXT_BODYTITLE, 0, PWideChar(@title), -1, DT_END_ELLIPSIS, @items[index].rectTitle, @Opts);
         titleRect := WinRectToGDIPRectF(items[index].rectTitle);
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
-        // close button
-        rect := WinRectToGDIPRect(items[index].rectClose);
-        DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = index);
       end;
     GdipDeleteStringFormat(format);
     GdipDeleteBrush(brush);
@@ -876,6 +895,7 @@ var
   index: integer;
   pt: windows.TPoint;
   rect: windows.TRect;
+  hovered: boolean;
 begin
   msg.Result := 0;
 
@@ -923,13 +943,24 @@ begin
   begin
     pt.x := TSmallPoint(msg.lParam).x;
     pt.y := TSmallPoint(msg.lParam).y;
+    hovered := false;
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
         if PtInRect(items[index].rectSel, pt) then
         begin
-
+          hovered := true;
+          if FHoverIndex <> index then
+          begin
+            FHoverIndex := index;
+            Paint;
+          end;
         end;
+    end;
+    if not hovered and (FHoverIndex > -1) then
+    begin
+      FHoverIndex := -1;
+      Paint;
     end;
   end
   // WM_TIMER

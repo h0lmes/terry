@@ -422,7 +422,7 @@ begin
     // stack default icon //
     try
       if FileExists(Path + 'stack.png') then GdipLoadImageFromFile(PWideChar(WideString(Path + 'stack.png')), Stack.Image);
-      if Stack.image = nil then CreateDefaultImage(Stack.Image);
+      if Stack.image = nil then CreateDefaultStackImage(Stack.Image);
       GdipGetImageWidth(Stack.Image, Stack.W);
       GdipGetImageHeight(Stack.Image, Stack.H);
     except

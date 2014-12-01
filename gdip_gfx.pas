@@ -105,6 +105,7 @@ procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; defaul
 function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure CreateDefaultImage(var image: pointer);
+procedure CreateDefaultStackImage(var image: pointer);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
 function IsJumboIcon(AIcon: HICON): boolean;
 function DownscaleImage(var image: pointer; MaxSize: integer; exact: boolean; var srcwidth, srcheight: uint; DeleteSource: boolean): boolean;
@@ -860,6 +861,53 @@ begin
       GdipDeletePen(pen);
     end
     else
+    if iType = DII_ICON then // icon
+    begin
+      // outer rect
+      points[0].x := X + Width * 0.14;
+      points[0].y := Y + Height * 0.19;
+      points[1].x := Width * 0.7;
+      points[1].y := Height * 0.6;
+      GdipCreatePen1($ff303030, round(Width / 15), UnitPixel, pen);
+      GdipDrawRectangle(dst, pen, points[0].x, points[0].y, points[1].x, points[1].y);
+      GdipDeletePen(pen);
+      // big mountain
+      GdipCreateSolidFill($ff303030, brush);
+      GdipCreatePath(FillModeWinding, path);
+      points[0].x := X + Width * 0.65;
+      points[0].y := Y + Height * 0.45;
+      points[1].x := X + Width * 0.75;
+      points[1].y := Y + Height * 0.55;
+      points[2].x := X + Width * 0.75;
+      points[2].y := Y + Height * 0.75;
+      points[3].x := X + Width * 0.35;
+      points[3].y := Y + Height * 0.75;
+      GdipAddPathClosedCurve2(path, points, 4, 0);
+      GdipFillPath(dst, brush, path);
+      GdipResetPath(path);
+      // small mountain
+      points[0].x := X + Width * 0.33;
+      points[0].y := Y + Height * 0.55;
+      points[1].x := X + Width * 0.41;
+      points[1].y := Y + Height * 0.62;
+      points[2].x := X + Width * 0.28;
+      points[2].y := Y + Height * 0.75;
+      points[3].x := X + Width * 0.23;
+      points[3].y := Y + Height * 0.75;
+      points[4].x := X + Width * 0.23;
+      points[4].y := Y + Height * 0.65;
+      GdipAddPathClosedCurve2(path, points, 5, 0);
+      GdipFillPath(dst, brush, path);
+      GdipDeletePath(path);
+      // sun
+      points[0].x := X + Width * 0.33;
+      points[0].y := Y + Height * 0.3;
+      points[1].x := Width * 0.12;
+      points[1].y := Height * 0.12;
+      GdipFillEllipse(dst, brush, points[0].x, points[0].y, points[1].x, points[1].y);
+      GdipDeleteBrush(brush);
+    end
+    else
     if iType = DII_MOVE then // move
     begin
       GdipCreateSolidFill($ff303030, brush);
@@ -1171,18 +1219,82 @@ end;
 procedure CreateDefaultImage(var image: pointer);
 var
   dst, brush, pen, path: pointer;
+  points: array [0..4] of GDIPAPI.TPointF;
+  X, Y, Width, Height: integer;
 begin
   GdipCreateBitmapFromScan0(128, 128, 0, PixelFormat32bppPARGB, nil, image);
   GdipGetImageGraphicsContext(image, dst);
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
+  // image
+  X := 0;
+  Y := 0;
+  Width := 128;
+  Height := 128;
+  // outer rect
+  points[0].x := X + Width * 0.14;
+  points[0].y := Y + Height * 0.14;
+  points[1].x := Width * 0.7;
+  points[1].y := Height * 0.7;
+  GdipCreatePen1($a0ffffff, round(Width / 15), UnitPixel, pen);
+  GdipDrawRectangle(dst, pen, points[0].x, points[0].y, points[1].x, points[1].y);
+  GdipDeletePen(pen);
+  // big mountain
+  GdipCreateSolidFill($a0ffffff, brush);
+  GdipCreatePath(FillModeWinding, path);
+  points[0].x := X + Width * 0.65;
+  points[0].y := Y + Height * 0.45;
+  points[1].x := X + Width * 0.75;
+  points[1].y := Y + Height * 0.55;
+  points[2].x := X + Width * 0.75;
+  points[2].y := Y + Height * 0.75;
+  points[3].x := X + Width * 0.35;
+  points[3].y := Y + Height * 0.75;
+  GdipAddPathClosedCurve2(path, points, 4, 0);
+  GdipFillPath(dst, brush, path);
+  GdipResetPath(path);
+  // small mountain
+  points[0].x := X + Width * 0.33;
+  points[0].y := Y + Height * 0.55;
+  points[1].x := X + Width * 0.41;
+  points[1].y := Y + Height * 0.62;
+  points[2].x := X + Width * 0.28;
+  points[2].y := Y + Height * 0.75;
+  points[3].x := X + Width * 0.23;
+  points[3].y := Y + Height * 0.75;
+  points[4].x := X + Width * 0.23;
+  points[4].y := Y + Height * 0.65;
+  GdipAddPathClosedCurve2(path, points, 5, 0);
+  GdipFillPath(dst, brush, path);
+  GdipDeletePath(path);
+  // sun
+  points[0].x := X + Width * 0.33;
+  points[0].y := Y + Height * 0.3;
+  points[1].x := Width * 0.12;
+  points[1].y := Height * 0.12;
+  GdipFillEllipse(dst, brush, points[0].x, points[0].y, points[1].x, points[1].y);
+  GdipDeleteBrush(brush);
+  //
+  GdipDeleteGraphics(dst);
+end;
+//--------------------------------------------------------------------------------------------------
+procedure CreateDefaultStackImage(var image: pointer);
+var
+  dst, brush, pen, path: pointer;
+begin
+  GdipCreateBitmapFromScan0(128, 128, 0, PixelFormat32bppPARGB, nil, image);
+  GdipGetImageGraphicsContext(image, dst);
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
   GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
   GdipCreatePath(FillModeWinding, path);
   AddPathRoundRect(path, 2, 2, 124, 124, 24);
   // fill
-  GdipCreateSolidFill($a0505050, brush);
+  GdipCreateSolidFill($60a0a0a0, brush);
   GdipFillPath(dst, brush, path);
   GdipDeleteBrush(brush);
   // border
-  GdipCreatePen1($a0ffffff, 2, UnitPixel, pen);
+  GdipCreatePen1($b0ffffff, 2, UnitPixel, pen);
   GdipDrawPath(dst, pen, path);
   GdipDeletePen(pen);
   GdipDeletePath(path);
