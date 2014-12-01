@@ -1204,7 +1204,7 @@ begin
       if DropPlace = NOT_AN_ITEM then DropPlace := round(tmp)
       else
       if (abs(DropPlace + 0.5 - tmp) > 1.2) or (tmp = -1) then DropPlace := round(tmp - 0.5);
-      // "+ 0.5" to count from the center of the DropPlace. And "- 0.5" to compensate the "+ 0.5"
+      // "+0.5" to count from the center of the DropPlace. And "-0.5" to compensate the "+0.5"
     end;
 
     if DropPlace <> NOT_AN_ITEM then
@@ -1665,19 +1665,19 @@ var
 begin
   if enabled and not DraggingItem then
   try
-    AllItemCmd(icHover, 0);
+    //AllItemCmd(icHover, 0);
     DraggingFile := false;
     DraggingItem := true;
     DragHWnd := HWnd;
     index := ItemIndex(HWnd);
-    try if index <> NOT_AN_ITEM then items[index].h := 0;
+    try if index <> NOT_AN_ITEM then
+      begin
+        items[index].h := 0;
+        SetDropPlace(index);
+        SetDropPlaceEx(index);
+      end;
     except end;
-    ItemsChanged;
-    windows.GetCursorPos(pt);
-    CalcDropPlace(pt);
-    SetWindowPos(HWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    ReleaseCapture;
-    DefWindowProc(HWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+    //ItemsChanged;
   except
     on e: Exception do err('ItemManager.UndockWindowItem', e);
   end;

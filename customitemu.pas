@@ -627,6 +627,9 @@ begin
                 begin
                   cmd(icFloat, 1);
                   dockh.Undock(FHWnd);
+                  SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+                  ReleaseCapture;
+                  DefWindowProc(FHWnd, WM_NCLBUTTONDOWN, HTCAPTION, 0);
                 end;
               end;
               // just in case - dock item //

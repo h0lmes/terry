@@ -682,7 +682,7 @@ begin
       DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = FHoverIndex);
     end;
 
-    // icons, titles, close buttons ... or separators
+    // icons and titles ... or separators
     {ThemeData := OpenThemeData(Handle, 'textstyle');
     FillChar(Opts, SizeOf(Opts), 0);
     Opts.dwSize := SizeOf(Opts);
@@ -735,6 +735,7 @@ begin
         GetWindowTextW(items[index].hwnd, title, 255);
         //DrawThemeTextEx(ThemeData, bmp.dc, TEXT_BODYTITLE, 0, PWideChar(@title), -1, DT_END_ELLIPSIS, @items[index].rectTitle, @Opts);
         titleRect := WinRectToGDIPRectF(items[index].rectTitle);
+        if index <> FHoverIndex then titleRect.Width := items[index].rectClose.Right - items[index].rectTitle.Left;
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
       end;
     GdipDeleteStringFormat(format);
