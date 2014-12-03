@@ -2,7 +2,7 @@ unit aeropeeku;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, uxTheme, themes,
+uses Windows, Messages, Classes, SysUtils, Forms,
   declu, dwm_unit, GDIPAPI, gdip_gfx, toolu, processhlp;
 
 type
@@ -586,9 +586,6 @@ var
   rgn: HRGN;
   count, index, tmp: integer;
   title: array [0..255] of WideChar;
-  //
-  //ThemeData: HTHEME;
-  //Opts: TDTTOpts;
 begin
   try
     // prepare //
@@ -683,15 +680,6 @@ begin
     end;
 
     // icons and titles ... or separators
-    {ThemeData := OpenThemeData(Handle, 'textstyle');
-    FillChar(Opts, SizeOf(Opts), 0);
-    Opts.dwSize := SizeOf(Opts);
-    Opts.crText := $ff000000;
-    Opts.iGlowSize := 2;
-    Opts.iTextShadowType := TST_NONE;
-    Opts.fApplyOverlay := true;
-    Opts.dwFlags := DTT_TEXTCOLOR or DTT_GLOWSIZE or DTT_APPLYOVERLAY or DTT_SHADOWTYPE;}
-    //
     GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAliasGridFit);
     GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
     GdipCreateFont(family, FFontSize, 0, 2, font);
@@ -733,7 +721,6 @@ begin
             0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
         // window title
         GetWindowTextW(items[index].hwnd, title, 255);
-        //DrawThemeTextEx(ThemeData, bmp.dc, TEXT_BODYTITLE, 0, PWideChar(@title), -1, DT_END_ELLIPSIS, @items[index].rectTitle, @Opts);
         titleRect := WinRectToGDIPRectF(items[index].rectTitle);
         if index <> FHoverIndex then titleRect.Width := items[index].rectClose.Right - items[index].rectTitle.Left;
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
@@ -742,7 +729,6 @@ begin
     GdipDeleteBrush(brush);
     GdipDeleteFont(font);
     GdipDeleteFontFamily(family);
-    //CloseThemeData(ThemeData);
 
     // update window //
     UpdateLWindow(FHWnd, bmp, 255);

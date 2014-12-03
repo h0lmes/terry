@@ -89,7 +89,6 @@ type
     wndOffset: integer;
     OldBaseWindowRect: GDIPAPI.TRect;
     OldBaseImageRect: GDIPAPI.TRect;
-    MonitorRect: Windows.TRect;
 
     LastMouseHookPoint: Windows.TPoint;
     MouseOver: boolean;
@@ -515,7 +514,7 @@ begin
     gpMonitor:
       begin
         UnreserveScreenEdge(sets.container.Site);
-        if assigned(ItemMgr) then ItemMgr.MonitorRect := GetMonitorBoundsRect;
+        BaseCmd(tcThemeChanged, 0);
       end;
     gpSite:
       begin
@@ -1376,11 +1375,12 @@ begin
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
-    Bounds := ItemMgr.MonitorRect;
+    Bounds := GetMonitorBoundsRect;
 
     if Edge = bsLeft then
     begin
-      Position := ItemMgr.BaseWindowRect.Width * Percent div 100;
+      if sets.container.AutoHide then Position := 0
+      else Position := ItemMgr.BaseWindowRect.Width * Percent div 100;
       if WorkArea.Left <> Position then
       begin
         WorkArea.Left := Position;
@@ -1390,7 +1390,8 @@ begin
     else
     if Edge = bsTop then
     begin
-      Position := ItemMgr.BaseWindowRect.Height * Percent div 100;
+      if sets.container.AutoHide then Position := 0
+      else Position := ItemMgr.BaseWindowRect.Height * Percent div 100;
       if WorkArea.Top <> Position then
       begin
         WorkArea.Top := Position;
@@ -1400,7 +1401,8 @@ begin
     else
     if Edge = bsRight then
     begin
-      Position := Bounds.Right - ItemMgr.BaseWindowRect.Width * Percent div 100;
+      if sets.container.AutoHide then Position := Bounds.Right
+      else Position := Bounds.Right - ItemMgr.BaseWindowRect.Width * Percent div 100;
       if WorkArea.Right <> Position then
       begin
         WorkArea.Right := Position;
@@ -1410,7 +1412,8 @@ begin
     else
     if Edge = bsBottom then
     begin
-      Position := Bounds.Bottom - ItemMgr.BaseWindowRect.Height * Percent div 100;
+      if sets.container.AutoHide then Position := Bounds.Bottom
+      else Position := Bounds.Bottom - ItemMgr.BaseWindowRect.Height * Percent div 100;
       if WorkArea.Bottom <> Position then
       begin
         WorkArea.Bottom := Position;
