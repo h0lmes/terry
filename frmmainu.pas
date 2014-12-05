@@ -42,6 +42,7 @@ type
     wndOffsetTarget: integer;
     HideKeysPressed: boolean;
     SavedWorkarea: windows.TRect;
+    revertMonitor: integer;
     function CloseQuery: integer;
     procedure MaintainNotForeground;
     procedure RegisterRawInput;
@@ -74,7 +75,7 @@ type
     procedure RollNHideTimer;
     procedure HideTaskbar(Hide: boolean);
     procedure SetWorkarea(rect: windows.TRect);
-    procedure ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
+    procedure ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
 
     procedure SaveSets;
@@ -186,6 +187,7 @@ begin
     AddLog('Init.Sets');
     sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
+    revertMonitor := sets.container.Monitor;
 
     // Theme //
     AddLog('Init.Theme');
@@ -515,6 +517,7 @@ begin
       begin
         UnreserveScreenEdge(sets.container.Site);
         BaseCmd(tcThemeChanged, 0);
+        revertMonitor := sets.container.Monitor;
       end;
     gpSite:
       begin
@@ -527,7 +530,7 @@ begin
     gpReserveScreenEdge:
       begin
         if value = 0 then UnreserveScreenEdge(sets.container.Site)
-        else ReserveScreenEdge(true, sets.container.ReserveScreenEdgePercent, sets.container.Site);
+        else ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
@@ -892,7 +895,7 @@ var
 begin
   try
     // keep the edge of the screen reserved if set so
-    ReserveScreenEdge(sets.container.ReserveScreenEdge, sets.container.ReserveScreenEdgePercent, sets.container.Site);
+    if sets.container.ReserveScreenEdge then ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
 
     // hide/show the dock by fullscreen apps
     if HiddenByFSA and Visible then HiddenByFSA := false;
@@ -1290,43 +1293,79 @@ end;
 // hide/show taskbar and start button
 procedure Tfrmmain.HideTaskbar(hide: boolean);
 var
-  hwnd, hwndButton: uint;
-  r: Windows.TRect;
-  pt: windows.TPoint;
-  monitor: integer; // a monitor on which the taskbar is
+  hwndTaskbar, hwndButton: uint;
+  buttonVisible, taskbarVisible, updateWorkarea: boolean;
+  taskbarRect, taskbarMonitorWorkarea, taskbarMonitorBounds: Windows.TRect;
+  ptMon, ptTaskbar: windows.TPoint;
+  taskbarMonitorIndex: integer; // a monitor on which the taskbar is
+  taskbarSite: TBaseSite;
 begin
   try
-    hwnd := FindWindow('Shell_TrayWnd', nil);
+    hwndTaskbar := FindWindow('Shell_TrayWnd', nil);
     hwndButton := FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText)));
+    taskbarVisible := IsWindowVisible(hwndTaskbar);
+    buttonVisible := IsWindowVisible(hwndButton);
+    updateWorkarea := false;
 
-    // get taskbar monitor
-    monitor := 0;
-    if GetWindowRect(hwnd, r) then
+    // if workarea meant to be changed
+    if hide = taskbarVisible then
     begin
-      pt.x := (r.Left + r.Right) div 2;
-      pt.y := (r.Top + r.Bottom) div 2;
-      monitor := screen.MonitorFromPoint(pt).MonitorNum;
+      // get taskbar monitor and site
+      taskbarMonitorIndex := 0;
+      if GetWindowRect(hwndTaskbar, taskbarRect) then
+      begin
+        // monitor index
+        ptTaskbar.x := (taskbarRect.Left + taskbarRect.Right) div 2;
+        ptTaskbar.y := (taskbarRect.Top + taskbarRect.Bottom) div 2;
+        taskbarMonitorIndex := screen.MonitorFromPoint(ptTaskbar).MonitorNum;
+        // monitor center point
+        taskbarMonitorBounds := screen.Monitors[taskbarMonitorIndex].BoundsRect;
+        taskbarMonitorWorkarea := screen.Monitors[taskbarMonitorIndex].WorkareaRect;
+        ptMon.x := (taskbarMonitorBounds.Right + taskbarMonitorBounds.Left) div 2;
+        ptMon.y := (taskbarMonitorBounds.Bottom + taskbarMonitorBounds.Top) div 2;
+        // taskbar site
+        if taskbarRect.Bottom - taskbarRect.Top < taskbarRect.Right - taskbarRect.Left then
+        begin
+          if ptTaskbar.y > ptMon.y then taskbarSite := bsBottom else taskbarSite := bsTop;
+        end else begin
+          if ptTaskbar.x > ptMon.x then taskbarSite := bsRight else taskbarSite := bsLeft;
+        end;
+      end;
+
+      // do not allow to change WA if the taskbar and the dock occupy the same site
+      updateWorkarea := (taskbarMonitorIndex <> sets.container.Monitor) or (taskbarSite <> sets.container.Site);
+
+      // calculate new WA
+      if updateWorkarea and hide then
+      begin
+        case taskbarSite of
+          bsBottom: taskbarMonitorWorkarea.Bottom := taskbarMonitorBounds.Bottom;
+          bsTop: taskbarMonitorWorkarea.Top := taskbarMonitorBounds.Top;
+          bsLeft: taskbarMonitorWorkarea.Left := taskbarMonitorBounds.Left;
+          bsRight: taskbarMonitorWorkarea.Right := taskbarMonitorBounds.Right;
+        end;
+      end;
+      if updateWorkarea and not hide then
+      begin
+        case taskbarSite of
+          bsBottom: taskbarMonitorWorkarea.Bottom := taskbarMonitorBounds.Bottom - taskbarRect.Bottom + taskbarRect.Top;
+          bsTop: taskbarMonitorWorkarea.Top := taskbarMonitorBounds.Top + taskbarRect.Bottom - taskbarRect.Top;
+          bsLeft: taskbarMonitorWorkarea.Left := taskbarMonitorBounds.Left + taskbarRect.Right - taskbarRect.Left;
+          bsRight: taskbarMonitorWorkarea.Right := taskbarMonitorBounds.Right - taskbarRect.Right + taskbarRect.Left;
+        end;
+      end;
     end;
 
-    if hide and (IsWindowVisible(hwnd) or IsWindowVisible(hwndButton)) then
-    begin
-      // save workarea of the monitor with the taskbar
-      SavedWorkarea := GetMonitorWorkareaRect(@monitor);
-      // hide taskbar and button
-      showwindow(hwnd, 0);
-      showwindow(hwndButton, 0);
-      // set workarea = entire monitor area
-      SetWorkarea(GetMonitorBoundsRect(@monitor));
-    end
-    else
-    if not hide and (not IsWindowVisible(hwnd) or not IsWindowVisible(hwndButton)) then
-    begin
-      // show taskbar and button
-      showwindow(hwnd, SW_SHOW);
-      showwindow(hwndButton, SW_SHOW);
-      // restore workarea to previously saved state
-      SetWorkarea(SavedWorkarea);
-    end;
+    // hide or show Start Button
+    if hide and buttonVisible then         showwindow(hwndButton, SW_HIDE);
+    if not hide and not buttonVisible then showwindow(hwndButton, SW_SHOWNORMAL);
+
+    // hide or show Taskbar
+    if hide and taskbarVisible then         showwindow(hwndTaskbar, SW_HIDE);
+    if not hide and not taskbarVisible then showwindow(hwndTaskbar, SW_SHOWNORMAL);
+
+    // update workarea
+    if updateWorkarea then SetWorkarea(taskbarMonitorWorkarea);
   except
     on e: Exception do raise Exception.Create('Base.HideTaskbar'#10#13 + e.message);
   end;
@@ -1365,13 +1404,12 @@ begin
 	end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.ReserveScreenEdge(Reserve: boolean; Percent: integer; Edge: TBaseSite);
+procedure Tfrmmain.ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
 var
   Changed: boolean;
   Position: integer;
   WorkArea, Bounds: Windows.TRect;
 begin
-  if Reserve then
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
@@ -1427,7 +1465,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// 0 - left, 1 - top, 2 - right, 3 - bottom
 procedure Tfrmmain.UnreserveScreenEdge(Edge: TBaseSite);
 var
   Changed: boolean;
@@ -1436,7 +1473,7 @@ begin
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
-    Bounds := ItemMgr.MonitorRect;
+    Bounds := GetMonitorBoundsRect;
 
     if Edge = bsLeft then
     begin
@@ -1642,7 +1679,7 @@ end;
 procedure Tfrmmain.WMDisplayChange(var Message: TMessage);
 begin
   screen.UpdateMonitors;
-  sets.StoreParam(gpMonitor, sets.GetParam(gpMonitor));
+  sets.StoreParam(gpMonitor, max(sets.GetParam(gpMonitor), revertMonitor));
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;
