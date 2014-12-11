@@ -39,7 +39,7 @@ type
     FWTarget: integer;
     FHTarget: integer;
     FIconSize, FBorderX, FBorderY, FShadow, ThumbW, ThumbH, ItemSplit: integer;
-    FTitleHeight, FTitleSplit: integer;
+    FTitleHeight, FTitleSplit, FSeparatorW, FSeparatorH: integer;
     FRadius, FSelectionRadius: integer;
     FCloseButtonSize: integer;
     FActivating: boolean;
@@ -365,6 +365,7 @@ var
   maxw, maxh, position: integer;
   pid, prevpid: dword;
   separators: boolean;
+  sepCount, tmp: integer;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
@@ -396,6 +397,8 @@ begin
     FRadius := 0;
     FSelectionRadius := 2;
   end;
+  FSeparatorW := 10;
+  FSeparatorH := 2;
 
   // count processes
   FWindowCount := AppList.Count;
@@ -412,6 +415,7 @@ begin
 
   // store handles, load icons
   FItemCount := 0;
+  sepCount := 0;
   index := 0;
   prevpid := 0;
   pid := 0;
@@ -425,6 +429,7 @@ begin
     if (index > 0) and (pid <> prevpid) then
     begin
       items[iitem].hwnd := 0;
+      inc(sepCount);
     end else begin
       LoadImageFromHWnd(items[iitem].hwnd, FIconSize, true, false, items[iitem].image, items[iitem].iw, items[iitem].ih, 500);
       inc(index);
@@ -437,14 +442,15 @@ begin
   begin
     if FLayout = apwlHorizontal then
     begin
-      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2) div FItemCount - ItemSplit);
+      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - sepCount * (FSeparatorW + ItemSplit)) div (FItemCount - sepCount) - ItemSplit);
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
     end else begin
       ThumbW := 200;
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
-      if ThumbH > (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2) div FItemCount - FTitleHeight - ItemSplit then
+      tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - sepCount * (FSeparatorH + ItemSplit)) div (FItemCount - sepCount) - FTitleHeight - FTitleSplit - ItemSplit;
+      if ThumbH > tmp then
       begin
-        ThumbH := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2) div FItemCount - FTitleHeight - ItemSplit;
+        ThumbH := tmp;
         ThumbW := round(ThumbH * (FWorkArea.Right - FWorkArea.Left) / (FWorkArea.Bottom - FWorkArea.Top));
       end;
     end;
@@ -505,11 +511,11 @@ begin
       end else begin
         if FLayout = apwlHorizontal then
         begin
-          items[index].rect.Right := items[index].rect.Left + 10;
+          items[index].rect.Right := items[index].rect.Left + FSeparatorW;
           items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
         end else begin
           items[index].rect.Right := items[index].rect.Left + ThumbW;
-          items[index].rect.Bottom := items[index].rect.Top + 2;
+          items[index].rect.Bottom := items[index].rect.Top + FSeparatorH;
         end;
       end;
       if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
@@ -549,9 +555,9 @@ begin
 
       if FLayout = apwlHorizontal then
       begin
-        if items[index].hwnd <> 0 then position += ThumbW else position += 10;
+        if items[index].hwnd <> 0 then position += ThumbW else position += FSeparatorW;
       end else begin
-        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH else position += 2;
+        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH else position += FSeparatorH;
       end;
       if index < FItemCount - 1 then position += ItemSplit;
     end;
@@ -851,22 +857,26 @@ begin
     if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) then
     begin
       delta := abs(FXTarget - Fx) div 4;
-      if delta < 1 then delta := 1;
+      if delta < 2 then delta := 2;
+      if abs(Fx - FXTarget) <= delta then Fx := FXTarget;
       if Fx > FXTarget then Dec(Fx, delta);
       if Fx < FXTarget then Inc(Fx, delta);
 
       delta := abs(FYTarget - Fy) div 4;
-      if delta < 1 then delta := 1;
+      if delta < 2 then delta := 2;
+      if abs(Fy - FYTarget) <= delta then Fy := FYTarget;
       if Fy > FYTarget then Dec(Fy, delta);
       if Fy < FYTarget then Inc(Fy, delta);
 
       delta := abs(FWTarget - FWidth) div 4;
-      if delta < 1 then delta := 1;
+      if delta < 2 then delta := 2;
+      if abs(FWidth - FWTarget) <= delta then FWidth := FWTarget;
       if FWidth > FWTarget then Dec(FWidth, delta);
       if FWidth < FWTarget then Inc(FWidth, delta);
 
       delta := abs(FHTarget - FHeight) div 4;
-      if delta < 1 then delta := 1;
+      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
+      if delta < 2 then delta := 2;
       if FHeight > FHTarget then Dec(FHeight, delta);
       if FHeight < FHTarget then Inc(FHeight, delta);
 

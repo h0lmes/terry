@@ -452,7 +452,7 @@ var
   parent: THandle;
 begin
   parent := GetParent(h);
-  if parent <> 0 then SendMessage(parent, WM_MDIACTIVATE, h, 0)
+  if parent <> 0 then SendMessage(parent, WM_MDIACTIVATE, h, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.CloseWindow(h: THandle);
