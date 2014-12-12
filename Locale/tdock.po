@@ -274,6 +274,10 @@ msgstr ""
 msgid "Program settings"
 msgstr ""
 
+#: declu.xrun
+msgid "Run"
+msgstr ""
+
 #: declu.xselectworkingdirectory
 msgid "Select working directory"
 msgstr ""

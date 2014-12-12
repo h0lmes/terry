@@ -389,6 +389,7 @@ begin
   if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   LME(true);
 
@@ -418,7 +419,8 @@ begin
           Delete;
         end;
     $f003: if FIsExecutable then ProcessHelper.Kill(FProcName);
-    $f004..$f020: ;
+    $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
+    $f005..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;

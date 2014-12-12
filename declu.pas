@@ -216,6 +216,7 @@ resourcestring
   XStartButtonText = 'Start';
 
   // frmterryu //
+  XRun = 'Run';
   XConfigureIcon = 'Configure icon';
   XOpenFolderOf = 'Open folder of';
   XCopy = 'Copy';

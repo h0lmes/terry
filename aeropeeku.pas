@@ -366,6 +366,7 @@ var
   pid, prevpid: dword;
   separators: boolean;
   sepCount, tmp: integer;
+  wnd: THandle;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
@@ -406,9 +407,13 @@ begin
   index := 0;
   while index < FWindowCount do
   begin
-    GetWindowThreadProcessId(THandle(AppList.Items[index]), @pid);
-    if (index > 0) and (pid <> prevpid) then inc(FProcessCount);
-    prevpid := pid;
+    wnd := THandle(AppList.Items[index]);
+    if IsWindow(wnd) then
+    begin
+      GetWindowThreadProcessId(wnd, @pid);
+      if (index > 0) and (pid <> prevpid) then inc(FProcessCount);
+      prevpid := pid;
+    end;
     inc(index);
   end;
   separators := (FProcessCount > 1) and (FProcessCount < FWindowCount);
@@ -416,25 +421,31 @@ begin
   // store handles, load icons
   FItemCount := 0;
   sepCount := 0;
-  index := 0;
   prevpid := 0;
   pid := 0;
+  index := 0;
   while index < FWindowCount do
   begin
-    inc(FItemCount);
-    SetLength(items, FItemCount);
-    iitem := FItemCount - 1;
-    items[iitem].hwnd := THandle(AppList.Items[index]);
-    if separators then GetWindowThreadProcessId(items[iitem].hwnd, @pid);
-    if (index > 0) and (pid <> prevpid) then
+    wnd := THandle(AppList.Items[index]);
+    if IsWindow(wnd) then
     begin
-      items[iitem].hwnd := 0;
-      inc(sepCount);
+      inc(FItemCount);
+      SetLength(items, FItemCount);
+      iitem := FItemCount - 1;
+      items[iitem].hwnd := wnd;
+      if separators then GetWindowThreadProcessId(wnd, @pid);
+      if (index > 0) and (pid <> prevpid) then
+      begin
+        items[iitem].hwnd := 0;
+        inc(sepCount);
+      end else begin
+        LoadImageFromHWnd(wnd, FIconSize, true, false, items[iitem].image, items[iitem].iw, items[iitem].ih, 500);
+        inc(index);
+      end;
+      prevpid := pid;
     end else begin
-      LoadImageFromHWnd(items[iitem].hwnd, FIconSize, true, false, items[iitem].image, items[iitem].iw, items[iitem].ih, 500);
       inc(index);
     end;
-    prevpid := pid;
   end;
 
   // calc thumbnail width and height

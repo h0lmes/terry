@@ -111,7 +111,7 @@ type
     LastMouseUp: cardinal;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
-    procedure Exec;
+    procedure Exec(noActivate: boolean = false);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
@@ -540,10 +540,16 @@ function TShortcutSubitem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   filename: string;
   msg: TMessage;
+  mii: MENUITEMINFO;
 begin
   result := false;
 
   FHMenu := CreatePopupMenu;
+  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  mii.cbSize := sizeof(MENUITEMINFO);
+  mii.fMask := MIIM_STATE;
+  mii.fState := MFS_DEFAULT;
+  SetMenuItemInfo(FHMenu, $f006, false, @mii);
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
@@ -580,8 +586,9 @@ begin
       $f002: OpenFolder;
       $f003: toolu.SetClipboard(ToString);
       $f004: Delete;
-      $f005..$f020: ;
-      else sendmessage(FHWndParent, WM_COMMAND, msg.wParam, msg.lParam);
+      $f006: Exec(true);
+      //$f007..$f020: ;
+      //else sendmessage(FHWndParent, WM_COMMAND, msg.wParam, msg.lParam);
     end;
   except
     on e: Exception do raise Exception.Create('TStackSubitem.WMCommand'#10#13 + e.message);
@@ -593,7 +600,7 @@ begin
   TfrmItemProp.Open(ToString, UpdateItem);
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.Exec;
+procedure TShortcutSubitem.Exec(noActivate: boolean = false);
 var
   sei: TShellExecuteInfo;
 begin
@@ -612,7 +619,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if FActivateRunning and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunning and (GetAsyncKeystate(17) >= 0) and not noActivate then
     begin
       if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
@@ -634,22 +641,18 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.CanOpenFolder: boolean;
 var
-  _file: string;
+  strFile: string;
 begin
-  _file := toolu.UnzipPath(FCommand);
-  if not fileexists(_file) or not directoryexists(_file) then _file := ExtractFilePath(toolu.FindFile(_file));
-  result := fileexists(_file) or directoryexists(_file);
+  strFile := toolu.UnzipPath(FCommand);
+  result := fileexists(strFile) or directoryexists(strFile);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.OpenFolder;
 var
-  _file: string;
+  strFile: string;
 begin
-  _file := toolu.UnzipPath(FCommand);
-  if not fileexists(_file) or not directoryexists(_file)
-  then _file := ExtractFilePath(toolu.FindFile(_file))
-  else _file := ExtractFilePath(_file);
-  DockExecute(FHWnd, pchar(_file), nil, nil, sw_shownormal);
+  strFile := ExtractFilePath(toolu.UnzipPath(FCommand));
+  DockExecute(FHWnd, pchar(strFile), nil, nil, sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.DropFile(pt: windows.TPoint; filename: string): boolean;

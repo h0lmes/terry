@@ -309,6 +309,10 @@ msgctxt "declu.xprogramsettings"
 msgid "Program settings"
 msgstr "Настройки программы"
 
+#: declu.xrun
+msgid "Run"
+msgstr "Выполнить"
+
 #: declu.xselectworkingdirectory
 msgid "Select working directory"
 msgstr "Выберите папку программы"

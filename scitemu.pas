@@ -39,7 +39,7 @@ type
     procedure BitBucketUpdate;
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
-    procedure Exec;
+    procedure Exec(noActivate: boolean = false);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure ClosePeekWindow(Timeout: cardinal = 0);
@@ -639,17 +639,23 @@ function TShortcutItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   filename: string;
   msg: TMessage;
+  mii: MENUITEMINFO;
 begin
   result := false;
 
   FHMenu := CreatePopupMenu;
+  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  mii.cbSize := sizeof(MENUITEMINFO);
+  mii.fMask := MIIM_STATE;
+  mii.fState := MFS_DEFAULT;
+  SetMenuItemInfo(FHMenu, $f006, false, @mii);
   if FBitBucketFiles > 0 then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
-  dockh.DockAddMenu(FHMenu);
+  //dockh.DockAddMenu(FHMenu);
   LME(true);
 
   // if shell context menu is enabled //
@@ -682,8 +688,9 @@ begin
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
     $f005: DockExecute(FHWnd, pchar('/emptybin'), nil, nil, 1);
-    $f006..$f020: ;
-    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
+    $f006: Exec(true);
+    //$f007..$f020: ;
+    //else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -729,7 +736,7 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.Exec;
+procedure TShortcutItem.Exec(noActivate: boolean = false);
 var
   sei: TShellExecuteInfo;
 begin
@@ -749,7 +756,7 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if FActivateRunning and (GetAsyncKeystate(17) >= 0) then
+    if FActivateRunning and (GetAsyncKeystate(17) >= 0) and not noActivate then
     begin
       if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
       if not ActivateProcessMainWindow then
@@ -850,22 +857,18 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutItem.CanOpenFolder: boolean;
 var
-  _file: string;
+  strFile: string;
 begin
-  _file := toolu.UnzipPath(FCommand);
-  if not fileexists(_file) or not directoryexists(_file) then _file := ExtractFilePath(toolu.FindFile(_file));
-  result := fileexists(_file) or directoryexists(_file);
+  strFile := toolu.UnzipPath(FCommand);
+  result := fileexists(strFile) or directoryexists(strFile);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.OpenFolder;
 var
-  _file: string;
+  strFile: string;
 begin
-  _file := toolu.UnzipPath(FCommand);
-  if not fileexists(_file) or not directoryexists(_file)
-  then _file := ExtractFilePath(toolu.FindFile(_file))
-  else _file := ExtractFilePath(_file);
-  DockExecute(FHWnd, pchar(_file), nil, nil, sw_shownormal);
+  strFile := ExtractFilePath(toolu.UnzipPath(FCommand));
+  DockExecute(FHWnd, pchar(strFile), nil, nil, sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.RegisterProgram: string;
