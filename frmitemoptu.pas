@@ -320,7 +320,7 @@ begin
   if SameText(ExtractFileExt(edCmd.Text), '.lnk') then
   begin
     cmd := UnzipPath(edCmd.Text);
-    resolveShortcut(handle, cmd, param, dir, icon);
+    ResolveLNK(handle, cmd, param, dir, icon);
     edCmd.Text := ZipPath(cmd);
     edParams.Text := ZipPath(param);
     edDir.Text := ZipPath(dir);

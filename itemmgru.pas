@@ -61,8 +61,6 @@ type
     FItemsArea2: windows.TRect;
     FMargin: integer; // dock icons offset from a monitor edge
     FMargin2: integer; // dock icons additional offset from a monitor edge
-    //
-    FRegisteredPrograms: TStrings;
 
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
@@ -115,6 +113,8 @@ type
     DropPlaceEx: integer; // index of a place to drop to //
     ParentHWnd: cardinal;
     BaseCmd: TBaseCmd;
+    //
+    FRegisteredPrograms: TStrings;
 
     property Visible: boolean read FVisible write SetVisible;
     property ItemsArea: windows.TRect read FItemsArea write FItemsArea;
@@ -2099,6 +2099,7 @@ begin
     // do not add registered programs, so check for it
     str := AnsiLowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
     index := FRegisteredPrograms.IndexOf(str);
+    if index < 0 then index := FRegisteredPrograms.IndexOf(ExtractFileName(str));
     if index >= 0 then exit;
 
     // search existing TaskItem for the given window

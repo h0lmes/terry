@@ -1896,6 +1896,10 @@ begin
   begin
     SHEmptyRecycleBin(Handle, nil, 0);
   end
+  else if cmd = 'regp' then
+  begin
+    for i := 0 to ItemMgr.FRegisteredPrograms.Count - 1 do notify(ItemMgr.FRegisteredPrograms.Strings[i]);
+  end
   else if cmd = 'setdisplaymode' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i1) then i1 := 1024;

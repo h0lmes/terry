@@ -26,7 +26,7 @@ type
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
     queryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
     // processes //
-    function GetProcessPID(Name: string): dword;
+    procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
     function GetFullNameByPID_Internal(pid: uint): string;
     function IsMDIWindow(h: THandle): boolean;
     procedure ActivateMDIWindow(h: THandle);
@@ -210,22 +210,38 @@ end;
 // name must be either a fully qualified pathname or just a filename.exe
 procedure TProcessHelper.Kill(Name: string);
 var
+  index: integer;
   hProc: HANDLE;
-  pid: DWORD;
+  pids: TFPList;
 begin
-  if not FReady then exit;
   EnumProc;
-  pid := GetProcessPID(Name);
-  if pid <> 0 then
-  begin
-    hProc := OpenProcess(PROCESS_TERMINATE, true, pid);
-    TerminateProcess(hProc, 0);
+  pids := TFPList.Create;
+  try
+    GetProcessPIDs(Name, pids);
+    index := 0;
+    while index < pids.Count do
+    begin
+      hProc := OpenProcess(PROCESS_TERMINATE, true, dword(pids.Items[index]));
+      TerminateProcess(hProc, 0);
+      inc(index);
+    end;
+  finally
+    pids.free;
   end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.ProcessExists(Name: string): boolean;
+var
+  pids: TFPList;
 begin
-  result := GetProcessPID(Name) <> 0;
+  result := false;
+  pids := TFPList.Create;
+  try
+    GetProcessPIDs(Name, pids, true);
+    result := pids.Count > 0;
+  finally
+    pids.free;
+  end;
 end;
 //------------------------------------------------------------------------------
 // get main window handles belonging to a specified process
@@ -235,45 +251,66 @@ var
   index: integer;
   wnd: THandle;
   pid, wpid: DWORD;
+  pids: TFPList;
 begin
   if not FReady then exit;
   AppList.Clear;
-  pid := GetProcessPID(Name);
-  if pid = 0 then exit;
+  pids := TFPList.Create;
+  try
+    GetProcessPIDs(Name, pids);
+    if pids.Count = 0 then exit;
 
-  index := 0;
-  while index < listAppWindows.count do
-  begin
-    wnd := THandle(listAppWindows.items[index]);
-    GetWindowThreadProcessId(wnd, @wpid);
-    if pid = wpid then AppList.Add(pointer(wnd));
-    inc(index);
+    index := 0;
+    while index < listAppWindows.count do
+    begin
+      wnd := THandle(listAppWindows.items[index]);
+      GetWindowThreadProcessId(wnd, @wpid);
+      if pids.IndexOf(Pointer(wpid)) >= 0 then AppList.Add(pointer(wnd));
+      inc(index);
+    end;
+  finally
+    pids.free;
   end;
 end;
 //------------------------------------------------------------------------------
-// get PID (process identifier) by process name
-// name must be either a fully qualified pathname or just a filename.exe
-function TProcessHelper.GetProcessPID(Name: string): dword;
+// get list of PIDs (process identifiers) by a process name
+// the name must be either a fully qualified pathname or just a filename.exe
+procedure TProcessHelper.GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
 var
-  index: integer;
+  index, found: integer;
   fullyQualified: boolean;
 begin
   Name := AnsiLowerCase(Name);
   fullyQualified := Name <> ExtractFilename(Name);
-  result := 0;
+  found := 0;
+
   if fullyQualified then
   begin
-    index := listProcessFullName.indexof(Name);
-    if index >= 0 then result := dword(listProcessFullName.Objects[index]);
-    if result = 0 then
+    index := 0;
+    while index < listProcessFullName.Count do
     begin
-      index := listProcess.indexof(ExtractFilename(Name));
-      if index >= 0 then result := dword(listProcess.Objects[index]);
+      if listProcessFullName.Strings[index] = Name then
+      begin
+        pids.Add(Pointer(listProcessFullName.Objects[index]));
+        if OnlyFist then exit;
+        inc(found);
+      end;
+      inc(index);
     end;
-  end else
+  end;
+
+  if found = 0 then
   begin
-    index := listProcess.indexof(Name);
-    if index >= 0 then result := dword(listProcess.Objects[index]);
+    index := 0;
+    while index < listProcess.Count do
+    begin
+      if listProcess.Strings[index] = Name then
+      begin
+        pids.Add(Pointer(listProcess.Objects[index]));
+        if OnlyFist then exit;
+      end;
+      inc(index);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

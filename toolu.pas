@@ -159,7 +159,8 @@ function GetWinDir: string;
 function GetSystemPath(path: string): string;
 function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
-procedure ResolveShortcut(wnd: HWND; var ShortcutPath: string; out params, dir, icon: string);
+procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
+procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
 procedure FreeAndNil(var Obj);
 procedure SetClipboard(Text: string);
@@ -846,7 +847,7 @@ begin
   SendMessage(HWND_BROADCAST, WM_DISPLAYCHANGE, SPI_SETNONCLIENTMETRICS, 0);
 end;
 //------------------------------------------------------------------------------
-procedure ResolveShortcut(wnd: HWND; var ShortcutPath: string; out params, dir, icon: string);
+procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 var
   obj: IUnknown;
   isl: IShellLink;
@@ -858,25 +859,41 @@ begin
   obj := CreateComObject(CLSID_ShellLink);
   isl := obj as IShellLink;
   ipf := obj as IPersistFile;
-  if S_OK <> ipf.Load(PWChar(WideString(ShortcutPath)), STGM_READ) then exit;
+  if S_OK <> ipf.Load(PWChar(WideString(Target)), STGM_READ) then exit;
   if S_OK = isl.Resolve(wnd, SLR_NO_UI + SLR_NOUPDATE) then
   begin
     SetLength(s, MAX_PATH);
     isl.GetPath(PChar(s), length(s), fda, SLGP_UNCPRIORITY);
-    ShortcutPath := PChar(s);
-
-    SetLength(s, MAX_PATH);
+    Target := PChar(s);
     isl.GetArguments(PChar(s), length(s));
     params := PChar(s);
-
-    SetLength(s, MAX_PATH);
     isl.GetWorkingDirectory(PChar(s), length(s));
     dir := PChar(s);
-
-    SetLength(s, MAX_PATH);
     isl.GetIconLocation(PChar(s), length(s), iIcon);
     icon := PChar(s);
   end;
+end;
+//--------------------------------------------------------------------------------------------------
+procedure ResolveAppref(wnd: HWND; var Target: string);
+//var
+  //fs: TFileStream;
+  //size: integer;
+  //wch: array of WChar;
+  //ch: array of char;
+begin
+  Target := ChangeFileExt(ExtractFileName(Target), '.exe');
+  exit;
+  {fs := TFileStream.Create(Target, fmOpenRead);
+  try
+    size := integer(fs.Size) div 2;
+    SetLength(wch, size + 1);
+    SetLength(ch, size + 1);
+    fs.ReadBuffer(wch, fs.Size);
+    WideCharToMultiByte(CP_ACP, 0, @wch, -1, @ch, size, nil, nil);
+    Target := ChangeFileExt(cut(cutafter(pchar(ch), '#'), ','), '.exe');
+  finally
+    fs.free;
+  end;}
 end;
 //--------------------------------------------------------------------------------------------------
 function BrowseFolder(hWnd: THandle; title, default: string): string;

@@ -23,6 +23,7 @@ type
     FColorData: integer;
     FUseShellContextMenus: boolean;
     FIsExecutable: boolean;
+    FExecutable: string;
     FRunning: boolean;
     is_pidl: boolean;
     apidl: PItemIDList;
@@ -166,6 +167,8 @@ var
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
+  //
+  ext, params, dir, icon: string;
 begin
   if FFreed or FUpdating then exit;
 
@@ -198,7 +201,18 @@ begin
 
       // check if this is the shortcut to an executable file
       FIsExecutable := false;
-      if not is_pidl then FIsExecutable := SameText(ExtractFileExt(FCommand), '.exe');
+      if not is_pidl then
+      begin
+        FExecutable := toolu.UnzipPath(FCommand);
+        if not FileExists(FExecutable) then FExecutable := ''
+        else
+        begin
+          ext := ExtractFileExt(FExecutable);
+          if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
+          if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
+        end;
+        FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
+      end;
 
       // check if this is a Recycle Bin //
       CheckIfBitBucket;
@@ -309,7 +323,7 @@ begin
   if FIsExecutable then
   begin
     appCount := FAppList.Count;
-    ProcessHelper.GetProcessWindows(UnzipPath(FCommand), FAppList);
+    ProcessHelper.GetProcessWindows(FExecutable, FAppList);
     b := FAppList.Count > 0;
     if (b <> FRunning) or (appCount <> FAppList.Count) then
     begin
@@ -665,7 +679,7 @@ begin
     else
     begin
       filename := toolu.UnzipPath(FCommand);
-      if not fileexists(filename) and not directoryexists(filename) then filename := toolu.FindFile(filename);
+      //if not fileexists(filename) and not directoryexists(filename) then filename := toolu.FindFile(filename);
       if fileexists(filename) or directoryexists(filename) then result := shcontextu.ShContextMenu(FHWnd, pt, filename, FHMenu);
     end;
   end;
@@ -779,7 +793,7 @@ begin
   if not FIsExecutable then exit;
 
   ProcessHelper.EnumAppWindows;
-  ProcessHelper.GetProcessWindows(UnzipPath(FCommand), FAppList);
+  ProcessHelper.GetProcessWindows(FExecutable, FAppList);
   if FAppList.Count = 1 then
   begin
     result := true;
@@ -811,10 +825,10 @@ begin
   if FSite = 0 then inc(pt.x, FSize);
   if FSite = 1 then inc(pt.y, FSize);
   case FSite of
-    0: inc(pt.x, 10);
-    1: inc(pt.y, 10);
-    2: dec(pt.x, 10);
-    3: dec(pt.y, 10);
+    0: inc(pt.x, 5);
+    1: inc(pt.y, 5);
+    2: dec(pt.x, 5);
+    3: dec(pt.y, 5);
   end;
   FHideHint := true;
   UpdateHint;
@@ -847,10 +861,10 @@ begin
   if FSite = 0 then inc(pt.x, FSize);
   if FSite = 1 then inc(pt.y, FSize);
   case FSite of
-    0: inc(pt.x, 10);
-    1: inc(pt.y, 10);
-    2: dec(pt.x, 10);
-    3: dec(pt.y, 10);
+    0: inc(pt.x, 5);
+    1: inc(pt.y, 5);
+    2: dec(pt.x, 5);
+    3: dec(pt.y, 5);
   end;
   TAeroPeekWindow.SetPosition(pt.x, pt.y);
 end;
@@ -873,8 +887,7 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutItem.RegisterProgram: string;
 begin
-  result := toolu.UnzipPath(FCommand);
-  if not FileExists(result) then result := '';
+  result := FExecutable;
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;

@@ -3,7 +3,7 @@ unit taskitemu;
 {$t+}
 
 interface
-uses Windows, jwaWindows, Messages, SysUtils, Controls, Classes,
+uses Windows, Messages, SysUtils, Controls, Classes,
   Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp,
   aeropeeku, dwm_unit, themeu;
 
@@ -377,6 +377,7 @@ end;
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
+  mii: MENUITEMINFO;
 begin
   result := true;
 
@@ -390,6 +391,10 @@ begin
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
+  mii.cbSize := sizeof(MENUITEMINFO);
+  mii.fMask := MIIM_STATE;
+  mii.fState := MFS_DEFAULT;
+  SetMenuItemInfo(FHMenu, $f004, false, @mii);
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   LME(true);
 
@@ -482,10 +487,10 @@ begin
   if FSite = 0 then inc(pt.x, FSize);
   if FSite = 1 then inc(pt.y, FSize);
   case FSite of
-    0: inc(pt.x, 10);
-    1: inc(pt.y, 10);
-    2: dec(pt.x, 10);
-    3: dec(pt.y, 10);
+    0: inc(pt.x, 5);
+    1: inc(pt.y, 5);
+    2: dec(pt.x, 5);
+    3: dec(pt.y, 5);
   end;
   //LME(true);
   FHideHint := true;
@@ -520,10 +525,10 @@ begin
   if FSite = 0 then inc(pt.x, FSize);
   if FSite = 1 then inc(pt.y, FSize);
   case FSite of
-    0: inc(pt.x, 10);
-    1: inc(pt.y, 10);
-    2: dec(pt.x, 10);
-    3: dec(pt.y, 10);
+    0: inc(pt.x, 5);
+    1: inc(pt.y, 5);
+    2: dec(pt.x, 5);
+    3: dec(pt.y, 5);
   end;
   TAeroPeekWindow.SetPosition(pt.x, pt.y);
 end;

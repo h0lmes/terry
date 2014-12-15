@@ -543,7 +543,7 @@ begin
   if IsValidShortcutString(GetClipboard) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPaste)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
-  dockh.DockAddMenu(FHMenu);
+  //dockh.DockAddMenu(FHMenu);
 
   LME(true);
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -563,8 +563,8 @@ begin
     $f003: toolu.SetClipboard(ToStringFullCopy);
     $f004: Delete;
     $f005: AddSubitem(GetClipboard);
-    $f006..$f020: ;
-    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
+    //$f006..$f020: ;
+    //else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

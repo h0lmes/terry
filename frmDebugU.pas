@@ -41,7 +41,7 @@ begin
   memo.lines.add('');
   log := TStringList.Create;
   try
-    log.LoadFromFile(UnzipPath('%pp%\terry.log'));
+    log.LoadFromFile(UnzipPath('%pp%\log.log'));
     memo.lines.AddText(AnsiToUTF8(log.Text));
   except
     on e: Exception do memo.lines.add('>>> ' + e.message);

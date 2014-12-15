@@ -26,6 +26,8 @@ type
     FHintAlpha: integer;
     FQueryDelete: boolean;
     FFont: _FontData;
+    FIsExecutable: boolean;
+    FExecutable: string;
 
     FEnabled: boolean;
     FUpdating: boolean;
@@ -235,6 +237,8 @@ var
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
+  //
+  ext, params, dir, icon: string;
 begin
   if FFreed or FUpdating then exit;
 
@@ -265,6 +269,21 @@ begin
         FCaption := sfi.szDisplayName;
       end;
 
+      // check if this is the shortcut to an executable file
+      FIsExecutable := false;
+      if not is_pidl then
+      begin
+        FExecutable := toolu.UnzipPath(FCommand);
+        if not FileExists(FExecutable) then FExecutable := ''
+        else
+        begin
+          ext := ExtractFileExt(FExecutable);
+          if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
+          if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
+        end;
+        FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
+      end;
+
       // load images //
       try if FImage <> nil then GdipDisposeImage(FImage);
       except end;
@@ -293,9 +312,9 @@ procedure TShortcutSubitem.UpdateItemRunningState;
 var
   b: boolean;
 begin
-  if length(FCommand) > 0 then
+  if length(FExecutable) > 0 then
   begin
-    b := ProcessHelper.ProcessExists(UnzipPath(FCommand));
+    b := ProcessHelper.ProcessExists(FExecutable);
     if b <> FRunning then
     begin
       FRunning := b;
