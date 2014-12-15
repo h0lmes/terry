@@ -1388,17 +1388,19 @@ begin
   h := GetWindow(h, GW_HWNDPREV);
 	while h <> 0 do
 	begin
+    // exclude hidden and tool windows
     if IsWindowVisible(h) and (GetWindowLong(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
     begin
-      GetWindowPlacement(h, wp);
-      if wp.showCmd = SW_SHOWMAXIMIZED then
-      begin
-        if PtInRect(bounds, wp.ptMaxPosition) then
+        // update only maximized windows
+        GetWindowPlacement(h, wp);
+        if wp.showCmd = SW_SHOWMAXIMIZED then
         begin
-          ShowWindow(h, SW_SHOWNORMAL);
-          ShowWindow(h, SW_SHOWMAXIMIZED);
+          if PtInRect(bounds, wp.ptMaxPosition) then
+          begin
+            ShowWindow(h, SW_SHOWNORMAL);
+            ShowWindow(h, SW_SHOWMAXIMIZED);
+          end;
         end;
-      end;
     end;
     h := GetWindow(h, GW_HWNDPREV);
 	end;
