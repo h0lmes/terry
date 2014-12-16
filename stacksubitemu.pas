@@ -397,7 +397,7 @@ begin
 
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
     if FRunning and (AAlpha > 127) then theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
-    if AAngle > 0 then GdipResetWorldTransform(dst);
+    GdipResetWorldTransform(dst);
 
     // hint (caption) //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then

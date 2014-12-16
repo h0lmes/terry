@@ -16,8 +16,8 @@ type
     FProcName: string;
     FAppList: TFPList;
     FIsOpen: boolean;
-    FGrouping: boolean;
-    FLivePreviews: boolean;
+    FTaskLivePreviews: boolean;
+    FTaskGrouping: boolean;
     FIsExecutable: boolean;
     procedure BeforeUndock;
     procedure UpdateImage;
@@ -46,7 +46,7 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     //
-    class function Make(Grouping, LivePreviews: boolean): string;
+    class function Make: string;
   end;
 
 implementation
@@ -56,12 +56,8 @@ begin
   inherited;
   FCanDrag := false;
   FDontSave := true;
-  FGrouping := true;
-  try FGrouping := boolean(strtoint(FetchValue(AData, 'gr="', '";')));
-  except end;
-  FLivePreviews := true;
-  try FLivePreviews := boolean(strtoint(FetchValue(AData, 'lp="', '";')));
-  except end;
+  FTaskGrouping := AParams.TaskGrouping;
+  FTaskLivePreviews := AParams.TaskLivePreviews;
   FProcName := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
@@ -96,7 +92,7 @@ procedure TTaskItem.UpdateTaskItem(hwnd: THandle);
 var
   ProcName: string;
 begin
-  if FFreed or (not FGrouping and (FAppList.Count > 0)) then exit;
+  if FFreed or (not FTaskGrouping and (FAppList.Count > 0)) then exit;
 
   if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
   begin
@@ -495,7 +491,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FLivePreviews);
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------
@@ -537,11 +533,9 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-class function TTaskItem.Make(Grouping, LivePreviews: boolean): string;
+class function TTaskItem.Make: string;
 begin
-  result := 'class="task";' +
-    'gr="' + inttostr(integer(Grouping)) + '";' +
-    'lp="' + inttostr(integer(LivePreviews)) + '";';
+  result := 'class="task";';
 end;
 //------------------------------------------------------------------------------
 end.

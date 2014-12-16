@@ -411,7 +411,9 @@ begin
     ItemMgr.SetParam(gpLockDragging, integer(sets.container.LockDragging));
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
-    ItemMgr.SetParam(gpTaskbarSameMonitor, integer(sets.container.TaskbarSameMonitor));
+    ItemMgr.SetParam(gpTaskSameMonitor, integer(sets.container.TaskSameMonitor));
+    ItemMgr.SetParam(gpTaskLivePreviews, integer(sets.container.TaskLivePreviews));
+    ItemMgr.SetParam(gpTaskGrouping, integer(sets.container.TaskGrouping));
     ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
 
     ItemMgr.SetFont(sets.container.Font);
@@ -942,10 +944,10 @@ begin
   if not IsLockedMouseEffect then
   try
     parent := 0;
-    if sets.container.TaskbarSameMonitor then parent := Handle;
+    if sets.container.TaskSameMonitor then parent := Handle;
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows(parent);
     if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
-    if sets.container.Taskbar then ItemMgr.Taskbar(sets.container.TaskbarLivePreviews, sets.container.TaskbarGrouping);
+    if sets.container.Taskbar then ItemMgr.Taskbar;
   except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;

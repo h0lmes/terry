@@ -26,9 +26,9 @@ type
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
     gpTaskbar,
-    gpTaskbarLivePreviews,
-    gpTaskbarGrouping,
-    gpTaskbarSameMonitor,
+    gpTaskLivePreviews,
+    gpTaskGrouping,
+    gpTaskSameMonitor,
     gpAutoHide,
     gpAutoHideTime,
     gpAutoHidePixels,
@@ -111,6 +111,8 @@ type
     LockDragging: boolean;
     StackOpenAnimation: boolean;
     SeparatorAlpha: integer;
+    TaskLivePreviews: boolean;
+    TaskGrouping: boolean;
     Font: _FontData;
   end;
 

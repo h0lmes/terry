@@ -333,13 +333,13 @@ begin
   tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
   chbTaskbar.Checked := sets.container.Taskbar;
   chbTaskbarLivePreviews.OnChange := nil;
-  chbTaskbarLivePreviews.Checked := sets.container.TaskbarLivePreviews;
+  chbTaskbarLivePreviews.Checked := sets.container.TaskLivePreviews;
   chbTaskbarLivePreviews.OnChange := chbTaskbarLivePreviewsChange;
   chbTaskbarGrouping.OnChange := nil;
-  chbTaskbarGrouping.Checked := sets.container.TaskbarGrouping;
+  chbTaskbarGrouping.Checked := sets.container.TaskGrouping;
   chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
   chbTaskbarSameMonitor.OnChange := nil;
-  chbTaskbarSameMonitor.Checked := sets.container.TaskbarSameMonitor;
+  chbTaskbarSameMonitor.Checked := sets.container.TaskSameMonitor;
   chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
 
   //
@@ -676,17 +676,17 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarGroupingChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskbarGrouping, integer(chbTaskbarGrouping.Checked));
+  frmmain.SetParam(gpTaskGrouping, integer(chbTaskbarGrouping.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarLivePreviewsChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskbarLivePreviews, integer(chbTaskbarLivePreviews.Checked));
+  frmmain.SetParam(gpTaskLivePreviews, integer(chbTaskbarLivePreviews.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarSameMonitorChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskbarSameMonitor, integer(chbTaskbarSameMonitor.Checked));
+  frmmain.SetParam(gpTaskSameMonitor, integer(chbTaskbarSameMonitor.Checked));
 end;
 //------------------------------------------------------------------------------
 //

@@ -46,6 +46,8 @@ type
     SetsFilename: string;
     FVisible: boolean;
     Enabled: boolean;
+    FTaskLivePreviews: boolean;
+    FTaskGrouping: boolean;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
@@ -83,7 +85,7 @@ type
     function ItemIndex(HWnd: HANDLE): integer;
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
-    procedure AddTaskWindow(HWndTask: THandle; LivePreviews, Grouping: boolean);
+    procedure AddTaskWindow(HWndTask: THandle);
     procedure RemoveTaskWindow(HWndTask: THandle);
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
@@ -140,7 +142,7 @@ type
     procedure Save(fsets: string);
 
     // task item procs //
-    procedure Taskbar(LivePreviews, Grouping: boolean);
+    procedure Taskbar;
     procedure ClearTaskbar;
 
     // items //
@@ -317,10 +319,18 @@ begin
           Reflection := boolean(value);
           ItemsChanged(true);
         end;
-      gpReflectionSize: ReflectionSize := value;
+      gpReflectionSize:         ReflectionSize := value;
       gpTaskbar:                if value = 0 then ClearTaskbar;
-      gpTaskbarLivePreviews:    ClearTaskbar;
-      gpTaskbarGrouping:        ClearTaskbar;
+      gpTaskLivePreviews:
+        begin
+          ClearTaskbar;
+          FTaskLivePreviews := value <> 0;
+        end;
+      gpTaskGrouping:
+        begin
+          ClearTaskbar;
+          FTaskGrouping := value <> 0;
+        end;
       gpItemAnimation:          ItemAnimation := value;
       gpLaunchInterval:         LaunchInterval := value;
       gpActivateRunning:        ActivateRunning := value <> 0;
@@ -1103,6 +1113,8 @@ begin
     icp.LockDragging := LockDragging;
     icp.StackOpenAnimation := StackOpenAnimation;
     icp.SeparatorAlpha := FSeparatorAlpha;
+    icp.TaskLivePreviews := FTaskLivePreviews;
+    icp.TaskGrouping := FTaskGrouping;
     CopyFontData(FFont, icp.Font);
 
     if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
@@ -2052,7 +2064,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure _ItemManager.Taskbar(LivePreviews, Grouping: boolean);
+procedure _ItemManager.Taskbar;
 var
   index: integer;
   Inst: TCustomItem;
@@ -2070,7 +2082,7 @@ begin
     index := 0;
     while index < ProcessHelper.GetAppWindowsCount do
     begin
-      AddTaskWindow(ProcessHelper.GetAppWindowHandle(index), LivePreviews, Grouping);
+      AddTaskWindow(ProcessHelper.GetAppWindowHandle(index));
       inc(index);
     end;
 
@@ -2088,7 +2100,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.AddTaskWindow(HWndTask: THandle; LivePreviews, Grouping: boolean);
+procedure _ItemManager.AddTaskWindow(HWndTask: THandle);
 var
   index, found: integer;
   HWndItem: THandle;
@@ -2121,7 +2133,7 @@ begin
     if found = -1 then
     begin
       SetDropPlace(NOT_AN_ITEM);
-      HWndItem := AddItem(TTaskItem.Make(Grouping, LivePreviews), true);
+      HWndItem := AddItem(TTaskItem.Make, true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;

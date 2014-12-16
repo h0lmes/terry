@@ -22,6 +22,8 @@ type
     FHide: boolean;
     FColorData: integer;
     FUseShellContextMenus: boolean;
+    FTaskLivePreviews: boolean;
+    FTaskGrouping: boolean;
     FIsExecutable: boolean;
     FExecutable: string;
     FRunning: boolean;
@@ -78,6 +80,8 @@ constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: 
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
+  FTaskGrouping := AParams.TaskGrouping;
+  FTaskLivePreviews := AParams.TaskLivePreviews;
 
   LastMouseUp:= 0;
   FCommand:= '';
@@ -358,6 +362,8 @@ begin
           FRunning := false;
           Redraw;
         end;
+      gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
+      gpTaskGrouping: FTaskGrouping := boolean(param);
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
       gpSite: if FRunning then Redraw;
       tcThemeChanged: if FRunning then Redraw;
@@ -832,7 +838,7 @@ begin
   end;
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, true {FLivePreviews});
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------
