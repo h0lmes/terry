@@ -4,7 +4,7 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
+  IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
   processhlp, aeropeeku;
 
 type
@@ -466,7 +466,7 @@ begin
 
       // draw the button
       button := false;
-      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize);
+      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, false);
       FNCHitText := button;
 
       xBitmap := 0;

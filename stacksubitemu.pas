@@ -4,7 +4,7 @@ unit stacksubitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  GDIPAPI, gdip_gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp;
+  GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp;
 
 type
   TCustomSubitem = class

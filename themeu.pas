@@ -3,7 +3,7 @@ unit themeu;
 interface
 
 uses Windows, Classes, SysUtils, Forms, Dialogs, StdCtrls, IniFiles,
-  ActiveX, declu, toolu, gdip_gfx, GDIPAPI;
+  ActiveX, declu, toolu, gfx, GDIPAPI;
 
 const MAX_REGION_POINTS = 128;
 
@@ -91,7 +91,7 @@ type
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
     procedure DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
-    function DrawButton(dst: Pointer; Left, Top, Size: integer): boolean;
+    function DrawButton(dst: Pointer; Left, Top, Size: integer; Attension: boolean): boolean;
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -544,7 +544,7 @@ begin
   inc(marg.Top, area.Top);
   inc(marg.Right, area.Right);
   inc(marg.Bottom, area.Bottom);
-  gdip_gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
+  gfx.DrawEx(hGDIPGraphics, Background.Image, Background.W, Background.H,
     rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, alpha);
 end;
 //------------------------------------------------------------------------------
@@ -587,12 +587,20 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer): boolean;
+function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attension: boolean): boolean;
+var
+  brush: pointer;
 begin
   result := false;
+  if Attension then
+  begin
+    GdipCreateSolidFill($d070ff60, brush);
+    GdipFillRectangle(dst, brush, Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom);
+    GdipDeleteBrush(brush);
+  end;
   if assigned(Button.Image) then
   begin
-    gdip_gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
+    gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
       rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
       Button.Margins, ssStretch, 255);
     result := true;

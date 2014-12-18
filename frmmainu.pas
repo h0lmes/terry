@@ -5,8 +5,8 @@ interface
 uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
-  declu, GDIPAPI, gdip_gfx, dwm_unit, hintu, notifieru,
-  itemmgru, DropTgtU, setsu, traycontrolleru, aeropeeku;
+  declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
+  DropTgtU, setsu, traycontrolleru, startmenu, aeropeeku;
 
 type
   PRunData = ^TRunData;
@@ -85,7 +85,8 @@ type
     ItemMgr: _ItemManager;
     DropMgr: _DropManager;
     AHint: _Hint;
-    Tray: _TrayController;
+    Tray: TTrayController;
+    StartMenu: TStartMenuController;
 
     wndOffset: integer;
     OldBaseWindowRect: GDIPAPI.TRect;
@@ -246,9 +247,9 @@ begin
 
     if sets.Restored then notify(UTF8ToAnsi(XMsgSetsRestored));
 
-    // TrayController //
-    AddLog('Init.TrayController');
-    Tray := _TrayController.Create;
+    // Tray and StartMenu controllers //
+    Tray := TTrayController.Create;
+    StartMenu := TStartMenuController.Create;
 
     // show the dock //
     AddLog('Init.ItemMgr.Visible');
@@ -866,6 +867,7 @@ begin
   begin
     if assigned(ItemMgr) then ItemMgr.Timer;
     if assigned(Tray) then Tray.Timer;
+    if assigned(StartMenu) then StartMenu.Timer;
   end;
   RollNHideTimer;
 end;
@@ -1147,7 +1149,7 @@ end;
 procedure Tfrmmain.BasePaint(flags: integer);
 var
   hgdip, hbrush: Pointer;
-  bmp: gdip_gfx._SimpleBitmap;
+  bmp: gfx._SimpleBitmap;
   RepaintBase: boolean;
   rgn: HRGN;
 begin
@@ -1182,7 +1184,7 @@ begin
       bmp.Width := ItemMgr.BaseWindowRect.Width;
       bmp.Height := ItemMgr.BaseWindowRect.Height;
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      hgdip := gdip_gfx.CreateGraphics(bmp.dc);
+      hgdip := gfx.CreateGraphics(bmp.dc);
       if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
       GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
       GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
@@ -1211,8 +1213,8 @@ begin
       end;
 
     finally
-      gdip_gfx.DeleteGraphics(hgdip);
-      gdip_gfx.DeleteBitmap(bmp);
+      gfx.DeleteGraphics(hgdip);
+      gfx.DeleteBitmap(bmp);
     end;
   except
     on e: Exception do raise Exception.Create('Base.BaseDraw'#10#13 + e.message);
@@ -1808,7 +1810,6 @@ var
   str1, str2: string;
   lpsz1, lpsz2: pchar;
   pt: windows.TPoint;
-  baseRect: windows.TRect;
   mii: TMenuItemInfo;
   mname: array [0..MAX_PATH - 1] of char;
 begin
@@ -1850,15 +1851,9 @@ begin
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'paste' then ItemMgr.InsertItem(GetClipboard)
-  else if cmd = 'tray' then
-  begin
-    baseRect.Left := ItemMgr.BaseWindowRect.X + ItemMgr.X;
-    baseRect.Top := ItemMgr.BaseWindowRect.Y + ItemMgr.Y;
-    baseRect.Right := ItemMgr.BaseWindowRect.X + ItemMgr.X + frmmain.ItemMgr.width;
-    baseRect.Bottom := ItemMgr.BaseWindowRect.Y + ItemMgr.Y + frmmain.ItemMgr.height;
-    Tray.Show(sets.container.Site, hwnd, baseRect);
-  end
-  else if cmd = 'theme' then
+  else if cmd = 'tray' then Tray.Show(sets.container.Site, hwnd, ItemMgr.GetRect)
+  else if cmd = 'startmenu' then StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'theme' then // themes popup menu
   begin
     GetCursorPos(pt);
     i := CreatePopupMenu;

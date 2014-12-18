@@ -1,4 +1,4 @@
-unit gdip_gfx;
+unit gfx;
 
 interface
 

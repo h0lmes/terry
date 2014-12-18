@@ -2,7 +2,7 @@ unit sepitemu;
 
 interface
 uses Windows, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gdip_gfx, themeu, declu, dockh, customitemu, toolu;
+  GDIPAPI, gfx, themeu, declu, dockh, customitemu, toolu;
 
 type TSeparatorItem = class(TCustomItem)
   private

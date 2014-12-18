@@ -2,7 +2,7 @@ unit plgitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Dialogs,
-    IniFiles, GDIPAPI, gdip_gfx, math, dynlibs, declu, DockH, customitemu, toolu;
+    IniFiles, GDIPAPI, gfx, math, dynlibs, declu, DockH, customitemu, toolu;
 
 type TPluginItem = class(TCustomItem)
   private

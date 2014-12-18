@@ -4,7 +4,7 @@ interface
 uses Windows, Classes, SysUtils, Registry, declu;
 
 type
-  _TrayController = class
+  TTrayController = class
   private
     FSite: TBaseSite;
     Fx: integer;
@@ -23,13 +23,13 @@ type
 implementation
 uses frmmainu;
 //------------------------------------------------------------------------------
-constructor _TrayController.Create;
+constructor TTrayController.Create;
 begin
   inherited;
   FControl := false;
 end;
 //------------------------------------------------------------------------------
-function _TrayController.AutoTrayEnabled: boolean;
+function TTrayController.AutoTrayEnabled: boolean;
 begin
   result := false;
   with TRegIniFile.Create do
@@ -40,12 +40,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.SwitchAutoTray;
+procedure TTrayController.SwitchAutoTray;
 begin
   if AutoTrayEnabled then DisableAutoTray else EnableAutoTray;
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.EnableAutoTray;
+procedure TTrayController.EnableAutoTray;
 begin
   with TRegIniFile.Create do
   begin
@@ -58,7 +58,7 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.DisableAutoTray;
+procedure TTrayController.DisableAutoTray;
 begin
   with TRegIniFile.Create do
   begin
@@ -71,7 +71,7 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
+procedure TTrayController.Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
 var
   HWnd: cardinal;
   wRect, hostRect: windows.TRect;
@@ -91,6 +91,8 @@ begin
   hwnd := FindWindow('Shell_TrayWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'Button', nil);
+  SetActiveWindow(hwnd);
+  SetForegroundWindow(hwnd);
   SendMessage(hwnd, BM_CLICK, 0, 0);
 
   hwnd := findwindow('NotifyIconOverflowWindow', nil);
@@ -132,7 +134,7 @@ begin
   FControl := true;
 end;
 //------------------------------------------------------------------------------
-procedure _TrayController.Timer;
+procedure TTrayController.Timer;
 var
   HWnd: cardinal;
   wRect: windows.TRect;

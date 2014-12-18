@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  DefaultTranslator, Dialogs, StdCtrls, themeu, toolu, gdip_gfx, ExtCtrls, Buttons, Menus;
+  DefaultTranslator, Dialogs, StdCtrls, themeu, toolu, gfx, ExtCtrls, Buttons, Menus;
 
 type
 

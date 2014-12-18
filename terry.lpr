@@ -25,7 +25,7 @@ uses
   themeu,
   setsu,
   GDIPAPI,
-  gdip_gfx,
+  gfx,
   toolu,
   itemmgru,
   customitemu,
@@ -47,7 +47,7 @@ uses
   stackmodeu,
   processhlp,
   taskitemu,
-  frmhellou, frmtipu, multidocku, aeropeeku;
+  frmhellou, frmtipu, multidocku, aeropeeku, startmenu;
 
 {$R *.res}
 
@@ -518,7 +518,7 @@ begin
   VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   GetVersionEx(@VerInfo);
   toolu.bIsWindowsVista := VerInfo.dwMajorVersion >= 6;
-  gdip_gfx.bIsWindowsVista := toolu.bIsWindowsVista;
+  gfx.bIsWindowsVista := toolu.bIsWindowsVista;
   // running on win64
   w64 := false;
   IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');

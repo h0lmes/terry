@@ -43,7 +43,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="38">
+    <Units Count="39">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -117,9 +117,9 @@
         <UnitName Value="setsu"/>
       </Unit10>
       <Unit11>
-        <Filename Value="gdip_gfx.pas"/>
+        <Filename Value="gfx.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="gdip_gfx"/>
+        <UnitName Value="gfx"/>
       </Unit11>
       <Unit12>
         <Filename Value="toolu.pas"/>
@@ -266,6 +266,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="aeropeeku"/>
       </Unit37>
+      <Unit38>
+        <Filename Value="startmenu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="startmenu"/>
+      </Unit38>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
   Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc,
-  declu, toolu, gdip_gfx, GDIPAPI, dwm_unit, DividerBevel, types;
+  declu, toolu, gfx, GDIPAPI, dwm_unit, DividerBevel, types;
 
 type
 
@@ -757,10 +757,10 @@ procedure Tfrmsets.btnBackColorClick(Sender: TObject);
 begin
   with TColorDialog.Create(self) do
   begin
-    Color := gdip_gfx.SwapColor(FFont.backcolor and $ffffff);
+    Color := gfx.SwapColor(FFont.backcolor and $ffffff);
     if Execute then
     begin
-      FFont.backcolor := $ff000000 + gdip_gfx.SwapColor(Color and $ffffff);
+      FFont.backcolor := $ff000000 + gfx.SwapColor(Color and $ffffff);
       ApplyFont(nil);
     end;
     free;
@@ -771,10 +771,10 @@ procedure Tfrmsets.btnColorClick(Sender: TObject);
 begin
   with TColorDialog.Create(self) do
   begin
-    Color := gdip_gfx.SwapColor(FFont.color and $ffffff);
+    Color := gfx.SwapColor(FFont.color and $ffffff);
     if Execute then
     begin
-      FFont.color := $ff000000 + gdip_gfx.SwapColor(Color and $ffffff);
+      FFont.color := $ff000000 + gfx.SwapColor(Color and $ffffff);
       ApplyFont(nil);
     end;
     free;

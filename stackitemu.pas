@@ -5,7 +5,7 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles,
-  GDIPAPI, PIDL, gdip_gfx, declu, dockh, toolu, customitemu, stacksubitemu, stackmodeu;
+  GDIPAPI, PIDL, gfx, declu, dockh, toolu, customitemu, stacksubitemu, stackmodeu;
 
 const
   MAX_SUBITEMS = 64;

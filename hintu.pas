@@ -3,7 +3,7 @@ unit hintu;
 interface
 
 uses Windows, Messages, SysUtils, Forms, Math,
-  declu, toolu, GDIPAPI, gdip_gfx, setsu, dockh;
+  declu, toolu, GDIPAPI, gfx, setsu, dockh;
 
 type
   _Hint = class
@@ -196,7 +196,7 @@ begin
       bmp.topleft.y := ay - FBorder;
       bmp.Width := awidth + FBorder * 2;
       bmp.Height := aheight + FBorder * 2;
-      gdip_gfx.CreateBitmap(bmp);
+      gfx.CreateBitmap(bmp);
       GdipCreateFromHDC(bmp.dc, hgdip);
       GdipGraphicsClear(hgdip, 0);
       GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);

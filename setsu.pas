@@ -2,7 +2,7 @@ unit setsu;
 
 interface
 uses Windows, Controls, Forms, Classes, SysUtils, Dialogs,
-      Menus, StdCtrls, IniFiles, gdip_gfx, declu, toolu, dockh;
+      Menus, StdCtrls, IniFiles, gfx, declu, toolu, dockh;
 
 type
   _SetsContainer = record

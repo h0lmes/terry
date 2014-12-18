@@ -4,7 +4,7 @@ unit taskitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes,
-  Math, GDIPAPI, gdip_gfx, declu, dockh, customitemu, toolu, processhlp,
+  Math, GDIPAPI, gfx, declu, dockh, customitemu, toolu, processhlp,
   aeropeeku, dwm_unit, themeu;
 
 type
@@ -19,6 +19,7 @@ type
     FTaskLivePreviews: boolean;
     FTaskGrouping: boolean;
     FIsExecutable: boolean;
+    FAttension: boolean;
     procedure BeforeUndock;
     procedure UpdateImage;
     procedure UpdateItemInternal;
@@ -97,6 +98,7 @@ begin
   if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
   begin
     FAppList.Add(pointer(hwnd));
+    FAttension := true;
     FProcName := ProcessHelper.GetWindowProcessName(hwnd);
     UpdateItemInternal;
     exit;
@@ -115,6 +117,7 @@ begin
     if ProcName = FProcName then
     begin
       FAppList.Add(pointer(hwnd));
+      FAttension := true;
       UpdateItemInternal;
     end;
 end;
@@ -276,7 +279,7 @@ begin
       yBitmap := ItemRect.Top;
 
       // draw the button
-      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize);
+      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize, FAttension);
       FNCHitText := button;
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
@@ -435,6 +438,12 @@ procedure TTaskItem.MouseHover(AHover: boolean);
 begin
   if AHover then
   begin
+    if FAttension then // reset attension flag on MouseOver
+    begin
+      FAttension := false;
+      Redraw;
+    end;
+
     if TAeroPeekWindow.IsActive then
     begin
       if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);

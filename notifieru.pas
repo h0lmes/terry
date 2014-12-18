@@ -2,7 +2,7 @@ unit notifieru;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gdip_gfx, dwm_unit;
+uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gfx, dwm_unit;
 
 type
   TNotifier = class
@@ -236,7 +236,7 @@ begin
     bmp.topleft.y := y;
     bmp.Width := awidth;
     bmp.Height := aheight;
-    if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+    if not gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
     GdipSetTextRenderingHint(hgdip, TextRenderingHintClearTypeGridFit);
@@ -298,7 +298,7 @@ begin
       if acoeff < 0 then acoeff := 0;
       if acoeff > 255 then acoeff := 255;
     end;
-    gdip_gfx.UpdateLWindow(hWnd, bmp, acoeff);
+    gfx.UpdateLWindow(hWnd, bmp, acoeff);
     SetWindowPos(hWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
     if dwm.CompositionEnabled then
     begin
@@ -324,7 +324,7 @@ begin
     GdipDeleteFontFamily(caption_font_family);
     GdipDeleteFontFamily(message_font_family);
     GdipDeleteGraphics(hgdip);
-    gdip_gfx.DeleteBitmap(bmp);
+    gfx.DeleteBitmap(bmp);
   except
     on e: Exception do
     begin
@@ -390,10 +390,10 @@ begin
     bmp.topleft.y := -1;
     bmp.Width := 1;
     bmp.Height := 1;
-    if gdip_gfx.CreateBitmap(bmp) then
+    if gfx.CreateBitmap(bmp) then
     begin
-      gdip_gfx.UpdateLWindow(hWnd, bmp, 255);
-      gdip_gfx.DeleteBitmap(bmp);
+      gfx.UpdateLWindow(hWnd, bmp, 255);
+      gfx.DeleteBitmap(bmp);
     end;
 
     DWM.DisableBlurBehindWindow(hWnd);

@@ -3,7 +3,7 @@ unit aeropeeku;
 interface
 
 uses Windows, Messages, Classes, SysUtils, Forms,
-  declu, dwm_unit, GDIPAPI, gdip_gfx, toolu, processhlp;
+  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp;
 
 type
   TAPWLayout = (apwlHorizontal, apwlVertical);
@@ -610,7 +610,7 @@ begin
     bmp.topleft.y := Fy;
     bmp.Width := FWidth;
     bmp.Height := FHeight;
-    if not gdip_gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+    if not gfx.CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
@@ -750,7 +750,7 @@ begin
     // update window //
     UpdateLWindow(FHWnd, bmp, 255);
     GdipDeleteGraphics(hgdip);
-    gdip_gfx.DeleteBitmap(bmp);
+    gfx.DeleteBitmap(bmp);
     if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
 
     // enable blur behind

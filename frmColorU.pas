@@ -56,7 +56,7 @@ var
 
 {$t+}
 implementation
-uses gdip_gfx, toolu;
+uses gfx, toolu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmColor.StartForm(color: uint; callback_proc: pointer);

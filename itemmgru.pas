@@ -2,7 +2,7 @@ unit itemmgru;
 
 interface
 uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math,
-  declu, DockH, toolu, gdip_gfx, GDIPAPI, processhlp,
+  declu, DockH, toolu, gfx, GDIPAPI, processhlp,
   customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
 
 const

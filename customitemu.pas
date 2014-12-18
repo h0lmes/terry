@@ -4,7 +4,7 @@ unit customitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
-  declu, dockh, GDIPAPI, gdip_gfx;
+  declu, dockh, GDIPAPI, gfx;
 
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
@@ -383,7 +383,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.MouseHover(AHover: boolean);
 begin
-  if not FFreed then
+  if not FFreed and not (AHover = FHover) then
   begin
     if assigned(OnBeforeMouseHover) then OnBeforeMouseHover(AHover);
     FHover := AHover;
