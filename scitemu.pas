@@ -34,12 +34,14 @@ type
     FIsOpen: boolean; // is PeekWindow open or not
     FBitBucket: boolean;
     FBitBucketFiles: integer;
+    FAttention: boolean;
     procedure BeforeUndock;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure LoadImageI;
     procedure CheckIfBitBucket;
     procedure BitBucketUpdate;
+    procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
     procedure Exec(noActivate: boolean = false);
@@ -321,17 +323,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.UpdateItemRunningState;
 var
-  b: boolean;
+  aRunning: boolean;
   appCount: integer;
 begin
   if FIsExecutable then
   begin
     appCount := FAppList.Count;
     ProcessHelper.GetProcessWindows(FExecutable, FAppList);
-    b := FAppList.Count > 0;
-    if (b <> FRunning) or (appCount <> FAppList.Count) then
+    aRunning := FAppList.Count > 0;
+    if (aRunning <> FRunning) or (appCount <> FAppList.Count) then
     begin
-      FRunning := b;
+      FRunning := aRunning;
+      Attention(FRunning);
       Redraw;
     end;
   end;
@@ -466,7 +469,7 @@ begin
 
       // draw the button
       button := false;
-      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, false);
+      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
       FNCHitText := button;
 
       xBitmap := 0;
@@ -716,23 +719,36 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.WndMessage(var msg: TMessage);
 begin
-  with msg do
+  if not FFreed then
+    with msg do
+    begin
+        Result := 0;
+
+        // WM_ACTIVATEAPP
+        if (msg = WM_ACTIVATEAPP) and (wParam = 0) then ClosePeekWindow;
+
+        // WM_TIMER
+        if msg = WM_TIMER then
+        begin
+          // "OPEN" TIMER
+          if wParam = ID_TIMER_OPEN then ShowPeekWindow;
+          // update bitbucket
+          if wParam = ID_TIMER_UPDATE_SHORTCUT then
+            if FBitBucket then BitBucketUpdate;
+          // cancel Attention timer
+          if wParam = ID_TIMER_ATTENTION then Attention(false);
+        end;
+    end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.Attention(value: boolean);
+begin
+  FAttention := value;
+  if FAttention then SetTimer(FHWnd, ID_TIMER_ATTENTION, 5000, nil)
+  else
   begin
-      Result := 0;
-
-      // WM_ACTIVATEAPP
-      if (msg = WM_ACTIVATEAPP) and (wParam = 0) then ClosePeekWindow;
-
-      // WM_TIMER
-      if msg = WM_TIMER then
-      begin
-        // "OPEN" TIMER
-        if wParam = ID_TIMER_OPEN then ShowPeekWindow;
-
-        // update bitbucket
-        if wParam = ID_TIMER_UPDATE_SHORTCUT then
-          if FBitBucket then BitBucketUpdate;
-      end;
+    KillTimer(FHWnd, ID_TIMER_ATTENTION);
+    Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -743,6 +759,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseHover(AHover: boolean);
 begin
+  if FAttention then Attention(false);
+
   if FAppList.Count > 0 then
     if AHover then
     begin

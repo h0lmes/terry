@@ -199,6 +199,7 @@ const
   ID_TIMER_UPDATE_SHORTCUT  = 7;
   ID_TIMER_ROLL             = 8;
   ID_TIMER_DRAGLEAVE        = 9;
+  ID_TIMER_ATTENTION        = 10;
 
 resourcestring
 

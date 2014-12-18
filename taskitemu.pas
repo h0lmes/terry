@@ -19,10 +19,11 @@ type
     FTaskLivePreviews: boolean;
     FTaskGrouping: boolean;
     FIsExecutable: boolean;
-    FAttension: boolean;
+    FAttention: boolean;
     procedure BeforeUndock;
     procedure UpdateImage;
     procedure UpdateItemInternal;
+    procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -98,7 +99,7 @@ begin
   if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
   begin
     FAppList.Add(pointer(hwnd));
-    FAttension := true;
+    Attention(true);
     FProcName := ProcessHelper.GetWindowProcessName(hwnd);
     UpdateItemInternal;
     exit;
@@ -117,7 +118,7 @@ begin
     if ProcName = FProcName then
     begin
       FAppList.Add(pointer(hwnd));
-      FAttension := true;
+      Attention(true);
       UpdateItemInternal;
     end;
 end;
@@ -279,7 +280,7 @@ begin
       yBitmap := ItemRect.Top;
 
       // draw the button
-      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize, FAttension);
+      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize, FAttention);
       FNCHitText := button;
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
@@ -429,6 +430,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TTaskItem.Attention(value: boolean);
+begin
+  FAttention := value;
+  if FAttention then SetTimer(FHWnd, ID_TIMER_ATTENTION, 5000, nil)
+  else
+  begin
+    KillTimer(FHWnd, ID_TIMER_ATTENTION);
+    Redraw;
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TTaskItem.BeforeMouseHover(AHover: boolean);
 begin
   FHideHint := TAeroPeekWindow.IsActive;
@@ -436,14 +448,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.MouseHover(AHover: boolean);
 begin
+  if FAttention then Attention(false);
+
   if AHover then
   begin
-    if FAttension then // reset attension flag on MouseOver
-    begin
-      FAttension := false;
-      Redraw;
-    end;
-
     if TAeroPeekWindow.IsActive then
     begin
       if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
@@ -456,17 +464,23 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
 begin
-  if FFreed then exit;
+  if not FFreed then
+    with msg do
+    begin
+        Result := 0;
 
-  // WM_ACTIVATEAPP
-  if (msg.msg = WM_ACTIVATEAPP) and (msg.wParam = 0) then ClosePeekWindow;
+        // WM_ACTIVATEAPP
+        if (msg = WM_ACTIVATEAPP) and (wParam = 0) then ClosePeekWindow;
 
-  // WM_TIMER
-  if msg.msg = WM_TIMER then
-  begin
-    // "OPEN" TIMER
-    if msg.wParam = ID_TIMER_OPEN then ShowPeekWindow;
-  end;
+        // WM_TIMER
+        if msg = WM_TIMER then
+        begin
+          // "OPEN" TIMER
+          if wParam = ID_TIMER_OPEN then ShowPeekWindow;
+          // cancel Attention timer
+          if wParam = ID_TIMER_ATTENTION then Attention(false);
+        end;
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);

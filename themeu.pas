@@ -34,6 +34,7 @@ type
 
   TLayerButton = record
     Image: Pointer;
+    AttentionImage: Pointer;
     W: uint;
     H: uint;
     Margins: Windows.TRect;
@@ -91,7 +92,7 @@ type
     function CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
     procedure DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
-    function DrawButton(dst: Pointer; Left, Top, Size: integer; Attension: boolean): boolean;
+    function DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
     function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
     function BlurEnabled: boolean;
 
@@ -144,6 +145,13 @@ begin
     try GdipDisposeImage(Button.Image);
     except end;
     Button.Image := nil;
+  end;
+
+  if Button.AttentionImage <> nil then
+  begin
+    try GdipDisposeImage(Button.AttentionImage);
+    except end;
+    Button.AttentionImage := nil;
   end;
 
   if Separator.image <> nil then
@@ -464,6 +472,20 @@ begin
       on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'button.png' + #13#10#13#10 + e.message);
     end;
 
+    // attention button image //
+    try
+      if FileExists(Path + 'attentionbutton.png') then
+        GdipLoadImageFromFile(PWideChar(WideString(Path + 'attentionbutton.png')), Button.AttentionImage);
+      if assigned(Button.AttentionImage) then
+      begin
+        img := Button.AttentionImage;
+        GdipCloneBitmapAreaI(0, 0, Button.W, Button.H, PixelFormat32bppPARGB, img, Button.AttentionImage);
+        GdipDisposeImage(img);
+      end;
+    except
+      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'attentionbutton.png' + #13#10#13#10 + e.message);
+    end;
+
     img := nil;
   except
     on e: Exception do raise Exception.Create('Error loading theme files. ' + e.message);
@@ -587,20 +609,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attension: boolean): boolean;
+function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
 var
-  brush: pointer;
+  img: pointer;
 begin
   result := false;
-  if Attension then
+  img := Button.Image;
+  if Attention and assigned(Button.AttentionImage) then img := Button.AttentionImage;
+  if assigned(img) then
   begin
-    GdipCreateSolidFill($d070ff60, brush);
-    GdipFillRectangle(dst, brush, Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom);
-    GdipDeleteBrush(brush);
-  end;
-  if assigned(Button.Image) then
-  begin
-    gfx.DrawEx(dst, Button.Image, Button.W, Button.H,
+    gfx.DrawEx(dst, img, Button.W, Button.H,
       rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
       Button.Margins, ssStretch, 255);
     result := true;
