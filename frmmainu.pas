@@ -1890,7 +1890,6 @@ begin
   else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
   else if cmd = 'kill' then      ProcessHelper.Kill(params)
   else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
-  else if cmd = 'startmenu' then sendmessage(handle, WM_SYSCOMMAND, SC_TASKLIST, 0)
   else if cmd = 'emptybin' then
   begin
     SHEmptyRecycleBin(Handle, nil, 0);

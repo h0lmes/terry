@@ -36,9 +36,10 @@ begin
   GetCursorPos(pt);
 
   hwndButton := FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText)));
-  SetActiveWindow(hwndButton);
-  SetForegroundWindow(hwndButton);
-  SendMessage(hwndButton, BM_CLICK, 0, 0);
+  //SetActiveWindow(hwndButton);
+  //SetForegroundWindow(hwndButton);
+  //SendMessage(hwndButton, BM_CLICK, 0, 0);
+  sendmessage(host_wnd, WM_SYSCOMMAND, SC_TASKLIST, 0);
 
   FStartMenuWnd := findwindow('DV2ControlHost', nil);
   FDesktopUserPaneWnd := findwindowex(FStartMenuWnd, 0, 'Desktop User Pane', nil);

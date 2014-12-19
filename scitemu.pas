@@ -334,7 +334,7 @@ begin
     if (aRunning <> FRunning) or (appCount <> FAppList.Count) then
     begin
       FRunning := aRunning;
-      Attention(FRunning);
+      if appCount < FAppList.Count then Attention(FRunning);
       Redraw;
     end;
   end;
