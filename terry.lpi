@@ -409,7 +409,7 @@
         <UnitName Value="stacksubitemu"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="356"/>
+        <TopLine Value="285"/>
         <CursorPos X="42" Y="387"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
@@ -488,9 +488,9 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="22"/>
-        <CursorPos X="56" Y="42"/>
-        <UsageCount Value="25"/>
+        <TopLine Value="28"/>
+        <CursorPos X="81" Y="43"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit38>
@@ -1135,7 +1135,7 @@
         <UsageCount Value="9"/>
       </Unit116>
     </Units>
-    <JumpHistory Count="20" HistoryIndex="19">
+    <JumpHistory Count="26" HistoryIndex="25">
       <Position1>
         <Filename Value="frmmainu.pas"/>
         <Caret Line="88" Column="16" TopLine="71"/>
@@ -1216,6 +1216,30 @@
         <Filename Value="startmenu.pas"/>
         <Caret Line="41" Column="5" TopLine="16"/>
       </Position20>
+      <Position21>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="42" Column="17" TopLine="22"/>
+      </Position21>
+      <Position22>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="10" Column="11" TopLine="1"/>
+      </Position22>
+      <Position23>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="11" Column="13" TopLine="1"/>
+      </Position23>
+      <Position24>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="32" Column="12" TopLine="23"/>
+      </Position24>
+      <Position25>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="10" Column="16" TopLine="1"/>
+      </Position25>
+      <Position26>
+        <Filename Value="startmenu.pas"/>
+        <Caret Line="11" Column="14" TopLine="1"/>
+      </Position26>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

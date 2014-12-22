@@ -7,11 +7,11 @@ type
   TStartMenuController = class
   private
     FSite: TBaseSite;
-    Fx, FxPane: integer;
-    Fy, FyPane: integer;
+    Fx, FxPic: integer;
+    Fy, FyPic: integer;
     FControl: boolean;
     FStartMenuWnd: HWND;
-    FDesktopUserPaneWnd: HWND;
+    FDesktopUserPictureWnd: HWND;
   public
     constructor Create;
     procedure Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -24,27 +24,24 @@ constructor TStartMenuController.Create;
 begin
   inherited;
   FControl := false;
+  FxPic := -1;
 end;
 //------------------------------------------------------------------------------
 procedure TStartMenuController.Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
-  hwndButton: cardinal;
-  wRect, paneRect, hostRect: windows.TRect;
+  wRect, picRect, hostRect: windows.TRect;
   pt: windows.TPoint;
 begin
   FSite := site;
   GetCursorPos(pt);
 
-  hwndButton := FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText)));
-  //SetActiveWindow(hwndButton);
-  //SetForegroundWindow(hwndButton);
-  //SendMessage(hwndButton, BM_CLICK, 0, 0);
-  sendmessage(host_wnd, WM_SYSCOMMAND, SC_TASKLIST, 0);
-
-  FStartMenuWnd := findwindow('DV2ControlHost', nil);
-  FDesktopUserPaneWnd := findwindowex(FStartMenuWnd, 0, 'Desktop User Pane', nil);
+  FStartMenuWnd := findwindow('ImmersiveLauncher', nil);
+  if FStartMenuWnd = 0 then FStartMenuWnd := findwindow('DV2ControlHost', nil);
+  FDesktopUserPictureWnd := findwindow('Desktop User Picture', nil);
   GetWindowRect(FStartMenuWnd, @wRect);
-  GetWindowRect(FDesktopUserPaneWnd, @paneRect);
+  GetWindowRect(FDesktopUserPictureWnd, @picRect);
+  FxPic := (wRect.Right - wRect.Left) * 3 div 4 - (picRect.Right - picRect.Left);
+  FyPic := -(picRect.Bottom - picRect.Top) div 2;
 
   if IsWindow(host_wnd) then
   begin
@@ -82,7 +79,10 @@ begin
   if Fy < monitorRect.Top then Fy := monitorRect.Top;
   if Fy > monitorRect.Bottom - wRect.Bottom + wRect.Top then Fy := monitorRect.Bottom - wRect.Bottom + wRect.Top;
 
+  sendmessage(host_wnd, WM_SYSCOMMAND, SC_TASKLIST, 0);
+
   SetWindowPos(FStartMenuWnd, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER + SWP_SHOWWINDOW);
+  SetWindowPos(FDesktopUserPictureWnd, 0, Fx + FxPic, Fy + FyPic, 0, 0, SWP_NOSIZE + SWP_NOZORDER + SWP_SHOWWINDOW);
   FControl := true;
 end;
 //------------------------------------------------------------------------------
@@ -95,7 +95,11 @@ begin
     if IsWindowVisible(FStartMenuWnd) then
     begin
       GetWindowRect(FStartMenuWnd, @wRect);
-      if (wRect.Left <> Fx) or (wRect.Top <> Fy) then SetWindowPos(FStartMenuWnd, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
+      if (wRect.Left <> Fx) or (wRect.Top <> Fy) then
+      begin
+        SetWindowPos(FStartMenuWnd, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
+        SetWindowPos(FDesktopUserPictureWnd, 0, Fx + FxPic, Fy + FyPic, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
+      end;
     end
     else FControl := false;
   end;
