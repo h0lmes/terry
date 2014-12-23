@@ -312,10 +312,11 @@
         <Filename Value="taskitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="taskitemu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="88"/>
-        <CursorPos X="40" Y="130"/>
+        <TopLine Value="76"/>
+        <CursorPos X="21" Y="107"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -485,7 +486,6 @@
         <Filename Value="startmenu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="startmenu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="28"/>

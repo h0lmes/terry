@@ -15,6 +15,7 @@ type
   private
     FProcName: string;
     FAppList: TFPList;
+    FIsNew: boolean;
     FIsOpen: boolean;
     FTaskLivePreviews: boolean;
     FTaskGrouping: boolean;
@@ -63,6 +64,7 @@ begin
   FProcName := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
+  FIsNew := true;
   OnBeforeMouseHover := BeforeMouseHover;
   OnMouseHover := MouseHover;
   OnBeforeUndock := BeforeUndock;
@@ -96,12 +98,13 @@ var
 begin
   if FFreed or (not FTaskGrouping and (FAppList.Count > 0)) then exit;
 
-  if (FAppList.Count = 0) and (FProcName = '') then // if this is new item
+  if FIsNew then
   begin
     FAppList.Add(pointer(hwnd));
     Attention(true);
     FProcName := ProcessHelper.GetWindowProcessName(hwnd);
     UpdateItemInternal;
+    FIsNew := false;
     exit;
   end;
 
@@ -387,7 +390,7 @@ begin
   FHMenu := CreatePopupMenu;
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  if FAppList.Count = 1 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
+  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
@@ -415,8 +418,12 @@ begin
   case wParam of // f001 to f020
     $f001:
       if FAppList.Count > 0 then
+      begin
         for idx := FAppList.Count - 1 downto 0 do
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
+      end else begin
+        Delete;
+      end;
     $f002:
         if FIsExecutable then
         begin
@@ -492,6 +499,8 @@ procedure TTaskItem.ShowPeekWindow(Timeout: cardinal = 0);
 var
   pt: windows.TPoint;
 begin
+  if FAppList.Count < 1 then exit;
+
   if Timeout > 0 then
   begin
     SetTimer(FHWnd, ID_TIMER_OPEN, Timeout, nil);
