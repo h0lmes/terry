@@ -30,6 +30,7 @@ type
     WindowClassInstance: uint;
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
+    FPt: windows.TPoint;
     Fx: integer;
     Fy: integer;
     FXTarget: integer;
@@ -55,15 +56,18 @@ type
     FFontFamily: string;
     FFontSize: integer;
     FLayout: TAPWLayout;
-    FWindowCount, FProcessCount, FItemCount: integer;
+    FWindowCount, FProcessCount, FItemCount, FSeparatorCount: integer;
     FHoverIndex: integer;
     items: array of TAeroPeekWindowItem;
+    procedure AddItems(AppList: TFPList);
     procedure ClearImages;
+    procedure DeleteItem(index: integer);
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
+    procedure PositionThumbnails;
     procedure RegisterThumbnails;
-    procedure SetItems(AppList: TFPList);
+    procedure SetItems;
     procedure Timer;
     procedure UnRegisterThumbnails;
     procedure WindowProc(var msg: TMessage);
@@ -82,9 +86,9 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
-    procedure SetWindowPosition(AX, AY: integer);
-    procedure CloseWindow;
+    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+    procedure SetAPWindowPosition(AX, AY: integer);
+    procedure CloseAPWindow;
   end;
 
 var AeroPeekWindow: TAeroPeekWindow;
@@ -99,14 +103,14 @@ begin
   if assigned(AeroPeekWindow) then
   begin
     KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
-    result := AeroPeekWindow.OpenWindow(HostWnd, AppList, AX, AY, Site, LivePreviews);
+    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, LivePreviews);
   end;
 end;
 //------------------------------------------------------------------------------
 // set new position
 class procedure TAeroPeekWindow.SetPosition(AX, AY: integer);
 begin
-  if assigned(AeroPeekWindow) then AeroPeekWindow.SetWindowPosition(AX, AY);
+  if assigned(AeroPeekWindow) then AeroPeekWindow.SetAPWindowPosition(AX, AY);
 end;
 //------------------------------------------------------------------------------
 // close AeroPeekWindow
@@ -115,7 +119,7 @@ class procedure TAeroPeekWindow.Close(Timeout: cardinal = 0);
 begin
   if assigned(AeroPeekWindow) then
   begin
-    if Timeout = 0 then AeroPeekWindow.CloseWindow
+    if Timeout = 0 then AeroPeekWindow.CloseAPWindow
     else SetTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE, Timeout, nil);
   end;
 end;
@@ -191,12 +195,21 @@ end;
 procedure TAeroPeekWindow.RegisterThumbnails;
 var
   index: integer;
-  ThumbnailId: THandle;
 begin
   if FCompositionEnabled then
     for index := 0 to FItemCount - 1 do
       if items[index].hwnd <> 0 then
         dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].rectThumb, true, items[index].ThumbnailId);
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.PositionThumbnails;
+var
+  index: integer;
+begin
+  if FCompositionEnabled then
+    for index := 0 to FItemCount - 1 do
+      if items[index].hwnd <> 0 then
+        dwm.SetThumbnailRect(items[index].ThumbnailId, items[index].rectThumb);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.UnRegisterThumbnails;
@@ -224,7 +237,7 @@ begin
       end;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
   wa: windows.TRect;
@@ -238,61 +251,50 @@ begin
   try
     try
       FActivating := true;
-      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews;
-      FAnimate := FCompositionEnabled;
-
       UnRegisterThumbnails;
       ClearImages;
-
-      // read window list
       if AppList.Count = 0 then
       begin
-        CloseWindow;
+        CloseAPWindow;
         exit;
       end;
-
-      // size
       FHostWnd := HostWnd;
       FSite := Site;
-      FLayout := apwlHorizontal;
-      if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
       // get monitor work area
-      pt.x := AX;
-      pt.y := AY;
-      mon := MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+      FPt.x := AX;
+      FPt.y := AY;
+      mon := MonitorFromPoint(FPt, MONITOR_DEFAULTTONEAREST);
       FillChar(mi, sizeof(mi), 0);
       mi.cbSize := sizeof(mi);
       GetMonitorInfoA(mon, @mi);
       FWorkArea := mi.rcWork;
-      // set items' positions, calulate window size, update workarea
-      SetItems(AppList);
-      if not FActive then
-      begin
-        FWidth := FWTarget;
-        FHeight := FHTarget;
-      end;
 
-      // calculate position
-      FXTarget := AX - FWTarget div 2;
-      FYTarget := AY - FHTarget;
-      if FSite = 1 then // top
+      //
+      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews and (AppList.Count <= 10);
+      FAnimate := FCompositionEnabled;
+      FLayout := apwlHorizontal;
+      if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
+
+      // assign colors
+      dwm.GetColorizationColor(FColor1, opaque);
+      FColor1 := FColor1 and $ffffff or $a0000000;
+      FColor2 := $10ffffff;
+      if not FCompositionEnabled then
       begin
-        FXTarget := AX - FWTarget div 2;
-        FYTarget := AY;
-      end else if FSite = 0 then // left
-      begin
-        FXTarget := AX;
-        FYTarget := AY - FHTarget div 2;
-      end else if FSite = 2 then // right
-      begin
-        FXTarget := AX - FWTarget;
-        FYTarget := AY - FHTarget div 2;
+        FColor1 := $ff6083a7;
+        FColor2 := $ff6083a7;
       end;
-      // position window inside workarea
-      if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
-      if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
-      if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
-      if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+      if opaque then
+      begin
+        FColor1 := FColor1 or $ff000000;
+        FColor2 := FColor2 or $ff000000;
+      end;
+      FTextColor := $ffffffff;
+      if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > $90 then FTextColor := $ff000000;
+
+      // set items' positions, calulate window size, update workarea
+      AddItems(AppList);
+      SetItems;
 
       // set starting position
       if FAnimate then
@@ -322,26 +324,6 @@ begin
         Fy := FYTarget;
       end;
 
-      // assign colors
-      if not FActive then
-      begin
-        dwm.GetColorizationColor(FColor1, opaque);
-        FColor1 := FColor1 and $ffffff or $a0000000;
-        FColor2 := $10ffffff;
-        if not FCompositionEnabled then
-        begin
-          FColor1 := $ff6083a7;
-          FColor2 := $ff6083a7;
-        end;
-        if opaque then
-        begin
-          FColor1 := FColor1 or $ff000000;
-          FColor2 := FColor2 or $ff000000;
-        end;
-        FTextColor := $ffffffff;
-        if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > $90 then FTextColor := $ff000000;
-      end;
-
       // show the window
       Paint;
       // set foreground
@@ -359,14 +341,119 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetItems(AppList: TFPList);
+procedure TAeroPeekWindow.AddItems(AppList: TFPList);
 var
-  index, iitem: integer;
-  maxw, maxh, position: integer;
+  index, itemIndex: integer;
   pid, prevpid: dword;
-  separators: boolean;
-  sepCount, tmp: integer;
+  needSeparators: boolean;
   wnd: THandle;
+begin
+  // count processes
+  FWindowCount := AppList.Count;
+  if FWindowCount > 0 then FProcessCount := 1;
+  index := 0;
+  while index < FWindowCount do
+  begin
+    wnd := THandle(AppList.Items[index]);
+    if IsWindow(wnd) then
+    begin
+      GetWindowThreadProcessId(wnd, @pid);
+      if (index > 0) and (pid <> prevpid) then inc(FProcessCount);
+      prevpid := pid;
+    end;
+    inc(index);
+  end;
+  needSeparators := (FProcessCount > 1) and (FProcessCount < FWindowCount);
+
+  // store handles, load icons
+  FItemCount := 0;
+  FSeparatorCount := 0;
+  prevpid := 0;
+  pid := 0;
+  index := 0;
+  while index < FWindowCount do
+  begin
+    wnd := THandle(AppList.Items[index]);
+    if IsWindow(wnd) then
+    begin
+      inc(FItemCount);
+      SetLength(items, FItemCount);
+      itemIndex := FItemCount - 1;
+      items[itemIndex].hwnd := wnd;
+      if needSeparators then GetWindowThreadProcessId(wnd, @pid);
+      if (index > 0) and (pid <> prevpid) then
+      begin
+        items[itemIndex].hwnd := 0;
+        inc(FSeparatorCount);
+      end else begin
+        LoadImageFromHWnd(wnd, FIconSize, true, false, items[itemIndex].image, items[itemIndex].iw, items[itemIndex].ih, 500);
+        inc(index);
+      end;
+      prevpid := pid;
+    end else begin
+      inc(index);
+    end;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.DeleteItem(index: integer);
+var
+  isSeparator: boolean;
+  tmp: integer;
+begin
+  if (index >= 0) and (index < FItemCount) then
+  begin
+    // unregister appropriate thumbnail
+    if items[index].hwnd <> 0 then dwm.UnregisterThumbnail(items[index].ThumbnailId)
+    else dec(FSeparatorCount);
+
+    // shift items in the array so they erase one to delete
+    tmp := index;
+    while index < FItemCount - 1 do
+    begin
+      items[index].hwnd := items[index + 1].hwnd;
+      items[index].ThumbnailId := items[index + 1].ThumbnailId;
+      items[index].image := items[index + 1].image;
+      items[index].iw := items[index + 1].iw;
+      items[index].ih := items[index + 1].ih;
+      inc(index);
+    end;
+    // resize items array
+    dec(FItemCount);
+    SetLength(items, FItemCount);
+
+    // check for 2 separators next to each other
+    index := tmp;
+    if items[index].hwnd = 0 then
+    begin
+      if index = 0 then
+      begin
+        DeleteItem(index);
+        exit;
+      end else begin
+        if items[index - 1].hwnd = 0 then
+        begin
+          DeleteItem(index);
+          exit;
+        end;
+      end;
+    end;
+
+    if FItemCount < 1 then CloseAPWindow
+    else
+    begin
+      SetItems;
+      PositionThumbnails;
+      Paint;
+    end;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.SetItems;
+var
+  index: integer;
+  maxw, maxh, position: integer;
+  tmp: integer;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
@@ -401,64 +488,17 @@ begin
   FSeparatorW := 10;
   FSeparatorH := 2;
 
-  // count processes
-  FWindowCount := AppList.Count;
-  if FWindowCount > 0 then FProcessCount := 1;
-  index := 0;
-  while index < FWindowCount do
-  begin
-    wnd := THandle(AppList.Items[index]);
-    if IsWindow(wnd) then
-    begin
-      GetWindowThreadProcessId(wnd, @pid);
-      if (index > 0) and (pid <> prevpid) then inc(FProcessCount);
-      prevpid := pid;
-    end;
-    inc(index);
-  end;
-  separators := (FProcessCount > 1) and (FProcessCount < FWindowCount);
-
-  // store handles, load icons
-  FItemCount := 0;
-  sepCount := 0;
-  prevpid := 0;
-  pid := 0;
-  index := 0;
-  while index < FWindowCount do
-  begin
-    wnd := THandle(AppList.Items[index]);
-    if IsWindow(wnd) then
-    begin
-      inc(FItemCount);
-      SetLength(items, FItemCount);
-      iitem := FItemCount - 1;
-      items[iitem].hwnd := wnd;
-      if separators then GetWindowThreadProcessId(wnd, @pid);
-      if (index > 0) and (pid <> prevpid) then
-      begin
-        items[iitem].hwnd := 0;
-        inc(sepCount);
-      end else begin
-        LoadImageFromHWnd(wnd, FIconSize, true, false, items[iitem].image, items[iitem].iw, items[iitem].ih, 500);
-        inc(index);
-      end;
-      prevpid := pid;
-    end else begin
-      inc(index);
-    end;
-  end;
-
   // calc thumbnail width and height
   if FCompositionEnabled then
   begin
     if FLayout = apwlHorizontal then
     begin
-      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - sepCount * (FSeparatorW + ItemSplit)) div (FItemCount - sepCount) - ItemSplit);
+      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - FSeparatorCount * (FSeparatorW + ItemSplit)) div (FItemCount - FSeparatorCount) - ItemSplit);
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
     end else begin
       ThumbW := 200;
       ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
-      tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - sepCount * (FSeparatorH + ItemSplit)) div (FItemCount - sepCount) - FTitleHeight - FTitleSplit - ItemSplit;
+      tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - FSeparatorCount * (FSeparatorH + ItemSplit)) div (FItemCount - FSeparatorCount) - FTitleHeight - FTitleSplit - ItemSplit;
       if ThumbH > tmp then
       begin
         ThumbH := tmp;
@@ -585,11 +625,34 @@ begin
       FHTarget := position;
     end;
   end;
-  if not FAnimate then
+
+  if not FAnimate or not FActive then
   begin
     FWidth := FWTarget;
     FHeight := FHTarget;
   end;
+
+  // calculate position
+  FXTarget := FPt.x - FWTarget div 2;
+  FYTarget := FPt.y - FHTarget;
+  if FSite = 1 then // top
+  begin
+    FXTarget := FPt.x - FWTarget div 2;
+    FYTarget := FPt.y;
+  end else if FSite = 0 then // left
+  begin
+    FXTarget := FPt.x;
+    FYTarget := FPt.y - FHTarget div 2;
+  end else if FSite = 2 then // right
+  begin
+    FXTarget := FPt.x - FWTarget;
+    FYTarget := FPt.y - FHTarget div 2;
+  end;
+  // position window inside workarea
+  if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
+  if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
+  if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
+  if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.Paint;
@@ -810,7 +873,7 @@ begin
   GdipDeletePen(pen);
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetWindowPosition(AX, AY: integer);
+procedure TAeroPeekWindow.SetAPWindowPosition(AX, AY: integer);
 begin
   if FActive then
   begin
@@ -843,7 +906,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.CloseWindow;
+procedure TAeroPeekWindow.CloseAPWindow;
 begin
   try
     KillTimer(FHWnd, ID_TIMER_CLOSE);
@@ -939,12 +1002,17 @@ begin
           if PtInRect(items[index].rectClose, pt) then
           begin
             ProcessHelper.CloseWindow(items[index].hwnd);
+            if FItemCount < 2 then CloseAPWindow
+            else DeleteItem(index);
+            exit;
           end
-          else ProcessHelper.ActivateWindow(items[index].hwnd);
+          else begin
+            ProcessHelper.ActivateWindow(items[index].hwnd);
+            CloseAPWindow;
+            exit;
+          end;
         end;
     end;
-    CloseWindow;
-    exit;
   end
   // WM_MOUSEMOVE
   else if msg.msg = WM_MOUSEMOVE then
@@ -979,7 +1047,7 @@ begin
     if msg.wParam = ID_TIMER_CLOSE then
     begin
       GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then CloseWindow;
+      if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
     end;
 
     exit;
