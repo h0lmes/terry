@@ -1,4 +1,4 @@
-unit traycontrolleru;
+unit trayu;
 
 interface
 uses Windows, Classes, SysUtils, Registry, declu;
@@ -7,9 +7,12 @@ type
   TTrayController = class
   private
     FSite: TBaseSite;
+    FNotifyIconOverflowWindow: HWND;
     Fx: integer;
     Fy: integer;
-    FControl: boolean;
+    FControl, FShown: boolean;
+    FPoint: windows.TPoint;
+    FBaseRect: windows.TRect;
   public
     constructor Create;
     function AutoTrayEnabled: boolean;
@@ -74,8 +77,7 @@ end;
 procedure TTrayController.Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
 var
   HWnd: cardinal;
-  wRect, hostRect: windows.TRect;
-  pt: windows.TPoint;
+  hostRect: windows.TRect;
 begin
   if not AutoTrayEnabled then
   begin
@@ -85,9 +87,18 @@ begin
   end;
 
   FSite := site;
+  FBaseRect := baseRect;
+  GetCursorPos(FPoint);
+  if IsWindow(host_wnd) then
+  begin
+    GetWindowRect(host_wnd, @hostRect);
+    case FSite of
+      bsLeft, bsRight: FPoint.y := (hostRect.Top + hostRect.Bottom) div 2;
+      bsTop, bsBottom: FPoint.x := (hostRect.Left + hostRect.Right) div 2;
+    end;
+  end;
 
-  GetCursorPos(pt);
-
+  FNotifyIconOverflowWindow := findwindow('NotifyIconOverflowWindow', nil);
   hwnd := FindWindow('Shell_TrayWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'Button', nil);
@@ -95,59 +106,47 @@ begin
   SetForegroundWindow(hwnd);
   SendMessage(hwnd, BM_CLICK, 0, 0);
 
-  hwnd := findwindow('NotifyIconOverflowWindow', nil);
-  GetWindowRect(hwnd, @wRect);
-
-  if IsWindow(host_wnd) then
-  begin
-    GetWindowRect(host_wnd, @hostRect);
-    case FSite of
-      bsLeft, bsRight: pt.y := (hostRect.Top + hostRect.Bottom) div 2;
-      bsTop, bsBottom: pt.x := (hostRect.Left + hostRect.Right) div 2;
-    end;
-  end;
-
-  if FSite = bsLeft then
-  begin
-    Fx := baseRect.Right + 20;
-    Fy := pt.y - (wRect.Bottom - wRect.Top) div 2;
-  end
-  else
-  if FSite = bsTop then
-  begin
-    Fx := pt.x - (wRect.Right - wRect.Left) div 2;
-    Fy := baseRect.Bottom + 20;
-  end
-  else
-  if FSite = bsRight then
-  begin
-    Fx := baseRect.Left - 20 - (wRect.Right - wRect.Left);
-    Fy := pt.y - (wRect.Bottom - wRect.Top) div 2;
-  end
-  else
-  begin
-    Fx := pt.x - (wRect.Right - wRect.Left) div 2;
-    Fy := baseRect.Top - 20 - (wRect.Bottom - wRect.Top);
-  end;
-
-  SetWindowPos(hwnd, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER + SWP_SHOWWINDOW);
+  FShown := false;
   FControl := true;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.Timer;
 var
-  HWnd: cardinal;
   wRect: windows.TRect;
 begin
   if FControl then
   begin
-    HWnd := findwindow('NotifyIconOverflowWindow', nil);
-    if IsWindowVisible(HWnd) then
+    if IsWindowVisible(FNotifyIconOverflowWindow) then
     begin
-      GetWindowRect(hwnd, @wRect);
-      if (wRect.Left <> Fx) or (wRect.Top <> Fy) then SetWindowPos(HWnd, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
+      FShown := true;
+      GetWindowRect(FNotifyIconOverflowWindow, @wRect);
+      if FSite = bsLeft then
+      begin
+        Fx := FBaseRect.Right + 20;
+        Fy := FPoint.y - (wRect.Bottom - wRect.Top) div 2;
+      end
+      else
+      if FSite = bsTop then
+      begin
+        Fx := FPoint.x - (wRect.Right - wRect.Left) div 2;
+        Fy := FBaseRect.Bottom + 20;
+      end
+      else
+      if FSite = bsRight then
+      begin
+        Fx := FBaseRect.Left - 20 - (wRect.Right - wRect.Left);
+        Fy := FPoint.y - (wRect.Bottom - wRect.Top) div 2;
+      end
+      else
+      begin
+        Fx := FPoint.x - (wRect.Right - wRect.Left) div 2;
+        Fy := FBaseRect.Top - 20 - (wRect.Bottom - wRect.Top);
+      end;
+      if (wRect.Left <> Fx) or (wRect.Top <> Fy) then
+        SetWindowPos(FNotifyIconOverflowWindow, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
     end
-    else FControl := false;
+    else
+      if FShown then FControl := false;
   end;
 end;
 //------------------------------------------------------------------------------

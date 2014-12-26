@@ -74,6 +74,7 @@ end;
 destructor TTaskItem.Destroy;
 begin
   FFreed := true;
+  if FIsOpen then TAeroPeekWindow.Close(0);
   KillTimer(FHWnd, ID_TIMER);
   FAppList.free;
   try GdipDisposeImage(FImage);

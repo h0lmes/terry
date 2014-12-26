@@ -6,7 +6,7 @@ uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
-  DropTgtU, setsu, traycontrolleru, startmenu, aeropeeku;
+  DropTgtU, setsu, trayu, startmenu, aeropeeku;
 
 type
   PRunData = ^TRunData;

@@ -106,6 +106,7 @@ end;
 destructor TShortcutItem.Destroy;
 begin
   FFreed := true;
+  if FIsOpen then TAeroPeekWindow.Close(0);
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
   try GdipDisposeImage(FImage);
   except end;

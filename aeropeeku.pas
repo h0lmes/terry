@@ -822,6 +822,8 @@ begin
       rgn := CreateRoundRectRgn(FShadow, FShadow, FWidth - FShadow, FHeight - FShadow, FRadius * 2, FRadius * 2);
       dwm.EnableBlurBehindWindow(FHWnd, rgn);
       DeleteObject(rgn);
+    end else begin
+      dwm.DisableBlurBehindWindow(FHWnd);
     end;
   except
     on e: Exception do err('AeroPeekWindow.Paint', e);

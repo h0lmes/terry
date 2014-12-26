@@ -41,7 +41,7 @@ uses
   PIDL,
   dwm_unit,
   EColor,
-  traycontrolleru,
+  trayu,
   frmAddCommandU,
   frmstackpropu,
   stackmodeu,
