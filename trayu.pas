@@ -31,6 +31,7 @@ type
     procedure ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+    procedure ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure Timer;
   end;
 
@@ -170,6 +171,34 @@ begin
   FControl := true;
   // open View Available Networks
   RunAvailableNetworks;
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+var
+  HWnd: cardinal;
+  hostRect: windows.TRect;
+begin
+  FSite := site;
+  FBaseRect := baseRect;
+  FMonitorRect := monitorRect;
+  GetCursorPos(FPoint);
+  if IsWindow(host_wnd) then
+  begin
+    GetWindowRect(host_wnd, @hostRect);
+    case FSite of
+      bsLeft, bsRight: FPoint.y := (hostRect.Top + hostRect.Bottom) div 2;
+      bsTop, bsBottom: FPoint.x := (hostRect.Left + hostRect.Right) div 2;
+    end;
+  end;
+
+  FControlWindow := findwindow('BatMeterFlyout', nil);
+  FShown := false;
+  FControl := true;
+  // open Battery Meter Flyout
+  showwindow(FControlWindow, sw_show);
+  processhelper.AllowSetForeground(FControlWindow);
+  SetActiveWindow(FControlWindow);
+  SetForegroundWindow(FControlWindow);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.Timer;

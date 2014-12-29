@@ -1854,6 +1854,7 @@ begin
   else if cmd = 'tray' then Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'volume' then Tray.ShowVolumeControl(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'networks' then Tray.ShowNetworks(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'battery' then Tray.ShowBattery(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'startmenu' then StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'theme' then // themes popup menu
   begin
