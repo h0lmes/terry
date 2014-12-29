@@ -18,7 +18,6 @@ type
     FPoint: windows.TPoint;
     FBaseRect, FMonitorRect: windows.TRect;
     procedure RunAvailableNetworks;
-    procedure RunVolumeControl;
     procedure RunNotificationAreaIcons;
     procedure RunDateAndTime;
     procedure RunPowerOptions;
@@ -112,7 +111,8 @@ begin
   end;
 
   FControlWindow := findwindow('NotifyIconOverflowWindow', nil);
-
+  FShown := false;
+  FControl := true;
   // open Tray overflow window
   hwnd := FindWindow('Shell_TrayWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
@@ -120,9 +120,6 @@ begin
   SetActiveWindow(hwnd);
   SetForegroundWindow(hwnd);
   SendMessage(hwnd, BM_CLICK, 0, 0);
-
-  FShown := false;
-  FControl := true;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -144,10 +141,10 @@ begin
   end;
 
   FControlWindow := 0;
-  // open volume control
-  RunVolumeControl;
   FShown := false;
-  //FControl := true;
+  FControl := false;
+  // open volume control
+  frmmain.Run('sndvol.exe', '-f ' + inttostr(FPoint.x + FPoint.y * $10000), '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -169,10 +166,10 @@ begin
   end;
 
   FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
-  // open volume control
-  RunAvailableNetworks;
   FShown := false;
   FControl := true;
+  // open View Available Networks
+  RunAvailableNetworks;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.Timer;
@@ -218,11 +215,6 @@ begin
     else
       if FShown then FControl := false;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TTrayController.RunVolumeControl;
-begin
-  frmmain.Run('sndvol.exe', '-f', '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunAvailableNetworks;
