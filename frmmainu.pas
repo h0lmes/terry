@@ -181,7 +181,7 @@ begin
     //hHook := 0;
     //if FileExists(theFile) then hHook := LoadLibrary(pchar(theFile));
 
-    // ProcessHelper //
+    // ProcessHelper (must be created before tray controller) //
     ProcessHelper := TProcessHelper.Create(toolu.bIsWindowsVista);
 
     // Sets //
@@ -1851,7 +1851,9 @@ begin
   else if cmd = 'backup' then sets.Backup
   else if cmd = 'restore' then sets.Restore
   else if cmd = 'paste' then ItemMgr.InsertItem(GetClipboard)
-  else if cmd = 'tray' then Tray.Show(sets.container.Site, hwnd, ItemMgr.GetRect)
+  else if cmd = 'tray' then Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'volume' then Tray.ShowVolumeControl(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'networks' then Tray.ShowNetworks(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'startmenu' then StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'theme' then // themes popup menu
   begin

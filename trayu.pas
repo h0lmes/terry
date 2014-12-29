@@ -1,25 +1,37 @@
 unit trayu;
 
 interface
-uses Windows, Classes, SysUtils, Registry, declu;
+uses Windows, Classes, SysUtils, Registry, declu, processhlp;
 
 type
+  TTCWindowType = (tcwtTrayOverflow, tcwtVolume, tcwtNetworks);
+
+  { TTrayController }
+
   TTrayController = class
   private
     FSite: TBaseSite;
-    FNotifyIconOverflowWindow: HWND;
+    FControlWindow: HWND;
     Fx: integer;
     Fy: integer;
     FControl, FShown: boolean;
     FPoint: windows.TPoint;
-    FBaseRect: windows.TRect;
+    FBaseRect, FMonitorRect: windows.TRect;
+    procedure RunAvailableNetworks;
+    procedure RunVolumeControl;
+    procedure RunNotificationAreaIcons;
+    procedure RunDateAndTime;
+    procedure RunPowerOptions;
+    procedure RunMobilityCenter;
   public
     constructor Create;
     function AutoTrayEnabled: boolean;
     procedure SwitchAutoTray;
     procedure EnableAutoTray;
     procedure DisableAutoTray;
-    procedure Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
+    procedure ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+    procedure ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+    procedure ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure Timer;
   end;
 
@@ -74,7 +86,7 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
 end;
 //------------------------------------------------------------------------------
-procedure TTrayController.Show(site: TBaseSite; host_wnd: cardinal; baseRect: windows.TRect);
+procedure TTrayController.ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
   HWnd: cardinal;
   hostRect: windows.TRect;
@@ -82,12 +94,13 @@ begin
   if not AutoTrayEnabled then
   begin
     messagebox(frmmain.handle, pchar(UTF8ToAnsi(XMsgNotificationAreaIcons)), '', MB_ICONEXCLAMATION);
-    frmmain.Run('control.exe', '/name Microsoft.NotificationAreaIcons', '', sw_shownormal);
+    RunNotificationAreaIcons;
     exit;
   end;
 
   FSite := site;
   FBaseRect := baseRect;
+  FMonitorRect := monitorRect;
   GetCursorPos(FPoint);
   if IsWindow(host_wnd) then
   begin
@@ -98,7 +111,9 @@ begin
     end;
   end;
 
-  FNotifyIconOverflowWindow := findwindow('NotifyIconOverflowWindow', nil);
+  FControlWindow := findwindow('NotifyIconOverflowWindow', nil);
+
+  // open Tray overflow window
   hwnd := FindWindow('Shell_TrayWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
   hwnd := FindWindowEx(hwnd, 0, 'Button', nil);
@@ -110,16 +125,66 @@ begin
   FControl := true;
 end;
 //------------------------------------------------------------------------------
+procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+var
+  HWnd: cardinal;
+  hostRect: windows.TRect;
+begin
+  FSite := site;
+  FBaseRect := baseRect;
+  FMonitorRect := monitorRect;
+  GetCursorPos(FPoint);
+  if IsWindow(host_wnd) then
+  begin
+    GetWindowRect(host_wnd, @hostRect);
+    case FSite of
+      bsLeft, bsRight: FPoint.y := (hostRect.Top + hostRect.Bottom) div 2;
+      bsTop, bsBottom: FPoint.x := (hostRect.Left + hostRect.Right) div 2;
+    end;
+  end;
+
+  FControlWindow := 0;
+  // open volume control
+  RunVolumeControl;
+  FShown := false;
+  //FControl := true;
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+var
+  HWnd: cardinal;
+  hostRect: windows.TRect;
+begin
+  FSite := site;
+  FBaseRect := baseRect;
+  FMonitorRect := monitorRect;
+  GetCursorPos(FPoint);
+  if IsWindow(host_wnd) then
+  begin
+    GetWindowRect(host_wnd, @hostRect);
+    case FSite of
+      bsLeft, bsRight: FPoint.y := (hostRect.Top + hostRect.Bottom) div 2;
+      bsTop, bsBottom: FPoint.x := (hostRect.Left + hostRect.Right) div 2;
+    end;
+  end;
+
+  FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
+  // open volume control
+  RunAvailableNetworks;
+  FShown := false;
+  FControl := true;
+end;
+//------------------------------------------------------------------------------
 procedure TTrayController.Timer;
 var
   wRect: windows.TRect;
 begin
   if FControl then
   begin
-    if IsWindowVisible(FNotifyIconOverflowWindow) then
+    if IsWindowVisible(FControlWindow) then
     begin
       FShown := true;
-      GetWindowRect(FNotifyIconOverflowWindow, @wRect);
+      GetWindowRect(FControlWindow, @wRect);
       if FSite = bsLeft then
       begin
         Fx := FBaseRect.Right + 20;
@@ -142,12 +207,47 @@ begin
         Fx := FPoint.x - (wRect.Right - wRect.Left) div 2;
         Fy := FBaseRect.Top - 20 - (wRect.Bottom - wRect.Top);
       end;
+      if Fx < FMonitorRect.Left then Fx := FMonitorRect.Left;
+      if Fx > FMonitorRect.Right - wRect.Right + wRect.Left then Fx := FMonitorRect.Right - wRect.Right + wRect.Left;
+      if Fy < FMonitorRect.Top then Fy := FMonitorRect.Top;
+      if Fy > FMonitorRect.Bottom - wRect.Bottom + wRect.Top then Fy := FMonitorRect.Bottom - wRect.Bottom + wRect.Top;
+
       if (wRect.Left <> Fx) or (wRect.Top <> Fy) then
-        SetWindowPos(FNotifyIconOverflowWindow, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
+        SetWindowPos(FControlWindow, 0, Fx, Fy, 0, 0, SWP_NOSIZE + SWP_NOZORDER);
     end
     else
       if FShown then FControl := false;
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunVolumeControl;
+begin
+  frmmain.Run('sndvol.exe', '-f', '', sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunAvailableNetworks;
+begin
+  frmmain.Run('rundll32.exe', 'van.dll,RunVAN', '', sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunNotificationAreaIcons;
+begin
+  frmmain.Run('control.exe', '/name Microsoft.NotificationAreaIcons', '', sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunDateAndTime;
+begin
+  frmmain.Run('control.exe', '/name Microsoft.DateAndTime', '', sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunPowerOptions;
+begin
+  frmmain.Run('control.exe', '/name Microsoft.PowerOptions', '', sw_shownormal);
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.RunMobilityCenter;
+begin
+  frmmain.Run('control.exe', '/name Microsoft.MobilityCenter', '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 end.

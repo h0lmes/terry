@@ -27,7 +27,6 @@ constructor TStartMenuController.Create;
 begin
   inherited;
   FControl := false;
-  FxPic := -1;
 end;
 //------------------------------------------------------------------------------
 procedure TStartMenuController.Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
