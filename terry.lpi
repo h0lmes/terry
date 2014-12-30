@@ -84,10 +84,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1833"/>
-        <CursorPos X="115" Y="1862"/>
+        <TopLine Value="868"/>
+        <CursorPos X="58" Y="890"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -359,11 +360,10 @@
         <Filename Value="trayu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="trayu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="126"/>
-        <CursorPos X="41" Y="146"/>
+        <TopLine Value="84"/>
+        <CursorPos X="5" Y="104"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -494,7 +494,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="21" Y="29"/>
-        <UsageCount Value="49"/>
+        <UsageCount Value="52"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit38>
@@ -1142,123 +1142,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="startmenu.pas"/>
-        <Caret Line="32" Column="12" TopLine="23"/>
+        <Caret Line="33" Column="21" TopLine="1"/>
       </Position1>
       <Position2>
-        <Filename Value="startmenu.pas"/>
-        <Caret Line="10" Column="16" TopLine="1"/>
-      </Position2>
-      <Position3>
-        <Filename Value="startmenu.pas"/>
-        <Caret Line="11" Column="14" TopLine="1"/>
-      </Position3>
-      <Position4>
-        <Filename Value="startmenu.pas"/>
-        <Caret Line="33" Column="21" TopLine="1"/>
-      </Position4>
-      <Position5>
         <Filename Value="itemmgru.pas"/>
         <Caret Line="976" Column="1" TopLine="954"/>
+      </Position2>
+      <Position3>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="86" Column="19" TopLine="61"/>
+      </Position3>
+      <Position4>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="87" Column="21" TopLine="64"/>
+      </Position4>
+      <Position5>
+        <Filename Value="aeropeeku.pas"/>
+        <Caret Line="88" Column="21" TopLine="65"/>
       </Position5>
       <Position6>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="86" Column="19" TopLine="61"/>
+        <Caret Line="62" Column="20" TopLine="42"/>
       </Position6>
       <Position7>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="87" Column="21" TopLine="64"/>
+        <Caret Line="366" Column="6" TopLine="350"/>
       </Position7>
       <Position8>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="88" Column="21" TopLine="65"/>
+        <Caret Line="374" Column="32" TopLine="347"/>
       </Position8>
       <Position9>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="62" Column="20" TopLine="42"/>
+        <Caret Line="271" Column="15" TopLine="245"/>
       </Position9>
       <Position10>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="366" Column="6" TopLine="350"/>
+        <Caret Line="68" Column="19" TopLine="47"/>
       </Position10>
       <Position11>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="374" Column="32" TopLine="347"/>
+        <Caret Line="366" Column="8" TopLine="353"/>
       </Position11>
       <Position12>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="271" Column="15" TopLine="245"/>
+        <Caret Line="364" Column="13" TopLine="341"/>
       </Position12>
       <Position13>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="68" Column="19" TopLine="47"/>
+        <Caret Line="996" Column="18" TopLine="794"/>
       </Position13>
       <Position14>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="366" Column="8" TopLine="353"/>
+        <Caret Line="629" Column="27" TopLine="178"/>
       </Position14>
       <Position15>
         <Filename Value="aeropeeku.pas"/>
-        <Caret Line="364" Column="13" TopLine="341"/>
+        <Caret Line="211" Column="30" TopLine="177"/>
       </Position15>
       <Position16>
-        <Filename Value="aeropeeku.pas"/>
-        <Caret Line="996" Column="18" TopLine="794"/>
-      </Position16>
-      <Position17>
-        <Filename Value="aeropeeku.pas"/>
-        <Caret Line="629" Column="27" TopLine="178"/>
-      </Position17>
-      <Position18>
-        <Filename Value="aeropeeku.pas"/>
-        <Caret Line="211" Column="30" TopLine="177"/>
-      </Position18>
-      <Position19>
         <Filename Value="trayu.pas"/>
         <Caret Line="141" Column="21" TopLine="109"/>
+      </Position16>
+      <Position17>
+        <Filename Value="trayu.pas"/>
+        <Caret Line="80" Column="3" TopLine="76"/>
+      </Position17>
+      <Position18>
+        <Filename Value="trayu.pas"/>
+        <Caret Line="22" Column="17" TopLine="4"/>
+      </Position18>
+      <Position19>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1854" Column="117" TopLine="1828"/>
       </Position19>
       <Position20>
         <Filename Value="trayu.pas"/>
-        <Caret Line="80" Column="3" TopLine="76"/>
+        <Caret Line="91" Column="15" TopLine="58"/>
       </Position20>
       <Position21>
         <Filename Value="trayu.pas"/>
-        <Caret Line="22" Column="17" TopLine="4"/>
+        <Caret Line="10" Column="15" TopLine="1"/>
       </Position21>
       <Position22>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1854" Column="117" TopLine="1828"/>
+        <Filename Value="trayu.pas"/>
+        <Caret Line="128" Column="40" TopLine="100"/>
       </Position22>
       <Position23>
         <Filename Value="trayu.pas"/>
-        <Caret Line="91" Column="15" TopLine="58"/>
+        <Caret Line="226" Column="10" TopLine="201"/>
       </Position23>
       <Position24>
         <Filename Value="trayu.pas"/>
-        <Caret Line="10" Column="15" TopLine="1"/>
+        <Caret Line="227" Column="21" TopLine="208"/>
       </Position24>
       <Position25>
         <Filename Value="trayu.pas"/>
-        <Caret Line="128" Column="40" TopLine="100"/>
+        <Caret Line="233" Column="11" TopLine="207"/>
       </Position25>
       <Position26>
-        <Filename Value="trayu.pas"/>
-        <Caret Line="226" Column="10" TopLine="201"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1856" Column="3" TopLine="1839"/>
       </Position26>
       <Position27>
         <Filename Value="trayu.pas"/>
-        <Caret Line="227" Column="21" TopLine="208"/>
+        <Caret Line="148" Column="73" TopLine="133"/>
       </Position27>
       <Position28>
         <Filename Value="trayu.pas"/>
-        <Caret Line="233" Column="11" TopLine="207"/>
+        <Caret Line="94" Column="18" TopLine="74"/>
       </Position28>
       <Position29>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1856" Column="3" TopLine="1839"/>
+        <Filename Value="trayu.pas"/>
+        <Caret Line="90" Column="33" TopLine="79"/>
       </Position29>
       <Position30>
-        <Filename Value="trayu.pas"/>
-        <Caret Line="148" Column="73" TopLine="133"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1687" Column="86" TopLine="1666"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
