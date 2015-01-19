@@ -3,7 +3,10 @@ unit aeropeeku;
 interface
 
 uses Windows, Messages, Classes, SysUtils, Forms,
-  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp;
+  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp, lazutf8;
+
+const
+  TITLE_PART = 31;
 
 type
   TAPWLayout = (apwlHorizontal, apwlVertical);
@@ -20,6 +23,7 @@ type
     rectTitle: windows.TRect; // window title rect
     rectThumb: windows.TRect; // live thumbnail rect
     rectClose: windows.TRect; // close button rect
+    title: array [0..TITLE_PART] of WideChar;
   end;
 
   { TAeroPeekWindow }
@@ -70,6 +74,7 @@ type
     procedure SetItems;
     procedure Timer;
     procedure UnRegisterThumbnails;
+    procedure UpdateTitles;
     procedure WindowProc(var msg: TMessage);
     procedure err(where: string; e: Exception);
   public
@@ -237,6 +242,24 @@ begin
       end;
 end;
 //------------------------------------------------------------------------------
+procedure TAeroPeekWindow.UpdateTitles;
+var
+  index: integer;
+  title: array [0..255] of WideChar;
+begin
+  if FItemCount > 0 then
+    for index := 0 to FItemCount - 1 do
+      if items[index].hwnd <> 0 then
+      begin
+        GetWindowTextW(items[index].hwnd, title, TITLE_PART);
+        if UTF8CompareStr(UTF16ToUTF8(items[index].title), UTF16ToUTF8(title)) <> 0 then
+        begin
+          Paint;
+          exit;
+        end;
+      end;
+end;
+//------------------------------------------------------------------------------
 function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
@@ -328,7 +351,11 @@ begin
       Paint;
       // set foreground
       SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
+      if not FActive then
+      begin
+        SetTimer(FHWnd, ID_TIMER, 10, nil);
+        SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
+      end;
       FActive := true;
 
       // register thumbnails
@@ -801,6 +828,7 @@ begin
             0, 0, items[index].iw, items[index].ih, UnitPixel, nil, nil, nil);
         // window title
         GetWindowTextW(items[index].hwnd, title, 255);
+        GetWindowTextW(items[index].hwnd, items[index].title, TITLE_PART);
         titleRect := WinRectToGDIPRectF(items[index].rectTitle);
         if index <> FHoverIndex then titleRect.Width := items[index].rectClose.Right - items[index].rectTitle.Left;
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
@@ -911,6 +939,7 @@ end;
 procedure TAeroPeekWindow.CloseAPWindow;
 begin
   try
+    KillTimer(FHWnd, ID_TIMER_SLOW);
     KillTimer(FHWnd, ID_TIMER_CLOSE);
     KillTimer(FHWnd, ID_TIMER);
     UnRegisterThumbnails;
@@ -1051,6 +1080,8 @@ begin
       GetCursorPos(pt);
       if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
     end;
+
+    if msg.wParam = ID_TIMER_SLOW then UpdateTitles;
 
     exit;
   end;
