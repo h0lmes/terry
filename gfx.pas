@@ -1222,16 +1222,15 @@ var
   points: array [0..4] of GDIPAPI.TPointF;
   X, Y, Width, Height: integer;
 begin
-  GdipCreateBitmapFromScan0(128, 128, 0, PixelFormat32bppPARGB, nil, image);
-  GdipGetImageGraphicsContext(image, dst);
-  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-  // image
   X := 0;
   Y := 0;
   Width := 128;
   Height := 128;
+  GdipCreateBitmapFromScan0(Width, Height, 0, PixelFormat32bppPARGB, nil, image);
+  GdipGetImageGraphicsContext(image, dst);
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+  GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
   // outer rect
   points[0].x := X + Width * 0.14;
   points[0].y := Y + Height * 0.14;

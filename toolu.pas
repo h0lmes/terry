@@ -159,6 +159,8 @@ function GetWinDir: string;
 function GetSystemPath(path: string): string;
 function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
+function GetLangID: integer;
+function GetLangIDString(id: integer): string;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -845,6 +847,36 @@ begin
   devmode.dmFields := DM_BITSPERPEL + DM_PELSWIDTH + DM_PELSHEIGHT + DM_DISPLAYFREQUENCY;
   Windows.ChangeDisplaySettings(DevMode, CDS_UPDATEREGISTRY);
   SendMessage(HWND_BROADCAST, WM_DISPLAYCHANGE, SPI_SETNONCLIENTMETRICS, 0);
+end;
+//------------------------------------------------------------------------------
+function GetLangID: integer;
+var
+  procID: dword;
+begin
+  result := $ffff and GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), @procID));
+end;
+//------------------------------------------------------------------------------
+function GetLangIDString(id: integer): string;
+begin
+  result := '--';
+  case id of
+    $0419: result := 'RU'; // ru-RU
+    $046d: result := 'RU'; // ba-RU
+    $0444: result := 'RU'; // tt-RU
+    $0485: result := 'RU'; // sah-RU
+    $0423: result := 'BY'; // be-BY
+    $0409: result := 'EN';
+    $042b: result := 'AM'; // hy-AM
+    $0407: result := 'DE';
+    $0410: result := 'IT';
+    $040c: result := 'FR';
+    $047e: result := 'FR'; // br-FR
+    $0483: result := 'FR'; // co-FR
+    $0403: result := 'ES'; // ca-ES
+    $0405: result := 'CZ'; // cs-CZ
+    $043b: result := 'NO';
+    $103b: result := 'NO'; // smj-NO
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);

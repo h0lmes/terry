@@ -32,15 +32,17 @@ type
     LastMouseUp: cardinal;
     FAppList: TFPList;
     FIsOpen: boolean; // is PeekWindow open or not
+    FDynObject: boolean;
     FBitBucket: boolean;
-    FBitBucketFiles: integer;
+    FDynObjectState: integer;
     FAttention: boolean;
     procedure BeforeUndock;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure LoadImageI;
-    procedure CheckIfBitBucket;
-    procedure BitBucketUpdate;
+    procedure LoadImageDynObject(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+    procedure CheckIfDynObject;
+    procedure DynObjectUpdate;
     procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
@@ -222,7 +224,7 @@ begin
       end;
 
       // check if this is a Recycle Bin //
-      CheckIfBitBucket;
+      CheckIfDynObject;
 
       // load appropriate image //
       LoadImageI;
@@ -242,21 +244,63 @@ begin
   except end;
   FImage := nil;
 
+  if FDynObject and (FImageFile <> '') then
+  begin
+    LoadImageDynObject(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
+    exit;
+  end;
+
   if FImageFile <> '' then // if custom image set
   begin
-    if (FImageFile2 <> '') and (FBitBucketFiles > 0) then // if bitbucket is full and appropriate image exists
-       LoadImage(UnzipPath(FImageFile2), FBigItemSize, false, true, FImage, FIW, FIH)
-    else // if not a bitbucket or it is empty or no image for full bitbucket
-      LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
+    LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
   end
-  else // if no custom image
+  else // if no custom image set
   begin
     if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
     else LoadImage(UnzipPath(FCommand), FBigItemSize, false, true, FImage, FIW, FIH);
   end;
 end;
+//--------------------------------------------------------------------------------------------------
+procedure TShortcutItem.LoadImageDynObject(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+var
+  dst, brush, family, font, format: pointer;
+  Width, Height: integer;
+  rect: TRectF;
+begin
+  try
+    Width := 128;
+    Height := 128;
+    GdipCreateBitmapFromScan0(Width, Height, 0, PixelFormat32bppPARGB, nil, image);
+    GdipGetImageGraphicsContext(image, dst);
+    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+    GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
+
+    if imagefile = '{LANGID}' then
+    begin
+      GdipCreateFontFamilyFromName(PWideChar(WideString('tahoma')), nil, family);
+      GdipCreateFont(family, Width div 2, 1, 2, font);
+      rect.X := 0;
+      rect.Y := 0;
+      rect.Width := Width;
+      rect.Height := Height;
+      GdipCreateSolidFill($ffffffff, brush);
+      GdipCreateStringFormat(0, 0, format);
+      GdipSetStringFormatAlign(format, StringAlignmentCenter);
+      GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+      GdipDrawString(dst, PWideChar(WideString(GetLangIDString(FDynObjectState))), -1, font, @rect, format, brush);
+      GdipDeleteStringFormat(format);
+      GdipDeleteBrush(brush);
+      GdipDeleteFont(font);
+      GdipDeleteFontFamily(family);
+    end;
+
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+  except
+    on e: Exception do raise Exception.Create('LoadImageID'#10#13 + e.message);
+  end;
+end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.CheckIfBitBucket;
+procedure TShortcutItem.CheckIfDynObject;
 var
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
@@ -265,6 +309,8 @@ var
   celtFetched: ULONG;
   ext: string;
 begin
+  FDynObjectState := 0;
+  FDynObject := false;
   FBitBucket := false;
   if is_pidl then
   begin
@@ -275,48 +321,61 @@ begin
       OleCheck(SHGetDesktopFolder(psfDesktop));
       OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
       OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
-      FBitBucketFiles := 0;
       if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
       begin
-        inc(FBitBucketFiles);
+        inc(FDynObjectState);
         PIDL_Free(pidChild);
       end;
     end;
     PIDL_Free(pidFolder);
   end;
+  FDynObject := strlcomp(pchar(FImageFile), '{', 1) = 0;
+  FDynObject := FDynObject or FBitBucket;
 
-  if FBitBucket then // if this shortcut is a bitbucket
-    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 5000, nil) // set timer for update
-  else // if this shortcut is not a bitbucket
+  if FDynObject then // if this shortcut is a dynamic object
+    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil) // set update timer
+  else // otherwise
     KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.BitBucketUpdate;
+procedure TShortcutItem.DynObjectUpdate;
 var
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
   pidFolder, pidChild: PItemIDList;
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
-  qty: integer;
-  temp: string;
+  tempState: integer;
 begin
+  // if this is a dynamic object but not the RecycleBin - just update the image
+  if not FBitBucket then
+  begin
+    tempState := GetLangID;
+    if FDynObjectState <> tempState then
+    begin
+      FDynObjectState := tempState;
+      LoadImageI;
+      Redraw;
+    end;
+    exit;
+  end;
+
   OleCheck(SHGetDesktopFolder(psfDesktop));
   OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
   OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
   OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
-  qty := 0;
+  tempState := 0;
   if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
   begin
-    inc(qty);
+    inc(tempState);
     PIDL_Free(pidChild);
   end;
   PIDL_Free(pidFolder);
 
   // if quantity changed
-  if FBitBucketFiles <> qty then
+  if FDynObjectState <> tempState then
   begin
-    FBitBucketFiles := qty;
+    FDynObjectState := tempState;
     LoadImageI;
     Redraw;
   end;
@@ -673,7 +732,7 @@ begin
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
   SetMenuItemInfo(FHMenu, $f006, false, @mii);
-  if FBitBucketFiles > 0 then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
+  if FBitBucket and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
@@ -735,7 +794,7 @@ begin
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
           // update bitbucket
           if wParam = ID_TIMER_UPDATE_SHORTCUT then
-            if FBitBucket then BitBucketUpdate;
+            if FDynObject then DynObjectUpdate;
           // cancel Attention timer
           if wParam = ID_TIMER_ATTENTION then Attention(false);
         end;

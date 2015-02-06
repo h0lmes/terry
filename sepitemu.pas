@@ -21,6 +21,7 @@ type TSeparatorItem = class(TCustomItem)
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    class function Make: string;
 end;
 
 implementation
@@ -274,6 +275,12 @@ begin
     on e: Exception do raise Exception.Create('SeparatorItem.Save'#10#13 + e.message);
   end;
 end;
+//------------------------------------------------------------------------------
+class function TSeparatorItem.Make: string;
+begin
+  result := 'class="separator"';
+end;
+
 //------------------------------------------------------------------------------
 end.
 

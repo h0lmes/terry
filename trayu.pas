@@ -28,7 +28,6 @@ type
     procedure SwitchAutoTray;
     procedure EnableAutoTray;
     procedure DisableAutoTray;
-    function GetLangIDString: string;
     procedure ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -85,32 +84,6 @@ begin
   end;
 
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
-end;
-//------------------------------------------------------------------------------
-function TTrayController.GetLangIDString: string;
-var
-  langID, procID: dword;
-begin
-  result := '--';
-  langID := $ffff and GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), procID));
-  case langID of
-    $0419: result := 'RU'; // ru-RU
-    $046d: result := 'RU'; // ba-RU
-    $0444: result := 'RU'; // tt-RU
-    $0485: result := 'RU'; // sah-RU
-    $0423: result := 'BY'; // be-BY
-    $0409: result := 'EN';
-    $042b: result := 'AM'; // hy-AM
-    $0407: result := 'DE';
-    $0410: result := 'IT';
-    $040c: result := 'FR';
-    $047e: result := 'FR'; // br-FR
-    $0483: result := 'FR'; // co-FR
-    $0403: result := 'ES'; // ca-ES
-    $0405: result := 'CZ'; // cs-CZ
-    $043b: result := 'NO';
-    $103b: result := 'NO'; // smj-NO
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -193,11 +166,11 @@ begin
     end;
   end;
 
+  // open View Available Networks
+  RunAvailableNetworks;
   FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
   FShown := false;
   FControl := true;
-  // open View Available Networks
-  RunAvailableNetworks;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);

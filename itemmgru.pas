@@ -448,6 +448,11 @@ begin
       AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
       AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));
+      AddItem(TSeparatorItem.Make);
+      AddItem(TShortcutItem.Make(0, '', '', '', '', '{LANGID}'));
+      AddItem(TShortcutItem.Make(0, 'Tray', '/tray', '', '', 'images\default\tray.png'));
+      AddItem(TShortcutItem.Make(0, 'Available Networks', '/networks', '', '', 'images\default\networks.png'));
+      AddItem(TShortcutItem.Make(0, 'Volume', '/volume', '', '', 'images\default\volume.png'));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);
