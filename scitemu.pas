@@ -40,7 +40,7 @@ type
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure LoadImageI;
-    procedure LoadImageDynObject(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+    procedure LoadDynObjectImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
     procedure CheckIfDynObject;
     procedure DynObjectUpdate;
     procedure Attention(value: boolean);
@@ -244,9 +244,9 @@ begin
   except end;
   FImage := nil;
 
-  if FDynObject and (FImageFile <> '') then
+  if FDynObject then
   begin
-    LoadImageDynObject(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
+    LoadDynObjectImage(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
     exit;
   end;
 
@@ -261,42 +261,16 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure TShortcutItem.LoadImageDynObject(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-var
-  dst, brush, family, font, format: pointer;
-  Width, Height: integer;
-  rect: TRectF;
+procedure TShortcutItem.LoadDynObjectImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 begin
   try
-    Width := 128;
-    Height := 128;
-    GdipCreateBitmapFromScan0(Width, Height, 0, PixelFormat32bppPARGB, nil, image);
-    GdipGetImageGraphicsContext(image, dst);
-    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-    GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-    if imagefile = '{LANGID}' then
+    if pos('{LANGID}', imagefile) > 0 then
     begin
-      GdipCreateFontFamilyFromName(PWideChar(WideString('tahoma')), nil, family);
-      GdipCreateFont(family, Width div 2, 1, 2, font);
-      rect.X := 0;
-      rect.Y := 0;
-      rect.Width := Width;
-      rect.Height := Height;
-      GdipCreateSolidFill($ffffffff, brush);
-      GdipCreateStringFormat(0, 0, format);
-      GdipSetStringFormatAlign(format, StringAlignmentCenter);
-      GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
-      GdipDrawString(dst, PWideChar(WideString(GetLangIDString(FDynObjectState))), -1, font, @rect, format, brush);
-      GdipDeleteStringFormat(format);
-      GdipDeleteBrush(brush);
-      GdipDeleteFont(font);
-      GdipDeleteFontFamily(family);
+      imagefile := ReplaceEx(imagefile, '{LANGID}', GetLangIDString(GetLangID));
+      LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
     end;
-
-    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
-    on e: Exception do raise Exception.Create('LoadImageID'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -310,7 +284,6 @@ var
   ext: string;
 begin
   FDynObjectState := 0;
-  FDynObject := false;
   FBitBucket := false;
   if is_pidl then
   begin
@@ -329,10 +302,10 @@ begin
     end;
     PIDL_Free(pidFolder);
   end;
-  FDynObject := strlcomp(pchar(FImageFile), '{', 1) = 0;
-  FDynObject := FDynObject or FBitBucket;
 
-  if FDynObject then // if this shortcut is a dynamic object
+  FDynObject := pos('{LANGID}', FImageFile) > 0;
+
+  if FDynObject or FBitBucket then // if this shortcut is a dynamic object
     SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil) // set update timer
   else // otherwise
     KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
@@ -347,10 +320,11 @@ var
   celtFetched: ULONG;
   tempState: integer;
 begin
-  // if this is a dynamic object but not the RecycleBin - just update the image
-  if not FBitBucket then
+  // if this is a dynamic object
+  if FDynObject then
   begin
-    tempState := GetLangID;
+    if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
+
     if FDynObjectState <> tempState then
     begin
       FDynObjectState := tempState;
@@ -360,6 +334,7 @@ begin
     exit;
   end;
 
+  // if this is a Recycle Bin
   OleCheck(SHGetDesktopFolder(psfDesktop));
   OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
   OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
@@ -371,7 +346,6 @@ begin
     PIDL_Free(pidChild);
   end;
   PIDL_Free(pidFolder);
-
   // if quantity changed
   if FDynObjectState <> tempState then
   begin
@@ -794,7 +768,7 @@ begin
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
           // update bitbucket
           if wParam = ID_TIMER_UPDATE_SHORTCUT then
-            if FDynObject then DynObjectUpdate;
+            if FDynObject or FBitBucket then DynObjectUpdate;
           // cancel Attention timer
           if wParam = ID_TIMER_ATTENTION then Attention(false);
         end;
