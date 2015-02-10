@@ -119,9 +119,9 @@ begin
         params := ini.ReadString(group, 'params' + inttostr(itemIdx), '');
         icon := ini.ReadString(group, 'icon' + inttostr(itemIdx), '');
         description := ini.ReadString(group, 'description' + inttostr(itemIdx), '');
-        if (name <> '') and (command <> '') then AddItem(node, classname, name, command, params, icon, description);
+        if name <> '' then AddItem(node, classname, name, command, params, icon, description);
         inc(itemIdx);
-      until (name = '') and (command = '');
+      until name = '';
 
       node.Expand(true);
       inc(groupIdx);

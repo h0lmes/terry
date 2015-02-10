@@ -161,6 +161,7 @@ function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
 function GetLangID: integer;
 function GetLangIDString(id: integer): string;
+function GetLangIDName(id: integer): string;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -866,7 +867,6 @@ begin
     $0485: result := 'RU'; // sah-RU
     $0423: result := 'BY'; // be-BY
     $0409: result := 'EN';
-    $042b: result := 'AM'; // hy-AM
     $0407: result := 'DE';
     $0410: result := 'IT';
     $040c: result := 'FR';
@@ -876,7 +876,23 @@ begin
     $0405: result := 'CZ'; // cs-CZ
     $043b: result := 'NO';
     $103b: result := 'NO'; // smj-NO
+    $042b: result := 'AM'; // hy-AM
   end;
+end;
+//------------------------------------------------------------------------------
+function GetLangIDName(id: integer): string;
+const
+  MAX_LANG_LEN = 50;
+var
+  lcidLang: LCID;
+  dwCount: dword;
+  szLangBuffer: array [0..MAX_LANG_LEN - 1] of char;
+begin
+  result := '';
+  lcidLang := MAKELCID(id, SORT_DEFAULT);
+  dwCount := GetLocaleInfo(lcidLang, LOCALE_SLANGUAGE, szLangBuffer, MAX_LANG_LEN);
+  if dwCount = 0 then exit;
+  result := pchar(szLangBuffer);
 end;
 //------------------------------------------------------------------------------
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);

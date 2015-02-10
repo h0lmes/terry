@@ -266,8 +266,9 @@ begin
   try
     if pos('{LANGID}', imagefile) > 0 then
     begin
-      imagefile := ReplaceEx(imagefile, '{LANGID}', GetLangIDString(GetLangID));
+      imagefile := ReplaceEx(imagefile, '{LANGID}', GetLangIDString(FDynObjectState));
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
+      FCaption := GetLangIDName(FDynObjectState);
     end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
@@ -283,7 +284,6 @@ var
   celtFetched: ULONG;
   ext: string;
 begin
-  FDynObjectState := 0;
   FBitBucket := false;
   if is_pidl then
   begin
@@ -304,6 +304,7 @@ begin
   end;
 
   FDynObject := pos('{LANGID}', FImageFile) > 0;
+  FDynObjectState := 0;
 
   if FDynObject or FBitBucket then // if this shortcut is a dynamic object
     SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil) // set update timer
@@ -324,29 +325,24 @@ begin
   if FDynObject then
   begin
     if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
-
-    if FDynObjectState <> tempState then
-    begin
-      FDynObjectState := tempState;
-      LoadImageI;
-      Redraw;
-    end;
-    exit;
-  end;
-
+  end
   // if this is a Recycle Bin
-  OleCheck(SHGetDesktopFolder(psfDesktop));
-  OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
-  OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
-  OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
-  tempState := 0;
-  if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
+  else if FBitBucket then
   begin
-    inc(tempState);
-    PIDL_Free(pidChild);
+    OleCheck(SHGetDesktopFolder(psfDesktop));
+    OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
+    OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
+    OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
+    tempState := 0;
+    if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
+    begin
+      inc(tempState);
+      PIDL_Free(pidChild);
+    end;
+    PIDL_Free(pidFolder);
   end;
-  PIDL_Free(pidFolder);
-  // if quantity changed
+
+  // if 'state' changed
   if FDynObjectState <> tempState then
   begin
     FDynObjectState := tempState;
