@@ -3,7 +3,8 @@ unit toolu;
 interface
 
 uses Windows, jwaWindows, Messages, SysUtils, Variants, Classes,
-  Controls, Forms, Dialogs, ShellAPI, Registry, ComObj, ShlObj, ActiveX, declu;
+  Controls, Forms, Dialogs, ShellAPI, Registry, ComObj, ShlObj, ActiveX,
+  MMDevApi_tlb, declu;
 
 //function AddClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
 //function RemoveClipboardFormatListener(hWnd: HWND): BOOL; stdcall; external 'user32.dll';
@@ -162,6 +163,7 @@ procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16;
 function GetLangID: integer;
 function GetLangIDString(id: integer): string;
 function GetLangIDName(id: integer): string;
+function GetMasterVolumeLevel: integer;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -866,7 +868,7 @@ begin
     $0444: result := 'RU'; // tt-RU
     $0485: result := 'RU'; // sah-RU
     $0423: result := 'BY'; // be-BY
-    $0409: result := 'EN';
+    $0409: result := 'EN'; // en-US
     $0407: result := 'DE';
     $0410: result := 'IT';
     $040c: result := 'FR';
@@ -882,17 +884,38 @@ end;
 //------------------------------------------------------------------------------
 function GetLangIDName(id: integer): string;
 const
-  MAX_LANG_LEN = 50;
+  MAX_LANG_LEN = 85;
 var
-  lcidLang: LCID;
-  dwCount: dword;
-  szLangBuffer: array [0..MAX_LANG_LEN - 1] of char;
+  buffer: array [0..MAX_LANG_LEN] of char;
 begin
   result := '';
-  lcidLang := MAKELCID(id, SORT_DEFAULT);
-  dwCount := GetLocaleInfo(lcidLang, LOCALE_SLANGUAGE, szLangBuffer, MAX_LANG_LEN);
-  if dwCount = 0 then exit;
-  result := pchar(szLangBuffer);
+  if GetLocaleInfo(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
+    result := pchar(buffer);
+end;
+//------------------------------------------------------------------------------
+function GetMasterVolumeLevel: integer;
+var
+  devEnum: IMMDeviceEnumerator;
+  device: IMMDevice;
+  endpoint: IMMAudioEndpointVolume;
+  volume: single;
+  hr: HRESULT;
+begin
+  result := -1;
+  hr := CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, devEnum);
+  if SUCCEEDED(hr) then
+  begin
+      hr := devEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, device);
+      if SUCCEEDED(hr) then
+      begin
+          hr := device.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, endpoint);
+          if SUCCEEDED(hr) then
+          begin
+              if SUCCEEDED(endpoint.GetMasterVolumeLevelScalar(volume)) then
+                 result := trunc(volume * 100);
+          end;
+      end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);

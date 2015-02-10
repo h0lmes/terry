@@ -47,7 +47,7 @@ uses
   stackmodeu,
   processhlp,
   taskitemu,
-  frmhellou, frmtipu, multidocku, aeropeeku, startmenu;
+  frmhellou, frmtipu, multidocku, aeropeeku, startmenu, MMDevApi_tlb;
 
 {$R *.res}
 
