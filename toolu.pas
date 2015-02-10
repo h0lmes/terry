@@ -899,20 +899,15 @@ var
   device: IMMDevice;
   endpoint: IMMAudioEndpointVolume;
   volume: single;
-  hr: HRESULT;
 begin
   result := -1;
-  hr := CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, devEnum);
-  if SUCCEEDED(hr) then
+  if SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, devEnum)) then
   begin
-      hr := devEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, device);
-      if SUCCEEDED(hr) then
+      if SUCCEEDED(devEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, device)) then
       begin
-          hr := device.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, endpoint);
-          if SUCCEEDED(hr) then
+          if SUCCEEDED(device.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, endpoint)) then
           begin
-              if SUCCEEDED(endpoint.GetMasterVolumeLevelScalar(volume)) then
-                 result := trunc(volume * 100);
+              if SUCCEEDED(endpoint.GetMasterVolumeLevelScalar(volume)) then result := trunc(volume * 100);
           end;
       end;
   end;
