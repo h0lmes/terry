@@ -5,7 +5,7 @@ unit scitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
   IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
-  processhlp, aeropeeku;
+  processhlp, aeropeeku, mixeru;
 
 type
 
@@ -32,10 +32,10 @@ type
     LastMouseUp: cardinal;
     FAppList: TFPList;
     FIsOpen: boolean; // is PeekWindow open or not
-    FDynObject: boolean;
-    FBitBucket: boolean;
-    FDynObjectState: integer;
     FAttention: boolean;
+    FDynObject: boolean;
+    FDynObjectRecycleBin: boolean;
+    FDynObjectState: integer;
     procedure BeforeUndock;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
@@ -223,7 +223,7 @@ begin
         FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
       end;
 
-      // check if this is a Recycle Bin //
+      // check if this is a dynamic state object //
       CheckIfDynObject;
 
       // load appropriate image //
@@ -244,13 +244,12 @@ begin
   except end;
   FImage := nil;
 
-  if FDynObject then
+  if FDynObject then // if a dynamic state object
   begin
     LoadDynObjectImage(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);
-    exit;
-  end;
-
-  if FImageFile <> '' then // if custom image set
+  end
+  else
+  if FImageFile <> '' then // if custom image file specified
   begin
     LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
   end
@@ -270,6 +269,12 @@ begin
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       FCaption := GetLangIDName(FDynObjectState);
     end;
+    if pos('{VOLUMEID}', imagefile) > 0 then
+    begin
+      imagefile := ReplaceEx(imagefile, '{VOLUMEID}', mixer.getVolumeStateString(FDynObjectState));
+      LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
+      FCaption := mixer.getVolumeString;
+    end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
   end;
@@ -284,32 +289,22 @@ var
   celtFetched: ULONG;
   ext: string;
 begin
-  FBitBucket := false;
+  FDynObjectState := 0;
+  FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUMEID}', FImageFile) > 0);
+  FDynObjectRecycleBin := false;
   if is_pidl then
   begin
     OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
-    FBitBucket := PIDL_GetDisplayName2(pidFolder) = FCommand;
-    if FBitBucket then
-    begin
-      OleCheck(SHGetDesktopFolder(psfDesktop));
-      OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
-      OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
-      if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
-      begin
-        inc(FDynObjectState);
-        PIDL_Free(pidChild);
-      end;
-    end;
+    FDynObjectRecycleBin := PIDL_GetDisplayName2(pidFolder) = FCommand;
     PIDL_Free(pidFolder);
   end;
 
-  FDynObject := pos('{LANGID}', FImageFile) > 0;
-  FDynObjectState := 0;
-
-  if FDynObject or FBitBucket then // if this shortcut is a dynamic object
-    SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil) // set update timer
-  else // otherwise
-    KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT); // remove timer
+  // setup update timer
+  if FDynObject then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 300, nil)
+  else
+  if FDynObjectRecycleBin then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 1000, nil)
+  else
+    KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DynObjectUpdate;
@@ -325,9 +320,10 @@ begin
   if FDynObject then
   begin
     if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
+    if pos('{VOLUMEID}', FImageFile) > 0 then tempState := mixer.getVolumeState;
   end
   // if this is a Recycle Bin
-  else if FBitBucket then
+  else if FDynObjectRecycleBin then
   begin
     OleCheck(SHGetDesktopFolder(psfDesktop));
     OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
@@ -702,7 +698,7 @@ begin
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
   SetMenuItemInfo(FHMenu, $f006, false, @mii);
-  if FBitBucket and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
+  if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
@@ -764,7 +760,7 @@ begin
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
           // update bitbucket
           if wParam = ID_TIMER_UPDATE_SHORTCUT then
-            if FDynObject or FBitBucket then DynObjectUpdate;
+            if FDynObject or FDynObjectRecycleBin then DynObjectUpdate;
           // cancel Attention timer
           if wParam = ID_TIMER_ATTENTION then Attention(false);
         end;

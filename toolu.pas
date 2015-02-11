@@ -163,7 +163,6 @@ procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16;
 function GetLangID: integer;
 function GetLangIDString(id: integer): string;
 function GetLangIDName(id: integer): string;
-function GetMasterVolumeLevel: integer;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -891,26 +890,6 @@ begin
   result := '';
   if GetLocaleInfo(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
     result := pchar(buffer);
-end;
-//------------------------------------------------------------------------------
-function GetMasterVolumeLevel: integer;
-var
-  devEnum: IMMDeviceEnumerator;
-  device: IMMDevice;
-  endpoint: IMMAudioEndpointVolume;
-  volume: single;
-begin
-  result := -1;
-  if SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, devEnum)) then
-  begin
-      if SUCCEEDED(devEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, device)) then
-      begin
-          if SUCCEEDED(device.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, endpoint)) then
-          begin
-              if SUCCEEDED(endpoint.GetMasterVolumeLevelScalar(volume)) then result := trunc(volume * 100);
-          end;
-      end;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);

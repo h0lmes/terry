@@ -1,7 +1,7 @@
 unit MMDevApi_tlb;
 
 interface
-uses Windows, ActiveX, Classes, Graphics, OleServer, ComObj;
+uses Windows, ActiveX, Classes, Graphics, OleServer, ComObj, ShlObj;
 
 const
   // TypeLibrary Major and minor versions
@@ -61,9 +61,6 @@ type
     Function VolumeStepDown(pguidEventContext: TGUID) :Integer; stdcall;
     Function QueryHardwareSupport(out pdwHardwareSupportMask): Integer; stdcall;
     Function GetVolumeRange(out pflVolumeMindB: double; out pflVolumeMaxdB: double; out pflVolumeIncrementdB: double): Integer; stdcall;
-  end;
-
-  IPropertyStore = interface(IUnknown)
   end;
 
 type
