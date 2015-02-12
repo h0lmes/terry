@@ -269,9 +269,9 @@ begin
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       FCaption := GetLangIDName(FDynObjectState);
     end;
-    if pos('{VOLUMEID}', imagefile) > 0 then
+    if pos('{VOLUME}', imagefile) > 0 then
     begin
-      imagefile := ReplaceEx(imagefile, '{VOLUMEID}', mixer.getVolumeStateString(FDynObjectState));
+      imagefile := ReplaceEx(imagefile, '{VOLUME}', mixer.getVolumeStateString(FDynObjectState));
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       FCaption := mixer.getVolumeString;
     end;
@@ -282,15 +282,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.CheckIfDynObject;
 var
-  psfDesktop: IShellFolder;
-  psfFolder: IShellFolder;
-  pidFolder, pidChild: PItemIDList;
-  pEnumList: IEnumIDList;
-  celtFetched: ULONG;
-  ext: string;
+  pidFolder: PItemIDList;
 begin
   FDynObjectState := 0;
-  FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUMEID}', FImageFile) > 0);
+  FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUME}', FImageFile) > 0);
   FDynObjectRecycleBin := false;
   if is_pidl then
   begin
@@ -309,34 +304,16 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DynObjectUpdate;
 var
-  psfDesktop: IShellFolder;
-  psfFolder: IShellFolder;
-  pidFolder, pidChild: PItemIDList;
-  pEnumList: IEnumIDList;
-  celtFetched: ULONG;
   tempState: integer;
 begin
   // if this is a dynamic object
   if FDynObject then
   begin
     if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
-    if pos('{VOLUMEID}', FImageFile) > 0 then tempState := mixer.getVolumeState;
+    if pos('{VOLUME}', FImageFile) > 0 then tempState := mixer.getVolumeState;
   end
   // if this is a Recycle Bin
-  else if FDynObjectRecycleBin then
-  begin
-    OleCheck(SHGetDesktopFolder(psfDesktop));
-    OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
-    OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
-    OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
-    tempState := 0;
-    if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
-    begin
-      inc(tempState);
-      PIDL_Free(pidChild);
-    end;
-    PIDL_Free(pidFolder);
-  end;
+  else if FDynObjectRecycleBin then tempState := GetRecycleBinState;
 
   // if 'state' changed
   if FDynObjectState <> tempState then

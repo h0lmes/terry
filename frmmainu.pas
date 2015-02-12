@@ -1812,7 +1812,7 @@ var
   pt: windows.TPoint;
   mii: TMenuItemInfo;
   mname: array [0..MAX_PATH - 1] of char;
-  fvol: single;
+  list: TStrings;
 begin
   if cmd = '' then exit;
 

@@ -57,8 +57,9 @@ end;
 //------------------------------------------------------------------------------
 function TMixer.getVolumeString: string;
 const
-  PKEY_Device_FriendlyName: PROPERTYKEY = (fmtid: '{A45C254E-df1c-4efd-8020-67d146a850e0}'; pid: 14);
-  PKEY_DeviceInterface_FriendlyName: PROPERTYKEY = (fmtid: '{b3f8fa53-0004-438e-9003-51a46e139bfc}'; pid: 6);
+  PKEY_Device_DeviceDesc: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 2);
+  //PKEY_Device_FriendlyName: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 14);
+  //PKEY_DeviceInterface_FriendlyName: PROPERTYKEY = (fmtid: '{b3f8fa53-0004-438e-9003-51a46e139bfc}'; pid: 6);
 var
   vol: integer;
   props: IPropertyStore;
@@ -69,7 +70,7 @@ begin
   if vol >= 0 then result := inttostr(vol) + '%';
 
   if SUCCEEDED(FmmDev.OpenPropertyStore(STGM_READ, props)) then
-    if SUCCEEDED(props.GetValue(@PKEY_Device_FriendlyName, prop)) then
+    if SUCCEEDED(props.GetValue(@PKEY_Device_DeviceDesc, prop)) then
       result := string(PWideChar(prop.pwszVal)) + ': ' + result;
 end;
 //------------------------------------------------------------------------------
@@ -81,8 +82,7 @@ end;
 //------------------------------------------------------------------------------
 function TMixer.getVolumeStateString(state: integer): string;
 begin
-  result := 'low';
-  if state = -2 then result := 'muted';
+  result := 'muted';
   if (state >= 0) and (state < 33) then result := 'low';
   if (state >= 33) and (state < 66) then result := 'medium';
   if (state >= 66) and (state <= 100) then result := 'high';

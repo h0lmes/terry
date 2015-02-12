@@ -163,6 +163,7 @@ procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16;
 function GetLangID: integer;
 function GetLangIDString(id: integer): string;
 function GetLangIDName(id: integer): string;
+function GetRecycleBinState: integer;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
@@ -890,6 +891,28 @@ begin
   result := '';
   if GetLocaleInfo(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
     result := pchar(buffer);
+end;
+//------------------------------------------------------------------------------
+// returns 1 for full bin, 0 for empty bin
+function GetRecycleBinState: integer;
+var
+  psfDesktop: IShellFolder;
+  psfFolder: IShellFolder;
+  pidFolder, pidChild: PItemIDList;
+  pEnumList: IEnumIDList;
+  celtFetched: ULONG;
+begin
+  OleCheck(SHGetDesktopFolder(psfDesktop));
+  OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
+  OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
+  OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
+  result := 0;
+  if pEnumList.Next(1, pidChild, celtFetched) = NOERROR then
+  begin
+    inc(result);
+    ILFree(pidChild);
+  end;
+  ILFree(pidFolder);
 end;
 //------------------------------------------------------------------------------
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);

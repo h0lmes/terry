@@ -438,10 +438,9 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\default\reboot.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Display off', '/displayoff', '', '', 'images\default\displayoff.png'));
       end;
       // basic items //
-      AddItem(TShortcutItem.Make(0, XStartButtonText, '/startmenu', '', '', 'images\default\start.png'));
+      AddItem(TShortcutItem.Make(0, UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png'));
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
@@ -449,10 +448,10 @@ begin
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
       AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));
       AddItem(TSeparatorItem.Make);
-      AddItem(TShortcutItem.Make(0, '', '', '', '', '{LANGID}'));
+      AddItem(TShortcutItem.Make(0, '', '', '', '', 'images\default\{LANGID}.png'));
       AddItem(TShortcutItem.Make(0, 'Tray', '/tray', '', '', 'images\default\tray.png'));
       AddItem(TShortcutItem.Make(0, 'Available Networks', '/networks', '', '', 'images\default\networks.png'));
-      AddItem(TShortcutItem.Make(0, 'Volume', '/volume', '', '', 'images\default\volume.png'));
+      AddItem(TShortcutItem.Make(0, 'Volume', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);
