@@ -9,8 +9,8 @@ type
   TNetworks = class(TInterfacedObject, INetworkEvents)
   private
     FReady: boolean;
-    FMgr: INetworkListManager;
-    dwCookie: dword;
+    FNLM: INetworkListManager;
+    dwCookie1: dword;
     FWired: boolean;
     FWireless: boolean;
     FConnected: boolean;
@@ -34,11 +34,13 @@ type
     property StateString: string read getStateString;
     class function CUpdate: integer;
     constructor Create;
+    destructor Destroy; override;
   end;
 
 var Networks: TNetworks;
 
 implementation
+uses frmmainu;
 //------------------------------------------------------------------------------
 class function TNetworks.CUpdate: integer;
 begin
@@ -52,24 +54,40 @@ end;
 //------------------------------------------------------------------------------
 constructor TNetworks.Create;
 var
-  pCpc: IConnectionPointContainer;
+  pContainer: IConnectionPointContainer;
   pConnectionPoint: IConnectionPoint;
-  pSink: INetworkEvents;
 begin
   ReadInterfaces;
   FReady := assigned(adapterPhysMedium)
-         and SUCCEEDED(CoCreateInstance(CLASS_NetworkListManager, nil, CLSCTX_ALL, IID_INetworkListManager, FMgr));
+         and SUCCEEDED(CoCreateInstance(CLASS_NetworkListManager, nil, CLSCTX_ALL, IID_INetworkListManager, FNLM));
 
   if FReady then
-    if Succeeded(FMgr.QueryInterface(IID_IConnectionPointContainer, pCpc)) then
+    if Succeeded(FNLM.QueryInterface(IID_IConnectionPointContainer, pContainer)) then
     begin
-      pSink := self as INetworkEvents;
-      if Succeeded(pCpc.FindConnectionPoint(IID_INetworkEvents, pConnectionPoint)) then
+      if Succeeded(pContainer.FindConnectionPoint(IID_INetworkEvents, pConnectionPoint)) then
       begin
-        pConnectionPoint.Advise(pSink, dwCookie);
+        pConnectionPoint.Advise(self as IUnknown, dwCookie1);
         pConnectionPoint := nil;
       end;
     end;
+end;
+//------------------------------------------------------------------------------
+destructor TNetworks.Destroy;
+var
+  pCpc: IConnectionPointContainer;
+  pConnectionPoint: IConnectionPoint;
+begin
+  if FReady then
+    if Succeeded(FNLM.QueryInterface(IID_IConnectionPointContainer, pCpc)) then
+    begin
+      if Succeeded(pCpc.FindConnectionPoint(IID_INetworkEvents, pConnectionPoint)) then
+      begin
+        pConnectionPoint.Unadvise(dwCookie1);
+        pConnectionPoint := nil;
+      end;
+    end;
+
+  inherited;
 end;
 //------------------------------------------------------------------------------
 function TNetworks.getState: integer;
@@ -118,7 +136,7 @@ begin
   Reset;
   if FReady then
   begin
-    EnumNetworks := FMgr.GetNetworks(NLM_ENUM_NETWORK_CONNECTED);
+    EnumNetworks := FNLM.GetNetworks(NLM_ENUM_NETWORK_CONNECTED);
     if assigned(EnumNetworks) then
     begin
       EnumNetworks.Next(1, Network, fetched);
@@ -146,12 +164,14 @@ begin
             EnumConnections.Next(1, Connection, fetched);
           end;
         end;
+        EnumConnections := nil;
 
         Network := nil;
         EnumNetworks.Next(1, Network, fetched);
         if fetched > 0 then FDescription := FDescription + #10#13#10#13;
       end;
     end;
+    EnumNetworks := nil;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -180,7 +200,7 @@ end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkAdded(networkId: TGUID): HResult; stdcall;
 begin
-  ReadNetworks;
+  //ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------
@@ -192,13 +212,13 @@ end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkDeleted(networkId: TGUID): HResult; stdcall;
 begin
-  ReadNetworks;
+  //ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkPropertyChanged(networkId: TGUID; fFlags: NLM_NETWORK_PROPERTY_CHANGE): HResult; stdcall;
 begin
-  ReadNetworks;
+  //ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------

@@ -300,11 +300,7 @@ begin
     PIDL_Free(pidFolder);
   end;
 
-  if FDynObject then
-  begin
-    TMixer.CUpdate;
-    TNetworks.CUpdate;
-  end;
+  if FDynObject or FDynObjectRecycleBin then DynObjectUpdate;
 
   // setup update timer
   if FDynObject then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil)
