@@ -13,7 +13,6 @@ type
   { TfrmHello }
 
   TfrmHello = class(TForm)
-    btnAdd: TButton;
     btnAutorun: TButton;
     btnClose: TButton;
     btnCloseShowTips: TButton;
@@ -27,7 +26,6 @@ type
     Label4: TLabel;
     Label5: TLabel;
     procedure btnAutorunClick(Sender: TObject);
-    procedure btnAddClick(Sender: TObject);
     procedure btnBottomClick(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnCloseShowTipsClick(Sender: TObject);
@@ -82,11 +80,6 @@ procedure TfrmHello.btnAutorunClick(Sender: TObject);
 begin
   SetAutorun(true);
   btnAutorun.Enabled := not CheckAutorun;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmHello.btnAddClick(Sender: TObject);
-begin
-  frmmain.execute_cmdline('/apps');
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnLeftClick(Sender: TObject);

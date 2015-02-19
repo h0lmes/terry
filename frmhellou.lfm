@@ -1,10 +1,10 @@
 object frmHello: TfrmHello
   Left = 463
-  Height = 487
+  Height = 434
   Top = 234
   Width = 538
   Caption = 'Hello'
-  ClientHeight = 487
+  ClientHeight = 434
   ClientWidth = 538
   OnClose = FormClose
   OnShow = FormShow
@@ -27,28 +27,19 @@ object frmHello: TfrmHello
     OnClick = btnAutorunClick
     TabOrder = 0
   end
-  object btnAdd: TButton
-    Left = 45
-    Height = 25
-    Top = 200
-    Width = 450
-    Caption = 'Add installed applications shortcuts'
-    OnClick = btnAddClick
-    TabOrder = 1
-  end
   object btnClose: TButton
     Left = 45
     Height = 25
-    Top = 435
+    Top = 385
     Width = 450
     Caption = 'Thanks!  I will manage everything myself'
     OnClick = btnCloseClick
-    TabOrder = 2
+    TabOrder = 1
   end
   object Label5: TLabel
     Left = 45
     Height = 15
-    Top = 250
+    Top = 200
     Width = 231
     Caption = 'Move the dock to anoher side of the screen:'
     ParentColor = False
@@ -56,47 +47,47 @@ object frmHello: TfrmHello
   object btnTop: TButton
     Left = 235
     Height = 25
-    Top = 282
+    Top = 232
     Width = 70
     Caption = 'Top'
     OnClick = btnTopClick
-    TabOrder = 3
+    TabOrder = 2
   end
   object btnLeft: TButton
     Left = 165
     Height = 25
-    Top = 307
+    Top = 257
     Width = 70
     Caption = 'Left'
     OnClick = btnLeftClick
-    TabOrder = 4
+    TabOrder = 3
   end
   object btnRight: TButton
     Left = 305
     Height = 25
-    Top = 307
+    Top = 257
     Width = 70
     Caption = 'Right'
     OnClick = btnRightClick
-    TabOrder = 5
+    TabOrder = 4
   end
   object btnBottom: TButton
     Left = 235
     Height = 25
-    Top = 332
+    Top = 282
     Width = 70
     Caption = 'Bottom'
     OnClick = btnBottomClick
-    TabOrder = 6
+    TabOrder = 5
   end
   object btnCloseShowTips: TButton
     Left = 45
     Height = 25
-    Top = 385
+    Top = 335
     Width = 450
     Caption = 'Is there anything useful to know?'
     OnClick = btnCloseShowTipsClick
-    TabOrder = 7
+    TabOrder = 6
   end
   object Label1: TLabel
     Left = 45

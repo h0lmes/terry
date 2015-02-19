@@ -201,6 +201,8 @@ const
   ID_TIMER_DRAGLEAVE        = 9;
   ID_TIMER_ATTENTION        = 10;
 
+  ___ = 'What is mind? No matter. What is matter? Never mind.';
+
 resourcestring
 
   // common //

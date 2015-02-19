@@ -19,7 +19,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="82"/>
-      <RevisionNr Value="2"/>
+      <RevisionNr Value="3"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1" Active="Default">
@@ -43,14 +43,14 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="126">
+    <Units Count="129">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="566"/>
-        <CursorPos X="4" Y="598"/>
+        <TopLine Value="545"/>
+        <CursorPos X="3" Y="578"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -61,8 +61,8 @@
         <UnitName Value="declu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="177"/>
-        <CursorPos X="3" Y="199"/>
+        <TopLine Value="186"/>
+        <CursorPos X="49" Y="198"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -86,7 +86,7 @@
         <UnitName Value="frmmainu"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1865"/>
+        <TopLine Value="55"/>
         <CursorPos X="59" Y="1860"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -192,12 +192,10 @@
         <Filename Value="toolu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolu"/>
-        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="143"/>
         <CursorPos X="28" Y="166"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
       <Unit13>
@@ -207,7 +205,7 @@
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="424"/>
-        <CursorPos X="96" Y="454"/>
+        <CursorPos X="76" Y="440"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -216,11 +214,10 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="265"/>
-        <CursorPos X="45" Y="306"/>
+        <TopLine Value="284"/>
+        <CursorPos X="5" Y="963"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -230,8 +227,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="hintu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="217"/>
-        <CursorPos X="42" Y="231"/>
+        <TopLine Value="154"/>
+        <CursorPos X="48" Y="183"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
@@ -310,12 +307,10 @@
         <Filename Value="taskitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="taskitemu"/>
-        <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
         <TopLine Value="50"/>
         <CursorPos X="46" Y="76"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit23>
       <Unit24>
@@ -358,8 +353,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="trayu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="10"/>
-        <CursorPos X="1" Y="31"/>
+        <TopLine Value="231"/>
+        <CursorPos X="71" Y="255"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
@@ -437,8 +432,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmhellou"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="40"/>
-        <CursorPos X="26" Y="41"/>
+        <TopLine Value="7"/>
+        <CursorPos X="1" Y="29"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit34>
@@ -482,7 +477,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="21" Y="29"/>
-        <UsageCount Value="90"/>
+        <UsageCount Value="101"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit38>
       <Unit39>
@@ -1165,7 +1160,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="17"/>
-        <UsageCount Value="39"/>
+        <UsageCount Value="50"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit121>
       <Unit122>
@@ -1180,12 +1175,10 @@
         <Filename Value="mixeru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="mixeru"/>
-        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="45"/>
-        <CursorPos X="16" Y="68"/>
-        <UsageCount Value="36"/>
-        <Loaded Value="True"/>
+        <TopLine Value="42"/>
+        <CursorPos X="50" Y="59"/>
+        <UsageCount Value="47"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit123>
       <Unit124>
@@ -1204,8 +1197,41 @@
         <CursorPos X="35" Y="1534"/>
         <UsageCount Value="10"/>
       </Unit125>
+      <Unit126>
+        <Filename Value="networksu.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="networksu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="32" Y="14"/>
+        <UsageCount Value="27"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit126>
+      <Unit127>
+        <Filename Value="iphlpapi2.pas"/>
+        <UnitName Value="iphlpapi2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="287"/>
+        <CursorPos X="26" Y="295"/>
+        <UsageCount Value="11"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit127>
+      <Unit128>
+        <Filename Value="NETWORKLIST_TLB.pas"/>
+        <UnitName Value="NETWORKLIST_TLB"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="186"/>
+        <CursorPos X="60" Y="161"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit128>
     </Units>
-    <JumpHistory Count="8" HistoryIndex="7">
+    <JumpHistory Count="15" HistoryIndex="14">
       <Position1>
         <Filename Value="scitemu.pas"/>
         <Caret Line="309" Column="39" TopLine="286"/>
@@ -1223,21 +1249,49 @@
         <Caret Line="293" Column="39" TopLine="278"/>
       </Position4>
       <Position5>
-        <Filename Value="toolu.pas"/>
-        <Caret Line="888" Column="15" TopLine="876"/>
-      </Position5>
-      <Position6>
         <Filename Value="scitemu.pas"/>
         <Caret Line="316" Column="63" TopLine="296"/>
-      </Position6>
-      <Position7>
-        <Filename Value="toolu.pas"/>
-        <Caret Line="894" Column="20" TopLine="883"/>
-      </Position7>
-      <Position8>
+      </Position5>
+      <Position6>
         <Filename Value="frmmainu.pas"/>
         <Caret Line="1867" Column="21" TopLine="1841"/>
+      </Position6>
+      <Position7>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="6" Column="54" TopLine="1"/>
+      </Position7>
+      <Position8>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="91" Column="51" TopLine="55"/>
       </Position8>
+      <Position9>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="71" Column="42" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="30" Column="31" TopLine="14"/>
+      </Position10>
+      <Position11>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="63" Column="3" TopLine="12"/>
+      </Position11>
+      <Position12>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="20" Column="15" TopLine="1"/>
+      </Position12>
+      <Position13>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="9" Column="22" TopLine="1"/>
+      </Position13>
+      <Position14>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="33" Column="7" TopLine="1"/>
+      </Position14>
+      <Position15>
+        <Filename Value="networksu.pas"/>
+        <Caret Line="182" Column="15" TopLine="25"/>
+      </Position15>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

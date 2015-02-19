@@ -179,6 +179,9 @@ begin
       begin
         ax := x;
         ay := y;
+      end else begin
+        if (ASite = bsTop) or (ASite = bsBottom) then ay := y
+        else ax := x;
       end;
     except
       on e: Exception do

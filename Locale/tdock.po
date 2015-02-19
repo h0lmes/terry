@@ -429,10 +429,6 @@ msgstr ""
 msgid "Text color"
 msgstr ""
 
-#: tfrmhello.btnadd.caption
-msgid "Add installed applications shortcuts"
-msgstr ""
-
 #: tfrmhello.btnautorun.caption
 msgid "Set the dock to start with Windows"
 msgstr ""

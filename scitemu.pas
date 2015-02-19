@@ -5,7 +5,7 @@ unit scitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
   IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
-  processhlp, aeropeeku, mixeru;
+  processhlp, aeropeeku, mixeru, networksu;
 
 type
 
@@ -271,9 +271,15 @@ begin
     end;
     if pos('{VOLUME}', imagefile) > 0 then
     begin
-      imagefile := ReplaceEx(imagefile, '{VOLUME}', mixer.getVolumeStateString(FDynObjectState));
+      imagefile := ReplaceEx(imagefile, '{VOLUME}', Mixer.StateString);
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      FCaption := mixer.getVolumeString;
+      FCaption := Mixer.Description;
+    end;
+    if pos('{NETWORK}', imagefile) > 0 then
+    begin
+      imagefile := ReplaceEx(imagefile, '{NETWORK}', Networks.StateString);
+      LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
+      FCaption := Networks.Description;
     end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
@@ -285,7 +291,7 @@ var
   pidFolder: PItemIDList;
 begin
   FDynObjectState := 0;
-  FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUME}', FImageFile) > 0);
+  FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUME}', FImageFile) > 0) or (pos('{NETWORK}', FImageFile) > 0);
   FDynObjectRecycleBin := false;
   if is_pidl then
   begin
@@ -294,8 +300,14 @@ begin
     PIDL_Free(pidFolder);
   end;
 
+  if FDynObject then
+  begin
+    TMixer.CUpdate;
+    TNetworks.CUpdate;
+  end;
+
   // setup update timer
-  if FDynObject then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 300, nil)
+  if FDynObject then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil)
   else
   if FDynObjectRecycleBin then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 1000, nil)
   else
@@ -310,7 +322,8 @@ begin
   if FDynObject then
   begin
     if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
-    if pos('{VOLUME}', FImageFile) > 0 then tempState := mixer.getVolumeState;
+    if pos('{VOLUME}', FImageFile) > 0 then tempState := TMixer.CUpdate;
+    if pos('{NETWORK}', FImageFile) > 0 then tempState := TNetworks.CUpdate;
   end
   // if this is a Recycle Bin
   else if FDynObjectRecycleBin then tempState := GetRecycleBinState;
@@ -946,7 +959,8 @@ begin
 
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'shortcut', szIni);
-  if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
+  if not FDynObject then
+    if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
   if FCommand <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(FCommand), szIni);
   if FParams <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(FParams), szIni);
   if FDir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(FDir), szIni);

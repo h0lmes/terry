@@ -472,11 +472,6 @@ msgstr "Цвет фона"
 msgid "Text color"
 msgstr "Цвет текста"
 
-#: tfrmhello.btnadd.caption
-#| msgid "Add shortcuts to installed applications"
-msgid "Add installed applications shortcuts"
-msgstr "Добавить ярлыки установленных программ"
-
 #: tfrmhello.btnautorun.caption
 #| msgid "Set the program to start with Windows"
 msgid "Set the dock to start with Windows"

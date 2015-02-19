@@ -448,10 +448,10 @@ begin
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
       AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));
       AddItem(TSeparatorItem.Make);
-      AddItem(TShortcutItem.Make(0, '', '', '', '', 'images\default\{LANGID}.png'));
       AddItem(TShortcutItem.Make(0, 'Tray', '/tray', '', '', 'images\default\tray.png'));
-      AddItem(TShortcutItem.Make(0, 'Available Networks', '/networks', '', '', 'images\default\networks.png'));
-      AddItem(TShortcutItem.Make(0, 'Volume', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
+      AddItem(TShortcutItem.Make(0, '', 'rundll32.exe', 'msctf.dll, TF_RunInputCPL', '', 'images\default\{LANGID}.png'));
+      AddItem(TShortcutItem.Make(0, '', '/networks', '', '', 'images\default\network-{NETWORK}.png'));
+      AddItem(TShortcutItem.Make(0, '', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);

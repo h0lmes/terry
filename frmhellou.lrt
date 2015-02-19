@@ -1,7 +1,6 @@
 TFRMHELLO.CAPTION=Hello
 TFRMHELLO.LABEL3.CAPTION=Choose what you want to do:
 TFRMHELLO.BTNAUTORUN.CAPTION=Set the dock to start with Windows
-TFRMHELLO.BTNADD.CAPTION=Add installed applications shortcuts
 TFRMHELLO.BTNCLOSE.CAPTION=Thanks!  I will manage everything myself
 TFRMHELLO.LABEL5.CAPTION=Move the dock to anoher side of the screen:
 TFRMHELLO.BTNTOP.CAPTION=Top
