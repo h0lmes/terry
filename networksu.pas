@@ -6,6 +6,9 @@ interface
 uses Windows, Classes, SysUtils, ActiveX, iphlpapi2, networklist_tlb;
 
 type
+
+  { TNetworks }
+
   TNetworks = class(TInterfacedObject, INetworkEvents)
   private
     FReady: boolean;
@@ -17,9 +20,10 @@ type
     FInternet: boolean;
     FConnections: integer;
     FDescription: string;
-    adapterPhysMedium: TStrings;
+    FAdapterTypes: TStrings;
     procedure Reset;
     procedure ReadNetworks;
+    procedure GetAdapterType(AdapterID: string; var wired, wireless: boolean);
     procedure ReadInterfaces;
     function getState: integer;
     function getStateString: string;
@@ -32,6 +36,7 @@ type
     property Description: string read FDescription;
     property State: integer read getState;
     property StateString: string read getStateString;
+    //
     class function CUpdate: integer;
     constructor Create;
     destructor Destroy; override;
@@ -58,7 +63,7 @@ var
   pConnectionPoint: IConnectionPoint;
 begin
   ReadInterfaces;
-  FReady := assigned(adapterPhysMedium)
+  FReady := assigned(FAdapterTypes)
          and SUCCEEDED(CoCreateInstance(CLASS_NetworkListManager, nil, CLSCTX_ALL, IID_INetworkListManager, FNLM));
 
   if FReady then
@@ -121,17 +126,12 @@ procedure TNetworks.ReadNetworks;
   begin
     if value then result := 'Internet access' else result := 'No internet access';
   end;
-  function IsWireless(type_: cardinal): boolean;
-  begin
-    result := (type_ = NdisPhysicalMediumWirelessLan) or (type_ = NdisPhysicalMediumWirelessWan) or (type_ = NdisPhysicalMediumNative802_11);
-  end;
 var
   EnumNetworks: IEnumNetworks;
   Network: INetwork;
   EnumConnections: IEnumNetworkConnections;
   Connection: INetworkConnection;
   fetched: ULONG;
-  adapterIndex: integer;
 begin
   Reset;
   if FReady then
@@ -153,13 +153,8 @@ begin
           EnumConnections.Next(1, Connection, fetched);
           while fetched > 0 do
           begin
+            GetAdapterType(GUIDToString(Connection.GetAdapterId), FWired, FWireless);
             inc(FConnections);
-            adapterIndex := adapterPhysMedium.IndexOf(GUIDToString(Connection.GetAdapterId));
-            if adapterIndex > -1 then
-              if IsWireless(cardinal(adapterPhysMedium.Objects[adapterIndex])) then
-                FWireless := FWireless or true
-              else FWired := FWired or true;
-
             Connection := nil;
             EnumConnections.Next(1, Connection, fetched);
           end;
@@ -175,22 +170,37 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TNetworks.GetAdapterType(AdapterID: string; var wired, wireless: boolean);
+  function IsWireless(type_: cardinal): boolean;
+  begin
+    result := (type_ = NdisPhysicalMediumWirelessLan) or (type_ = NdisPhysicalMediumWirelessWan) or (type_ = NdisPhysicalMediumNative802_11);
+  end;
+var
+  index: integer;
+begin
+  index := FAdapterTypes.IndexOf(AdapterID);
+  if index > -1 then
+    if IsWireless(cardinal(FAdapterTypes.Objects[index])) then
+      wireless := wireless or true
+    else wired := wired or true;
+end;
+//------------------------------------------------------------------------------
 procedure TNetworks.ReadInterfaces;
 var
   ii: integer;
   table: PMIB_IF_TABLE2;
 begin
-  if not assigned(adapterPhysMedium) then adapterPhysMedium := TStringList.Create;
-  if assigned(adapterPhysMedium) then
+  if not assigned(FAdapterTypes) then FAdapterTypes := TStringList.Create;
+  if assigned(FAdapterTypes) then
   begin
-    adapterPhysMedium.Clear;
+    FAdapterTypes.Clear;
     if GetIFTable2(table) <> ERROR_NOT_ENOUGH_MEMORY then
     begin
       ii := 0;
       while ii < table.NumEntries do
       begin
         if table.Table[ii].PhysicalMediumType <> NdisPhysicalMediumUnspecified then
-          adapterPhysMedium.AddObject(GUIDToString(table.Table[ii].InterfaceGuid), tobject(table.Table[ii].PhysicalMediumType));
+          FAdapterTypes.AddObject(GUIDToString(table.Table[ii].InterfaceGuid), tobject(table.Table[ii].PhysicalMediumType));
         inc(ii);
       end;
       FreeMibTable(table);
@@ -200,7 +210,7 @@ end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkAdded(networkId: TGUID): HResult; stdcall;
 begin
-  //ReadNetworks;
+  ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------
@@ -212,13 +222,13 @@ end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkDeleted(networkId: TGUID): HResult; stdcall;
 begin
-  //ReadNetworks;
+  ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------
 function TNetworks.NetworkPropertyChanged(networkId: TGUID; fFlags: NLM_NETWORK_PROPERTY_CHANGE): HResult; stdcall;
 begin
-  //ReadNetworks;
+  ReadNetworks;
   Result := S_OK;
 end;
 //------------------------------------------------------------------------------
