@@ -2,11 +2,11 @@ unit aeropeeku;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms,
-  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp, lazutf8;
+uses Windows, Messages, Classes, SysUtils, Forms, lazutf8,
+  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp;
 
 const
-  TITLE_PART = 31;
+  TITLE_PART = 63;
 
 type
   TAPWLayout = (apwlHorizontal, apwlVertical);
@@ -14,6 +14,8 @@ type
   TAeroPeekWindowItem = packed record
     hwnd: THandle;            // target window handle
     ThumbnailId: THandle;     // live preview thumbnail handle
+    srcW: integer;            // thumbnail source width
+    srcH: integer;            // thumbnail source height
     image: pointer;           // window icon as GDIP bitmap
     iw: cardinal;             // icon width
     ih: cardinal;             // icon height
@@ -21,7 +23,7 @@ type
     rectSel: windows.TRect;   // item selection rect
     rectIcon: windows.TRect;  // window icon rect
     rectTitle: windows.TRect; // window title rect
-    rectThumb: windows.TRect; // live thumbnail rect
+    rectThumb: windows.TRect; // live thumbnail area rect
     rectClose: windows.TRect; // close button rect
     title: array [0..TITLE_PART] of WideChar;
   end;
@@ -51,6 +53,7 @@ type
     FActive: boolean;
     FHostWnd: THandle;
     FSite: integer;
+    FTaskThumbSize: integer;
     FWorkArea: windows.TRect;
     FAnimate: boolean;
     FCloseButtonDownIndex: integer;
@@ -82,7 +85,7 @@ type
     property HostHandle: uint read FHostWnd;
     property Active: boolean read FActive;
 
-    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     class procedure SetPosition(AX, AY: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
@@ -91,7 +94,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
     procedure CloseAPWindow;
   end;
@@ -101,21 +104,25 @@ var AeroPeekWindow: TAeroPeekWindow;
 implementation
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
   if assigned(AeroPeekWindow) then
   begin
     KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
-    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, LivePreviews);
+    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, TaskThumbSize, LivePreviews);
   end;
 end;
 //------------------------------------------------------------------------------
 // set new position
 class procedure TAeroPeekWindow.SetPosition(AX, AY: integer);
 begin
-  if assigned(AeroPeekWindow) then AeroPeekWindow.SetAPWindowPosition(AX, AY);
+  if assigned(AeroPeekWindow) then
+  begin
+    KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
+    AeroPeekWindow.SetAPWindowPosition(AX, AY);
+  end;
 end;
 //------------------------------------------------------------------------------
 // close AeroPeekWindow
@@ -204,7 +211,10 @@ begin
   if FCompositionEnabled then
     for index := 0 to FItemCount - 1 do
       if items[index].hwnd <> 0 then
-        dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].rectThumb, true, items[index].ThumbnailId);
+      begin
+        dwm.RegisterThumbnail(FHWnd, items[index].hwnd, items[index].ThumbnailId);
+        dwm.GetThumbnailSize(items[index].ThumbnailId, items[index].srcW, items[index].srcH);
+      end;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.PositionThumbnails;
@@ -246,21 +256,29 @@ procedure TAeroPeekWindow.UpdateTitles;
 var
   index: integer;
   title: array [0..255] of WideChar;
+  needRepaint, needRearrange: boolean;
 begin
+  needRepaint := false;
+  needRearrange := false;
   if FItemCount > 0 then
     for index := 0 to FItemCount - 1 do
       if items[index].hwnd <> 0 then
       begin
-        GetWindowTextW(items[index].hwnd, title, TITLE_PART);
-        if UTF8CompareStr(UTF16ToUTF8(items[index].title), UTF16ToUTF8(title)) <> 0 then
+        // if there is no icon for the window - update the icon
+        if not assigned(items[index].image) then
         begin
-          Paint;
-          exit;
+          LoadImageFromHWnd(items[index].hwnd, FIconSize, true, false, items[index].image, items[index].iw, items[index].ih, 500);
+          if assigned(items[index].image) then needRearrange := true;
         end;
+        // update window title
+        GetWindowTextW(items[index].hwnd, title, TITLE_PART);
+        if UTF8CompareStr(UTF16ToUTF8(items[index].title), UTF16ToUTF8(title)) <> 0 then needRepaint := true;
       end;
+  if needRearrange then SetItems;
+  if needRepaint or needRearrange then Paint;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site: integer; LivePreviews: boolean): boolean;
+function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
 var
   idx: integer;
   wa: windows.TRect;
@@ -274,6 +292,8 @@ begin
   try
     try
       FActivating := true;
+      KillTimer(FHWnd, ID_TIMER);
+      KillTimer(FHWnd, ID_TIMER_SLOW);
       UnRegisterThumbnails;
       ClearImages;
       if AppList.Count = 0 then
@@ -283,6 +303,7 @@ begin
       end;
       FHostWnd := HostWnd;
       FSite := Site;
+      FTaskThumbSize := TaskThumbSize;
       // get monitor work area
       FPt.x := AX;
       FPt.y := AY;
@@ -315,8 +336,11 @@ begin
       FTextColor := $ffffffff;
       if (FColor1 shr 16 and $ff + FColor1 shr 8 and $ff + FColor1 and $ff) div 3 > $90 then FTextColor := $ff000000;
 
-      // set items' positions, calulate window size, update workarea
+      // add items
       AddItems(AppList);
+      // register thumbnails
+      RegisterThumbnails;
+      // set items' positions, calulate window size, update workarea
       SetItems;
 
       // set starting position
@@ -351,15 +375,9 @@ begin
       Paint;
       // set foreground
       SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
-      if not FActive then
-      begin
-        SetTimer(FHWnd, ID_TIMER, 10, nil);
-        SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
-      end;
+      SetTimer(FHWnd, ID_TIMER, 10, nil);
+      SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
       FActive := true;
-
-      // register thumbnails
-      RegisterThumbnails;
     finally
       FActivating := false;
     end;
@@ -392,7 +410,7 @@ begin
   end;
   needSeparators := (FProcessCount > 1) and (FProcessCount < FWindowCount);
 
-  // store handles, load icons
+  // store handles
   FItemCount := 0;
   FSeparatorCount := 0;
   prevpid := 0;
@@ -408,19 +426,23 @@ begin
       itemIndex := FItemCount - 1;
       items[itemIndex].hwnd := wnd;
       if needSeparators then GetWindowThreadProcessId(wnd, @pid);
-      if (index > 0) and (pid <> prevpid) then
+      if (itemIndex > 0) and (pid <> prevpid) then
       begin
         items[itemIndex].hwnd := 0;
         inc(FSeparatorCount);
-      end else begin
-        LoadImageFromHWnd(wnd, FIconSize, true, false, items[itemIndex].image, items[itemIndex].iw, items[itemIndex].ih, 500);
+      end else
         inc(index);
-      end;
       prevpid := pid;
     end else begin
       inc(index);
     end;
   end;
+
+  // load icons
+  if FItemCount > 0 then
+    for index := 0 to FItemCount - 1 do
+      if items[index].hwnd <> 0 then
+        LoadImageFromHWnd(items[index].hwnd, FIconSize, true, false, items[index].image, items[index].iw, items[index].ih, 500);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.DeleteItem(index: integer);
@@ -434,7 +456,7 @@ begin
     if items[index].hwnd <> 0 then dwm.UnregisterThumbnail(items[index].ThumbnailId)
     else dec(FSeparatorCount);
 
-    // shift items in the array so they erase one to delete
+    // shift items in the array so they erase the one to delete
     tmp := index;
     while index < FItemCount - 1 do
     begin
@@ -481,205 +503,233 @@ var
   index: integer;
   maxw, maxh, position: integer;
   tmp: integer;
+  maxRate: single;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
   hgdip, family, font: pointer;
   rect: GDIPAPI.TRectF;
 begin
-  // set primary params
-  if FCompositionEnabled then
-  begin
-    FBorderX := 24;
-    FBorderY := 22;
-    FShadow := 8;
-    FIconSize := 16;
-    FTitleHeight := 20;
-    FTitleSplit := 9;
-    ItemSplit := 16;
-    FCloseButtonSize := 17;
-    FRadius := 6;
-    FSelectionRadius := 2;
-  end else begin
-    FBorderX := 18;
-    FBorderY := 14;
-    FShadow := 0;
-    FIconSize := 16;
-    FTitleHeight := 22;
-    FTitleSplit := 0;
-    ItemSplit := 10;
-    FCloseButtonSize := 17;
-    FRadius := 0;
-    FSelectionRadius := 2;
-  end;
-  FSeparatorW := 10;
-  FSeparatorH := 2;
-
-  // calc thumbnail width and height
-  if FCompositionEnabled then
-  begin
-    if FLayout = apwlHorizontal then
+  try
+    // set primary params
+    if FCompositionEnabled then
     begin
-      ThumbW := min(200, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - FSeparatorCount * (FSeparatorW + ItemSplit)) div (FItemCount - FSeparatorCount) - ItemSplit);
-      ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
+      FBorderX := 24;
+      FBorderY := 22;
+      FShadow := 8;
+      FIconSize := 16;
+      FTitleHeight := 20;
+      FTitleSplit := 9;
+      ItemSplit := 16;
+      FCloseButtonSize := 17;
+      FRadius := 6;
+      FSelectionRadius := 2;
     end else begin
-      ThumbW := 200;
-      ThumbH := round(ThumbW * (FWorkArea.Bottom - FWorkArea.Top) / (FWorkArea.Right - FWorkArea.Left));
-      tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - FSeparatorCount * (FSeparatorH + ItemSplit)) div (FItemCount - FSeparatorCount) - FTitleHeight - FTitleSplit - ItemSplit;
-      if ThumbH > tmp then
-      begin
-        ThumbH := tmp;
-        ThumbW := round(ThumbH * (FWorkArea.Right - FWorkArea.Left) / (FWorkArea.Bottom - FWorkArea.Top));
-      end;
+      FBorderX := 18;
+      FBorderY := 14;
+      FShadow := 0;
+      FIconSize := 16;
+      FTitleHeight := 22;
+      FTitleSplit := 0;
+      ItemSplit := 10;
+      FCloseButtonSize := 17;
+      FRadius := 0;
+      FSelectionRadius := 2;
     end;
-  end else begin
-    ThumbW := 200;
-    ThumbH := 0;
-  end;
+    FSeparatorW := 10;
+    FSeparatorH := 2;
 
-  if FItemCount > 0 then
-  begin
-    // get max title width (if in "no live preview" mode)
-    if not FCompositionEnabled then
+    // calc thumbnail width and height
+    if FCompositionEnabled then
     begin
-      dc := CreateCompatibleDC(0);
-      if dc <> 0 then
-      begin
-        GdipCreateFromHDC(dc, hgdip);
-        GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
-        GdipCreateFont(family, FFontSize, 0, 2, font);
+      // get max rate = H / W
+      maxRate := 0;
+      if FItemCount > 0 then
         for index := 0 to FItemCount - 1 do
-        begin
-          GetWindowTextW(items[index].hwnd, @title, 255);
-          rect.x := 0;
-          rect.y := 0;
-          rect.Width := 0;
-          rect.Height := 0;
-          GdipMeasureString(hgdip, PWideChar(@title), -1, font, @rect, nil, @rect, nil, nil);
-          maxw := round(rect.Width) + 3 + FIconSize + 3 + FCloseButtonSize + 3;
-          if maxw > (FWorkArea.Right - FWorkArea.Left) div 2 then maxw := (FWorkArea.Right - FWorkArea.Left) div 2;
-          if maxw > ThumbW then ThumbW := maxw;
-        end;
-        GdipDeleteGraphics(hgdip);
-        GdipDeleteFont(font);
-        GdipDeleteFontFamily(family);
-        DeleteDC(dc);
-      end;
-    end;
+          if items[index].srcW <> 0 then
+            if maxRate < items[index].srcH / items[index].srcW then maxRate := items[index].srcH / items[index].srcW;
+      if maxRate > 0.8 then maxRate := 0.8;
+      if maxRate <= 0 then maxRate := 0.8;
 
-    // set item props
-    maxw := 0;
-    maxh := 0;
-    FForegroundWindowIndex := -1;
-    if FLayout = apwlHorizontal then position := FBorderX else position := FBorderY;
-    for index := 0 to FItemCount - 1 do
-    begin
       if FLayout = apwlHorizontal then
       begin
-        items[index].rect.Left := position;
-        items[index].rect.Top := FBorderY;
+        ThumbW := min(FTaskThumbSize, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - FSeparatorCount * (FSeparatorW + ItemSplit)) div (FItemCount - FSeparatorCount) - ItemSplit);
+        ThumbH := round(ThumbW * maxRate);
       end else begin
-        items[index].rect.Left := FBorderX;
-        items[index].rect.Top := position;
+        ThumbW := FTaskThumbSize;
+        ThumbH := round(ThumbW * maxRate);
+        tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - FSeparatorCount * (FSeparatorH + ItemSplit)) div (FItemCount - FSeparatorCount) - FTitleHeight - FTitleSplit - ItemSplit;
+        if ThumbH > tmp then
+        begin
+          ThumbH := tmp;
+          ThumbW := round(ThumbH / maxRate);
+        end;
       end;
-      if items[index].hwnd <> 0 then
+    end else begin
+      ThumbW := FTaskThumbSize;
+      ThumbH := 0;
+    end;
+
+    if FItemCount > 0 then
+    begin
+      // get max title width (if in "no live preview" mode)
+      if not FCompositionEnabled then
       begin
-        items[index].rect.Right := items[index].rect.Left + ThumbW;
-        items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
-      end else begin
+        dc := CreateCompatibleDC(0);
+        if dc <> 0 then
+        begin
+          GdipCreateFromHDC(dc, hgdip);
+          GdipCreateFontFamilyFromName(PWideChar(WideString(FFontFamily)), nil, family);
+          GdipCreateFont(family, FFontSize, 0, 2, font);
+          for index := 0 to FItemCount - 1 do
+          begin
+            GetWindowTextW(items[index].hwnd, @title, 255);
+            rect.x := 0;
+            rect.y := 0;
+            rect.Width := 0;
+            rect.Height := 0;
+            GdipMeasureString(hgdip, PWideChar(@title), -1, font, @rect, nil, @rect, nil, nil);
+            maxw := round(rect.Width) + 3 + FIconSize + 3 + FCloseButtonSize + 3;
+            if maxw > (FWorkArea.Right - FWorkArea.Left) div 2 then maxw := (FWorkArea.Right - FWorkArea.Left) div 2;
+            if maxw > ThumbW then ThumbW := maxw;
+          end;
+          GdipDeleteGraphics(hgdip);
+          GdipDeleteFont(font);
+          GdipDeleteFontFamily(family);
+          DeleteDC(dc);
+        end;
+      end;
+
+      // set item props
+      maxw := 0;
+      maxh := 0;
+      FForegroundWindowIndex := -1;
+      if FLayout = apwlHorizontal then position := FBorderX else position := FBorderY;
+      for index := 0 to FItemCount - 1 do
+      begin
         if FLayout = apwlHorizontal then
         begin
-          items[index].rect.Right := items[index].rect.Left + FSeparatorW;
+          items[index].rect.Left := position;
+          items[index].rect.Top := FBorderY;
+        end else begin
+          items[index].rect.Left := FBorderX;
+          items[index].rect.Top := position;
+        end;
+        if items[index].hwnd <> 0 then
+        begin
+          items[index].rect.Right := items[index].rect.Left + ThumbW;
           items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
         end else begin
-          items[index].rect.Right := items[index].rect.Left + ThumbW;
-          items[index].rect.Bottom := items[index].rect.Top + FSeparatorH;
+          if FLayout = apwlHorizontal then
+          begin
+            items[index].rect.Right := items[index].rect.Left + FSeparatorW;
+            items[index].rect.Bottom := items[index].rect.Top + FTitleHeight + FTitleSplit + ThumbH;
+          end else begin
+            items[index].rect.Right := items[index].rect.Left + ThumbW;
+            items[index].rect.Bottom := items[index].rect.Top + FSeparatorH;
+          end;
         end;
+        if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
+        if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
+
+        if items[index].hwnd <> 0 then
+        begin
+          items[index].rectSel := items[index].rect;
+          items[index].rectSel.Left -= 5;
+          items[index].rectSel.Top -= 5;
+          items[index].rectSel.Right += 5;
+          items[index].rectSel.Bottom += 5;
+
+          items[index].rectThumb := items[index].rect;
+          items[index].rectThumb.Top += FTitleHeight;
+          items[index].rectThumb.Top += FTitleSplit;
+          if items[index].rectThumb.Bottom - items[index].rectThumb.Top > items[index].srcH then
+          begin
+            items[index].rectThumb.Top := items[index].rectThumb.Top + (items[index].rectThumb.Bottom - items[index].rectThumb.Top - items[index].srcH) div 2;
+            items[index].rectThumb.Bottom := items[index].rectThumb.Top + items[index].srcH;
+          end;
+          if items[index].rectThumb.Right - items[index].rectThumb.Left > items[index].srcW then
+          begin
+            items[index].rectThumb.Left := items[index].rectThumb.Left + (items[index].rectThumb.Right - items[index].rectThumb.Left - items[index].srcW) div 2;
+            items[index].rectThumb.Right := items[index].rectThumb.Left + items[index].srcW;
+          end;
+
+          items[index].rectTitle := items[index].rect;
+          if assigned(items[index].image) then items[index].rectTitle.Left += items[index].iw + 3;
+          items[index].rectTitle.Right -= FCloseButtonSize + 1;
+          items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
+
+          items[index].rectIcon := items[index].rect;
+          items[index].rectIcon.Top += round((FTitleHeight - FIconSize) / 2);
+          items[index].rectIcon.Right := items[index].rectIcon.Left + items[index].iw;
+          items[index].rectIcon.Bottom := items[index].rectIcon.Top + items[index].ih;
+
+          items[index].rectClose := items[index].rect;
+          items[index].rectClose.Top += round((FTitleHeight - FCloseButtonSize) / 2);
+          items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
+          items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
+
+          if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
+             if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+             //if items[index].hwnd = GetForegroundWindow then FForegroundWindowIndex := index;
+        end;
+
+        // update thumbnail rect
+        if FCompositionEnabled then
+          dwm.SetThumbnailRect(items[index].ThumbnailId, items[index].rectThumb);
+
+        if FLayout = apwlHorizontal then
+        begin
+          if items[index].hwnd <> 0 then position += ThumbW else position += FSeparatorW;
+        end else begin
+          if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH else position += FSeparatorH;
+        end;
+        if index < FItemCount - 1 then position += ItemSplit;
       end;
-      if items[index].rect.Right - items[index].rect.Left > maxw then maxw := items[index].rect.Right - items[index].rect.Left;
-      if items[index].rect.Bottom - items[index].rect.Top > maxh then maxh := items[index].rect.Bottom - items[index].rect.Top;
 
-      if items[index].hwnd <> 0 then
-      begin
-        items[index].rectSel := items[index].rect;
-        items[index].rectSel.Left -= 5;
-        items[index].rectSel.Top -= 5;
-        items[index].rectSel.Right += 5;
-        items[index].rectSel.Bottom += 5;
-
-        items[index].rectThumb := items[index].rect;
-        items[index].rectThumb.Top += FTitleHeight;
-        items[index].rectThumb.Top += FTitleSplit;
-
-        items[index].rectTitle := items[index].rect;
-        if assigned(items[index].image) then
-          items[index].rectTitle.Left += items[index].iw + 3;
-        items[index].rectTitle.Right -= FCloseButtonSize + 1;
-        items[index].rectTitle.Bottom := items[index].rectTitle.Top + FTitleHeight;
-
-        items[index].rectIcon := items[index].rect;
-        items[index].rectIcon.Top += round((FTitleHeight - FIconSize) / 2);
-        items[index].rectIcon.Right := items[index].rectIcon.Left + items[index].iw;
-        items[index].rectIcon.Bottom := items[index].rectIcon.Top + items[index].ih;
-
-        items[index].rectClose := items[index].rect;
-        items[index].rectClose.Top += round((FTitleHeight - FCloseButtonSize) / 2);
-        items[index].rectClose.Left := items[index].rectClose.Right - FCloseButtonSize;
-        items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
-
-        if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
-           if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
-      end;
-
+      // calc width and height
       if FLayout = apwlHorizontal then
       begin
-        if items[index].hwnd <> 0 then position += ThumbW else position += FSeparatorW;
+        position += FBorderX;
+        FWTarget := position;
+        FHTarget := FBorderY * 2 + maxh;
       end else begin
-        if items[index].hwnd <> 0 then position += FTitleHeight + FTitleSplit + ThumbH else position += FSeparatorH;
+        FWTarget := FBorderX * 2 + maxw;
+        position += FBorderY;
+        FHTarget := position;
       end;
-      if index < FItemCount - 1 then position += ItemSplit;
     end;
 
-    // calc width and height
-    if FLayout = apwlHorizontal then
+    if not FAnimate or not FActive then
     begin
-      position += FBorderX;
-      FWTarget := position;
-      FHTarget := FBorderY * 2 + maxh;
-    end else begin
-      FWTarget := FBorderX * 2 + maxw;
-      position += FBorderY;
-      FHTarget := position;
+      FWidth := FWTarget;
+      FHeight := FHTarget;
     end;
-  end;
 
-  if not FAnimate or not FActive then
-  begin
-    FWidth := FWTarget;
-    FHeight := FHTarget;
-  end;
-
-  // calculate position
-  FXTarget := FPt.x - FWTarget div 2;
-  FYTarget := FPt.y - FHTarget;
-  if FSite = 1 then // top
-  begin
+    // calculate position
     FXTarget := FPt.x - FWTarget div 2;
-    FYTarget := FPt.y;
-  end else if FSite = 0 then // left
-  begin
-    FXTarget := FPt.x;
-    FYTarget := FPt.y - FHTarget div 2;
-  end else if FSite = 2 then // right
-  begin
-    FXTarget := FPt.x - FWTarget;
-    FYTarget := FPt.y - FHTarget div 2;
+    FYTarget := FPt.y - FHTarget;
+    if FSite = 1 then // top
+    begin
+      FXTarget := FPt.x - FWTarget div 2;
+      FYTarget := FPt.y;
+    end else if FSite = 0 then // left
+    begin
+      FXTarget := FPt.x;
+      FYTarget := FPt.y - FHTarget div 2;
+    end else if FSite = 2 then // right
+    begin
+      FXTarget := FPt.x - FWTarget;
+      FYTarget := FPt.y - FHTarget div 2;
+    end;
+    // position window inside workarea
+    if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
+    if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
+    if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
+    if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+  except
+    on e: Exception do err('AeroPeekWindow.SetItems', e);
   end;
-  // position window inside workarea
-  if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
-  if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
-  if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
-  if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.Paint;

@@ -1078,6 +1078,7 @@ end;
 procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
 const
   ICON_SMALL2 = PtrUInt(2);
+  SMTO_NOTIMEOUTIFNOTHUNG = 8;
 var
   icon: HICON;
 begin
@@ -1088,10 +1089,11 @@ begin
   try
     if not IsWindow(h) then exit;
     icon := 0;
-    if MaxSize > 16 then SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, icon);
-    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK, timeout, icon);
+    if MaxSize > 16 then SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
     if icon = THandle(0) then icon := GetClassLongPtr(h, GCL_HICON);
-    if (icon = THandle(0)) and default then icon := windows.LoadIcon(0, IDI_APPLICATION);
+    if (icon = THandle(0)) and default then icon := LoadIcon(0, IDI_APPLICATION);
     if icon <> THandle(0) then
     begin
       image := IconToGdipBitmap(icon);

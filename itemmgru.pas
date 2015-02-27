@@ -47,6 +47,7 @@ type
     FVisible: boolean;
     Enabled: boolean;
     FTaskLivePreviews: boolean;
+    FTaskThumbSize: integer;
     FTaskGrouping: boolean;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
@@ -326,6 +327,7 @@ begin
           ClearTaskbar;
           FTaskLivePreviews := value <> 0;
         end;
+      gpTaskThumbSize: FTaskThumbSize := value;
       gpTaskGrouping:
         begin
           ClearTaskbar;
@@ -1119,6 +1121,7 @@ begin
     icp.StackOpenAnimation := StackOpenAnimation;
     icp.SeparatorAlpha := FSeparatorAlpha;
     icp.TaskLivePreviews := FTaskLivePreviews;
+    icp.TaskThumbSize := FTaskThumbSize;
     icp.TaskGrouping := FTaskGrouping;
     CopyFontData(FFont, icp.Font);
 

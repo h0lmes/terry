@@ -27,6 +27,7 @@ type
     gpReserveScreenEdgePercent,
     gpTaskbar,
     gpTaskLivePreviews,
+    gpTaskThumbSize,
     gpTaskGrouping,
     gpTaskSameMonitor,
     gpAutoHide,
@@ -112,6 +113,7 @@ type
     StackOpenAnimation: boolean;
     SeparatorAlpha: integer;
     TaskLivePreviews: boolean;
+    TaskThumbSize: integer;
     TaskGrouping: boolean;
     Font: _FontData;
   end;

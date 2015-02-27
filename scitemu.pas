@@ -23,6 +23,7 @@ type
     FColorData: integer;
     FUseShellContextMenus: boolean;
     FTaskLivePreviews: boolean;
+    FTaskThumbSize: integer;
     FTaskGrouping: boolean;
     FIsExecutable: boolean;
     FExecutable: string;
@@ -86,6 +87,7 @@ begin
   FUseShellContextMenus := AParams.UseShellContextMenus;
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
+  FTaskThumbSize := AParams.TaskThumbSize;
 
   LastMouseUp:= 0;
   FCommand:= '';
@@ -378,6 +380,7 @@ begin
           Redraw;
         end;
       gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
+      gpTaskThumbSize: FTaskThumbSize := param;
       gpTaskGrouping: FTaskGrouping := boolean(param);
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
       gpSite: if FRunning then Redraw;
@@ -868,7 +871,7 @@ begin
   end;
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskLivePreviews);
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------

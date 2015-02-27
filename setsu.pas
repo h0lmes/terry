@@ -10,9 +10,9 @@ type
     Site: TBaseSite;
     CenterOffsetPercent: integer;
     EdgeOffset: integer;
-    OccupyFullMonitor: boolean; // draw background to full monitor width (or height)
-    StartOffset: integer; // f.e. when Site=bsBottom this is at the left side of monitor
-    EndOffset: integer; // and this is at the right side of monitor
+    OccupyFullMonitor: boolean; // draw the background over the entire width (or height) of the monitor
+    StartOffset: integer; // for example: when Site=bsBottom this is at the left side of the dock
+    EndOffset: integer; // and this is at the right side of the dock
     AutoHide: boolean;
     AutoHideTime: integer;
     AutoShowTime: integer;
@@ -37,6 +37,7 @@ type
     ReserveScreenEdgePercent: integer;
     Taskbar: boolean;
     TaskLivePreviews: boolean;
+    TaskThumbSize: integer;
     TaskGrouping: boolean;
     TaskSameMonitor: boolean;
     StayOnTop: boolean;
@@ -81,8 +82,6 @@ type
     procedure Load(ASetsFile: string); overload;
     procedure Save; overload;
     procedure Save(ASetsFile: string); overload;
-    procedure SaveEx;
-    procedure SaveEx2;
     function Backup: boolean;
     function Restore: boolean;
     function StoreParam(id: TGParam; value: integer): integer;
@@ -98,7 +97,7 @@ type
     function GetPluginFileName(index: integer): string;
     procedure ScanPlugins;
     procedure GetPluginInfo(index: integer; mem: TMemo);
-end;
+  end;
 
 var sets: _Sets;
 
@@ -185,6 +184,7 @@ begin
   container.ReserveScreenEdgePercent := SetRange(ini.ReadInteger('base', 'ReserveScreenEdgePercent', 100), 0, 200);
   container.Taskbar := ini.ReadBool('base', 'Taskbar', false);
   container.TaskLivePreviews := ini.ReadBool('base', 'TaskbarLivePreviews', true);
+  container.TaskThumbSize := ini.ReadInteger('base', 'TaskThumbSize', 200);
   container.TaskGrouping := ini.ReadBool('base', 'TaskbarGrouping', true);
   container.TaskSameMonitor := ini.ReadBool('base', 'TaskbarSameMonitor', false);
   container.StayOnTop := ini.ReadBool('base', 'StayOnTop', false);
@@ -281,6 +281,7 @@ begin
   ini.WriteInteger('base', 'ReserveScreenEdgePercent', container.ReserveScreenEdgePercent);
   ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
   ini.WriteBool   ('base', 'TaskbarLivePreviews', container.TaskLivePreviews);
+  ini.WriteInteger('base', 'TaskThumbSize', container.TaskThumbSize);
   ini.WriteBool   ('base', 'TaskbarGrouping', container.TaskGrouping);
   ini.WriteBool   ('base', 'TaskbarSameMonitor', container.TaskSameMonitor);
   ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
@@ -318,31 +319,6 @@ begin
 
   ini.UpdateFile;
   ini.free;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.SaveEx;
-begin
-  try
-    SetsPathFile := ChangeFileExt(SetsPathFile, '.tmpini');
-    Save;
-  except
-    on e: Exception do raise Exception.Create('Sets.SaveEx'#10#13 + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _Sets.SaveEx2;
-const
-  MOVEFILE_WRITE_THROUGH = 8;
-var
-  tmpini: string;
-begin
-  try
-    tmpini := SetsPathFile;
-    SetsPathFile := ChangeFileExt(SetsPathFile, '.ini');
-    windows.MoveFileEx(pchar(tmpini), pchar(SetsPathFile), MOVEFILE_REPLACE_EXISTING + MOVEFILE_WRITE_THROUGH);
-  except
-    on e: Exception do raise Exception.Create('Sets.SaveEx2'#10#13 + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 function _Sets.Backup: boolean;
@@ -418,6 +394,7 @@ begin
   gpReserveScreenEdgePercent: container.ReserveScreenEdgePercent := SetRange(value, 0, 200);
   gpTaskbar: container.Taskbar := boolean(value);
   gpTaskLivePreviews: container.TaskLivePreviews := boolean(value);
+  gpTaskThumbSize: container.TaskThumbSize := value;
   gpTaskGrouping: container.TaskGrouping := boolean(value);
   gpTaskSameMonitor: container.TaskSameMonitor := boolean(value);
   gpStayOnTop: container.StayOnTop := boolean(value);
@@ -474,6 +451,7 @@ begin
   gpReserveScreenEdgePercent: result := container.ReserveScreenEdgePercent;
   gpTaskbar: result := integer(container.Taskbar);
   gpTaskLivePreviews: result := integer(container.TaskLivePreviews);
+  gpTaskThumbSize: result := container.TaskThumbSize;
   gpTaskGrouping: result := integer(container.TaskGrouping);
   gpTaskSameMonitor: result := integer(container.TaskSameMonitor);
   gpStayOnTop: result := integer(container.StayOnTop);
@@ -533,6 +511,7 @@ begin
   dst.ReserveScreenEdgePercent := src.ReserveScreenEdgePercent;
   dst.Taskbar := src.Taskbar;
   dst.TaskLivePreviews := src.TaskLivePreviews;
+  dst.TaskThumbSize := src.TaskThumbSize;
   dst.TaskGrouping := src.TaskGrouping;
   dst.TaskSameMonitor := src.TaskSameMonitor;
   dst.StayOnTop := src.StayOnTop;

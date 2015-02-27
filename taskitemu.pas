@@ -18,6 +18,7 @@ type
     FIsNew: boolean;
     FIsOpen: boolean;
     FTaskLivePreviews: boolean;
+    FTaskThumbSize: integer;
     FTaskGrouping: boolean;
     FIsExecutable: boolean;
     FAttention: boolean;
@@ -61,6 +62,7 @@ begin
   FDontSave := true;
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
+  FTaskThumbSize := AParams.TaskThumbSize;
   FProcName := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
@@ -209,6 +211,9 @@ begin
         end;
       gpMonitor: ClosePeekWindow(0);
       gpSite: ClosePeekWindow(0);
+      gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
+      gpTaskThumbSize: FTaskThumbSize := param;
+      gpTaskGrouping: FTaskGrouping := boolean(param);
 
       // commands //
       icIsItem: result := 0;
@@ -524,7 +529,7 @@ begin
   //LME(true);
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskLivePreviews);
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
   FIsOpen := true;
 end;
 //------------------------------------------------------------------------------

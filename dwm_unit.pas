@@ -90,7 +90,8 @@ type
       procedure EnableNCRendering(const AHandle: THandle);
       procedure ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
       //
-      function RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; visible: boolean; var hThumbnailId: THandle): boolean;
+      function RegisterThumbnail(hwndDestination, hwndSource: HWND; var hThumbnailId: THandle): boolean;
+      function GetThumbnailSize(hThumbnailId: THandle; var w, h: integer): boolean;
       function SetThumbnailRect(hThumbnailId: THandle; destRect: TRect): boolean;
       function SetThumbnailVisible(hThumbnailId: THandle; visible: boolean): boolean;
       procedure UnregisterThumbnail(hThumbnailId: THandle);
@@ -218,7 +219,23 @@ begin
       DwmExtendFrameIntoClientArea(AHandle, margins);
 end;
 //------------------------------------------------------------------------------
-function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; destRect: TRect; visible: boolean; var hThumbnailId: THandle): boolean;
+function TDWMHelper.RegisterThumbnail(hwndDestination, hwndSource: HWND; var hThumbnailId: THandle): boolean;
+var
+  dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
+begin
+  result := false;
+  if CompositionEnabled then
+  begin
+    result := Succeeded(DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId));
+
+    FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
+    dskThumbProps.dwFlags := DWM_TNP_SOURCECLIENTAREAONLY;
+    dskThumbProps.fSourceClientAreaOnly := true;
+		DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TDWMHelper.GetThumbnailSize(hThumbnailId: THandle; var w, h: integer): boolean;
 var
   hr: HRESULT;
   Size: windows.TSize;
@@ -229,35 +246,9 @@ begin
   result := false;
   if CompositionEnabled then
   begin
-    hr := DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId);
-	  if SUCCEEDED(hr) then
-	  begin
-      DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
-      dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
-      srcRatio := Size.cx / Size.cy;
-      if srcRatio < dstRatio then
-      begin
-        ThumbW := round((destRect.Bottom - destRect.Top) * srcRatio);
-        destRect.Left := destRect.Left + (destRect.Right - destRect.Left - ThumbW) div 2;
-        destRect.Right := destRect.Left + ThumbW;
-      end;
-      if srcRatio > dstRatio then
-      begin
-        ThumbH := round((destRect.Right - destRect.Left) / srcRatio);
-        destRect.Top := destRect.Top + (destRect.Bottom - destRect.Top - ThumbH) div 2;
-        destRect.Bottom := destRect.Top + ThumbH;
-      end;
-
-      FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
-      dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY or DWM_TNP_OPACITY;
-      dskThumbProps.fSourceClientAreaOnly := true;
-		  dskThumbProps.fVisible := visible;
-		  dskThumbProps.opacity := 255;
-		  dskThumbProps.rcDestination := destRect;
-		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
-      result := SUCCEEDED(hr);
-      if not result then UnregisterThumbnail(hThumbnailId);
-    end;
+    result := Succeeded(DwmQueryThumbnailSourceSize(hThumbnailId, @Size));
+    w := Size.cx;
+    h := Size.cy;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -289,8 +280,11 @@ begin
       end;
 
       FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
-      dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION;
-      dskThumbProps.rcDestination := destRect;
+      dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY or DWM_TNP_OPACITY;
+      dskThumbProps.fSourceClientAreaOnly := true;
+		  dskThumbProps.fVisible := true;
+		  dskThumbProps.opacity := 255;
+		  dskThumbProps.rcDestination := destRect;
 		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
       result := SUCCEEDED(hr);
   end;

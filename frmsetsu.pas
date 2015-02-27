@@ -164,6 +164,7 @@ type
     procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure pboxPaint(Sender: TObject);
+    procedure tbAeroPeekThumbSizeChange(Sender: TObject);
     procedure tbBaseAlphaChange(Sender: TObject);
     procedure tbEdgeOffsetChange(Sender: TObject);
     procedure edAutoShowTimeChange(Sender: TObject);
@@ -341,6 +342,9 @@ begin
   chbTaskbarSameMonitor.OnChange := nil;
   chbTaskbarSameMonitor.Checked := sets.container.TaskSameMonitor;
   chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
+  tbAeroPeekThumbSize.OnChange := nil;
+  tbAeroPeekThumbSize.Position := sets.container.TaskThumbSize;
+  tbAeroPeekThumbSize.OnChange := tbAeroPeekThumbSizeChange;
 
   //
   // расположение //
@@ -687,6 +691,11 @@ end;
 procedure Tfrmsets.chbTaskbarSameMonitorChange(Sender: TObject);
 begin
   frmmain.SetParam(gpTaskSameMonitor, integer(chbTaskbarSameMonitor.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.tbAeroPeekThumbSizeChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpTaskThumbSize, tbAeroPeekThumbSize.Position);
 end;
 //------------------------------------------------------------------------------
 //

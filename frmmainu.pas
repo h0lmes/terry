@@ -414,6 +414,7 @@ begin
     ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
     ItemMgr.SetParam(gpTaskSameMonitor, integer(sets.container.TaskSameMonitor));
     ItemMgr.SetParam(gpTaskLivePreviews, integer(sets.container.TaskLivePreviews));
+    ItemMgr.SetParam(gpTaskThumbSize, sets.container.TaskThumbSize);
     ItemMgr.SetParam(gpTaskGrouping, integer(sets.container.TaskGrouping));
     ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
 
@@ -438,10 +439,8 @@ begin
     crsection.Acquire;
     try
       saving := true;
-      //sets.SaveEx;
       sets.Save;
       ItemMgr.Save(sets.SetsPathFile);
-      //sets.SaveEx2;
     finally
       saving := false;
       crsection.Leave;
