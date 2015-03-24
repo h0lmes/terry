@@ -1,7 +1,7 @@
 object frmmain: Tfrmmain
-  Left = 570
+  Left = 950
   Height = 50
-  Top = 258
+  Top = 323
   Width = 136
   AllowDropFiles = True
   BorderIcons = []

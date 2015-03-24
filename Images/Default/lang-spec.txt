@@ -1,0 +1,11 @@
+(using Paint.NET)
+
+create new image 128x128 px
+font color white, font size 64 (may be smaller if do not fit)
+draw appropriate letters
+
+create a shadow:
+make the copy of the layer with letters
+make it the background
+twice shift brightness by -100
+apply 7 px gaussian blur

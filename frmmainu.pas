@@ -6,7 +6,7 @@ uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
-  DropTgtU, setsu, trayu, startmenu, aeropeeku;
+  DropTgtU, setsu, trayu, startmenu, aeropeeku, mixeru;
 
 type
   PRunData = ^TRunData;
@@ -56,8 +56,8 @@ type
     procedure WMCommand(var msg: TMessage);
     procedure WMDisplayChange(var Message: TMessage);
     procedure WMSettingChange(var Message: TMessage);
-    procedure WMMouseWheel(var msg: TWMMouseWheel);
     procedure WMCompositionChanged(var Message: TMessage);
+    procedure WMMouseWheel(var msg: TWMMouseWheel);
     procedure WHMouseMove(LParam: LParam);
     procedure WHButtonDown(button: integer);
     procedure MouseEnter;
@@ -1678,7 +1678,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMMouseWheel(var msg: TWMMouseWheel);
 begin
-  if msg.WheelDelta < 0 then wacmd(40059) else if msg.WheelDelta > 0 then wacmd(40058);
+  if msg.WheelDelta < 0 then TMixer.CInc(-1) else if msg.WheelDelta > 0 then TMixer.CInc(1);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMDisplayChange(var Message: TMessage);

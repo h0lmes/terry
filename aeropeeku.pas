@@ -384,6 +384,9 @@ begin
   except
     on e: Exception do err('AeroPeekWindow.OpenWindow', e);
   end;
+
+  // fix window icons bug
+  UpdateTitles;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.AddItems(AppList: TFPList);

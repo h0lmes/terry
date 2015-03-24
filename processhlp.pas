@@ -198,8 +198,8 @@ begin
 
       if result = '' then
       begin
-        GetModuleFileNameEx(hProcess, 0, buff, MAX_PATH);
-        result := strpas(pchar(@buff));
+          GetModuleFileNameEx(hProcess, 0, buff, MAX_PATH);
+          result := strpas(pchar(@buff));
       end;
 
       CloseHandle(hProcess);
@@ -232,15 +232,15 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.ProcessExists(Name: string): boolean;
 var
-  pids: TFPList;
+   pids: TFPList;
 begin
   result := false;
   pids := TFPList.Create;
   try
-    GetProcessPIDs(Name, pids, true);
-    result := pids.Count > 0;
+      GetProcessPIDs(Name, pids, true);
+      result := pids.Count > 0;
   finally
-    pids.free;
+      pids.free;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -286,31 +286,31 @@ begin
 
   if fullyQualified then
   begin
-    index := 0;
-    while index < listProcessFullName.Count do
-    begin
-      if listProcessFullName.Strings[index] = Name then
+      index := 0;
+      while index < listProcessFullName.Count do
       begin
-        pids.Add(Pointer(listProcessFullName.Objects[index]));
-        if OnlyFist then exit;
-        inc(found);
+          if listProcessFullName.Strings[index] = Name then
+          begin
+              pids.Add(Pointer(listProcessFullName.Objects[index]));
+              if OnlyFist then exit;
+              inc(found);
+          end;
+          inc(index);
       end;
-      inc(index);
-    end;
   end;
 
   if found = 0 then
   begin
-    index := 0;
-    while index < listProcess.Count do
-    begin
-      if listProcess.Strings[index] = Name then
+      index := 0;
+      while index < listProcess.Count do
       begin
-        pids.Add(Pointer(listProcess.Objects[index]));
-        if OnlyFist then exit;
+          if listProcess.Strings[index] = Name then
+          begin
+              pids.Add(Pointer(listProcess.Objects[index]));
+              if OnlyFist then exit;
+          end;
+          inc(index);
       end;
-      inc(index);
-    end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -355,21 +355,21 @@ begin
 
   if IsWindowVisible(h) then
   begin
-    exstyle := GetWindowLongPtr(h, GWL_EXSTYLE);
-    if exstyle and WS_EX_APPWINDOW = 0 then
-    begin
-      if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
-      if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
-      if windows.GetWindowText(h, ch, 10) < 1 then exit;
-      if GetProp(h, 'ITaskList_Deleted') <> 0 then exit;
-    end;
+      exstyle := GetWindowLongPtr(h, GWL_EXSTYLE);
+      if exstyle and WS_EX_APPWINDOW = 0 then
+      begin
+          if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
+          if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
+          if windows.GetWindowText(h, ch, 10) < 1 then exit;
+          if GetProp(h, 'ITaskList_Deleted') <> 0 then exit;
+      end;
 
-    if not (helper.FParentHWnd = 0) then
-      if not helper.WindowsOnTheSameMonitor(h, helper.FParentHWnd) then exit;
+      if not (helper.FParentHWnd = 0) then
+          if not helper.WindowsOnTheSameMonitor(h, helper.FParentHWnd) then exit;
 
-    helper.listAppWindows.Add(pointer(h));
-    index := helper.listAppWindowsDeleted.IndexOf(pointer(h));
-    if index >= 0 then helper.listAppWindowsDeleted.Delete(index);
+      helper.listAppWindows.Add(pointer(h));
+      index := helper.listAppWindowsDeleted.IndexOf(pointer(h));
+      if index >= 0 then helper.listAppWindowsDeleted.Delete(index);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -418,21 +418,22 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.WindowOnTop(wnd: THandle): boolean;
-  function ZOrderIndex(hWnd: uint): integer;
-  var
-    index: integer;
-    h: THandle;
-  begin
-    result := 0;
-    index := 0;
-	  h := FindWindow('Progman', nil);
-	  while (h <> 0) and (h <> hWnd) do
-	  begin
-		  inc(index);
-		  h := GetWindow(h, GW_HWNDPREV);
-	  end;
-	  result := index;
-  end;
+    function ZOrderIndex(hWnd: uint): integer;
+    var
+      index: integer;
+      h: THandle;
+    begin
+      result := 0;
+      index := 0;
+	    h := FindWindow('Progman', nil);
+	    if h = 0 then h := FindWindow('Dwm', nil);
+	    while (h <> 0) and (h <> hWnd) do
+	    begin
+		      inc(index);
+		      h := GetWindow(h, GW_HWNDPREV);
+	    end;
+	    result := index;
+    end;
 
 var
   i, index: integer;
@@ -443,15 +444,15 @@ begin
   i := 0;
   while i < listAppWindows.count do
   begin
-    h := THandle(listAppWindows.items[i]);
-    if h <> wnd then
-      if IsWindowVisible(h) and not IsIconic(h) then
-        if ZOrderIndex(h) > index then
-        begin
-          result := false;
-          break;
-        end;
-    inc(i);
+      h := THandle(listAppWindows.items[i]);
+      if h <> wnd then
+        if IsWindowVisible(h) and not IsIconic(h) then
+          if ZOrderIndex(h) > index then
+          begin
+              result := false;
+              break;
+          end;
+      inc(i);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -462,11 +463,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.ActivateWindow(h: THandle);
 begin
-  if IsMDIWindow(h) then
+  {if IsMDIWindow(h) then
   begin
     ActivateMDIWindow(h);
     exit;
-  end;
+  end;}
 
   if IsWindowVisible(h) and not IsIconic(h) then
   begin

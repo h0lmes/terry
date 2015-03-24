@@ -567,9 +567,9 @@ begin
         // background
         tmpItemSize := max(FItemSize, 40);
         rect.Width := tmpItemSize / 2;
-        rect.Height := tmpItemSize / 3;
-        rect.X := ItemRect.Right - rect.Width + 1;
-        rect.Y := ItemRect.Top - 1;
+        rect.Height := tmpItemSize * 5 / 12;
+        rect.X := ItemRect.Right - rect.Width + 2;
+        rect.Y := ItemRect.Top - 2;
         GdipCreatePath(FillModeWinding, path);
         AddPathRoundRect(path, rect, rect.Height / 2);
         GdipCreateSolidFill($ffff0000, brush);
@@ -578,7 +578,7 @@ begin
         GdipDeletePath(path);
         // number
         GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-        GdipCreateFont(family, tmpItemSize div 4, 1, 2, hfont);
+        GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
         GdipCreateSolidFill($ffffffff, brush);
         GdipCreateStringFormat(0, 0, format);
         GdipSetStringFormatAlign(format, StringAlignmentCenter);

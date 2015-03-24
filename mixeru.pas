@@ -24,6 +24,7 @@ type
     property State: integer read getState;
     property StateString: string read getStateString;
     class function CUpdate: integer;
+    class function CInc(value: integer): integer;
     constructor Create;
     procedure Update;
   end;
@@ -37,6 +38,19 @@ begin
   if not assigned(Mixer) then Mixer := TMixer.Create;
   Mixer.Update;
   result := Mixer.State;
+end;
+//------------------------------------------------------------------------------
+class function TMixer.CInc(value: integer): integer;
+var
+  vol: Single;
+begin
+  result := TMixer.CUpdate;
+  with Mixer do
+  begin
+    if FReady then
+      if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then
+         FmmEndpoint.SetMasterVolumeLevelScalar(vol + value / 100, nil);
+  end;
 end;
 //------------------------------------------------------------------------------
 constructor TMixer.Create;
