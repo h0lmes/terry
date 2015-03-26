@@ -37,7 +37,7 @@ type
     function WindowInList(hwnd: THandle): boolean;
     function IsEmpty: boolean;
     procedure UpdateTaskItem(hwnd: THandle);
-    function RemoveWindow(hwnd: THandle): boolean;
+    procedure RemoveNonExisting;
     procedure UpdateItem;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
@@ -129,22 +129,19 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
-function TTaskItem.RemoveWindow(hwnd: THandle): boolean;
+procedure TTaskItem.RemoveNonExisting;
 var
   index: integer;
 begin
-  result := false;
   if FFreed then exit;
 
   if FAppList.Count > 0 then
   begin
-    index := FAppList.IndexOf(pointer(hwnd));
-    if index >= 0 then
+    for index := FAppList.Count - 1 downto 0 do
     begin
-      FAppList.Delete(index);
-      UpdateItemInternal;
-      result := true;
+      if not IsWindow(THandle(FAppList.Items[index])) then FAppList.Delete(index);
     end;
+    UpdateItemInternal;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -505,32 +502,36 @@ procedure TTaskItem.ShowPeekWindow(Timeout: cardinal = 0);
 var
   pt: windows.TPoint;
 begin
-  if FAppList.Count < 1 then exit;
+  try
+    if FAppList.Count < 1 then exit;
 
-  if Timeout > 0 then
-  begin
-    SetTimer(FHWnd, ID_TIMER_OPEN, Timeout, nil);
-    exit;
+    if Timeout > 0 then
+    begin
+      SetTimer(FHWnd, ID_TIMER_OPEN, Timeout, nil);
+      exit;
+    end;
+
+    KillTimer(FHWnd, ID_TIMER_OPEN);
+
+    pt := GetScreenRect.TopLeft;
+    if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
+    if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
+    if FSite = 0 then inc(pt.x, FSize);
+    if FSite = 1 then inc(pt.y, FSize);
+    case FSite of
+      0: inc(pt.x, 5);
+      1: inc(pt.y, 5);
+      2: dec(pt.x, 5);
+      3: dec(pt.y, 5);
+    end;
+    //LME(true);
+    FHideHint := true;
+    UpdateHint;
+    TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
+    FIsOpen := true;
+  except
+    on e: Exception do raise Exception.Create('TaskItem.Cmd'#10#13 + e.message);
   end;
-
-  KillTimer(FHWnd, ID_TIMER_OPEN);
-
-  pt := GetScreenRect.TopLeft;
-  if (FSite = 1) or (FSite = 3) then inc(pt.x, FSize div 2);
-  if (FSite = 0) or (FSite = 2) then inc(pt.y, FSize div 2);
-  if FSite = 0 then inc(pt.x, FSize);
-  if FSite = 1 then inc(pt.y, FSize);
-  case FSite of
-    0: inc(pt.x, 5);
-    1: inc(pt.y, 5);
-    2: dec(pt.x, 5);
-    3: dec(pt.y, 5);
-  end;
-  //LME(true);
-  FHideHint := true;
-  UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
-  FIsOpen := true;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.ClosePeekWindow(Timeout: cardinal = 0);

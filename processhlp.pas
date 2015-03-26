@@ -16,7 +16,6 @@ type
     listProcess: TStrings; // process + PID
     listProcessFullName: TStrings; // process full module name + PID
     listAppWindows: TFPList; // app windows
-    listAppWindowsDeleted: TFPList; // app windows that have been removed
     FParentHWnd: THandle;
     FWindowsCount: integer;
     FWindowsCountChanged: boolean;
@@ -57,9 +56,7 @@ type
     procedure EnumAppWindows(ParentHWnd: THandle = 0);
     procedure SortAppWindows(list: TFPList);
     function GetAppWindowsCount: integer;
-    function GetAppWindowsDeletedCount: integer;
     function GetAppWindowHandle(index: integer): THandle;
-    function GetAppWindowDeletedHandle(index: integer): THandle;
     function WindowsOnTheSameMonitor(h1, h2: THandle): boolean;
     // system //
     procedure Shutdown(mode: integer);
@@ -85,7 +82,6 @@ begin
   listProcess := TStringList.Create;
   listProcessFullName := TStringList.Create;
   listAppWindows := TFPList.Create;
-  listAppWindowsDeleted := TFPList.Create;
   FParentHWnd := 0;
   FWindowsCount := 0;
   FWindowsCountChanged := false;
@@ -117,7 +113,6 @@ begin
   listProcess.free;
   listProcessFullName.free;
   listAppWindows.free;
-  listAppWindowsDeleted.free;
   crsection.free;
   inherited;
 end;
@@ -348,7 +343,6 @@ var
   helper: TProcessHelper absolute l;
   exstyle: PtrUInt;
   ch: array [0..10] of char;
-  index: integer;
 begin
   result := true;
   inc(helper.FWindowsCount);
@@ -368,8 +362,6 @@ begin
           if not helper.WindowsOnTheSameMonitor(h, helper.FParentHWnd) then exit;
 
       helper.listAppWindows.Add(pointer(h));
-      index := helper.listAppWindowsDeleted.IndexOf(pointer(h));
-      if index >= 0 then helper.listAppWindowsDeleted.Delete(index);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -385,12 +377,9 @@ begin
     if not FReady then exit;
 
     FParentHWnd := ParentHWnd;
-    listAppWindowsDeleted.Clear;
-    listAppWindowsDeleted.AddList(listAppWindows);
     listAppWindows.Clear;
     EnumWindows(@EnumWProc, LPARAM(self));
     SortAppWindows(listAppWindows);
-
     FWindowsCountChanged := oldWindowsCount <> FWindowsCount;
   finally
     crsection.Leave;
@@ -583,19 +572,9 @@ begin
   result := listAppWindows.count;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowsDeletedCount: integer;
-begin
-  result := listAppWindowsDeleted.count;
-end;
-//------------------------------------------------------------------------------
 function TProcessHelper.GetAppWindowHandle(index: integer): THandle;
 begin
   result := THandle(listAppWindows.items[index]);
-end;
-//------------------------------------------------------------------------------
-function TProcessHelper.GetAppWindowDeletedHandle(index: integer): THandle;
-begin
-  result := THandle(listAppWindowsDeleted.items[index]);
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.WindowsOnTheSameMonitor(h1, h2: THandle): boolean;

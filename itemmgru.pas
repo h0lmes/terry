@@ -87,7 +87,6 @@ type
     function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
-    procedure RemoveTaskWindow(HWndTask: THandle);
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
@@ -2079,11 +2078,16 @@ var
 begin
   try
     // remove deleted windows //
-    index := 0;
-    while index < ProcessHelper.GetAppWindowsDeletedCount do
-    begin
-      RemoveTaskWindow(ProcessHelper.GetAppWindowDeletedHandle(index));
-      inc(index);
+    try
+      index := 0;
+      while index < ItemCount do
+      begin
+        Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+        if Inst is TTaskItem then TTaskItem(Inst).RemoveNonExisting;
+        inc(index);
+      end;
+    except
+      on e: Exception do err('ItemManager.RemoveTaskWindow', e);
     end;
 
     // add existing windows //
@@ -2096,7 +2100,7 @@ begin
 
     // delete empty items and update not empty ones
     index := ItemCount - 1;
-    while index >= ItemCount - TaskItemCount do
+    while index >= 0 do
     begin
       Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
@@ -2147,25 +2151,6 @@ begin
     end;
   except
     on e: Exception do err('ItemManager.AddTaskWindow', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure _ItemManager.RemoveTaskWindow(HWndTask: THandle);
-var
-  index: integer;
-  Inst: TCustomItem;
-begin
-  try
-    index := ItemCount - TaskItemCount;
-    while index < ItemCount do
-    begin
-      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
-      if Inst is TTaskItem then
-        if TTaskItem(Inst).RemoveWindow(HWndTask) then break;
-      inc(index);
-    end;
-  except
-    on e: Exception do err('ItemManager.GetTaskItemIndex', e);
   end;
 end;
 //------------------------------------------------------------------------------

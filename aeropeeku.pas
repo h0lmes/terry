@@ -546,13 +546,12 @@ begin
     if FCompositionEnabled then
     begin
       // get max rate = H / W
-      maxRate := 0;
+      maxRate := 0.1;
       if FItemCount > 0 then
         for index := 0 to FItemCount - 1 do
           if items[index].srcW <> 0 then
             if maxRate < items[index].srcH / items[index].srcW then maxRate := items[index].srcH / items[index].srcW;
       if maxRate > 0.8 then maxRate := 0.8;
-      if maxRate <= 0 then maxRate := 0.8;
 
       if FLayout = apwlHorizontal then
       begin
@@ -748,6 +747,9 @@ var
   title: array [0..255] of WideChar;
 begin
   try
+    if FWidth < 1 then FWidth := 1;
+    if FHeight < 1 then FHeight := 1;
+
     // prepare //
     bmp.topleft.x := Fx;
     bmp.topleft.y := Fy;
