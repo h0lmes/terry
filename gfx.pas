@@ -124,17 +124,9 @@ var
 implementation
 //--------------------------------------------------------------------------------------------------
 function CreateBitmap(var bmp: _SimpleBitmap): boolean;
-var
-  localDC: HDC;
 begin
   result:= false;
   bmp.dc:= windows.CreateCompatibleDC(0);
-  if bmp.dc = 0 then
-  begin
-    localDC := GetDC(0);
-    bmp.dc:= windows.CreateCompatibleDC(localDC);
-  end;
-
   if bmp.dc <> 0 then
   begin
     Fillchar(bmp.bi, sizeof(bmp.bi), #0);
@@ -144,14 +136,6 @@ begin
     bmp.bi.bmiHeader.biWidth:= bmp.width;
     bmp.bi.bmiHeader.biHeight:= -1 * bmp.height;
     bmp.BufferBitmap := windows.CreateDIBSection(bmp.dc, bmp.bi, DIB_RGB_COLORS, bmp.BufferBits, 0, 0);
-
-    if (bmp.BufferBitmap = 0) or (bmp.BufferBits = nil) then
-    begin
-      if bmp.BufferBitmap <> 0 then windows.DeleteObject(bmp.BufferBitmap);
-      GdiFlush;
-      bmp.BufferBitmap := windows.CreateDIBSection(bmp.dc, bmp.bi, DIB_RGB_COLORS, bmp.BufferBits, 0, 0);
-    end;
-
     if (bmp.BufferBitmap = 0) or (bmp.BufferBits = nil) then
     begin
       if bmp.BufferBitmap <> 0 then windows.DeleteObject(bmp.BufferBitmap);
@@ -162,8 +146,6 @@ begin
       result:= true;
     end;
   end;
-
-  if localDC <> 0 then ReleaseDC(0, localDC);
 end;
 //--------------------------------------------------------------------------------------------------
 procedure DeleteBitmap(var bmp: _SimpleBitmap);

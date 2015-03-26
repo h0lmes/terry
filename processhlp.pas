@@ -375,7 +375,6 @@ begin
     FWindowsCountChanged := false;
     FWindowsCount := 0;
     if not FReady then exit;
-
     FParentHWnd := ParentHWnd;
     listAppWindows.Clear;
     EnumWindows(@EnumWProc, LPARAM(self));

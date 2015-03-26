@@ -2086,6 +2086,7 @@ begin
         if Inst is TTaskItem then TTaskItem(Inst).RemoveNonExisting;
         inc(index);
       end;
+      Inst := nil;
     except
       on e: Exception do err('ItemManager.RemoveTaskWindow', e);
     end;
