@@ -59,6 +59,7 @@ begin
   FFreed := true;
   inherited;
   FFreed := false;
+  FNeedMouseWheel := true;
 
   AutoDeleteImage := true;
   FImage := nil;

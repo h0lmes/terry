@@ -64,6 +64,7 @@ type
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
     FMouseDownButton: TMouseButton;
+    FNeedMouseWheel: boolean;
 
     FFont: _FontData;
     FImage: Pointer;
@@ -211,6 +212,7 @@ begin
   need_dock := false;
   FDontSave := false;
   FNCHitText := false;
+  FNeedMouseWheel := false;
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.cmd(id: TGParam; param: integer): integer;
@@ -617,6 +619,10 @@ begin
               if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam)
               else
               if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam);
+        end
+        else if msg = wm_mousewheel then
+        begin
+              if not FNeedMouseWheel then sendmessage(FHWndParent, msg, wParam, lParam);
         end
         else if msg = wm_mousemove then
         begin

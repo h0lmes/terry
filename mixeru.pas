@@ -17,6 +17,7 @@ type
     FVolume: integer;
     FMute: boolean;
     FDescription: string;
+    function IsReady: boolean;
     function getState: integer;
     function getStateString: string;
   public
@@ -47,7 +48,7 @@ begin
   result := TMixer.CUpdate;
   with Mixer do
   begin
-    if FReady then
+    if IsReady then
       if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then
          FmmEndpoint.SetMasterVolumeLevelScalar(vol + value / 100, nil);
   end;
@@ -58,16 +59,43 @@ begin
   FReady := false;
   FMute := false;
   FVolume := -1;
-  if SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, FmmDevEnum)) then
-    if SUCCEEDED(FmmDevEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, FmmDev)) then
-      if SUCCEEDED(FmmDev.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, FmmEndpoint)) then FReady := true;
+end;
+//------------------------------------------------------------------------------
+function TMixer.IsReady: boolean;
+begin
+  if not FReady then
+  begin
+		if assigned(FmmEndpoint) then FmmEndpoint := nil;
+    if assigned(FmmDev) then FmmDev := nil;
+    if assigned(FmmDevEnum) then
+    begin
+      FmmDevEnum._Release;
+      FmmDevEnum := nil;
+		end;
+  end;
+
+  if not FReady then
+  begin
+    if SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, FmmDevEnum)) then
+      if SUCCEEDED(FmmDevEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, FmmDev)) then
+        if SUCCEEDED(FmmDev.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, FmmEndpoint)) then FReady := true;
+  end;
+
+  if not FReady then
+  begin
+		if assigned(FmmDev) then FmmDev := nil;
+    if assigned(FmmDevEnum) then
+    begin
+      FmmDevEnum._Release;
+      FmmDevEnum := nil;
+		end;
+  end;
+  result := FReady;
 end;
 //------------------------------------------------------------------------------
 procedure TMixer.Update;
 const
   PKEY_Device_DeviceDesc: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 2);
-  //PKEY_Device_FriendlyName: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 14);
-  //PKEY_DeviceInterface_FriendlyName: PROPERTYKEY = (fmtid: '{b3f8fa53-0004-438e-9003-51a46e139bfc}'; pid: 6);
 var
   oldvol: integer;
   oldmute: boolean;
@@ -80,10 +108,10 @@ begin
   FMute := false;
   FVolume := -1;
 
-  if FReady then
+  if IsReady then
   begin
     if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then FVolume := round(vol * 100);
-    if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
+		if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
   end;
 
   if (oldvol <> FVolume) or (oldmute <> FMute) then

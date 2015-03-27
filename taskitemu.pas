@@ -303,7 +303,9 @@ begin
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         // background
         tmpItemSize := max(FItemSize, 40);
-        rect.Width := tmpItemSize / 2;
+        if FAppList.Count > 99 then rect.Width := tmpItemSize * 9 / 12
+        else if FAppList.Count > 9 then rect.Width := tmpItemSize * 7 / 12
+        else rect.Width := tmpItemSize * 5 / 12;
         rect.Height := tmpItemSize * 5 / 12;
         rect.X := ItemRect.Right - rect.Width + 2;
         rect.Y := ItemRect.Top - 2;
