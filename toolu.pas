@@ -748,9 +748,8 @@ begin
   begin
     if pos('%doc%', Result) > 0 then Result := ReplaceEx(Result, '%doc%', getKnownPath(FOLDERID_Documents));
     if pos('%appdata%', Result) > 0 then Result := ReplaceEx(Result, '%appdata%', getKnownPath(FOLDERID_RoamingAppData));
-    if pos('%recent%', Result) > 0 then Result := ReplaceEx(Result, '%recent%', getKnownPath(FOLDERID_Recent));
     if pos('%desktop%', Result) > 0 then Result := ReplaceEx(Result, '%desktop%', getKnownPath(FOLDERID_Desktop));
-    if pos('%userpinned%', Result) > 0 then Result := ReplaceEx(Result, '%userpinned%', getKnownPath(FOLDERID_UserPinned));
+    if pos('%userprofile%', Result) > 0 then Result := ReplaceEx(Result, '%userprofile%', getKnownPath(FOLDERID_Profile));
     if pos('%startmenu%', Result) > 0 then Result := ReplaceEx(Result, '%startmenu%', getKnownPath(FOLDERID_StartMenu));
     if pos('%commonstartmenu%', Result) > 0 then Result := ReplaceEx(Result, '%commonstartmenu%', getKnownPath(FOLDERID_CommonStartMenu));
   end else begin
@@ -778,6 +777,7 @@ begin
   begin
     path := ReplaceEx(path, getKnownPath(FOLDERID_Documents), '%doc%');
     path := ReplaceEx(path, getKnownPath(FOLDERID_Desktop), '%desktop%');
+    path := ReplaceEx(path, getKnownPath(FOLDERID_Profile), '%userprofile%');
     path := ReplaceEx(path, getKnownPath(FOLDERID_RoamingAppData), '%appdata%');
   end else begin
     path := ReplaceEx(path, GetSystemPath('personal'), '%doc%');

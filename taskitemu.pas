@@ -132,17 +132,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.RemoveNonExisting;
 var
-  index: integer;
+  index, oldCount: integer;
 begin
   if FFreed then exit;
 
   if FAppList.Count > 0 then
   begin
+    oldCount := FAppList.Count;
     for index := FAppList.Count - 1 downto 0 do
     begin
-      if not IsWindow(THandle(FAppList.Items[index])) then FAppList.Delete(index);
+      if not IsWindowVisible(THandle(FAppList.Items[index])) then FAppList.Delete(index);
     end;
-    UpdateItemInternal;
+    if (FAppList.Count <> oldCount) and (FAppList.Count > 0) then UpdateItemInternal;
   end;
 end;
 //------------------------------------------------------------------------------
