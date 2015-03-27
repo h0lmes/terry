@@ -68,7 +68,6 @@ type
     procedure TimerRoll;
     procedure TimerDragLeave;
     procedure UpdateRunning;
-    procedure UpdateRunningI;
     function IsHiddenDown: boolean;
     procedure RollDown;
     procedure RollUp;
@@ -537,7 +536,7 @@ begin
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
     gpBlur:                   BasePaint(1);
-    gpShowRunningIndicator:   if value <> 0 then UpdateRunningI;
+    gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
@@ -944,20 +943,17 @@ var
 begin
   if not IsLockedMouseEffect then
   try
-    parent := 0;
-    if sets.container.TaskSameMonitor then parent := Handle;
-    if sets.container.ShowRunningIndicator or sets.container.Taskbar then ProcessHelper.EnumAppWindows(parent);
-    if sets.container.ShowRunningIndicator and ProcessHelper.WindowsCountChanged then UpdateRunningI;
-    if sets.container.Taskbar then ItemMgr.Taskbar;
-  except
+    if sets.container.TaskSameMonitor then parent := Handle else parent := 0;
+    if sets.container.ShowRunningIndicator or sets.container.Taskbar then
+    begin
+      ProcessHelper.EnumAppWindows(parent);
+      if ProcessHelper.WindowsCountChanged then ProcessHelper.EnumProc;
+      if sets.container.ShowRunningIndicator then ItemMgr.SetParam(icUpdateRunning, 0);
+		  if sets.container.Taskbar then ItemMgr.Taskbar;
+		end;
+	except
     on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.UpdateRunningI;
-begin
-  ProcessHelper.EnumProc;
-  ItemMgr.SetParam(icUpdateRunning, 0);
 end;
 //------------------------------------------------------------------------------
 function Tfrmmain.IsHiddenDown: boolean;

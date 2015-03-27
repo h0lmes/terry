@@ -2129,7 +2129,7 @@ begin
 
     // search existing TaskItem for the given window
     found := -1;
-    index := ItemCount - TaskItemCount;
+    index := 0;
     while index < ItemCount do
     begin
       Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));

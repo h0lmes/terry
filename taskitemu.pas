@@ -54,6 +54,7 @@ type
   end;
 
 implementation
+uses frmmainu;
 //------------------------------------------------------------------------------
 constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin

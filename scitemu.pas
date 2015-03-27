@@ -335,25 +335,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateItemRunningState;
-var
-  aRunning: boolean;
-  appCount: integer;
-begin
-  if FIsExecutable then
-  begin
-    appCount := FAppList.Count;
-    ProcessHelper.GetProcessWindows(FExecutable, FAppList);
-    aRunning := FAppList.Count > 0;
-    if (aRunning <> FRunning) or (appCount <> FAppList.Count) then
-    begin
-      FRunning := aRunning;
-      if appCount < FAppList.Count then Attention(FRunning);
-      Redraw;
-    end;
-  end;
-end;
-//------------------------------------------------------------------------------
 function TShortcutItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
@@ -403,6 +384,25 @@ begin
 
   except
     on e: Exception do raise Exception.Create('ShortcutItem.Cmd'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.UpdateItemRunningState;
+var
+  aRunning: boolean;
+  appCount: integer;
+begin
+  if FIsExecutable then
+  begin
+    appCount := FAppList.Count;
+    ProcessHelper.GetProcessWindows(FExecutable, FAppList);
+    aRunning := FAppList.Count > 0;
+    if (aRunning <> FRunning) or (appCount <> FAppList.Count) then
+    begin
+      FRunning := aRunning;
+      if appCount < FAppList.Count then Attention(FRunning);
+      Redraw;
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -45,7 +45,8 @@ type
     procedure Kill(Name: string);
     function ProcessExists(Name: string): boolean;
     function GetWindowProcessName(h: THandle): string;
-    procedure GetProcessWindows(Name: string; var AppList: TFPList);
+    procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
+    procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
     // windows //
     class function GetWindowText(h: THandle): string;
     procedure AllowSetForeground(hWnd: HWND);
@@ -239,8 +240,8 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// get main window handles belonging to a specified process
-// name must be either a fully qualified pathname or just a filename.exe
+// get main window handles belonging to a specified process.
+// 'Name' could be either a fully qualified path + filename or just a filename.exe
 procedure TProcessHelper.GetProcessWindows(Name: string; var AppList: TFPList);
 var
   index: integer;
@@ -266,6 +267,26 @@ begin
   finally
     pids.free;
   end;
+end;
+//------------------------------------------------------------------------------
+// get main window handles belonging to a specified process.
+// 'Name' could be either a fully qualified path + filename or just a filename.exe
+procedure TProcessHelper.GetProcessWindows(pid: dword; var AppList: TFPList);
+var
+  index: integer;
+  wnd: THandle;
+  wpid: DWORD;
+begin
+  if not FReady then exit;
+  AppList.Clear;
+	index := 0;
+	while index < listAppWindows.count do
+	begin
+    wnd := THandle(listAppWindows.items[index]);
+    GetWindowThreadProcessId(wnd, @wpid);
+	  if wpid = pid then AppList.Add(pointer(wnd));
+	  inc(index);
+	end;
 end;
 //------------------------------------------------------------------------------
 // get list of PIDs (process identifiers) by a process name
@@ -343,6 +364,7 @@ var
   helper: TProcessHelper absolute l;
   exstyle: PtrUInt;
   ch: array [0..10] of char;
+  pid: dword;
 begin
   result := true;
   inc(helper.FWindowsCount);
