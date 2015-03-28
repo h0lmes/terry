@@ -44,6 +44,7 @@ type
     procedure LoadDynObjectImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
     procedure CheckIfDynObject;
     procedure DynObjectUpdate;
+    procedure DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
     procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
@@ -410,11 +411,10 @@ end;
 procedure TShortcutItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
 var
   bmp: _SimpleBitmap;
-  dst, hattr, brush, family, hfont, format, path: Pointer;
-  xBitmap, yBitmap, tmpItemSize: integer; // coord of image within window
+  dst, hattr, brush: Pointer;
+  xBitmap, yBitmap: integer; // coord of image within window
   xReal, yReal: integer; // coord of window
   ItemRect: windows.TRect;
-  rect: GDIPAPI.TRectF;
   animation_offset_x, animation_offset_y, animation_size: integer;
   button: boolean;
 begin
@@ -554,43 +554,11 @@ begin
 
     // draw icon //
     CreateColorAttributes(FColorData, FSelected, hattr);
-    if assigned(FImage) then
-      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
+    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     // draw windows count indicator
-    if assigned(FAppList) then
-      if FAppList.Count > 1 then
-      begin
-        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-        GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-        // background
-        tmpItemSize := max(FItemSize, 40);
-        if FAppList.Count > 99 then rect.Width := tmpItemSize * 9 / 12
-        else if FAppList.Count > 9 then rect.Width := tmpItemSize * 7 / 12
-        else rect.Width := tmpItemSize * 5 / 12;
-        rect.Height := tmpItemSize * 5 / 12;
-        rect.X := ItemRect.Right - rect.Width + 5;
-        rect.Y := ItemRect.Top - 5;
-        GdipCreatePath(FillModeWinding, path);
-        AddPathRoundRect(path, rect, rect.Height / 2);
-        GdipCreateSolidFill($ffff0000, brush);
-        GdipFillPath(dst, brush, path);
-        GdipDeleteBrush(brush);
-        GdipDeletePath(path);
-        // number
-        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-        GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
-        GdipCreateSolidFill($ffffffff, brush);
-        GdipCreateStringFormat(0, 0, format);
-        GdipSetStringFormatAlign(format, StringAlignmentCenter);
-        GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
-        GdipDrawString(dst, PWideChar(WideString(inttostr(FAppList.Count))), -1, hfont, @rect, format, brush);
-        GdipDeleteStringFormat(format);
-        GdipDeleteBrush(brush);
-        GdipDeleteFont(hfont);
-        GdipDeleteFontFamily(family);
-      end;
+    DrawWindowsCount(dst, FAppList, xBitmap, yBitmap, FSize);
 
     // drop indicator
     DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
@@ -612,6 +580,46 @@ begin
   except
     on e: Exception do raise Exception.Create('ShortcutItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
+var
+  brush, family, hfont, format, path: Pointer;
+  tmpItemSize: integer;
+  rect: GDIPAPI.TRectF;
+begin
+  if assigned(winList) then
+      if winList.Count > 1 then
+      begin
+        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+        GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+        // background
+        tmpItemSize := max(FItemSize, 40);
+        if winList.Count > 99 then rect.Width := tmpItemSize * 9 / 12
+        else if winList.Count > 9 then rect.Width := tmpItemSize * 7 / 12
+        else rect.Width := tmpItemSize * 5 / 12;
+        rect.Height := tmpItemSize * 5 / 12;
+        rect.X := x + Size - rect.Width + 5;
+        rect.Y := y - 5;
+        GdipCreatePath(FillModeWinding, path);
+        AddPathRoundRect(path, rect, rect.Height / 2);
+        GdipCreateSolidFill($ffff0000, brush); // red indicator background
+        GdipFillPath(dst, brush, path);
+        GdipDeleteBrush(brush);
+        GdipDeletePath(path);
+        // number
+        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+        GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
+        GdipCreateSolidFill($ffffffff, brush);
+        GdipCreateStringFormat(0, 0, format);
+        GdipSetStringFormatAlign(format, StringAlignmentCenter);
+        GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+        GdipDrawString(dst, PWideChar(WideString(inttostr(winList.Count))), -1, hfont, @rect, format, brush);
+        GdipDeleteStringFormat(format);
+        GdipDeleteBrush(brush);
+        GdipDeleteFont(hfont);
+        GdipDeleteFontFamily(family);
+      end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Timer;

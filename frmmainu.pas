@@ -12,11 +12,10 @@ type
   PRunData = ^TRunData;
   TRunData = packed record
     Handle: THandle;
-    exename: array [0..2047] of char;
-    params: array [0..2047] of char;
-    dir: array [0..2047] of char;
+    exename: array [0..1023] of char;
+    params: array [0..1023] of char;
+    dir: array [0..1023] of char;
     showcmd: integer;
-    notifyHost: boolean;
   end;
 
   { Tfrmmain }
@@ -1971,9 +1970,7 @@ var
   Data: PRunData absolute p;
   params, dir: pchar;
   hostHandle: THandle;
-  notifyHost: boolean;
 begin
-  notifyHost := Data.notifyHost;
   hostHandle := Data.handle;
   params := nil;
   dir := nil;
@@ -1982,13 +1979,14 @@ begin
   shellexecute(hostHandle, nil, pchar(@Data.exename), params, dir, Data.showcmd);
   Dispose(Data);
   // request main form to close thread handle
-  if notifyHost then postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
+  postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
 end;
 //------------------------------------------------------------------------------
 // creates a new thread to run a program
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   Data: PRunData;
+  pparams, pdir: pchar;
   shell: string;
 begin
   try
@@ -2010,18 +2008,21 @@ begin
       end;
     end;
 
-    New(Data);
-    Data.handle := Handle;
-    strcopy(pchar(@Data.exename), pchar(exename));
-    strcopy(pchar(@Data.params), pchar(params));
-    strcopy(pchar(@Data.dir), pchar(dir));
-    Data.showcmd := showcmd;
-    Data.notifyHost := sets.container.RunInThread;
     if sets.container.RunInThread then
     begin
+      New(Data);
+      Data.handle := Handle;
+      strcopy(pchar(@Data.exename), pchar(exename));
+      strcopy(pchar(@Data.params), pchar(params));
+      strcopy(pchar(@Data.dir), pchar(dir));
+      Data.showcmd := showcmd;
       if BeginThread(RunThread, Data) = 0 then notify('Run.BeginThread failed');
     end else begin
-      RunThread(Data);
+      pparams := nil;
+      pdir := nil;
+      if params <> '' then pparams := PChar(params);
+      if dir <> '' then pdir := PChar(dir);
+      shellexecute(Handle, nil, pchar(exename), pparams, pdir, showcmd);
     end;
   except
     on e: Exception do err('Base.Run', e);

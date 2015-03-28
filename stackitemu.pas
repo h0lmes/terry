@@ -1057,7 +1057,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.OpenStack;
 begin
-  if not FFreed and (FItemCount > 0) {and (FState = stsClosed)} then
+  if not FFreed and (FItemCount > 0) and ((FState = stsClosed) or (FState = stsClosing)) then
   begin
     try
       FUpdating := true;
@@ -1075,7 +1075,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.CloseStack;
 begin
-  if not FFreed and (FItemCount > 0) {and (FState = stsOpen)} then
+  if not FFreed and (FItemCount > 0) and ((FState = stsOpen) or (FState = stsOpening)) then
   begin
     cmd(icSelect, 0);
     FStateProgress := 1;
