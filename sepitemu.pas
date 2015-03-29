@@ -30,8 +30,6 @@ constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams:
 begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;
-  FDontSave := FetchValue(AData, 'dontsave="', '";') <> '';
-  //FCanDrag := FetchValue(AData, 'candrag="', '";') = '';
   UpdateItemInternal;
 end;
 //------------------------------------------------------------------------------
@@ -237,7 +235,7 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING + ifthen(FDontSave, MF_DISABLED, MF_ENABLED), $f004, pchar(UTF8ToAnsi(XDeleteSeparator)));
+  AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteSeparator)));
   dockh.DockAddMenu(FHMenu);
   LME(true);
 
@@ -267,7 +265,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TSeparatorItem.Save(szIni: pchar; szIniGroup: pchar);
 begin
-  if FFreed or FDontSave or (szIni = nil) or (szIniGroup = nil) then exit;
+  if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
   try
     WritePrivateProfileString(szIniGroup, nil, nil, szIni);
     WritePrivateProfileString(szIniGroup, 'class', 'separator', szIni);

@@ -108,12 +108,12 @@ type
     FHide: boolean;
     FColorData: integer;
     FUseShellContextMenus: boolean;
-    is_pidl: boolean;
-    apidl: PITEMIDLIST;
-    LastMouseUp: cardinal;
+    FIsPIDL: boolean;
+    FPIDL: PITEMIDLIST;
+    FLastMouseUp: cardinal;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
-    procedure Exec(noActivate: boolean = false);
+    procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
@@ -149,7 +149,7 @@ begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
 
-  LastMouseUp:= 0;
+  FLastMouseUp:= 0;
   FCommand:= '';
   FParams:= '';
   FDir:= '';
@@ -167,7 +167,7 @@ begin
   try GdipDisposeImage(FImage);
   except on e: Exception do raise Exception.Create('StackSubitem.Destroy.GdipDisposeImage'#10#13 + e.message);
   end;
-  try if is_pidl then PIDL_Free(apidl);
+  try if FIsPIDL then PIDL_Free(FPIDL);
   except on e: Exception do raise Exception.Create('StackSubitem.Destroy.PIDL_Free'#10#13 + e.message);
   end;
 
@@ -259,19 +259,19 @@ begin
       end;
 
       // create PIDL from GUID //
-      PIDL_Free(apidl);
-      if IsGUID(FCommand) then apidl := PIDL_GetFromPath(pchar(FCommand));
-      if IsPIDLString(FCommand) then apidl := PIDL_FromString(FCommand);
-      is_pidl := assigned(apidl);
-      if is_pidl and (FCaption = '::::') then
+      PIDL_Free(FPIDL);
+      if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
+      if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
+      FIsPIDL := assigned(FPIDL);
+      if FIsPIDL and (FCaption = '::::') then
       begin
-        SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+        SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
         FCaption := sfi.szDisplayName;
       end;
 
       // check if this is the shortcut to an executable file
       FIsExecutable := false;
-      if not is_pidl then
+      if not FIsPIDL then
       begin
         FExecutable := toolu.UnzipPath(FCommand);
         if not FileExists(FExecutable) then FExecutable := ''
@@ -291,7 +291,7 @@ begin
       if FImageFile <> '' then LoadImage(UnzipPath(FImageFile), FItemSize, true, true, FImage, FIW, FIH)
       else
       begin
-        if is_pidl then LoadImageFromPIDL(apidl, FItemSize, true, true, FImage, FIW, FIH)
+        if FIsPIDL then LoadImageFromPIDL(FPIDL, FItemSize, true, true, FImage, FIW, FIH)
         else LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
       end;
 
@@ -530,12 +530,16 @@ begin
 
     if button = mbLeft then
     begin
-      if abs(gettickcount - LastMouseUp) > FLaunchInterval then
+      if abs(gettickcount - FLastMouseUp) > FLaunchInterval then
       begin
-        Exec;
+        if ssAlt in shift then Exec(eaGroup)
+        else
+        if ssCtrl in shift then Exec(eaRun)
+        else
+          Exec(eaDefault);
         CloseStack;
       end;
-      LastMouseUp := gettickcount;
+      FLastMouseUp := gettickcount;
       result := true;
     end;
 
@@ -576,9 +580,9 @@ begin
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
 
   // if shell context menu is enabled //
-  if FUseShellContextMenus and (FCommand <> '') or is_pidl then
+  if FUseShellContextMenus and (FCommand <> '') or FIsPIDL then
   begin
-    if is_pidl then result := shcontextu.ShContextMenu(FHWnd, pt, apidl, FHMenu)
+    if FIsPIDL then result := shcontextu.ShContextMenu(FHWnd, pt, FPIDL, FHMenu)
     else
     begin
       filename := toolu.UnzipPath(FCommand);
@@ -605,9 +609,8 @@ begin
       $f002: OpenFolder;
       $f003: toolu.SetClipboard(ToString);
       $f004: Delete;
-      $f006: Exec(true);
+      $f006: Exec(eaRun);
       //$f007..$f020: ;
-      //else sendmessage(FHWndParent, WM_COMMAND, msg.wParam, msg.lParam);
     end;
   except
     on e: Exception do raise Exception.Create('TStackSubitem.WMCommand'#10#13 + e.message);
@@ -619,15 +622,21 @@ begin
   TfrmItemProp.Open(ToString, UpdateItem);
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.Exec(noActivate: boolean = false);
+procedure TShortcutSubitem.Exec(action: TExecuteAction);
+  procedure Run;
+  begin
+    if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
+    DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
+  end;
 var
   sei: TShellExecuteInfo;
 begin
-  if is_pidl then
+  if FIsPIDL then
   begin
-    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0);
+    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
+    else DockletDoAttensionAnimation(FHWnd);
     sei.cbSize := sizeof(sei);
-    sei.lpIDList := apidl;
+    sei.lpIDList := FPIDL;
     sei.Wnd := FHWnd;
     sei.nShow := 1;
     sei.lpVerb := 'open';
@@ -638,18 +647,12 @@ begin
     ShellExecuteEx(@sei);
   end else
   begin
-    if FActivateRunning and (GetAsyncKeystate(17) >= 0) and not noActivate then
+    if FActivateRunning and not (action = eaRun) then
     begin
       if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
-      if not ActivateProcessMainWindow then
-      begin
-        if not FHide then DockletDoAttensionAnimation(FHWnd);
-        DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
-      end;
-    end else begin
-      if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
-      DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
-    end;
+      if not ActivateProcessMainWindow then Run;
+    end
+    else Run;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -690,7 +693,7 @@ begin
     end
     else
     begin
-      if not is_pidl then DockExecute(FHWnd, pchar(FCommand), pchar('"' + filename + '"'), nil, 1);
+      if not FIsPIDL then DockExecute(FHWnd, pchar(FCommand), pchar('"' + filename + '"'), nil, 1);
     end;
   end;
 end;

@@ -39,8 +39,6 @@ type
     FyDocking: integer;
     need_dock: boolean;
     FDockingProgress: single;
-    FCanDrag: boolean;
-    FDontSave: boolean;
     FNCHitText: boolean; // if true - HitTest returns true for non-client area
 
     FEnabled: boolean;
@@ -59,7 +57,6 @@ type
     FLockMouseEffect: boolean;
     FItemSize: integer;
     FBigItemSize: integer;
-    FItemSpacing: integer;
     FLaunchInterval: integer;
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
@@ -99,7 +96,6 @@ type
     property Size: integer read FSize;
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
-    property DontSave: boolean read FDontSave;
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
@@ -180,10 +176,9 @@ begin
   FPrevWndProc := nil;
   FFreed := false;
   FEnabled := true;
-  FCanDrag := true;
   FCaption := '';
-  Fx := -32000;
-  Fy := -32000;
+  Fx := -3000;
+  Fy := -3000;
   FSize := 32;
   FCaption := '';
   FUpdating := false;
@@ -201,7 +196,6 @@ begin
   FLockMouseEffect := false;
   FItemSize := 32;
   FBigItemSize := 32;
-  FItemSpacing := 0;
   FAnimationProgress := 0;
   FImage := nil;
   FIW := 32;
@@ -210,7 +204,6 @@ begin
   FxDocking := 0;
   FyDocking := 0;
   need_dock := false;
-  FDontSave := false;
   FNCHitText := false;
   FNeedMouseWheel := false;
 end;
@@ -229,7 +222,6 @@ begin
           Redraw;
         end;
       gpBigItemSize: FBigItemSize := word(param);
-      gpItemSpacing: FItemSpacing := word(param);
       gpReflection:
         begin
           FReflection := boolean(param);
@@ -272,7 +264,7 @@ begin
         end;
 
       icFloat:
-        if (FFloating <> boolean(param)) and FCanDrag then
+        if FFloating <> boolean(param) then
         begin
           FFloating := boolean(param);
           if FFloating then
@@ -554,6 +546,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.WindowProc(var message: TMessage);
+const
+  MK_ALT = $1000;
 var
   idx: integer;
   ShiftState: classes.TShiftState;
@@ -577,6 +571,7 @@ begin
         result := 0;
         pos := TSmallPoint(LParam);
         ShiftState := [];
+        if HIBYTE(GetKeyState(VK_MENU)) and $80 <> 0 then Include(ShiftState, ssAlt);
         if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
         if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
 
@@ -627,7 +622,7 @@ begin
         else if msg = wm_mousemove then
         begin
               // undock item (the only place to undock) //
-              if (FCanDrag and not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
+              if (not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
               begin
                 if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
                 begin

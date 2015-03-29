@@ -6,6 +6,7 @@ uses Windows, SysUtils, DefaultTranslator;
 type
   TBaseSite = (bsLeft = 0, bsTop, bsRight, bsBottom);
   TBaseOrientation = (boHorizontal, boVertical);
+  TExecuteAction = (eaDefault, eaRun, eaGroup);
 
   TGParam = (
     // general parameters //

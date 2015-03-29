@@ -90,7 +90,6 @@ type
   public
     items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     ItemCount: integer;
-    TaskItemCount: integer;
     HoverItemHWnd: THandle; // handle of the item over which the mouse is //
     SelectedItemHWnd: THandle;
     itemsDeleted: TFPList;
@@ -189,7 +188,6 @@ type
     function GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
     function IsPluginUndocked(HWnd: HANDLE): boolean;
     function IsSeparator(HWnd: HANDLE): boolean;
-    function IsTask(HWnd: HANDLE): boolean;
 end;
 
 implementation
@@ -202,7 +200,6 @@ begin
   ParentHWnd := Handle;
   BaseCmd := ABaseCmd;
   ItemCount := 0;
-  TaskItemCount := 0;
   Zooming := false;
   ZoomItems := false;
   ItemSize := 40;
@@ -524,7 +521,6 @@ begin
       items[idx].h := 0;
     end;
     ItemCount := 0;
-    TaskItemCount := 0;
   except
     on e: Exception do err('ItemManager.Clear', e);
   end;
@@ -1160,13 +1156,11 @@ end;
 procedure _ItemManager.DeleteItem(HWnd: THandle);
 var
   index, rpIndex: integer;
-  is_task: boolean;
   Inst: TCustomItem;
 begin
   if Enabled then
   try
     index := ItemIndex(HWnd);
-    is_task := IsTask(HWnd);
     // add to "deleted" list //
     itemsDeleted.Add(Pointer(HWnd));
     // remove from registered programs list
@@ -1187,7 +1181,6 @@ begin
       end;
       // decrement item count
       dec(ItemCount);
-      if is_task and (TaskItemCount > 0) then dec(TaskItemCount);
     end;
 
     // update dock //
@@ -1235,16 +1228,16 @@ begin
         begin
           if prevDropPlace = NOT_AN_ITEM then
           begin
-            if DropPlace > ItemCount - TaskItemCount then DropPlace := NOT_AN_ITEM;
+            if DropPlace > ItemCount then DropPlace := NOT_AN_ITEM;
           end else begin
-            if DropPlace >= ItemCount - TaskItemCount then DropPlace := NOT_AN_ITEM;
+            if DropPlace >= ItemCount then DropPlace := NOT_AN_ITEM;
           end;
         end else
         if prevDropPlace = NOT_AN_ITEM then
         begin
-          if DropPlace > ItemCount - TaskItemCount then DropPlace := ItemCount - TaskItemCount;
+          if DropPlace > ItemCount then DropPlace := ItemCount;
         end else begin
-          if DropPlace >= ItemCount - TaskItemCount then DropPlace := ItemCount - TaskItemCount - 1;
+          if DropPlace >= ItemCount then DropPlace := ItemCount - 1;
         end;
       end;
     end;
@@ -1257,7 +1250,7 @@ begin
     if DropPlaceEx <> NOT_AN_ITEM then
     begin
       if DropPlaceEx < 0 then DropPlaceEx := 0;
-      if DropPlaceEx > ItemCount - TaskItemCount - 1 then DropPlaceEx := NOT_AN_ITEM;
+      if DropPlaceEx > ItemCount - 1 then DropPlaceEx := NOT_AN_ITEM;
     end;
     if prevDropPlaceEx <> DropPlaceEx then SetDropPlaceEx(DropPlaceEx);
   except
@@ -1684,7 +1677,6 @@ var
 begin
   if enabled and not DraggingItem then
   try
-    //AllItemCmd(icHover, 0);
     DraggingFile := false;
     DraggingItem := true;
     DragHWnd := HWnd;
@@ -1696,7 +1688,6 @@ begin
         SetDropPlaceEx(index);
       end;
     except end;
-    //ItemsChanged;
   except
     on e: Exception do err('ItemManager.UndockWindowItem', e);
   end;
@@ -1710,18 +1701,12 @@ begin
   if (DropPlace >= 0) and (DropPlace < ItemCount) then
   // if DropPlace exists, then it is not TaskItem //
   begin
-    if DropPlace > ItemCount - TaskItemCount then DropPlace := ItemCount - TaskItemCount;
+    if DropPlace > ItemCount then DropPlace := ItemCount;
     items[DropPlace].h := HWnd;
   end
   // else check where to dock //
   else begin
-    if IsTask(HWnd) then
-    begin
-      SetDropPlace(ItemCount);
-      inc(TaskItemCount);
-    end
-    else
-      SetDropPlace(ItemCount - TaskItemCount);
+    SetDropPlace(ItemCount);
     items[DropPlace].h := HWnd;
     items[DropPlace].s := ItemSize;
   end;
@@ -2054,15 +2039,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.IsTask(HWnd: HANDLE): boolean;
-begin
-  try
-    result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TTaskItem;
-  except
-    on e: Exception do err('ItemManager.IsTask', e);
-  end;
-end;
-//------------------------------------------------------------------------------
 //
 //
 //
@@ -2076,6 +2052,7 @@ var
   index: integer;
   Inst: TCustomItem;
 begin
+  if DraggingItem then exit;
   try
     // remove deleted windows //
     try
@@ -2160,16 +2137,12 @@ var
   idx: integer;
   Inst: TCustomItem;
 begin
-  if TaskItemCount > 0 then
+  idx := ItemCount - 1;
+  while idx >= 0 do
   begin
-      idx := ItemCount - 1;
-      while idx >= 0 do
-      begin
-        Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
-        if Inst is TTaskItem then Inst.Delete;
-        dec(idx);
-      end;
-      TaskItemCount := 0;
+    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+    if Inst is TTaskItem then Inst.Delete;
+    dec(idx);
   end;
 end;
 //------------------------------------------------------------------------------

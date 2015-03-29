@@ -30,7 +30,7 @@ type
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure Exec;
+    procedure Exec(action: TExecuteAction);
     procedure ClosePeekWindow(Timeout: cardinal = 0);
     procedure ShowPeekWindow(Timeout: cardinal = 0);
     procedure UpdatePeekWindow;
@@ -60,8 +60,6 @@ uses frmmainu;
 constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin
   inherited;
-  FCanDrag := false;
-  FDontSave := true;
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
@@ -108,6 +106,7 @@ begin
     FAppList.Add(pointer(hwnd));
     Attention(true);
     FProcName := ProcessHelper.GetWindowProcessName(hwnd);
+    FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
     UpdateItemInternal;
     FIsNew := false;
     exit;
@@ -115,7 +114,10 @@ begin
 
   // try to get process executable path
   if FProcName = '' then
+  begin
     FProcName := ProcessHelper.GetWindowProcessName(THandle(FAppList.First));
+    FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
+	end;
 
   // if the window is already in this group - do nothing
   if FAppList.IndexOf(pointer(hwnd)) >= 0 then exit;
@@ -152,7 +154,7 @@ procedure TTaskItem.UpdateItem;
 begin
   try
     if FAppList.Count = 1 then
-      Caption := TProcessHelper.GetWindowText(THandle(FAppList.Items[0]));
+      Caption := TProcessHelper.GetWindowText(THandle(FAppList.First));
     if not assigned(FImage) then UpdateImage;
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
@@ -366,7 +368,14 @@ procedure TTaskItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: i
 var
   pt: windows.TPoint;
 begin
-  if button = mbLeft then Exec;
+  if button = mbLeft then
+  begin
+      if ssAlt in shift then Exec(eaGroup)
+      else
+      if ssCtrl in shift then Exec(eaRun)
+      else
+        Exec(eaDefault);
+	end;
 
   if button = mbRight then
   begin
@@ -378,15 +387,26 @@ begin
   UpdateItemInternal; // update item icon and text //
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.Exec;
+procedure TTaskItem.Exec(action: TExecuteAction);
 begin
-  if FAppList.Count = 1 then
+  if (action = eaRun) and FIsExecutable then
   begin
-    KillTimer(FHWnd, ID_TIMER_OPEN);
-    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
-  end;
+    dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
+	end
+  else
+	if FAppList.Count = 1 then
+  begin
+      KillTimer(FHWnd, ID_TIMER_OPEN);
+      ProcessHelper.ActivateWindow(THandle(FAppList.First));
+  end
+  else
   if FAppList.Count > 1 then
-    if not TAeroPeekWindow.IsActive then ShowPeekWindow;
+  begin
+      if action = eaGroup then
+          ProcessHelper.ActivateWindowList(FAppList)
+		  else
+          if not TAeroPeekWindow.IsActive then ShowPeekWindow;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.BeforeUndock;
@@ -400,9 +420,6 @@ var
   mii: MENUITEMINFO;
 begin
   result := true;
-
-  // check if this is the shortcut to an executable file
-  FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
 
   FHMenu := CreatePopupMenu;
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
@@ -450,7 +467,6 @@ begin
     $f003: if FIsExecutable then ProcessHelper.Kill(FProcName);
     $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
     $f005..$f020: ;
-    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

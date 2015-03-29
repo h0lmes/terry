@@ -517,7 +517,7 @@ begin
     // set primary params
     if FCompositionEnabled then
     begin
-      FBorderX := 24;
+      FBorderX := 22;
       FBorderY := 22;
       FShadow := 8;
       FIconSize := 16;

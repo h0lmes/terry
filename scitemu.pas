@@ -28,9 +28,9 @@ type
     FIsExecutable: boolean;
     FExecutable: string;
     FRunning: boolean;
-    is_pidl: boolean;
-    apidl: PItemIDList;
-    LastMouseUp: cardinal;
+    FIsPIDL: boolean;
+    FPIDL: PItemIDList;
+    FLastMouseUp: cardinal;
     FAppList: TFPList;
     FIsOpen: boolean; // is PeekWindow open or not
     FAttention: boolean;
@@ -48,8 +48,8 @@ type
     procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
-    procedure Exec(noActivate: boolean = false);
-    function ActivateProcessMainWindow: boolean;
+    procedure Exec(action: TExecuteAction);
+    function ActivateProcessMainWindow(group: boolean): boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure ClosePeekWindow(Timeout: cardinal = 0);
     procedure ShowPeekWindow(Timeout: cardinal = 0);
@@ -90,7 +90,7 @@ begin
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
 
-  LastMouseUp:= 0;
+  FLastMouseUp:= 0;
   FCommand:= '';
   FParams:= '';
   FDir:= '';
@@ -115,7 +115,7 @@ begin
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
   try GdipDisposeImage(FImage);
   except end;
-  try if is_pidl then PIDL_Free(apidl);
+  try if FIsPIDL then PIDL_Free(FPIDL);
   except end;
   FAppList.free;
   inherited;
@@ -201,19 +201,19 @@ begin
       end;
 
       // create PIDL from GUID //
-      PIDL_Free(apidl);
-      if IsGUID(FCommand) then apidl := PIDL_GetFromPath(pchar(FCommand));
-      if IsPIDLString(FCommand) then apidl := PIDL_FromString(FCommand);
-      is_pidl := assigned(apidl);
-      if is_pidl and (FCaption = '::::') then
+      PIDL_Free(FPIDL);
+      if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
+      if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
+      FIsPIDL := assigned(FPIDL);
+      if FIsPIDL and (FCaption = '::::') then
       begin
-        SHGetFileInfoA(pchar(apidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+        SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
         FCaption := sfi.szDisplayName;
       end;
 
       // check if this is the shortcut to an executable file
       FIsExecutable := false;
-      if not is_pidl then
+      if not FIsPIDL then
       begin
         FExecutable := toolu.UnzipPath(FCommand);
         if not FileExists(FExecutable) then FExecutable := ''
@@ -258,7 +258,7 @@ begin
   end
   else // if no custom image set
   begin
-    if is_pidl then LoadImageFromPIDL(apidl, FBigItemSize, false, true, FImage, FIW, FIH)
+    if FIsPIDL then LoadImageFromPIDL(FPIDL, FBigItemSize, false, true, FImage, FIW, FIH)
     else LoadImage(UnzipPath(FCommand), FBigItemSize, false, true, FImage, FIW, FIH);
   end;
 end;
@@ -296,7 +296,7 @@ begin
   FDynObjectState := 0;
   FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUME}', FImageFile) > 0) or (pos('{NETWORK}', FImageFile) > 0);
   FDynObjectRecycleBin := false;
-  if is_pidl then
+  if FIsPIDL then
   begin
     OleCheck(SHGetSpecialFolderLocation(0, CSIDL_BITBUCKET or CSIDL_FLAG_NO_ALIAS, pidFolder));
     FDynObjectRecycleBin := PIDL_GetDisplayName2(pidFolder) = FCommand;
@@ -660,8 +660,15 @@ var
 begin
   if button = mbLeft then
   begin
-    if (abs(gettickcount - LastMouseUp) > FLaunchInterval) then Exec;
-    LastMouseUp := gettickcount;
+    if (abs(gettickcount - FLastMouseUp) > FLaunchInterval) then
+    begin
+      if ssAlt in shift then Exec(eaGroup)
+      else
+      if ssCtrl in shift then Exec(eaRun)
+      else
+        Exec(eaDefault);
+    end;
+    FLastMouseUp := gettickcount;
   end;
 
   if button = mbRight then
@@ -670,6 +677,66 @@ begin
     windows.GetCursorPos(pt);
     ContextMenu(pt);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.Exec(action: TExecuteAction);
+  procedure Run;
+  begin
+    if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
+    DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
+  end;
+var
+  sei: TShellExecuteInfo;
+begin
+  if FIsPIDL then
+  begin
+    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
+    else DockletDoAttensionAnimation(FHWnd);
+    sei.cbSize := sizeof(sei);
+    sei.lpIDList := FPIDL;
+    sei.Wnd := FHWnd;
+    sei.nShow := 1;
+    sei.lpVerb := 'open';
+    sei.lpFile := nil;
+    sei.lpParameters := nil;
+    sei.lpDirectory := nil;
+    sei.fMask := SEE_MASK_IDLIST;
+    ShellExecuteEx(@sei);
+  end else
+  begin
+    if FActivateRunning and not (action = eaRun) then
+    begin
+      if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
+      if not ActivateProcessMainWindow(action = eaGroup) then Run;
+    end
+    else Run;
+  end;
+end;
+//------------------------------------------------------------------------------
+function TShortcutItem.ActivateProcessMainWindow(group: boolean): boolean;
+var
+  pt: windows.TPoint;
+begin
+  result := false;
+  if not FIsExecutable then exit;
+
+  ProcessHelper.EnumAppWindows;
+  ProcessHelper.GetProcessWindows(FExecutable, FAppList);
+  if FAppList.Count = 1 then
+  begin
+    result := true;
+    KillTimer(FHWnd, ID_TIMER_OPEN);
+    ProcessHelper.ActivateWindow(THandle(FAppList.First));
+  end else
+  if FAppList.Count > 1 then
+  begin
+    result := true;
+    if group then
+      ProcessHelper.ActivateWindowList(FAppList)
+		else begin
+      if not TAeroPeekWindow.IsActive then ShowPeekWindow;
+    end;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseHeld(button: TMouseButton);
@@ -703,13 +770,12 @@ begin
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
-  //dockh.DockAddMenu(FHMenu);
   LME(true);
 
   // if shell context menu is enabled //
-  if FUseShellContextMenus and ((FCommand <> '') or is_pidl) then
+  if FUseShellContextMenus and ((FCommand <> '') or FIsPIDL) then
   begin
-    if is_pidl then result := shcontextu.ShContextMenu(FHWnd, pt, apidl, FHMenu)
+    if FIsPIDL then result := shcontextu.ShContextMenu(FHWnd, pt, FPIDL, FHMenu)
     else
     begin
       filename := toolu.UnzipPath(FCommand);
@@ -736,9 +802,8 @@ begin
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
     $f005: DockExecute(FHWnd, pchar('/emptybin'), nil, nil, 1);
-    $f006: Exec(true);
+    $f006: Exec(eaRun);
     //$f007..$f020: ;
-    //else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -797,63 +862,6 @@ begin
     end else begin
       ClosePeekWindow(800);
     end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutItem.Exec(noActivate: boolean = false);
-var
-  sei: TShellExecuteInfo;
-begin
-  if is_pidl then
-  begin
-    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
-    else DockletDoAttensionAnimation(FHWnd);
-    sei.cbSize := sizeof(sei);
-    sei.lpIDList := apidl;
-    sei.Wnd := FHWnd;
-    sei.nShow := 1;
-    sei.lpVerb := 'open';
-    sei.lpFile := nil;
-    sei.lpParameters := nil;
-    sei.lpDirectory := nil;
-    sei.fMask := SEE_MASK_IDLIST;
-    ShellExecuteEx(@sei);
-  end else
-  begin
-    if FActivateRunning and (GetAsyncKeystate(17) >= 0) and not noActivate then
-    begin
-      if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
-      if not ActivateProcessMainWindow then
-      begin
-        if not FHide then DockletDoAttensionAnimation(FHWnd);
-        DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
-      end;
-    end else begin
-      if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
-      DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
-    end;
-  end;
-end;
-//------------------------------------------------------------------------------
-function TShortcutItem.ActivateProcessMainWindow: boolean;
-var
-  pt: windows.TPoint;
-begin
-  result := false;
-  if not FIsExecutable then exit;
-
-  ProcessHelper.EnumAppWindows;
-  ProcessHelper.GetProcessWindows(FExecutable, FAppList);
-  if FAppList.Count = 1 then
-  begin
-    result := true;
-    KillTimer(FHWnd, ID_TIMER_OPEN);
-    ProcessHelper.ActivateWindow(THandle(FAppList.Items[0]));
-  end else
-  if FAppList.Count > 1 then
-  begin
-    result := true;
-    if not TAeroPeekWindow.IsActive then ShowPeekWindow;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.ShowPeekWindow(Timeout: cardinal = 0);
@@ -955,7 +963,7 @@ begin
     end
     else
     begin
-      if not is_pidl then DockExecute(FHWnd, pchar(FCommand), pchar('"' + filename + '"'), nil, 1);
+      if not FIsPIDL then DockExecute(FHWnd, pchar(FCommand), pchar('"' + filename + '"'), nil, 1);
     end;
   end;
 end;

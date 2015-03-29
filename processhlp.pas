@@ -27,9 +27,6 @@ type
     // processes //
     procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
     function GetFullNameByPID_Internal(pid: uint): string;
-    function IsMDIWindow(h: THandle): boolean;
-    procedure ActivateMDIWindow(h: THandle);
-    procedure CloseMDIWindow(h: THandle);
     function SetPrivilege(Name: string): boolean;
   public
     property Ready: boolean read FReady;
@@ -52,6 +49,7 @@ type
     procedure AllowSetForeground(hWnd: HWND);
     function WindowOnTop(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle);
+    procedure ActivateWindowList(list: TFPList);
     procedure CloseWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
     procedure EnumAppWindows(ParentHWnd: THandle = 0);
@@ -282,10 +280,10 @@ begin
 	index := 0;
 	while index < listAppWindows.count do
 	begin
-    wnd := THandle(listAppWindows.items[index]);
-    GetWindowThreadProcessId(wnd, @wpid);
-	  if wpid = pid then AppList.Add(pointer(wnd));
-	  inc(index);
+      wnd := THandle(listAppWindows.items[index]);
+      GetWindowThreadProcessId(wnd, @wpid);
+	    if wpid = pid then AppList.Add(pointer(wnd));
+	    inc(index);
 	end;
 end;
 //------------------------------------------------------------------------------
@@ -466,61 +464,66 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.IsMDIWindow(h: THandle): boolean;
-begin
-  result := GetWindowLong(h, GWL_EXSTYLE) and WS_EX_MDICHILD <> 0;
-end;
-//------------------------------------------------------------------------------
 procedure TProcessHelper.ActivateWindow(h: THandle);
 begin
-  {if IsMDIWindow(h) then
-  begin
-    ActivateMDIWindow(h);
-    exit;
-  end;}
-
   if IsWindowVisible(h) and not IsIconic(h) then
   begin
-    if WindowOnTop(h) then
-      PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0)
-    else
-    begin
+      if WindowOnTop(h) then
+          PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0)
+      else
+      begin
+          AllowSetForeground(h);
+          SetForegroundWindow(h);
+      end;
+  end
+  else begin
+      PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
       AllowSetForeground(h);
       SetForegroundWindow(h);
-    end;
-  end else begin
-    PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
-    AllowSetForeground(h);
-    SetForegroundWindow(h);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.ActivateMDIWindow(h: THandle);
+procedure TProcessHelper.ActivateWindowList(list: TFPList);
 var
-  parent: THandle;
+  anyVisible: boolean;
+  index: integer;
+  h: THandle;
 begin
-  parent := GetParent(h);
-  if parent <> 0 then SendMessage(parent, WM_MDIACTIVATE, h, 0);
+  anyVisible := false;
+  index := 0;
+  while index < list.Count do
+  begin
+      h := THandle(list.Items[index]);
+      if IsWindowVisible(h) and not IsIconic(h) then anyVisible := true;
+      inc(index);
+	end;
+
+  if anyVisible then
+  begin
+      index := 0;
+	    while index < list.Count do
+	    begin
+	        h := THandle(list.Items[index]);
+	        PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+	        inc(index);
+		  end;
+  end
+  else begin
+      index := 0;
+	    while index < list.Count do
+	    begin
+	        h := THandle(list.Items[index]);
+	        PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
+          AllowSetForeground(h);
+          SetForegroundWindow(h);
+	        inc(index);
+		  end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.CloseWindow(h: THandle);
 begin
-  if IsMDIWindow(h) then
-  begin
-    CloseMDIWindow(h);
-    exit;
-  end;
-
   postmessage(h, WM_SYSCOMMAND, SC_CLOSE, 0);
-end;
-//------------------------------------------------------------------------------
-procedure TProcessHelper.CloseMDIWindow(h: THandle);
-var
-  parent: THandle;
-begin
-  ActivateMDIWindow(h);
-  parent := GetParent(h);
-  if parent <> 0 then SendMessage(parent, WM_MDIDESTROY, h, 0)
 end;
 //------------------------------------------------------------------------------
 // ProcessName - path and file name
