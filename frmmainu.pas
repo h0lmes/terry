@@ -1988,35 +1988,53 @@ var
   Data: PRunData;
   pparams, pdir: pchar;
   shell: string;
+  sei: TShellExecuteInfoA;
+  aPIDL: PItemIDList;
 begin
   try
     exename := toolu.UnzipPath(exename);
     if params <> '' then params := toolu.UnzipPath(params);
     if dir <> '' then dir := toolu.UnzipPath(dir);
 
-    if directoryexists(exename) then
+    if directoryexists(exename) or IsGUID(exename) then
     begin
       shell := toolu.UnzipPath(sets.container.Shell);
       if sets.container.useShell and fileexists(shell) then
       begin
-        params := '"' + exename + '"';
+        if IsGUID(exename) then params := exename else params := '"' + exename + '"';
         exename := shell;
-        dir := '';
-      end else begin
-        params := '';
         dir := '';
       end;
     end;
 
+    aPIDL := nil;
+    if IsGUID(exename) then aPIDL := PIDL_GetFromPath(pchar(exename));
+    if IsPIDLString(exename) then aPIDL := PIDL_FromString(exename);
+    if assigned(aPIDL) then
+    begin
+	    sei.cbSize := sizeof(sei);
+	    sei.lpIDList := aPIDL;
+	    sei.Wnd := Handle;
+	    sei.nShow := 1;
+	    sei.lpVerb := 'open';
+	    sei.lpFile := nil;
+	    sei.lpParameters := nil;
+	    sei.lpDirectory := nil;
+	    sei.fMask := SEE_MASK_IDLIST;
+	    ShellExecuteExA(@sei);
+      PIDL_Free(aPIDL);
+      exit;
+		end;
+
     if sets.container.RunInThread then
     begin
-      New(Data);
-      Data.handle := Handle;
-      strcopy(pchar(@Data.exename), pchar(exename));
-      strcopy(pchar(@Data.params), pchar(params));
-      strcopy(pchar(@Data.dir), pchar(dir));
-      Data.showcmd := showcmd;
-      if BeginThread(RunThread, Data) = 0 then notify('Run.BeginThread failed');
+	    New(Data);
+	    Data.handle := Handle;
+	    strcopy(pchar(@Data.exename), pchar(exename));
+	    strcopy(pchar(@Data.params), pchar(params));
+	    strcopy(pchar(@Data.dir), pchar(dir));
+	    Data.showcmd := showcmd;
+	    if BeginThread(RunThread, Data) = 0 then notify('Run.BeginThread failed');
     end else begin
       pparams := nil;
       pdir := nil;

@@ -628,24 +628,9 @@ procedure TShortcutSubitem.Exec(action: TExecuteAction);
     if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
     DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
   end;
-var
-  sei: TShellExecuteInfo;
 begin
-  if FIsPIDL then
-  begin
-    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
-    else DockletDoAttensionAnimation(FHWnd);
-    sei.cbSize := sizeof(sei);
-    sei.lpIDList := FPIDL;
-    sei.Wnd := FHWnd;
-    sei.nShow := 1;
-    sei.lpVerb := 'open';
-    sei.lpFile := nil;
-    sei.lpParameters := nil;
-    sei.lpDirectory := nil;
-    sei.fMask := SEE_MASK_IDLIST;
-    ShellExecuteEx(@sei);
-  end else
+  if FIsPIDL then Run
+  else
   begin
     if FActivateRunning and not (action = eaRun) then
     begin

@@ -3,7 +3,7 @@ unit scitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
+uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
   IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customitemu, toolu,
   processhlp, aeropeeku, mixeru, networksu;
 
@@ -595,10 +595,10 @@ begin
         GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
         // background
         tmpItemSize := max(FItemSize, 40);
-        if winList.Count > 99 then rect.Width := tmpItemSize * 9 / 12
-        else if winList.Count > 9 then rect.Width := tmpItemSize * 7 / 12
-        else rect.Width := tmpItemSize * 5 / 12;
-        rect.Height := tmpItemSize * 5 / 12;
+        if winList.Count > 99 then rect.Width := round(tmpItemSize * 9 / 12)
+        else if winList.Count > 9 then rect.Width := round(tmpItemSize * 7 / 12)
+        else rect.Width := round(tmpItemSize * 5 / 12);
+        rect.Height := round(tmpItemSize * 5 / 12);
         rect.X := x + Size - rect.Width + 5;
         rect.Y := y - 5;
         GdipCreatePath(FillModeWinding, path);
@@ -682,34 +682,19 @@ end;
 procedure TShortcutItem.Exec(action: TExecuteAction);
   procedure Run;
   begin
-    if FHide then DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
+    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
     DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
   end;
-var
-  sei: TShellExecuteInfo;
 begin
-  if FIsPIDL then
+  if FIsPIDL then Run
+  else
   begin
-    if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0)
-    else DockletDoAttensionAnimation(FHWnd);
-    sei.cbSize := sizeof(sei);
-    sei.lpIDList := FPIDL;
-    sei.Wnd := FHWnd;
-    sei.nShow := 1;
-    sei.lpVerb := 'open';
-    sei.lpFile := nil;
-    sei.lpParameters := nil;
-    sei.lpDirectory := nil;
-    sei.fMask := SEE_MASK_IDLIST;
-    ShellExecuteEx(@sei);
-  end else
-  begin
-    if FActivateRunning and not (action = eaRun) then
-    begin
-      if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
-      if not ActivateProcessMainWindow(action = eaGroup) then Run;
-    end
-    else Run;
+      if FActivateRunning and not (action = eaRun) then
+      begin
+          if FHide then DockExecute(FHWnd, '/hide', '', '', 0);
+          if not ActivateProcessMainWindow(action = eaGroup) then Run;
+      end
+      else Run;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -197,7 +197,7 @@ begin
   container.Hello := ini.ReadBool('base', 'Hello', true);
   container.useShell := ini.ReadBool('base', 'UseShell', false);
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
-  container.RunInThread := ini.ReadBool('base', 'RunInThread', true);
+  container.RunInThread := ini.ReadBool('base', 'RunInThread', false);
   // font //
   StrCopy(container.Font.name, pchar(ini.ReadString('Font', 'name', toolu.GetFont)));
   container.Font.size:= SetRange(ini.ReadInteger('Font', 'size', 15), 6, 72);
