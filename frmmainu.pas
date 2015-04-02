@@ -77,7 +77,7 @@ type
     procedure UnreserveScreenEdge(Edge: TBaseSite);
 
     procedure SaveSets;
-    procedure DoMenu(mit: integer);
+    procedure DoMenu;
     procedure BasePaint(flags: integer);
   public
     ItemMgr: _ItemManager;
@@ -462,7 +462,7 @@ begin
 
   case id of
     tcRepaintBase: BasePaint(param);
-    tcMenu: DoMenu(param);
+    tcMenu: DoMenu;
     tcSaveSets: SaveSets;
     tcZOrder: SetForeground;
     // a big command to rearrange everything
@@ -609,7 +609,7 @@ var
   mon_rect: Windows.TRect;
   OldMouseOver: boolean;
 begin
-  if not crsection.TryEnter then exit;
+  //if not crsection.TryEnter then exit;
   if not IsLockedMouseEffect and assigned(ItemMgr) and IsWindowVisible(Handle) and not closing then
   try
     Windows.GetCursorPos(pt);
@@ -660,7 +660,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 begin
-  if button = mbRight then DoMenu(0);
+  if button = mbRight then DoMenu;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.DoMenu;
@@ -1217,7 +1217,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  DoMenu(0);
+  DoMenu;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.err(where: string; e: Exception);
@@ -1996,12 +1996,12 @@ begin
     if params <> '' then params := toolu.UnzipPath(params);
     if dir <> '' then dir := toolu.UnzipPath(dir);
 
-    if directoryexists(exename) or IsGUID(exename) then
+    if directoryexists(exename) then
     begin
       shell := toolu.UnzipPath(sets.container.Shell);
       if sets.container.useShell and fileexists(shell) then
       begin
-        if IsGUID(exename) then params := exename else params := '"' + exename + '"';
+        params := '"' + exename + '"';
         exename := shell;
         dir := '';
       end;

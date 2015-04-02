@@ -84,10 +84,11 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1990"/>
-        <CursorPos X="1" Y="2039"/>
+        <TopLine Value="1984"/>
+        <CursorPos X="32" Y="1999"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -204,8 +205,8 @@
         <UnitName Value="itemmgru"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2043"/>
-        <CursorPos X="49" Y="2071"/>
+        <TopLine Value="1559"/>
+        <CursorPos X="3" Y="1567"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -214,7 +215,6 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="582"/>
@@ -1240,123 +1240,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="itemmgru.pas"/>
-        <Caret Line="584" Column="29" TopLine="565"/>
+        <Caret Line="2115" Column="21" TopLine="2100"/>
       </Position1>
       <Position2>
         <Filename Value="itemmgru.pas"/>
-        <Caret Line="1131" Column="50" TopLine="1103"/>
+        <Caret Line="2127" Column="36" TopLine="2100"/>
       </Position2>
       <Position3>
         <Filename Value="itemmgru.pas"/>
-        <Caret Line="2064" Column="44" TopLine="2035"/>
+        <Caret Line="2129" Column="42" TopLine="2101"/>
       </Position3>
       <Position4>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2085" Column="27" TopLine="2057"/>
+        <Filename Value="customitemu.pas"/>
+        <Caret Line="42" Column="1" TopLine="26"/>
       </Position4>
       <Position5>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2086" Column="78" TopLine="2058"/>
+        <Filename Value="customitemu.pas"/>
+        <Caret Line="179" Column="1" TopLine="161"/>
       </Position5>
       <Position6>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2114" Column="27" TopLine="2100"/>
+        <Filename Value="customitemu.pas"/>
+        <Caret Line="180" Column="3" TopLine="161"/>
       </Position6>
       <Position7>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2115" Column="21" TopLine="2100"/>
+        <Filename Value="customitemu.pas"/>
+        <Caret Line="267" Column="12" TopLine="252"/>
       </Position7>
       <Position8>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2127" Column="36" TopLine="2100"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="857" Column="29" TopLine="833"/>
       </Position8>
       <Position9>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="2129" Column="42" TopLine="2101"/>
+        <Filename Value="customitemu.pas"/>
+        <Caret Line="572" Column="30" TopLine="552"/>
       </Position9>
       <Position10>
         <Filename Value="customitemu.pas"/>
-        <Caret Line="42" Column="1" TopLine="26"/>
+        <Caret Line="574" Column="44" TopLine="561"/>
       </Position10>
       <Position11>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="179" Column="1" TopLine="161"/>
+        <Filename Value="taskitemu.pas"/>
+        <Caret Line="386" Column="49" TopLine="367"/>
       </Position11>
       <Position12>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="180" Column="3" TopLine="161"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="29" Column="11" TopLine="11"/>
       </Position12>
       <Position13>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="267" Column="12" TopLine="252"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="31" Column="12" TopLine="11"/>
       </Position13>
       <Position14>
         <Filename Value="scitemu.pas"/>
-        <Caret Line="857" Column="29" TopLine="833"/>
+        <Caret Line="118" Column="17" TopLine="81"/>
       </Position14>
       <Position15>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="572" Column="30" TopLine="552"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="2027" Column="14" TopLine="1993"/>
       </Position15>
       <Position16>
-        <Filename Value="customitemu.pas"/>
-        <Caret Line="574" Column="44" TopLine="561"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="2013" Column="37" TopLine="1984"/>
       </Position16>
       <Position17>
-        <Filename Value="taskitemu.pas"/>
-        <Caret Line="386" Column="49" TopLine="367"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="2015" Column="26" TopLine="1989"/>
       </Position17>
       <Position18>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="29" Column="11" TopLine="11"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="2003" Column="25" TopLine="1968"/>
       </Position18>
       <Position19>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="31" Column="12" TopLine="11"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="2010" Column="23" TopLine="1989"/>
       </Position19>
       <Position20>
         <Filename Value="scitemu.pas"/>
-        <Caret Line="118" Column="17" TopLine="81"/>
+        <Caret Line="6" Column="54" TopLine="1"/>
       </Position20>
       <Position21>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2027" Column="14" TopLine="1993"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="604" Column="52" TopLine="580"/>
       </Position21>
       <Position22>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2013" Column="37" TopLine="1984"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="605" Column="55" TopLine="582"/>
       </Position22>
       <Position23>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2015" Column="26" TopLine="1989"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="604" Column="38" TopLine="582"/>
       </Position23>
       <Position24>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2003" Column="25" TopLine="1968"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="602" Column="29" TopLine="582"/>
       </Position24>
       <Position25>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="2010" Column="23" TopLine="1989"/>
+        <Caret Line="1857" Column="77" TopLine="1825"/>
       </Position25>
       <Position26>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="6" Column="54" TopLine="1"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="620" Column="36" TopLine="604"/>
       </Position26>
       <Position27>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="604" Column="52" TopLine="580"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="662" Column="35" TopLine="641"/>
       </Position27>
       <Position28>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="605" Column="55" TopLine="582"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="670" Column="3" TopLine="651"/>
       </Position28>
       <Position29>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="604" Column="38" TopLine="582"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="465" Column="19" TopLine="443"/>
       </Position29>
       <Position30>
-        <Filename Value="scitemu.pas"/>
-        <Caret Line="602" Column="29" TopLine="582"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1137" Column="23" TopLine="1127"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
