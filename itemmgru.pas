@@ -2106,7 +2106,7 @@ begin
       inc(index);
     end;
 
-    // delete empty FItemArray and update not empty ones
+    // delete empty items and update not empty ones
     index := FItemCount - 1;
     while index >= 0 do
     begin
@@ -2152,7 +2152,7 @@ begin
     // if there is no item for the window - add a new item //
     if found = -1 then
     begin
-      SetDropPlace(NOT_AN_ITEM);
+      if (FTaskSpot < 0) or (FTaskSpot >= FItemCount) then SetDropPlace(NOT_AN_ITEM) else SetDropPlace(FTaskSpot);
       HWndItem := AddItem(TTaskItem.Make, true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
