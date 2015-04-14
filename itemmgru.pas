@@ -354,6 +354,7 @@ begin
           FTaskLivePreviews := value <> 0;
         end;
       gpTaskThumbSize: FTaskThumbSize := value;
+      gpTaskSpot: FTaskSpot := value;
       gpTaskGrouping:
         begin
           ClearTaskbar;
@@ -2122,7 +2123,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.AddTaskWindow(HWndTask: THandle);
 var
-  index, found: integer;
+  index, found, spot: integer;
   HWndItem: THandle;
   Inst: TCustomItem;
   str: string;
@@ -2152,7 +2153,22 @@ begin
     // if there is no item for the window - add a new item //
     if found = -1 then
     begin
-      if (FTaskSpot < 0) or (FTaskSpot >= FItemCount) then SetDropPlace(NOT_AN_ITEM) else SetDropPlace(FTaskSpot);
+      // determine where to place a newly created item
+      index := FTaskSpot;
+      if (index < 0) or (index >= FItemCount) then
+        index := NOT_AN_ITEM
+      else
+      begin
+        while index < FItemCount do
+	      begin
+	        Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
+	        if not (Inst is TTaskItem) then break;
+	        inc(index);
+	      end;
+        if index >= FItemCount then index := NOT_AN_ITEM
+			end;
+
+			SetDropPlace(index);
       HWndItem := AddItem(TTaskItem.Make, true);
       Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
