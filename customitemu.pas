@@ -263,7 +263,7 @@ begin
           Redraw;
         end;
 
-      icFloat:
+      icUndock:
         if FFloating <> boolean(param) then
         begin
           FFloating := boolean(param);
@@ -371,7 +371,7 @@ begin
   if button = mbLeft then
   begin
     if assigned(OnBeforeUndock) then OnBeforeUndock;
-    cmd(icFloat, 1); // undock
+    cmd(icUndock, 1); // undock
   end;
 end;
 //------------------------------------------------------------------------------
@@ -597,7 +597,7 @@ begin
         end
         else if msg = wm_lbuttonup then
         begin
-              cmd(icFloat, 0);
+              cmd(icUndock, 0);
               if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
               else sendmessage(FHWndParent, msg, wParam, lParam);
         end
@@ -626,7 +626,7 @@ begin
               begin
                 if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
                 begin
-                  cmd(icFloat, 1);
+                  cmd(icUndock, 1);
                   dockh.Undock(FHWnd);
                   SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
                   ReleaseCapture;
@@ -636,14 +636,14 @@ begin
               // just in case - dock item //
               if FFloating and (wParam and MK_LBUTTON = 0) then
               begin
-                cmd(icFloat, 0);
+                cmd(icUndock, 0);
                 dockh.Dock(FHWnd);
               end;
         end
         else if msg = wm_exitsizemove then
         begin
               // dock item (the only place to dock) //
-              cmd(icFloat, 0);
+              cmd(icUndock, 0);
               dockh.Dock(FHWnd);
         end
         else if msg = wm_command then

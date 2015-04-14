@@ -422,6 +422,8 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
+  AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
@@ -466,7 +468,8 @@ begin
         end;
     $f003: if FIsExecutable then ProcessHelper.Kill(FProcName);
     $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
-    $f005..$f020: ;
+    $f005: dockh.DockExecute(FHWnd, '/taskspot', nil, nil, 0);
+    $f006..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

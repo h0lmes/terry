@@ -920,7 +920,7 @@ begin
       GetCursorPos(pt);
       Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
       SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
-      Inst.cmd(icFloat, 0);
+      Inst.cmd(icUndock, 0);
       Inst.Delete;
     end;
   end;
@@ -941,7 +941,7 @@ begin
     GetCursorPos(pt);
     Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
     SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
-    Inst.cmd(icFloat, 1);
+    Inst.cmd(icUndock, 1);
   end;
   Delete(false);
   dockh.Undock(wnd);

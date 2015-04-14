@@ -6,7 +6,7 @@ object frmmain: Tfrmmain
   AllowDropFiles = True
   BorderIcons = []
   BorderStyle = bsNone
-  Caption = 'TerryForm'
+  Caption = 'TDockForm'
   Color = clBtnFace
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,7 +17,7 @@ object frmmain: Tfrmmain
   OnMouseUp = FormMouseUp
   LCLVersion = '1.2.4.0'
   object trayicon: TTrayIcon
-    Hint = 'Terry'
+    Hint = 'TDock'
     Visible = True
     OnMouseUp = trayiconMouseUp
     left = 10

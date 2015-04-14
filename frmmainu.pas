@@ -200,8 +200,28 @@ begin
 
     // create ItemManager (disabled, not visible) //
     AddLog('Init.ItemManager');
-    ItemMgr := _ItemManager.Create(false, false, Handle, BaseCmd);
-    ApplyParams;
+    ItemMgr := _ItemManager.Create(false, false, Handle, BaseCmd,
+      sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
+      sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomItems,
+      sets.container.Reflection, sets.container.ReflectionSize, sets.container.LaunchInterval,
+      sets.container.ItemAnimation, sets.container.SeparatorAlpha,
+      sets.container.ActivateRunning, sets.container.UseShellContextMenus, sets.container.LockDragging,
+      sets.container.StackOpenAnimation,
+      sets.container.TaskLivePreviews, sets.container.TaskGrouping,
+      sets.container.TaskThumbSize, sets.container.TaskSpot,
+      sets.container.ShowHint, sets.container.Font);
+    //ApplyParams;
+    SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
+    SetParam(gpSite, integer(sets.container.site));
+    SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
+    SetParam(gpEdgeOffset, sets.container.EdgeOffset);
+    SetParam(gpAutoHide, integer(sets.container.AutoHide));
+    SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
+    SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
+    SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
+    SetParam(gpMonitor, sets.container.Monitor);
+    SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
+    BaseCmd(tcThemeChanged, 0);
 
     // load items //
     AddLog('Init.LoadItems');
@@ -267,7 +287,18 @@ begin
     DropMgr.OnDragLeave := OnDragLeave;
 
     // apply the theme to do the full repaint //
-    ApplyParams;
+    //ApplyParams;
+    SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
+    SetParam(gpSite, integer(sets.container.site));
+    SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
+    SetParam(gpEdgeOffset, sets.container.EdgeOffset);
+    SetParam(gpAutoHide, integer(sets.container.AutoHide));
+    SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
+    SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
+    SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
+    SetParam(gpMonitor, sets.container.Monitor);
+    SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
+    BaseCmd(tcThemeChanged, 0);
     //BaseCmd(tcThemeChanged, 0);
 
     // 'RollDown' on startup if set so //
@@ -414,6 +445,7 @@ begin
     ItemMgr.SetParam(gpTaskLivePreviews, integer(sets.container.TaskLivePreviews));
     ItemMgr.SetParam(gpTaskThumbSize, sets.container.TaskThumbSize);
     ItemMgr.SetParam(gpTaskGrouping, integer(sets.container.TaskGrouping));
+    ItemMgr.SetParam(gpTaskSpot, sets.container.TaskSpot);
     ItemMgr.SetParam(gpSeparatorAlpha, sets.container.SeparatorAlpha);
 
     ItemMgr.SetFont(sets.container.Font);
@@ -473,17 +505,17 @@ begin
         ItemMgr.ItemsArea2 := theme.CorrectMargins(theme.ItemsArea2);
         ItemMgr.Margin := theme.Margin;
         ItemMgr.Margin2 := theme.Margin2;
-        ItemMgr.MonitorRect := GetMonitorBoundsRect;
+        ItemMgr.FMonitorRect := GetMonitorBoundsRect;
         case sets.container.Site of
           bsLeft, bsRight:
             begin
-              ItemMgr.MonitorRect.Top += sets.container.StartOffset;
-              ItemMgr.MonitorRect.Bottom -= sets.container.EndOffset;
+              ItemMgr.FMonitorRect.Top += sets.container.StartOffset;
+              ItemMgr.FMonitorRect.Bottom -= sets.container.EndOffset;
             end;
           bsTop, bsBottom:
             begin
-              ItemMgr.MonitorRect.Left += sets.container.StartOffset;
-              ItemMgr.MonitorRect.Right -= sets.container.EndOffset;
+              ItemMgr.FMonitorRect.Left += sets.container.StartOffset;
+              ItemMgr.FMonitorRect.Right -= sets.container.EndOffset;
             end;
         end;
         ItemMgr.SetTheme;
@@ -506,12 +538,14 @@ end;
 // e.g. ItemManager and all items                                             //
 procedure Tfrmmain.SetParam(id: TGParam; value: integer);
 begin
+  // take some actions prior to changing anything //
   case id of
     gpMonitor, gpSite: UnreserveScreenEdge(sets.container.Site);
   end;
 
   value := sets.StoreParam(id, value);
 
+  // take some actions prior to notifying ItemMgr //
   case id of
     gpMonitor:
       begin
@@ -540,7 +574,7 @@ begin
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
 
-  // placed after ItemMgr because WHMouseMove locked while mouse is locked //
+  // take some actions after notifying ItemMgr //
   case id of
     gpLockMouseEffect: WHMouseMove(0);
     gpOccupyFullMonitor, gpStartOffset, gpEndOffset: BaseCmd(tcThemeChanged, 0);
@@ -621,20 +655,20 @@ begin
 
       // detect mouse enter/leave //
       OldMouseOver := MouseOver;
-      mon_rect := ItemMgr.MonitorRect;
+      mon_rect := ItemMgr.FMonitorRect;
       if sets.container.site = bsBottom then
         MouseOver := (pt.y >= mon_rect.Bottom - 1) and
-          (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
+          (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
       else if sets.container.site = bsTop then
         MouseOver := (pt.y <= mon_rect.Top) and
-          (pt.x >= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X) and (pt.x <= ItemMgr.BaseWindowRect.X + ItemMgr.BaseImageRect.X + ItemMgr.BaseImageRect.Width)
+          (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
       else if sets.container.site = bsLeft then
         MouseOver := (pt.x <= mon_rect.Left) and
-          (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height)
+          (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height)
       else if sets.container.site = bsRight then
         MouseOver := (pt.x >= mon_rect.Right - 1) and
-          (pt.y >= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y) and (pt.y <= ItemMgr.BaseWindowRect.Y + ItemMgr.BaseImageRect.Y + ItemMgr.BaseImageRect.Height);
-      MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.DraggingItem;
+          (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height);
+      MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
 
       if MouseOver and not OldMouseOver then MouseEnter;
       if not MouseOver and OldMouseOver then MouseLeave;
@@ -962,11 +996,11 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RollDown;
 begin
-  if ItemMgr.DraggingItem or ItemMgr.DraggingFile then exit;
+  if ItemMgr.FDraggingItem or ItemMgr.FDraggingFile then exit;
   if sets.container.AutoHide and not IsHiddenDown then
   begin
-    if sets.getBaseOrientation = boVertical then wndOffsetTarget := ItemMgr.BaseWindowRect.Width - sets.container.AutoHidePixels
-    else wndOffsetTarget := ItemMgr.BaseWindowRect.Height - sets.container.AutoHidePixels;
+    if sets.getBaseOrientation = boVertical then wndOffsetTarget := ItemMgr.FBaseWindowRect.Width - sets.container.AutoHidePixels
+    else wndOffsetTarget := ItemMgr.FBaseWindowRect.Height - sets.container.AutoHidePixels;
     if wndOffsetTarget < 0 then wndOffsetTarget := 0;
   end;
 end;
@@ -1153,30 +1187,30 @@ begin
     bmp.dc := 0;
     RepaintBase := flags and 1 = 1;
 
-    if (ItemMgr.BaseImageRect.X <> OldBaseImageRect.X) or
-      (ItemMgr.BaseImageRect.Y <> OldBaseImageRect.Y) or
-      (ItemMgr.BaseImageRect.Width <> OldBaseImageRect.Width) or
-      (ItemMgr.BaseImageRect.Height <> OldBaseImageRect.Height) then
+    if (ItemMgr.FBaseImageRect.X <> OldBaseImageRect.X) or
+      (ItemMgr.FBaseImageRect.Y <> OldBaseImageRect.Y) or
+      (ItemMgr.FBaseImageRect.Width <> OldBaseImageRect.Width) or
+      (ItemMgr.FBaseImageRect.Height <> OldBaseImageRect.Height) then
     begin
       RepaintBase := True;
-      OldBaseImageRect := ItemMgr.BaseImageRect;
+      OldBaseImageRect := ItemMgr.FBaseImageRect;
     end;
-    if (ItemMgr.BaseWindowRect.X <> OldBaseWindowRect.X) or
-      (ItemMgr.BaseWindowRect.Y <> OldBaseWindowRect.Y) or
-      (ItemMgr.BaseWindowRect.Width <> OldBaseWindowRect.Width) or
-      (ItemMgr.BaseWindowRect.Height <> OldBaseWindowRect.Height) then
+    if (ItemMgr.FBaseWindowRect.X <> OldBaseWindowRect.X) or
+      (ItemMgr.FBaseWindowRect.Y <> OldBaseWindowRect.Y) or
+      (ItemMgr.FBaseWindowRect.Width <> OldBaseWindowRect.Width) or
+      (ItemMgr.FBaseWindowRect.Height <> OldBaseWindowRect.Height) then
     begin
       RepaintBase := True;
-      OldBaseWindowRect := ItemMgr.BaseWindowRect;
+      OldBaseWindowRect := ItemMgr.FBaseWindowRect;
     end;
 
     if RepaintBase then
     try
       // prepare a bitmap //
-      bmp.topleft.x := ItemMgr.BaseWindowRect.x;
-      bmp.topleft.y := ItemMgr.BaseWindowRect.y;
-      bmp.Width := ItemMgr.BaseWindowRect.Width;
-      bmp.Height := ItemMgr.BaseWindowRect.Height;
+      bmp.topleft.x := ItemMgr.FBaseWindowRect.x;
+      bmp.topleft.y := ItemMgr.FBaseWindowRect.y;
+      bmp.Width := ItemMgr.FBaseWindowRect.Width;
+      bmp.Height := ItemMgr.FBaseWindowRect.Height;
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       hgdip := gfx.CreateGraphics(bmp.dc);
       if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
@@ -1186,9 +1220,9 @@ begin
       GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
       // workaround to eliminate rumble on certain backgrounds while dragging a file //
-      if ItemMgr.DraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
+      if ItemMgr.FDraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
       // draw dock background image //
-      Theme.DrawBackground(hgdip, ItemMgr.BaseImageRect, sets.container.BaseAlpha);
+      Theme.DrawBackground(hgdip, ItemMgr.FBaseImageRect, sets.container.BaseAlpha);
       // update dock window //
       UpdateLWindow(handle, bmp, 255);
 
@@ -1196,7 +1230,7 @@ begin
       if dwm.CompositionEnabled and sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
-        rgn := Theme.GetBackgroundRgn(ItemMgr.BaseImageRect);
+        rgn := Theme.GetBackgroundRgn(ItemMgr.FBaseImageRect);
         if rgn <> 0 then DWM.EnableBlurBehindWindow(handle, rgn);
         DeleteObject(rgn);
       end
@@ -1243,7 +1277,7 @@ procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer)
 var
   monitor: cardinal;
 begin
-  if not closing and not IsHiddenDown and not ItemMgr.DraggingFile and not ItemMgr.DraggingItem then
+  if not closing and not IsHiddenDown and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
   begin
     if InitDone and not assigned(AHint) then AHint := _Hint.Create;
     if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
@@ -1418,7 +1452,7 @@ begin
     if Edge = bsLeft then
     begin
       if sets.container.AutoHide then Position := 0
-      else Position := ItemMgr.BaseWindowRect.Width * Percent div 100;
+      else Position := ItemMgr.FBaseWindowRect.Width * Percent div 100;
       if WorkArea.Left <> Position then
       begin
         WorkArea.Left := Position;
@@ -1429,7 +1463,7 @@ begin
     if Edge = bsTop then
     begin
       if sets.container.AutoHide then Position := 0
-      else Position := ItemMgr.BaseWindowRect.Height * Percent div 100;
+      else Position := ItemMgr.FBaseWindowRect.Height * Percent div 100;
       if WorkArea.Top <> Position then
       begin
         WorkArea.Top := Position;
@@ -1440,7 +1474,7 @@ begin
     if Edge = bsRight then
     begin
       if sets.container.AutoHide then Position := Bounds.Right
-      else Position := Bounds.Right - ItemMgr.BaseWindowRect.Width * Percent div 100;
+      else Position := Bounds.Right - ItemMgr.FBaseWindowRect.Width * Percent div 100;
       if WorkArea.Right <> Position then
       begin
         WorkArea.Right := Position;
@@ -1451,7 +1485,7 @@ begin
     if Edge = bsBottom then
     begin
       if sets.container.AutoHide then Position := Bounds.Bottom
-      else Position := Bounds.Bottom - ItemMgr.BaseWindowRect.Height * Percent div 100;
+      else Position := Bounds.Bottom - ItemMgr.FBaseWindowRect.Height * Percent div 100;
       if WorkArea.Bottom <> Position then
       begin
         WorkArea.Bottom := Position;
@@ -1707,7 +1741,7 @@ var
   cls: array [0..10] of char;
 begin
   result := false;
-  rMonitor := ItemMgr.MonitorRect;
+  rMonitor := ItemMgr.FMonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
@@ -1735,7 +1769,7 @@ var
   cls: array [0..MAX_PATH - 1] of char;
 begin
   result := '';
-  rMonitor := ItemMgr.MonitorRect;
+  rMonitor := ItemMgr.FMonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
@@ -1877,6 +1911,15 @@ begin
       if str1 <> '' then setTheme(str1);
     end;
   end
+  else if cmd = 'taskspot' then
+  begin
+    if assigned(ItemMgr) then
+    begin
+      i := ItemMgr.ItemIndex(hwnd);
+      if i = ItemMgr.FItemCount - 1 then i := -1;
+      SetParam(gpTaskSpot, i);
+    end;
+  end
   else if cmd = 'autotray' then Tray.SwitchAutoTray
   else if cmd = 'themeeditor' then TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
@@ -1894,7 +1937,7 @@ begin
   end
   else if cmd = 'regp' then
   begin
-    for i := 0 to ItemMgr.FRegisteredPrograms.Count - 1 do notify(ItemMgr.FRegisteredPrograms.Strings[i]);
+    for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);
   end
   else if cmd = 'setdisplaymode' then
   begin

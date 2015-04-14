@@ -1,7 +1,7 @@
 unit dwm_unit;
 
 interface
-uses windows, math;
+uses windows, sysutils, math;
 
 const
   WM_DWMCOMPOSITIONCHANGED       = $031E;
@@ -261,11 +261,15 @@ var
   dstRatio, srcRatio: single;
 begin
   result := false;
+  try
   if CompositionEnabled then
   begin
       DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
-      dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
-      srcRatio := Size.cx / Size.cy;
+      dstRatio := 1;
+      if destRect.Bottom > destRect.Top then
+        dstRatio := (destRect.Right - destRect.Left) / (destRect.Bottom - destRect.Top);
+      srcRatio := 1;
+      if Size.cy > 0 then srcRatio := Size.cx / Size.cy;
       if srcRatio < dstRatio then
       begin
         ThumbW := round((destRect.Bottom - destRect.Top) * srcRatio);
@@ -287,6 +291,9 @@ begin
 		  dskThumbProps.rcDestination := destRect;
 		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
       result := SUCCEEDED(hr);
+  end;
+  except
+    on e: Exception do raise Exception.Create('DWMHelper.SetThumbnailRect'#13#10 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

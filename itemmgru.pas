@@ -24,38 +24,39 @@ type
 
   _ItemManager = class
   private
-    ItemSize: integer;
-    BigItemSize: integer;
-    ZoomWidth: integer;
-    ItemSpacing: integer;
-    ZoomItems: boolean; // enables zoom //
-    ZoomTime: integer;
+    FItemSize: integer;
+    FBigItemSize: integer;
+    FZoomWidth: integer;
+    FItemSpacing: integer;
+    FZoomItems: boolean; // enables zoom //
+    FZoomTime: integer;
     ZoomStartTime: integer; // timestamp when zoming in or out has begun
-    Reflection: boolean;
-    ReflectionSize: integer;
-    ItemAnimation: integer;
-    LaunchInterval: integer;
-    ActivateRunning: boolean;
-    UseShellContextMenus: boolean;
-    ShowHint: boolean;
-    StackOpenAnimation: boolean;
+    FReflection: boolean;
+    FReflectionSize: integer;
+    FItemAnimation: integer;
+    FLaunchInterval: integer;
+    FActivateRunning: boolean;
+    FUseShellContextMenus: boolean;
+    FShowHint: boolean;
+    FStackOpenAnimation: boolean;
     FSeparatorAlpha: integer;
     FOccupyFullMonitor: boolean;
     FFont: _FontData;
-    LockMouseEffect: boolean;
-    SetsFilename: string;
+    FLockMouseEffect: boolean;
+    FSetsFilename: string;
     FVisible: boolean;
-    Enabled: boolean;
+    FEnabled: boolean;
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
+    FTaskSpot: integer;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
     ZoomItemSizeDiff: integer;
     // monitor index //
-    Monitor: integer;
-    BaseSite: TBaseSite;
-    BaseSiteVertical: boolean;
+    FMonitor: integer;
+    FSite: TBaseSite;
+    FSiteVertical: boolean;
     FCenterOffsetPercent: integer;
     FEdgeOffset: integer;
     FWndOffset: integer;
@@ -83,16 +84,15 @@ type
     function ItemRectFromPoint(Ax, Ay: integer): integer;
 
     // items //
-    function ItemIndex(HWnd: HANDLE): integer;
-    function ItemHWnd(index: integer): HANDLE;
     function AddItem(data: string; Update: boolean = false): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
   public
-    items: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
-    ItemCount: integer;
-    HoverItemHWnd: THandle; // handle of the item over which the mouse is //
-    SelectedItemHWnd: THandle;
-    itemsDeleted: TFPList;
+    FItemArray: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
+    FItemCount: integer;
+    FHoverItemHWnd: THandle; // handle of the item over which the mouse is //
+    FSelectedItemHWnd: THandle;
+    _itemsDeleted: TFPList;
+    _registeredPrograms: TStrings;
     // pos/size of ItemManager //
     x: integer;
     y: integer;
@@ -100,22 +100,20 @@ type
     height: integer;
     widthZoomed: integer;
     heightZoomed: integer;
-    MonitorRect: Windows.TRect;
-    BaseWindowRect: GDIPAPI.TRect; // rect of the dock main window. updated on every RecalcDock //
-    BaseImageRect: GDIPAPI.TRect; // rect of the dock image. updated on every RecalcDock //
-    ZoomInOutItem: extended; // relative mouse position on last WHMouseMove //
-    Zooming: boolean; // true if mouse is over the panel and any items are zoomed //
-    DropDistance: integer;
-    LockDragging: boolean;
-    DraggingItem: boolean; // indicates that item is being dragged //
-    DragHWnd: THandle; // handle of the item that is being dragged //
-    DraggingFile: boolean; // indicates that file is being dragged //
-    DropPlace: integer; // index of free space //
-    DropPlaceEx: integer; // index of a place to drop to //
-    ParentHWnd: cardinal;
-    BaseCmd: TBaseCmd;
-    //
-    FRegisteredPrograms: TStrings;
+    FMonitorRect: Windows.TRect;
+    FBaseWindowRect: GDIPAPI.TRect; // rect of the dock main window. updated on every RecalcDock //
+    FBaseImageRect: GDIPAPI.TRect; // rect of the dock image. updated on every RecalcDock //
+    _ZoomInOutItem: extended; // relative mouse position on last WHMouseMove //
+    FZooming: boolean; // true if mouse is over the panel and any items are zoomed //
+    FDropDistance: integer;
+    FLockDragging: boolean;
+    FDraggingItem: boolean; // indicates that item is being dragged //
+    FDragHWnd: THandle; // handle of the item that is being dragged //
+    FDraggingFile: boolean; // indicates that file is being dragged //
+    FDropPlace: integer; // index of free space //
+    FDropPlaceEx: integer; // index of a place to drop to //
+    FParentHWnd: cardinal;
+    FBaseCmd: TBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;
     property ItemsArea: windows.TRect read FItemsArea write FItemsArea;
@@ -124,7 +122,13 @@ type
     property Margin2: integer read FMargin2 write FMargin2;
     property WndOffset: integer read FWndOffset write FWndOffset;
 
-    constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
+    constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
+      ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
+      ZoomItems, Reflection: boolean;
+      ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
+      ActivateRunning, UseShellContextMenus, LockDragging, StackOpenAnimation: boolean;
+      TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      ShowHint: boolean; Font: _FontData);
     destructor Destroy; override;
     procedure Enable(value: boolean);
     procedure SetParam(id: TGParam; value: integer);
@@ -145,6 +149,8 @@ type
     procedure ClearTaskbar;
 
     // items //
+    function ItemIndex(HWnd: HANDLE): integer;
+    function ItemHWnd(index: integer): HANDLE;
     procedure Clear;
     procedure ClearDeleted;
     procedure UnDelete;
@@ -192,53 +198,77 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd);
+constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
+      ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
+      ZoomItems, Reflection: boolean;
+      ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
+      ActivateRunning, UseShellContextMenus, LockDragging, StackOpenAnimation: boolean;
+      TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      ShowHint: boolean; Font: _FontData);
 begin
   inherited Create;
-  Enabled := AEnabled;
+
+  // creation parameters
+  FEnabled := AEnabled;
   FVisible := AVisible;
-  ParentHWnd := Handle;
-  BaseCmd := ABaseCmd;
-  ItemCount := 0;
-  Zooming := false;
-  ZoomItems := false;
-  ItemSize := 40;
-  BigItemSize := 90;
-  ZoomWidth := 6;
-  ZoomTime := 120;
+  FParentHWnd := Handle;
+  FBaseCmd := ABaseCmd;
+  FItemSize := ItemSize;
+  FBigItemSize := BigItemSize;
+  FZoomWidth := ZoomWidth;
+  FZoomTime := ZoomTime;
+  FItemSpacing := ItemSpacing;
+  FZoomItems := ZoomItems;
+  FReflection := Reflection;
+  FReflectionSize := ReflectionSize;
+  FLaunchInterval := LaunchInterval;
+  FItemAnimation := ItemAnimation;
+  FSeparatorAlpha := SeparatorAlpha;
+  FActivateRunning := ActivateRunning;
+  FUseShellContextMenus := UseShellContextMenus;
+  FLockDragging := LockDragging;
+  FStackOpenAnimation := StackOpenAnimation;
+  FTaskLivePreviews := TaskLivePreviews;
+  FTaskGrouping := TaskGrouping;
+  FTaskThumbSize := TaskThumbSize;
+  FTaskSpot := TaskSpot;
+  FShowHint := ShowHint;
+  CopyFontData(Font, FFont);
+
+  // init
+  FItemCount := 0;
+  FZooming := false;
   ZoomItemSizeDiff := 0;
-  Reflection := false;
-  Monitor := 0;
-  DropDistance := 80;
-  DropPlace := NOT_AN_ITEM;
-  DropPlaceEx := NOT_AN_ITEM;
-  LockDragging := false;
-  HoverItemHWnd := 0;
-  SelectedItemHWnd := 0;
-  DraggingItem := false;
-  DragHWnd := 0;
-  DraggingFile := false;
-  LockMouseEffect := false;
+  FMonitor := 0;
+  FDropDistance := 80;
+  FDropPlace := NOT_AN_ITEM;
+  FDropPlaceEx := NOT_AN_ITEM;
+  FHoverItemHWnd := 0;
+  FSelectedItemHWnd := 0;
+  FDraggingItem := false;
+  FDragHWnd := 0;
+  FDraggingFile := false;
+  FLockMouseEffect := false;
   FCenterOffsetPercent := 50;
   FEdgeOffset := 0;
   FWndOffset := 0;
-  itemsDeleted := TFPList.Create;
-  FRegisteredPrograms := TStringList.Create;
+  _itemsDeleted := TFPList.Create;
+  _registeredPrograms := TStringList.Create;
 end;
 //------------------------------------------------------------------------------
 destructor _ItemManager.Destroy;
 begin
-  Enabled := false;
+  FEnabled := false;
   Clear;
   ClearDeleted;
-  itemsDeleted.Free;
-  FRegisteredPrograms.free;
+  _itemsDeleted.Free;
+  _registeredPrograms.free;
   inherited;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.Enable(value: boolean);
 begin
-  Enabled := value;
+  FEnabled := value;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.err(where: string; e: Exception; Critical: boolean = false);
@@ -246,7 +276,7 @@ begin
   if assigned(e) then where := where + ' '#10#13 + e.Message else where := where + ' '#10#13'Error';
   if Critical then
   begin
-    messagebox(ParentHWnd,
+    messagebox(FParentHWnd,
       pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + #10#13#10#13 + where),
       PROGRAM_NAME, MB_ICONERROR);
     halt;
@@ -267,35 +297,35 @@ begin
     case id of
       gpItemSize:
         begin
-          ItemSize := value;
+          FItemSize := value;
           ItemsChanged(true);
         end;
-      gpBigItemSize:            BigItemSize := value;
+      gpBigItemSize:            FBigItemSize := value;
       gpZoomWidth:
         begin
-          ZoomWidth := value;
+          FZoomWidth := value;
           WHMouseMove(classes.point(-100, -100));
         end;
       gpItemSpacing:
         begin
-          ItemSpacing := value;
+          FItemSpacing := value;
           ItemsChanged(true);
         end;
       gpZoomItems:
         begin
-          ZoomItems := boolean(value);
+          FZoomItems := boolean(value);
           ItemsChanged(true);
         end;
       gpMonitor:
         begin
-          Monitor := value;
+          FMonitor := value;
           ItemsChanged(true);
           Unzoom(true);
         end;
       gpSite:
         begin
-          BaseSite := TBaseSite(value);
-          BaseSiteVertical := (BaseSite = bsLeft) or (BaseSite = bsRight);
+          FSite := TBaseSite(value);
+          FSiteVertical := (FSite = bsLeft) or (FSite = bsRight);
           ItemsChanged(true);
           Unzoom(true);
         end;
@@ -309,14 +339,14 @@ begin
           FEdgeOffset := value;
           ItemsChanged;
         end;
-      gpDropDistance:           DropDistance := value;
-      gpLockDragging:           LockDragging := boolean(value);
+      gpDropDistance:           FDropDistance := value;
+      gpLockDragging:           FLockDragging := boolean(value);
       gpReflection:
         begin
-          Reflection := boolean(value);
+          FReflection := boolean(value);
           ItemsChanged(true);
         end;
-      gpReflectionSize:         ReflectionSize := value;
+      gpReflectionSize:         FReflectionSize := value;
       gpTaskbar:                if value = 0 then ClearTaskbar;
       gpTaskLivePreviews:
         begin
@@ -329,14 +359,14 @@ begin
           ClearTaskbar;
           FTaskGrouping := value <> 0;
         end;
-      gpItemAnimation:          ItemAnimation := value;
-      gpLaunchInterval:         LaunchInterval := value;
-      gpActivateRunning:        ActivateRunning := value <> 0;
-      gpUseShellContextMenus:   UseShellContextMenus := value <> 0;
-      gpShowHint:               ShowHint := value <> 0;
-      gpStackOpenAnimation:     StackOpenAnimation := value <> 0;
-      gpZoomTime:               ZoomTime := value;
-      gpLockMouseEffect:        LockMouseEffect := value <> 0;
+      gpItemAnimation:          FItemAnimation := value;
+      gpLaunchInterval:         FLaunchInterval := value;
+      gpActivateRunning:        FActivateRunning := value <> 0;
+      gpUseShellContextMenus:   FUseShellContextMenus := value <> 0;
+      gpShowHint:               FShowHint := value <> 0;
+      gpStackOpenAnimation:     FStackOpenAnimation := value <> 0;
+      gpZoomTime:               FZoomTime := value;
+      gpLockMouseEffect:        FLockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
       gpOccupyFullMonitor:      FOccupyFullMonitor := value <> 0;
     end;
@@ -349,7 +379,7 @@ procedure _ItemManager.command(cmd, params: string);
 var
   data: string;
 begin
-  if Enabled then
+  if FEnabled then
   try
     if cmd = 'clear' then Clear;
     if cmd = 'load' then
@@ -372,7 +402,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DoBaseDraw(flags: integer);
 begin
-  if assigned(BaseCmd) then BaseCmd(tcRepaintBase, flags);
+  if assigned(FBaseCmd) then FBaseCmd(tcRepaintBase, flags);
 end;
 //------------------------------------------------------------------------------
 //
@@ -392,20 +422,20 @@ var
   stack: TStackItem;
 begin
   if fsets = '' then exit;
-  DraggingItem := false;
-  DraggingFile := false;
-  DragHWnd := 0;
+  FDraggingItem := false;
+  FDraggingFile := false;
+  FDragHWnd := 0;
 
   try
-    SetsFilename := fsets;
-    ini := TIniFile.Create(SetsFilename);
+    FSetsFilename := fsets;
+    ini := TIniFile.Create(FSetsFilename);
     list := TStringList.Create;
     ini.ReadSections(list);
   except
     on e: Exception do err('ItemManager.Load.ReadIni', e, true);
   end;
 
-  // read items //
+  // read FItemArray //
   try
     idx := 0;
     while idx < list.count do
@@ -413,7 +443,7 @@ begin
       if pos('item', list.strings[idx]) = 1 then
       begin
         cls_name := ini.ReadString(list.strings[idx], 'class', 'shortcut');
-        data := 'class="' + cls_name + '";inifile="' + SetsFilename + '";inisection="' + list.strings[idx] + '";';
+        data := 'class="' + cls_name + '";inifile="' + FSetsFilename + '";inisection="' + list.strings[idx] + '";';
         AddItem(data, false);
       end;
       inc(idx);
@@ -423,13 +453,13 @@ begin
     on e: Exception do err('ItemManager.Load.ReadItems', e, true);
   end;
 
-  // create default items if nothing loaded //
+  // create default FItemArray if nothing loaded //
   try
-    if ItemCount = 0 then
+    if FItemCount = 0 then
     begin
       // "end session" stack //
       AddItem(TStackItem.Make(0, 'End session', ''));
-      stack := TStackItem(GetWindowLong(items[ItemCount - 1].h, GWL_USERDATA));
+      stack := TStackItem(GetWindowLong(FItemArray[FItemCount - 1].h, GWL_USERDATA));
       if stack is TStackItem then
       begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\default\shutdown.png'));
@@ -437,7 +467,7 @@ begin
         stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
       end;
-      // basic items //
+      // basic FItemArray //
       AddItem(TShortcutItem.Make(0, UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png'));
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
@@ -461,7 +491,7 @@ end;
 procedure _ItemManager.Save(fsets: string);
 begin
   try
-    if fsets <> '' then SetsFilename := toolu.UnzipPath(fsets);
+    if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
     AllItemsSave;
   except
     on e: Exception do err('ItemManager.Save', e);
@@ -472,11 +502,11 @@ procedure _ItemManager.AllItemsSave;
 var
   idx: integer;
 begin
-  if Enabled and (ItemCount > 0) then
+  if FEnabled and (FItemCount > 0) then
   try
-    for idx := 0 to ItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      if items[idx].h <> 0 then TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA)).Save(pchar(SetsFilename), pchar('item' + inttostr(idx + 1)));
+      if FItemArray[idx].h <> 0 then TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
     end;
   except
     on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + #10#13 + e.message);
@@ -491,7 +521,7 @@ begin
   try
     index := ItemIndex(HWnd);
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.Save(pchar(SetsFilename), pchar('item' + inttostr(index + 1)));
+    if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
   except
     on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + #10#13 + e.message);
   end;
@@ -511,16 +541,16 @@ var
   idx: integer;
   Inst: TCustomItem;
 begin
-  if ItemCount > 0 then
+  if FItemCount > 0 then
   try
-    for idx := 0 to ItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
       Inst.Freed := true;
       FreeAndNil(Inst);
-      items[idx].h := 0;
+      FItemArray[idx].h := 0;
     end;
-    ItemCount := 0;
+    FItemCount := 0;
   except
     on e: Exception do err('ItemManager.Clear', e);
   end;
@@ -532,18 +562,18 @@ var
   idx: integer;
   Inst: TCustomItem;
 begin
-  if itemsDeleted.Count > 0 then
+  if _itemsDeleted.Count > 0 then
   try
-    for idx := 0 to itemsDeleted.Count - 1 do
+    for idx := 0 to _itemsDeleted.Count - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(THandle(itemsDeleted.Items[idx]), GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
       if Inst is TCustomItem then
       begin
         Inst.Freed := true;
         FreeAndNil(Inst);
       end;
     end;
-    itemsDeleted.Clear;
+    _itemsDeleted.Clear;
   except
     on e: Exception do err('ItemManager.ClearDeleted', e);
   end;
@@ -556,10 +586,10 @@ begin
     CheckDeleted;
 
     // restore most recent deleted item //
-    if itemsDeleted.Count > 0 then
+    if _itemsDeleted.Count > 0 then
     begin
-      DockAdd(THandle(itemsDeleted.Items[itemsDeleted.Count - 1]));
-      itemsDeleted.Delete(itemsDeleted.Count - 1);
+      DockAdd(THandle(_itemsDeleted.Items[_itemsDeleted.Count - 1]));
+      _itemsDeleted.Delete(_itemsDeleted.Count - 1);
       ItemsChanged;
     end;
   except
@@ -575,16 +605,16 @@ var
   Inst: TCustomItem;
 begin
   try
-    // clear task items //
-    if itemsDeleted.Count > 0 then
-      for idx := itemsDeleted.Count - 1 downto 0 do
+    // clear task FItemArray //
+    if _itemsDeleted.Count > 0 then
+      for idx := _itemsDeleted.Count - 1 downto 0 do
       begin
-        h := THandle(itemsDeleted.Items[idx]);
+        h := THandle(_itemsDeleted.Items[idx]);
         Inst := TCustomItem(GetWindowLong(h, GWL_USERDATA));
         if Inst is TTaskItem then
         begin
           FreeAndNil(Inst);
-          itemsDeleted.Delete(idx);
+          _itemsDeleted.Delete(idx);
         end;
       end;
   except
@@ -598,11 +628,11 @@ var
 begin
   try
     result := NOT_AN_ITEM;
-    if (HWnd = 0) or (ItemCount <= 0) then exit;
+    if (HWnd = 0) or (FItemCount <= 0) then exit;
 
-    for idx := 0 to ItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      if items[idx].h = HWnd then
+      if FItemArray[idx].h = HWnd then
       begin
         result := idx;
         break;
@@ -616,7 +646,7 @@ end;
 function _ItemManager.ItemHWnd(index: integer): HANDLE;
 begin
   result := 0;
-  if (index >= 0) and (index < ItemCount) then result := items[index].h;
+  if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
 end;
 //------------------------------------------------------------------------------
 function _ItemManager.ZOrder(InsertAfter: uint): uint;
@@ -624,11 +654,11 @@ var
   idx: integer;
 begin
   result := 0;
-  if Enabled then
+  if FEnabled then
   try
-    if ItemCount > 0 then result := ItemHWnd(0);
+    if FItemCount > 0 then result := ItemHWnd(0);
     idx := 0;
-    while idx < ItemCount do
+    while idx < FItemCount do
     begin
       SetWindowPos(ItemHWnd(idx), InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
       inc(idx);
@@ -645,26 +675,26 @@ var
   item: integer;
   Inst: TCustomItem;
 begin
-  if not Enabled then exit;
+  if not FEnabled then exit;
   doUpdate := false;
 
   // zoom in/out smoothly //
-  if ZoomItems or (ZoomItemSizeDiff > 0) then
+  if FZoomItems or (ZoomItemSizeDiff > 0) then
   try
-      if Zooming and (ZoomItemSizeDiff < BigItemSize - ItemSize) then
+      if FZooming and (ZoomItemSizeDiff < FBigItemSize - FItemSize) then
       begin
         doUpdate := true;
         elapsed := abs(GetTickCount - ZoomStartTime);
-        if elapsed > ZoomTime then elapsed := ZoomTime;
-        ZoomItemSizeDiff := (BigItemSize - ItemSize) * elapsed div ZoomTime;
+        if elapsed > FZoomTime then elapsed := FZoomTime;
+        ZoomItemSizeDiff := (FBigItemSize - FItemSize) * elapsed div FZoomTime;
       end;
 
-      if not Zooming and (ZoomItemSizeDiff > 0) then
+      if not FZooming and (ZoomItemSizeDiff > 0) then
       begin
         doUpdate := true;
         elapsed := abs(GetTickCount - ZoomStartTime);
-        if elapsed > ZoomTime then elapsed := ZoomTime;
-        ZoomItemSizeDiff := BigItemSize - ItemSize - (BigItemSize - ItemSize) * elapsed div ZoomTime;
+        if elapsed > FZoomTime then elapsed := FZoomTime;
+        ZoomItemSizeDiff := FBigItemSize - FItemSize - (FBigItemSize - FItemSize) * elapsed div FZoomTime;
       end;
   except
     on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
@@ -672,9 +702,9 @@ begin
 
   try
     item := 0;
-    while item < ItemCount do
+    while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then Inst.Timer;
       inc(item);
     end;
@@ -693,7 +723,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.ItemsChanged(FullUpdate: boolean = false);
 begin
-  if Enabled then
+  if FEnabled then
   try
     SetItems1;
     RecalcDock;
@@ -711,8 +741,8 @@ begin
     UnZoom(true);
     AllItemCmd(icHover, 0);
     AllItemCmd(icSelect, 0);
-    HoverItemHWnd := 0;
-    SelectedItemHWnd := 0;
+    FHoverItemHWnd := 0;
+    FSelectedItemHWnd := 0;
   end;
   FVisible := value;
   ItemsChanged;
@@ -725,9 +755,9 @@ procedure _ItemManager.SetItems1;
   begin
     result := ZoomItemSizeDiff / 2;
     i := 0.5;
-    while i < ZoomWidth / 2 do
+    while i < FZoomWidth / 2 do
     begin
-      result := result + (ZoomItemSizeDiff - 1) * (cos(PI * i * 2 / ZoomWidth) + 1) / 2;
+      result := result + (ZoomItemSizeDiff - 1) * (cos(PI * i * 2 / FZoomWidth) + 1) / 2;
       i := i + 1;
     end;
   end;
@@ -737,119 +767,119 @@ var
   sizeInc: extended;
   offset: extended;
 begin
-  if not Enabled then exit;
+  if not FEnabled then exit;
 
   try
-    if BaseSiteVertical then
+    if FSiteVertical then
     begin
-      y := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
+      y := FMonitorRect.Top + (FMonitorRect.Bottom - FMonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
     end else begin
-      x := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
+      x := FMonitorRect.Left + (FMonitorRect.Right - FMonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
     end;
 
     // zoomed bubble additional size //
     offset := getHalfBubble;
 
-    // calc items' pos and size //
+    // calc FItemArray' pos and size //
     i := 0;
-    while i < ItemCount do
+    while i < FItemCount do
     begin
       // icon size //
       sizeInc := 0;
       if ZoomItemSizeDiff > 0 then
       begin
-        if (i < trunc(ZoomInOutItem) - ZoomWidth / 2) or (i > trunc(ZoomInOutItem) + ZoomWidth / 2) then sizeInc := 0
-        else if i = trunc(ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
-        else if i < trunc(ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem + 1) / ZoomWidth) + 1) / 2
-        else if i > trunc(ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - ZoomInOutItem) / ZoomWidth) + 1) / 2;
+        if (i < trunc(_ZoomInOutItem) - FZoomWidth / 2) or (i > trunc(_ZoomInOutItem) + FZoomWidth / 2) then sizeInc := 0
+        else if i = trunc(_ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
+        else if i < trunc(_ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - _ZoomInOutItem + 1) / FZoomWidth) + 1) / 2
+        else if i > trunc(_ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - _ZoomInOutItem) / FZoomWidth) + 1) / 2;
       end;
-      items[i].se := ItemSize + sizeInc;
-      items[i].s := round(items[i].se);
+      FItemArray[i].se := FItemSize + sizeInc;
+      FItemArray[i].s := round(FItemArray[i].se);
 
-      // icon position when not zooming //
-      itemPos := ItemSpacing div 2 + i * (ItemSize + ItemSpacing);
-      if BaseSite = bsBottom then
+      // icon position when not FZooming //
+      itemPos := FItemSpacing div 2 + i * (FItemSize + FItemSpacing);
+      if FSite = bsBottom then
       begin
-        items[i].y := MonitorRect.Bottom - items[i].s - FMargin + FWndOffset - FEdgeOffset;
-        if not IsSeparator(items[i].h) then items[i].y -= FMargin2;
-        items[i].x := x + itemPos;
+        FItemArray[i].y := FMonitorRect.Bottom - FItemArray[i].s - FMargin + FWndOffset - FEdgeOffset;
+        if not IsSeparator(FItemArray[i].h) then FItemArray[i].y -= FMargin2;
+        FItemArray[i].x := x + itemPos;
       end
       else
-      if BaseSite = bsTop then
+      if FSite = bsTop then
       begin
-        items[i].y := MonitorRect.Top + FMargin + FEdgeOffset - FWndOffset;
-        if not IsSeparator(items[i].h) then items[i].y += FMargin2;
-        items[i].x := x + itemPos;
+        FItemArray[i].y := FMonitorRect.Top + FMargin + FEdgeOffset - FWndOffset;
+        if not IsSeparator(FItemArray[i].h) then FItemArray[i].y += FMargin2;
+        FItemArray[i].x := x + itemPos;
       end
       else
-      if BaseSite = bsLeft then
+      if FSite = bsLeft then
       begin
-        items[i].x := MonitorRect.Left + FMargin + FEdgeOffset - FWndOffset;
-        if not IsSeparator(items[i].h) then items[i].x += FMargin2;
-        items[i].y := y + itemPos;
+        FItemArray[i].x := FMonitorRect.Left + FMargin + FEdgeOffset - FWndOffset;
+        if not IsSeparator(FItemArray[i].h) then FItemArray[i].x += FMargin2;
+        FItemArray[i].y := y + itemPos;
       end
       else
-      if BaseSite = bsRight then
+      if FSite = bsRight then
       begin
-        items[i].x := MonitorRect.Right - items[i].s - FMargin + FWndOffset - FEdgeOffset;
-        if not IsSeparator(items[i].h) then items[i].x -= FMargin2;
-        items[i].y := y + itemPos;
+        FItemArray[i].x := FMonitorRect.Right - FItemArray[i].s - FMargin + FWndOffset - FEdgeOffset;
+        if not IsSeparator(FItemArray[i].h) then FItemArray[i].x -= FMargin2;
+        FItemArray[i].y := y + itemPos;
       end;
 
-      // icon position when zooming (icons out of bubble and center bubble icon) //
+      // icon position when FZooming (icons out of bubble and center bubble icon) //
       if ZoomItemSizeDiff > 0 then
       begin
-        if BaseSiteVertical then
+        if FSiteVertical then
         begin
-          if i < trunc(ZoomInOutItem) then items[i].ye := items[i].y - offset
-          else if i > trunc(ZoomInOutItem) then items[i].ye := items[i].y + offset
-          else if i = trunc(ZoomInOutItem) then items[i].ye := items[i].y - ZoomItemSizeDiff * frac(ZoomInOutItem);
-          items[i].y := round(items[i].ye);
+          if i < trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - offset
+          else if i > trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y + offset
+          else if i = trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - ZoomItemSizeDiff * frac(_ZoomInOutItem);
+          FItemArray[i].y := round(FItemArray[i].ye);
         end
         else
         begin
-          if i < trunc(ZoomInOutItem) then items[i].xe := items[i].x - offset
-          else if i > trunc(ZoomInOutItem) then items[i].xe := items[i].x + offset
-          else if i = trunc(ZoomInOutItem) then items[i].xe := items[i].x - ZoomItemSizeDiff * frac(ZoomInOutItem);
-          items[i].x := round(items[i].xe);
+          if i < trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - offset
+          else if i > trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x + offset
+          else if i = trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - ZoomItemSizeDiff * frac(_ZoomInOutItem);
+          FItemArray[i].x := round(FItemArray[i].xe);
         end;
       end;
 
       inc(i);
     end;
 
-    // icon position when zooming (within bubble excluding center bubble icon) //
+    // icon position when FZooming (within bubble excluding center bubble icon) //
     if ZoomItemSizeDiff > 0 then
     begin
-      i := trunc(ZoomInOutItem) - 1;
-      while (i > trunc(ZoomInOutItem) - ZoomWidth / 2) and (i >= 0)  do
+      i := trunc(_ZoomInOutItem) - 1;
+      while (i > trunc(_ZoomInOutItem) - FZoomWidth / 2) and (i >= 0)  do
       begin
-        if BaseSiteVertical then
+        if FSiteVertical then
         begin
-          items[i].ye := items[i + 1].ye - items[i].se - ItemSpacing;
-          items[i].y := round(items[i].ye);
+          FItemArray[i].ye := FItemArray[i + 1].ye - FItemArray[i].se - FItemSpacing;
+          FItemArray[i].y := round(FItemArray[i].ye);
         end
         else
         begin
-          items[i].xe := items[i + 1].xe - items[i].se - ItemSpacing;
-          items[i].x := round(items[i].xe);
+          FItemArray[i].xe := FItemArray[i + 1].xe - FItemArray[i].se - FItemSpacing;
+          FItemArray[i].x := round(FItemArray[i].xe);
         end;
         dec(i);
       end;
-      i := trunc(ZoomInOutItem) + 1;
-      while (i <= trunc(ZoomInOutItem) + ZoomWidth / 2) and (i < ItemCount)  do
+      i := trunc(_ZoomInOutItem) + 1;
+      while (i <= trunc(_ZoomInOutItem) + FZoomWidth / 2) and (i < FItemCount)  do
       begin
-        if BaseSiteVertical then
+        if FSiteVertical then
         begin
-          items[i].ye := items[i - 1].ye + items[i - 1].se + ItemSpacing;
-          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].y := items[i].y + ItemSize - items[i].s
-          else items[i].y := round(items[i].ye);
+          FItemArray[i].ye := FItemArray[i - 1].ye + FItemArray[i - 1].se + FItemSpacing;
+          if i = trunc(_ZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].y := FItemArray[i].y + FItemSize - FItemArray[i].s
+          else FItemArray[i].y := round(FItemArray[i].ye);
         end
         else
         begin
-          items[i].xe := items[i - 1].xe + items[i - 1].se + ItemSpacing;
-          if i = trunc(ZoomInOutItem) + ZoomWidth / 2 then items[i].x := items[i].x + ItemSize - items[i].s
-          else items[i].x := round(items[i].xe);
+          FItemArray[i].xe := FItemArray[i - 1].xe + FItemArray[i - 1].se + FItemSpacing;
+          if i = trunc(_ZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].x := FItemArray[i].x + FItemSize - FItemArray[i].s
+          else FItemArray[i].x := round(FItemArray[i].xe);
         end;
         inc(i);
       end;
@@ -862,57 +892,57 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.RecalcDock;
 begin
-  if Enabled then
+  if FEnabled then
   try
     // width if vertical and height if horizontal //
     width := 0;
     height := 0;
     widthZoomed := 0;
     heightZoomed := 0;
-    if BaseSite = bsLeft then
+    if FSite = bsLeft then
     begin
-      width := FItemsArea.Left + FItemsArea2.Left + ItemSize + FItemsArea.Right + FItemsArea2.Right;
-      widthZoomed := max(width, FItemsArea.Left + FItemsArea2.Left + ItemSize + ZoomItemSizeDiff);
+      width := FItemsArea.Left + FItemsArea2.Left + FItemSize + FItemsArea.Right + FItemsArea2.Right;
+      widthZoomed := max(width, FItemsArea.Left + FItemsArea2.Left + FItemSize + ZoomItemSizeDiff);
     end else
-    if BaseSite = bsRight then
+    if FSite = bsRight then
     begin
-      width := FItemsArea.Left + FItemsArea2.Left + ItemSize + FItemsArea.Right + FItemsArea2.Right;
-      widthZoomed := max(width, FItemsArea.Right + FItemsArea2.Right + ItemSize + ZoomItemSizeDiff);
+      width := FItemsArea.Left + FItemsArea2.Left + FItemSize + FItemsArea.Right + FItemsArea2.Right;
+      widthZoomed := max(width, FItemsArea.Right + FItemsArea2.Right + FItemSize + ZoomItemSizeDiff);
     end else
-    if BaseSite = bsTop then
+    if FSite = bsTop then
     begin
-      height := FItemsArea.Top + FItemsArea2.Top + ItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
-      heightZoomed := max(height, FItemsArea.Top + FItemsArea2.Top + ItemSize + ZoomItemSizeDiff);
+      height := FItemsArea.Top + FItemsArea2.Top + FItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
+      heightZoomed := max(height, FItemsArea.Top + FItemsArea2.Top + FItemSize + ZoomItemSizeDiff);
     end else
     begin
-      height := FItemsArea.Top + FItemsArea2.Top + ItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
-      heightZoomed := max(height, FItemsArea.Bottom + FItemsArea2.Bottom + ItemSize + ZoomItemSizeDiff);
+      height := FItemsArea.Top + FItemsArea2.Top + FItemSize + FItemsArea.Bottom + FItemsArea2.Bottom;
+      heightZoomed := max(height, FItemsArea.Bottom + FItemsArea2.Bottom + FItemSize + ZoomItemSizeDiff);
     end;
 
-    // self XY relative to BaseWindowRect //
-    if BaseSiteVertical then
+    // self XY relative to FBaseWindowRect //
+    if FSiteVertical then
     begin
       // x
       x := 0;
-      if BaseSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
+      if FSite = bsLeft then x := FMargin - FItemsArea.Left - FItemsArea2.Left;
       // y, height
       if FOccupyFullMonitor then
       begin
         y := 0;
-        height := MonitorRect.Bottom - MonitorRect.Top;
+        height := FMonitorRect.Bottom - FMonitorRect.Top;
       end else
       begin
-        if ItemCount > 0 then
+        if FItemCount > 0 then
         begin
-          y := items[0].y - ItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - MonitorRect.Top;
-          height := FItemsArea.Top + FItemsArea2.Top + items[ItemCount - 1].y + items[ItemCount - 1].s - items[0].y +
-            ItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
+          y := FItemArray[0].y - FItemSpacing div 2 - FItemsArea.Top - FItemsArea2.Top - FMonitorRect.Top;
+          height := FItemsArea.Top + FItemsArea2.Top + FItemArray[FItemCount - 1].y + FItemArray[FItemCount - 1].s - FItemArray[0].y +
+            FItemSpacing + FItemsArea.Bottom + FItemsArea2.Bottom;
         end
         else
         begin
-          height := ItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
-          y := (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
-            FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - ItemSpacing) div 2;
+          height := FItemSize + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom;
+          y := (FMonitorRect.Bottom - FMonitorRect.Top - IASize) * FCenterOffsetPercent div 100 -
+            FItemsArea.Top - FItemsArea2.Top + (IASize - height + FItemsArea.Top + FItemsArea.Bottom + FItemsArea2.Top + FItemsArea2.Bottom - FItemSpacing) div 2;
         end;
       end;
 
@@ -921,55 +951,55 @@ begin
 
       // y
       y := 0;
-      if BaseSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
+      if FSite = bsTop then y := FMargin - FItemsArea.Top - FItemsArea2.Top;
       // x, width
       if FOccupyFullMonitor then
       begin
         x := 0;
-        width := MonitorRect.Right - MonitorRect.Left;
+        width := FMonitorRect.Right - FMonitorRect.Left;
       end else
       begin
-        if ItemCount > 0 then
+        if FItemCount > 0 then
         begin
-          x := items[0].x - ItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - MonitorRect.Left;
-          width := FItemsArea.Left + FItemsArea2.Left + items[ItemCount - 1].x + items[ItemCount - 1].s - items[0].x +
-            ItemSpacing + FItemsArea.Right + FItemsArea2.Right;
+          x := FItemArray[0].x - FItemSpacing div 2 - FItemsArea.Left - FItemsArea2.Left - FMonitorRect.Left;
+          width := FItemsArea.Left + FItemsArea2.Left + FItemArray[FItemCount - 1].x + FItemArray[FItemCount - 1].s - FItemArray[0].x +
+            FItemSpacing + FItemsArea.Right + FItemsArea2.Right;
         end
         else
         begin
-          width := ItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
-          x := (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
+          width := FItemSize + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right;
+          x := (FMonitorRect.Right - FMonitorRect.Left - IASize) * FCenterOffsetPercent div 100 -
             FItemsArea.Left - FItemsArea2.Left +
-            (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - ItemSpacing) div 2;
+            (IASize - width + FItemsArea.Left + FItemsArea.Right + FItemsArea2.Left + FItemsArea2.Right - FItemSpacing) div 2;
         end;
       end;
 
     end;
 
     // background image rect //
-    BaseImageRect.x := x;
-    BaseImageRect.y := y;
-    BaseImageRect.Width := Width;
-    BaseImageRect.Height := Height;
+    FBaseImageRect.x := x;
+    FBaseImageRect.y := y;
+    FBaseImageRect.Width := Width;
+    FBaseImageRect.Height := Height;
 
     // main form rect //
-    if BaseSiteVertical then
+    if FSiteVertical then
     begin
-      BaseWindowRect.Width := Width;
-      if BaseSite = bsRight then BaseWindowRect.Width += FMargin - FItemsArea.Right - FItemsArea2.Right;
-      BaseWindowRect.Height := MonitorRect.Bottom - MonitorRect.Top;
+      FBaseWindowRect.Width := Width;
+      if FSite = bsRight then FBaseWindowRect.Width += FMargin - FItemsArea.Right - FItemsArea2.Right;
+      FBaseWindowRect.Height := FMonitorRect.Bottom - FMonitorRect.Top;
     end else begin
-      BaseWindowRect.Width := MonitorRect.Right - MonitorRect.Left;
-      BaseWindowRect.Height := Height;
-      if BaseSite = bsBottom then BaseWindowRect.Height += FMargin - FItemsArea.Bottom - FItemsArea2.Bottom;
+      FBaseWindowRect.Width := FMonitorRect.Right - FMonitorRect.Left;
+      FBaseWindowRect.Height := Height;
+      if FSite = bsBottom then FBaseWindowRect.Height += FMargin - FItemsArea.Bottom - FItemsArea2.Bottom;
     end;
 
-    BaseWindowRect.x := MonitorRect.Left;
-    BaseWindowRect.y := MonitorRect.Top;
-    if BaseSite = bsLeft then BaseWindowRect.x := MonitorRect.Left - FWndOffset + FEdgeOffset
-    else if BaseSite = bsTop then BaseWindowRect.y := MonitorRect.Top - FWndOffset + FEdgeOffset
-    else if BaseSite = bsRight then BaseWindowRect.x := MonitorRect.Right - BaseWindowRect.Width + FWndOffset - FEdgeOffset
-    else if BaseSite = bsBottom then BaseWindowRect.y := MonitorRect.Bottom - BaseWindowRect.Height + FWndOffset - FEdgeOffset;
+    FBaseWindowRect.x := FMonitorRect.Left;
+    FBaseWindowRect.y := FMonitorRect.Top;
+    if FSite = bsLeft then FBaseWindowRect.x := FMonitorRect.Left - FWndOffset + FEdgeOffset
+    else if FSite = bsTop then FBaseWindowRect.y := FMonitorRect.Top - FWndOffset + FEdgeOffset
+    else if FSite = bsRight then FBaseWindowRect.x := FMonitorRect.Right - FBaseWindowRect.Width + FWndOffset - FEdgeOffset
+    else if FSite = bsBottom then FBaseWindowRect.y := FMonitorRect.Bottom - FBaseWindowRect.Height + FWndOffset - FEdgeOffset;
   except
     on e: Exception do raise Exception.Create('ItemManager.RecalcDock'#10#13 + e.message);
   end;
@@ -977,11 +1007,11 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.GetRect: windows.TRect;
 begin
-  result.Left := BaseWindowRect.X + X;
-  result.Top := BaseWindowRect.Y + Y;
+  result.Left := FBaseWindowRect.X + X;
+  result.Top := FBaseWindowRect.Y + Y;
   result.Right := result.Left + Width;
   result.Bottom := result.Top + Height;
-  case BaseSite of
+  case FSite of
     bsLeft: result.Right := max(result.Right, GetZoomEdge);
     bsTop: result.Bottom := max(result.Bottom, GetZoomEdge);
     bsRight: result.Left := min(result.Left, GetZoomEdge);
@@ -991,11 +1021,11 @@ end;
 //------------------------------------------------------------------------------
 function _ItemManager.GetZoomEdge: integer;
 begin
-  case BaseSite of
-    bsLeft: result := BaseWindowRect.X + x + widthZoomed;
-    bsTop: result := BaseWindowRect.Y + y + heightZoomed;
-    bsRight: result := BaseWindowRect.X + x + width - widthZoomed;
-    bsBottom: result := BaseWindowRect.Y + y + height - heightZoomed;
+  case FSite of
+    bsLeft: result := FBaseWindowRect.X + x + widthZoomed;
+    bsTop: result := FBaseWindowRect.Y + y + heightZoomed;
+    bsRight: result := FBaseWindowRect.X + x + width - widthZoomed;
+    bsBottom: result := FBaseWindowRect.Y + y + height - heightZoomed;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1004,20 +1034,20 @@ var
   idx: integer;
   wpi, show_items: uint;
 begin
-  if Enabled then
+  if FEnabled then
   try
-    idx := ItemCount;
+    idx := FItemCount;
     wpi := BeginDeferWindowPos(idx);
     show_items := swp_hidewindow;
     if FVisible then show_items := swp_showwindow;
 
-    // draw items //
+    // draw FItemArray //
     idx := 0;
-    while idx < ItemCount do
+    while idx < FItemCount do
     begin
-      if items[idx].h <> 0 then
-        TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA)).Draw(
-          items[idx].x, items[idx].y, items[idx].s, force_draw, wpi, show_items);
+      if FItemArray[idx].h <> 0 then
+        TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Draw(
+          FItemArray[idx].x, FItemArray[idx].y, FItemArray[idx].s, force_draw, wpi, show_items);
       inc(idx);
     end;
 
@@ -1033,9 +1063,9 @@ procedure _ItemManager.InsertItems(list: TStrings);
 var
   i, dplace: integer;
 begin
-  if not Enabled then exit;
+  if not FEnabled then exit;
 
-  dplace := DropPlace;
+  dplace := FDropPlace;
   for i := 0 to list.Count - 1 do
   begin
     InsertItem(list.strings[i]);
@@ -1053,14 +1083,14 @@ end;
 // or at the end if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
 procedure _ItemManager.InsertItem(AData: string);
 begin
-  if Enabled then AddItem(AData, true);
+  if FEnabled then AddItem(AData, true);
 end;
 //------------------------------------------------------------------------------
 // create an item and put it onto dock
 function _ItemManager.AddItem(data: string; Update: boolean = false): THandle;
 begin
   result := 0;
-  if ItemCount > MAX_ITEM_COUNT then exit;
+  if FItemCount > MAX_ITEM_COUNT then exit;
   AllItemCmd(icHover, 0); // hide hint //
   AllItemCmd(icSelect, 0);
 
@@ -1102,33 +1132,33 @@ begin
   try
     class_name := AnsiLowerCase(FetchValue(data, 'class="', '"'));
 
-    icp.ItemSize := ItemSize;
-    icp.BigItemSize := BigItemSize;
-    icp.LaunchInterval := LaunchInterval;
-    icp.ActivateRunning := ActivateRunning;
-    icp.UseShellContextMenus := UseShellContextMenus;
-    icp.Site := integer(BaseSite);
-    icp.Reflection := Reflection;
-    icp.ReflectionSize := ReflectionSize;
-    icp.ShowHint := ShowHint;
-    icp.Animation := ItemAnimation;
-    icp.LockDragging := LockDragging;
-    icp.StackOpenAnimation := StackOpenAnimation;
+    icp.ItemSize := FItemSize;
+    icp.BigItemSize := FBigItemSize;
+    icp.LaunchInterval := FLaunchInterval;
+    icp.ActivateRunning := FActivateRunning;
+    icp.UseShellContextMenus := FUseShellContextMenus;
+    icp.Site := integer(FSite);
+    icp.Reflection := FReflection;
+    icp.ReflectionSize := FReflectionSize;
+    icp.ShowHint := FShowHint;
+    icp.Animation := FItemAnimation;
+    icp.LockDragging := FLockDragging;
+    icp.StackOpenAnimation := FStackOpenAnimation;
     icp.SeparatorAlpha := FSeparatorAlpha;
     icp.TaskLivePreviews := FTaskLivePreviews;
     icp.TaskThumbSize := FTaskThumbSize;
     icp.TaskGrouping := FTaskGrouping;
     CopyFontData(FFont, icp.Font);
 
-    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, ParentHWnd, icp)
+    if class_name = 'shortcut' then Inst := TShortcutItem.Create(data, FParentHWnd, icp)
     else
-    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, ParentHWnd, icp)
+    if class_name = 'separator' then Inst := TSeparatorItem.Create(data, FParentHWnd, icp)
     else
-    if class_name = 'plugin' then Inst := TPluginItem.Create(data, ParentHWnd, icp)
+    if class_name = 'plugin' then Inst := TPluginItem.Create(data, FParentHWnd, icp)
     else
-    if class_name = 'stack' then Inst := TStackItem.Create(data, ParentHWnd, icp)
+    if class_name = 'stack' then Inst := TStackItem.Create(data, FParentHWnd, icp)
     else
-    if class_name = 'task' then Inst := TTaskItem.Create(data, ParentHWnd, icp);
+    if class_name = 'task' then Inst := TTaskItem.Create(data, FParentHWnd, icp);
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + class_name + #10#13 + e.message);
   end;
@@ -1143,7 +1173,7 @@ begin
         result := Inst.HWnd;
         // add to registered programs list
         str := Inst.RegisterProgram;
-        if str <> '' then FRegisteredPrograms.Add(AnsiLowerCase(str));
+        if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
       end;
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin'#10#13 + e.message);
@@ -1158,29 +1188,29 @@ var
   index, rpIndex: integer;
   Inst: TCustomItem;
 begin
-  if Enabled then
+  if FEnabled then
   try
     index := ItemIndex(HWnd);
     // add to "deleted" list //
-    itemsDeleted.Add(Pointer(HWnd));
+    _itemsDeleted.Add(Pointer(HWnd));
     // remove from registered programs list
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    rpIndex := FRegisteredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
-    if rpIndex >= 0 then FRegisteredPrograms.Delete(rpIndex);
+    rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
+    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
 
     if index <> NOT_AN_ITEM then
     begin
-      // erase it from "items" list //
-      while index < ItemCount - 1 do
+      // erase it from "FItemArray" list //
+      while index < FItemCount - 1 do
       begin
-        items[index].h := items[index + 1].h;
-        items[index].x := items[index + 1].x;
-        items[index].y := items[index + 1].y;
-        items[index].s := items[index + 1].s;
+        FItemArray[index].h := FItemArray[index + 1].h;
+        FItemArray[index].x := FItemArray[index + 1].x;
+        FItemArray[index].y := FItemArray[index + 1].y;
+        FItemArray[index].s := FItemArray[index + 1].s;
         inc(index);
       end;
       // decrement item count
-      dec(ItemCount);
+      dec(FItemCount);
     end;
 
     // update dock //
@@ -1202,57 +1232,57 @@ var
   tmp: extended;
   prevDropPlace, prevDropPlaceEx: integer;
 begin
-  prevDropPlace := DropPlace;
-  prevDropPlaceEx := DropPlaceEx;
+  prevDropPlace := FDropPlace;
+  prevDropPlaceEx := FDropPlaceEx;
 
-  if Enabled then
+  if FEnabled then
   try
-    // DropPlace //
-    tmp := ItemFromPoint(pt.x, pt.y, DropDistance);
+    // FDropPlace //
+    tmp := ItemFromPoint(pt.x, pt.y, FDropDistance);
     if tmp = NOT_AN_ITEM then
     begin
-      DropPlace := NOT_AN_ITEM;
+      FDropPlace := NOT_AN_ITEM;
     end else begin
-      if DropPlace = NOT_AN_ITEM then DropPlace := round(tmp)
+      if FDropPlace = NOT_AN_ITEM then FDropPlace := round(tmp)
       else
-      if (abs(DropPlace + 0.5 - tmp) > 1.2) or (tmp = -1) then DropPlace := round(tmp - 0.5);
-      // "+0.5" to count from the center of the DropPlace. And "-0.5" to compensate the "+0.5"
+      if (abs(FDropPlace + 0.5 - tmp) > 1.2) or (tmp = -1) then FDropPlace := round(tmp - 0.5);
+      // "+0.5" to count from the center of the FDropPlace. And "-0.5" to compensate the "+0.5"
     end;
 
-    if DropPlace <> NOT_AN_ITEM then
+    if FDropPlace <> NOT_AN_ITEM then
     begin
-      if DropPlace < 0 then DropPlace := 0;
-      if ItemCount < 1 then DropPlace := 0
+      if FDropPlace < 0 then FDropPlace := 0;
+      if FItemCount < 1 then FDropPlace := 0
       else begin
-        if DraggingFile then
+        if FDraggingFile then
         begin
           if prevDropPlace = NOT_AN_ITEM then
           begin
-            if DropPlace > ItemCount then DropPlace := NOT_AN_ITEM;
+            if FDropPlace > FItemCount then FDropPlace := NOT_AN_ITEM;
           end else begin
-            if DropPlace >= ItemCount then DropPlace := NOT_AN_ITEM;
+            if FDropPlace >= FItemCount then FDropPlace := NOT_AN_ITEM;
           end;
         end else
         if prevDropPlace = NOT_AN_ITEM then
         begin
-          if DropPlace > ItemCount then DropPlace := ItemCount;
+          if FDropPlace > FItemCount then FDropPlace := FItemCount;
         end else begin
-          if DropPlace >= ItemCount then DropPlace := ItemCount - 1;
+          if FDropPlace >= FItemCount then FDropPlace := FItemCount - 1;
         end;
       end;
     end;
-    if prevDropPlace <> DropPlace then SetDropPlace(DropPlace);
+    if prevDropPlace <> FDropPlace then SetDropPlace(FDropPlace);
 
-    // DropPlaceEx //
+    // FDropPlaceEx //
     tmp := ItemRectFromPoint(pt.x, pt.y);
-    if tmp = NOT_AN_ITEM then tmp := DropPlace;
-    if tmp = NOT_AN_ITEM then DropPlaceEx := NOT_AN_ITEM else DropPlaceEx := round(tmp);
-    if DropPlaceEx <> NOT_AN_ITEM then
+    if tmp = NOT_AN_ITEM then tmp := FDropPlace;
+    if tmp = NOT_AN_ITEM then FDropPlaceEx := NOT_AN_ITEM else FDropPlaceEx := round(tmp);
+    if FDropPlaceEx <> NOT_AN_ITEM then
     begin
-      if DropPlaceEx < 0 then DropPlaceEx := 0;
-      if DropPlaceEx > ItemCount - 1 then DropPlaceEx := NOT_AN_ITEM;
+      if FDropPlaceEx < 0 then FDropPlaceEx := 0;
+      if FDropPlaceEx > FItemCount - 1 then FDropPlaceEx := NOT_AN_ITEM;
     end;
-    if prevDropPlaceEx <> DropPlaceEx then SetDropPlaceEx(DropPlaceEx);
+    if prevDropPlaceEx <> FDropPlaceEx then SetDropPlaceEx(FDropPlaceEx);
   except
     on e: Exception do err('ItemManager.CalcDropPlace', e);
   end;
@@ -1266,62 +1296,62 @@ begin
   try
     AllItemCmd(icDropIndicator, 0);
 
-    DropPlace := index;
-    // seek for current DropPlace in the items array (item.h = 0) //
+    FDropPlace := index;
+    // seek for current FDropPlace in the FItemArray array (item.h = 0) //
     currentDropPlace := NOT_AN_ITEM;
-    if ItemCount > 0 then
-      for i := 0 to ItemCount - 1 do
+    if FItemCount > 0 then
+      for i := 0 to FItemCount - 1 do
       begin
-        if items[i].h = 0 then
+        if FItemArray[i].h = 0 then
         begin
           currentDropPlace := i;
           break;
         end;
       end;
 
-    if (currentDropPlace = NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then exit;
-    if currentDropPlace = DropPlace then exit;
+    if (currentDropPlace = NOT_AN_ITEM) and (FDropPlace = NOT_AN_ITEM) then exit;
+    if currentDropPlace = FDropPlace then exit;
 
     // add empty item //
-    if (currentDropPlace = NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
+    if (currentDropPlace = NOT_AN_ITEM) and (FDropPlace <> NOT_AN_ITEM) then
     begin
-      if DropPlace > ItemCount then DropPlace := ItemCount;
-      items[ItemCount].h := 0;
-      items[ItemCount].s := ItemSize;
-      if DropPlace < ItemCount then
+      if FDropPlace > FItemCount then FDropPlace := FItemCount;
+      FItemArray[FItemCount].h := 0;
+      FItemArray[FItemCount].s := FItemSize;
+      if FDropPlace < FItemCount then
       begin
-        for i := ItemCount downto DropPlace + 1 do items[i].h := items[i - 1].h;
+        for i := FItemCount downto FDropPlace + 1 do FItemArray[i].h := FItemArray[i - 1].h;
       end;
-      inc(ItemCount);
-      items[DropPlace].h := 0;
+      inc(FItemCount);
+      FItemArray[FDropPlace].h := 0;
       ItemsChanged(true);
       exit;
     end;
 
     // move empty item //
-    if (currentDropPlace <> NOT_AN_ITEM) and (DropPlace <> NOT_AN_ITEM) then
+    if (currentDropPlace <> NOT_AN_ITEM) and (FDropPlace <> NOT_AN_ITEM) then
     begin
-      if DropPlace < currentDropPlace then
+      if FDropPlace < currentDropPlace then
       begin
-        for i := currentDropPlace downto DropPlace + 1 do items[i].h := items[i - 1].h;
+        for i := currentDropPlace downto FDropPlace + 1 do FItemArray[i].h := FItemArray[i - 1].h;
       end;
-      if DropPlace > currentDropPlace then
+      if FDropPlace > currentDropPlace then
       begin
-        for i := currentDropPlace to DropPlace - 1 do items[i].h := items[i + 1].h;
+        for i := currentDropPlace to FDropPlace - 1 do FItemArray[i].h := FItemArray[i + 1].h;
       end;
-      items[DropPlace].h := 0;
+      FItemArray[FDropPlace].h := 0;
       ItemsChanged;
       exit
     end;
 
     // delete empty item //
-    if (currentDropPlace <> NOT_AN_ITEM) and (DropPlace = NOT_AN_ITEM) then
+    if (currentDropPlace <> NOT_AN_ITEM) and (FDropPlace = NOT_AN_ITEM) then
     begin
-      if currentDropPlace < ItemCount - 1 then
+      if currentDropPlace < FItemCount - 1 then
       begin
-        for i := currentDropPlace to ItemCount - 2 do items[i].h := items[i + 1].h;
+        for i := currentDropPlace to FItemCount - 2 do FItemArray[i].h := FItemArray[i + 1].h;
       end;
-      dec(ItemCount);
+      dec(FItemCount);
       ItemsChanged(true);
     end;
   except
@@ -1336,25 +1366,25 @@ var
   atype: integer;
 begin
   try
-    DropPlaceEx := index;
+    FDropPlaceEx := index;
     atype := 0;
 
     // correct disallowed drop cases //
-    if DropPlaceEx <> NOT_AN_ITEM then
-      if DraggingItem then
+    if FDropPlaceEx <> NOT_AN_ITEM then
+      if FDraggingItem then
       begin
-        Inst := TCustomItem(GetWindowLong(items[DropPlaceEx].h, GWL_USERDATA));
-        DragInst := TCustomItem(GetWindowLong(DragHWnd, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLong(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
+        DragInst := TCustomItem(GetWindowLong(FDragHWnd, GWL_USERDATA));
         if ((Inst is TStackItem) and (DragInst is TStackItem)) or
           ((Inst is TStackItem) and (DragInst is TShortcutItem)) or
           ((Inst is TShortcutItem) and (DragInst is TShortcutItem)) then atype := DII_ADD; // add
-        if atype = 0 then DropPlaceEx := DropPlace;
+        if atype = 0 then FDropPlaceEx := FDropPlace;
       end;
 
-    if DraggingItem then
+    if FDraggingItem then
     begin
       AllItemCmd(icDropIndicator, 0);
-      if atype > 0 then ItemCmd(items[DropPlaceEx].h, icDropIndicator, atype);
+      if atype > 0 then ItemCmd(FItemArray[FDropPlaceEx].h, icDropIndicator, atype);
     end;
   except
     on e: Exception do err('ItemManager.SetDropPlaceEx', e);
@@ -1364,7 +1394,7 @@ end;
 // items area width or height //
 function _ItemManager.IASize: integer;
 begin
-  result := ItemCount * (ItemSize + ItemSpacing);
+  result := FItemCount * (FItemSize + FItemSpacing);
 end;
 //------------------------------------------------------------------------------
 // calculate item index based on mouse position
@@ -1375,10 +1405,10 @@ var
   rItemArea: windows.TRect;
 begin
   result := NOT_AN_ITEM;
-  if not enabled then exit;
+  if not FEnabled then exit;
 
   try
-    if ItemCount = 0 then
+    if FItemCount = 0 then
     begin
       rItemArea := DockGetRect;
       if PtInRect(rItemArea, classes.Point(Ax, Ay)) then result := 0;
@@ -1387,53 +1417,53 @@ begin
 
     // calc position relative to the beginning of the first item //
 
-    if BaseSiteVertical then
+    if FSiteVertical then
     begin
-      BasePoint := MonitorRect.Top + (MonitorRect.Bottom - MonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
-      result := (Ay - BasePoint) / (ItemSize + ItemSpacing);
+      BasePoint := FMonitorRect.Top + (FMonitorRect.Bottom - FMonitorRect.Top - IASize) * FCenterOffsetPercent div 100;
+      result := (Ay - BasePoint) / (FItemSize + FItemSpacing);
     end else begin
-      BasePoint := MonitorRect.Left + (MonitorRect.Right - MonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
-      result := (Ax - BasePoint) / (ItemSize + ItemSpacing);
+      BasePoint := FMonitorRect.Left + (FMonitorRect.Right - FMonitorRect.Left - IASize) * FCenterOffsetPercent div 100;
+      result := (Ax - BasePoint) / (FItemSize + FItemSpacing);
     end;
     if result < -1 then result := NOT_AN_ITEM;
-    if result >= ItemCount + 1 then result := NOT_AN_ITEM;
+    if result >= FItemCount + 1 then result := NOT_AN_ITEM;
 
     // check boundaries //
 
     rItemArea := FItemsArea;
-    if BaseSite = bsLeft then rItemArea.Right := 0
-    else if BaseSite = bsTop then rItemArea.Bottom := 0
-    else if BaseSite = bsRight then rItemArea.Left := 0
-    else if BaseSite = bsBottom then rItemArea.Top := 0;
+    if FSite = bsLeft then rItemArea.Right := 0
+    else if FSite = bsTop then rItemArea.Bottom := 0
+    else if FSite = bsRight then rItemArea.Left := 0
+    else if FSite = bsBottom then rItemArea.Top := 0;
 
-    if BaseSite = bsBottom then
+    if FSite = bsBottom then
     begin
-      if (Ay < BaseWindowRect.Y + BaseWindowRect.Height - FMargin - ItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
-        (Ay > BaseWindowRect.Y + BaseWindowRect.Height + distance) or
-        (Ax < BasePoint - BigItemSize) or
+      if (Ay < FBaseWindowRect.Y + FBaseWindowRect.Height - FMargin - FItemSize - rItemArea.Top - ZoomItemSizeDiff - distance) or
+        (Ay > FBaseWindowRect.Y + FBaseWindowRect.Height + distance) or
+        (Ax < BasePoint - FBigItemSize) or
         (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;
     end else
-    if BaseSite = bsLeft then
+    if FSite = bsLeft then
     begin
-      if (Ax < BaseWindowRect.X - distance) or
-        (Ax > BaseWindowRect.X + x + FMargin + ItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
-        (Ay < BasePoint - BigItemSize) or
+      if (Ax < FBaseWindowRect.X - distance) or
+        (Ax > FBaseWindowRect.X + x + FMargin + FItemSize + rItemArea.Right + ZoomItemSizeDiff + distance) or
+        (Ay < BasePoint - FBigItemSize) or
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
-    if BaseSite = bsRight then
+    if FSite = bsRight then
     begin
-      if (Ax < BaseWindowRect.X + BaseWindowRect.Width - FMargin - ItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
-        (Ax > BaseWindowRect.X + BaseWindowRect.Width + distance) or
-        (Ay < BasePoint - BigItemSize) or
+      if (Ax < FBaseWindowRect.X + FBaseWindowRect.Width - FMargin - FItemSize - rItemArea.Left - ZoomItemSizeDiff - distance) or
+        (Ax > FBaseWindowRect.X + FBaseWindowRect.Width + distance) or
+        (Ay < BasePoint - FBigItemSize) or
         (Ay > BasePoint + height)
         then result := NOT_AN_ITEM;
     end else
     begin
-      if (Ay < BaseWindowRect.Y - distance) or
-        (Ay > BaseWindowRect.Y + y + FMargin + ItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
-        (Ax < BasePoint - BigItemSize) or
+      if (Ay < FBaseWindowRect.Y - distance) or
+        (Ay > FBaseWindowRect.Y + y + FMargin + FItemSize + rItemArea.Bottom + ZoomItemSizeDiff + distance) or
+        (Ax < BasePoint - FBigItemSize) or
         (Ax > BasePoint + width)
         then result := NOT_AN_ITEM;
     end;
@@ -1450,10 +1480,10 @@ var
   Inst: TCustomItem;
 begin
   result := NOT_AN_ITEM;
-  if not enabled then exit;
+  if not FEnabled then exit;
 
   try
-    if ItemCount = 0 then
+    if FItemCount = 0 then
     begin
       if PtInRect(DockGetRect, classes.Point(Ax, Ay)) then result := 0;
       exit;
@@ -1461,9 +1491,9 @@ begin
 
     // calc position relative to the beginning of the first item //
 
-    for idx := 0 to ItemCount - 1 do
+    for idx := 0 to FItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then
         if PtInRect(Inst.ScreenRect, classes.Point(Ax, Ay)) then
         begin
@@ -1481,40 +1511,40 @@ procedure _ItemManager.Zoom(x, y: integer);
 var
   item, saved: extended;
 begin
-  if enabled and not DraggingFile then
+  if FEnabled and not FDraggingFile then
   try
     item := NOT_AN_ITEM;
-    if Zooming or CheckMouseOn or DraggingItem then
+    if FZooming or CheckMouseOn or FDraggingItem then
     begin
-      item := ItemFromPoint(x, y, ifthen(DraggingItem, DropDistance, 0));
+      item := ItemFromPoint(x, y, ifthen(FDraggingItem, FDropDistance, 0));
       if item <> NOT_AN_ITEM then
       begin
         if item < 0 then item := NOT_AN_ITEM;
-        if item >= ItemCount then item := NOT_AN_ITEM;
+        if item >= FItemCount then item := NOT_AN_ITEM;
       end;
     end;
 
-    // enter zooming mode //
-    if not Zooming and (item <> NOT_AN_ITEM) then
+    // enter FZooming mode //
+    if not FZooming and (item <> NOT_AN_ITEM) then
     begin
       ZoomStartTime := GetTickCount;
-      ZoomInOutItem := item;
-      Zooming := true;
+      _ZoomInOutItem := item;
+      FZooming := true;
     end;
 
-    if Zooming then
+    if FZooming then
     begin
       if item = NOT_AN_ITEM then Unzoom
       else begin
-          if ZoomItemSizeDiff = BigItemSize - ItemSize then
+          if ZoomItemSizeDiff = FBigItemSize - FItemSize then
           begin
-              if ZoomInOutItem <> item then
+              if _ZoomInOutItem <> item then
               begin
-                ZoomInOutItem := item;
+                _ZoomInOutItem := item;
                 ItemsChanged;
               end;
           end
-          else ZoomInOutItem := item;
+          else _ZoomInOutItem := item;
       end;
     end;
   except
@@ -1525,11 +1555,11 @@ end;
 // exit zooming mode
 procedure _ItemManager.UnZoom(do_now: boolean = false);
 begin
-  if enabled and (Zooming or do_now) then
+  if FEnabled and (FZooming or do_now) then
   begin
-    Zooming := false;
+    FZooming := false;
     ZoomStartTime := GetTickCount;
-    if (ItemCount <= 0) or do_now then
+    if (FItemCount <= 0) or do_now then
     begin
       ZoomItemSizeDiff := 0;
       ItemsChanged;
@@ -1545,15 +1575,15 @@ var
   item: integer;
 begin
   result := false;
-  if enabled then
+  if FEnabled then
   try
     windows.GetCursorPos(pt);
     wnd := WindowFromPoint(pt);
-    if DraggingItem or DraggingFile or Zooming then
-      item := trunc(ItemFromPoint(pt.x, pt.y, ifthen(DraggingItem or DraggingFile, DropDistance, 0)))
+    if FDraggingItem or FDraggingFile or FZooming then
+      item := trunc(ItemFromPoint(pt.x, pt.y, ifthen(FDraggingItem or FDraggingFile, FDropDistance, 0)))
     else
       item := ItemIndex(wnd);
-    result := (item <> NOT_AN_ITEM) or (wnd = ParentHWnd);
+    result := (item <> NOT_AN_ITEM) or (wnd = FParentHWnd);
   except
     on e: Exception do err('ItemManager.CheckMouseOn', e);
   end;
@@ -1565,28 +1595,28 @@ var
   wnd: cardinal;
 begin
   try
-    if not enabled or not FVisible then exit;
+    if not FEnabled or not FVisible then exit;
 
-    if ItemCount > 0 then
+    if FItemCount > 0 then
     begin
       // hint //
       wnd := WindowFromPoint(pt);
       if ItemIndex(wnd) = NOT_AN_ITEM then wnd := 0;
-      if wnd <> HoverItemHWnd then
+      if wnd <> FHoverItemHWnd then
       begin
-        if HoverItemHWnd <> 0 then ItemCmd(HoverItemHWnd, icHover, 0);
+        if FHoverItemHWnd <> 0 then ItemCmd(FHoverItemHWnd, icHover, 0);
         if wnd <> 0 then ItemCmd(wnd, icHover, 1);
       end;
-      HoverItemHWnd := wnd;
+      FHoverItemHWnd := wnd;
       // zoom //
-      if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
+      if allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
     end;
 
     // drop place //
-    if DraggingItem or DraggingFile then
+    if FDraggingItem or FDraggingFile then
     begin
       CalcDropPlace(pt);
-      if allow_zoom and ZoomItems then Zoom(pt.x, pt.y);
+      if allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
     end;
   except
     on e: Exception do raise Exception.Create('ItemManager.WHMouseMove'#10#13 + e.message);
@@ -1595,21 +1625,21 @@ end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DragEnter;
 begin
-  DraggingItem := false;
-  DraggingFile := true;
+  FDraggingItem := false;
+  FDraggingFile := true;
   DragOver;
 end;
 //------------------------------------------------------------------------------
 procedure _ItemManager.DragLeave;
 begin
-  DraggingItem := false;
-  DraggingFile := false;
+  FDraggingItem := false;
+  FDraggingFile := false;
   SetDropPlaceEx(NOT_AN_ITEM);
   SetDropPlace(NOT_AN_ITEM);
   ItemsChanged;
-  ItemCmd(SelectedItemHWnd, icDragLeave, 0);
-  ItemCmd(SelectedItemHWnd, icSelect, 0);
-  SelectedItemHWnd := 0;
+  ItemCmd(FSelectedItemHWnd, icDragLeave, 0);
+  ItemCmd(FSelectedItemHWnd, icSelect, 0);
+  FSelectedItemHWnd := 0;
   AllItemCmd(icHover, 0);
 end;
 //------------------------------------------------------------------------------
@@ -1618,19 +1648,19 @@ var
   pt: windows.TPoint;
   wnd: THandle;
 begin
-  if Enabled then
+  if FEnabled then
   try
     GetCursorPos(pt);
-    if not LockMouseEffect then WHMouseMove(pt);
+    if not FLockMouseEffect then WHMouseMove(pt);
     wnd := WindowFromPoint(pt);
     wnd := IsItem(wnd);
-    if wnd <> SelectedItemHWnd then
+    if wnd <> FSelectedItemHWnd then
     begin
-      ItemCmd(SelectedItemHWnd, icSelect, 0);
-      ItemCmd(SelectedItemHWnd, icDragLeave, 0);
-      SelectedItemHWnd := wnd;
-      ItemCmd(SelectedItemHWnd, icSelect, 1);
-      ItemCmd(SelectedItemHWnd, icDragEnter, 0);
+      ItemCmd(FSelectedItemHWnd, icSelect, 0);
+      ItemCmd(FSelectedItemHWnd, icDragLeave, 0);
+      FSelectedItemHWnd := wnd;
+      ItemCmd(FSelectedItemHWnd, icSelect, 1);
+      ItemCmd(FSelectedItemHWnd, icDragEnter, 0);
     end;
     ItemCmd(wnd, icDragOver, 0);
   except
@@ -1648,12 +1678,12 @@ begin
     AllItemCmd(icHover, 0);
   end;
 
-  if Enabled then
+  if FEnabled then
   try
     idx := 0;
-    while idx < ItemCount do
+    while idx < FItemCount do
     begin
-      if items[idx].h <> 0 then postmessage(items[idx].h, WM_ACTIVATEAPP, 0, 0);
+      if FItemArray[idx].h <> 0 then postmessage(FItemArray[idx].h, WM_ACTIVATEAPP, 0, 0);
       inc(idx);
     end;
   except
@@ -1675,15 +1705,15 @@ var
   index: integer;
   pt: windows.TPoint;
 begin
-  if enabled and not DraggingItem then
+  if FEnabled and not FDraggingItem then
   try
-    DraggingFile := false;
-    DraggingItem := true;
-    DragHWnd := HWnd;
+    FDraggingFile := false;
+    FDraggingItem := true;
+    FDragHWnd := HWnd;
     index := ItemIndex(HWnd);
     try if index <> NOT_AN_ITEM then
       begin
-        items[index].h := 0;
+        FItemArray[index].h := 0;
         SetDropPlace(index);
         SetDropPlaceEx(index);
       end;
@@ -1698,20 +1728,20 @@ end;
 // if DropPlace not exists, then put item at the end of the items array
 procedure _ItemManager.DockAdd(HWnd: THandle);
 begin
-  if (DropPlace >= 0) and (DropPlace < ItemCount) then
-  // if DropPlace exists, then it is not TaskItem //
+  if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
+  // if FDropPlace exists, then it is not TaskItem //
   begin
-    if DropPlace > ItemCount then DropPlace := ItemCount;
-    items[DropPlace].h := HWnd;
+    if FDropPlace > FItemCount then FDropPlace := FItemCount;
+    FItemArray[FDropPlace].h := HWnd;
   end
   // else check where to dock //
   else begin
-    SetDropPlace(ItemCount);
-    items[DropPlace].h := HWnd;
-    items[DropPlace].s := ItemSize;
+    SetDropPlace(FItemCount);
+    FItemArray[FDropPlace].h := HWnd;
+    FItemArray[FDropPlace].s := FItemSize;
   end;
   ItemCmd(HWnd, icFree, 0); // enable item
-  ItemCmd(HWnd, icFloat, 0);
+  ItemCmd(HWnd, icUndock, 0);
   SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
   SetDropPlaceEx(NOT_AN_ITEM);
   SetDropPlace(NOT_AN_ITEM);
@@ -1727,8 +1757,8 @@ var
   NewItemHWnd: THandle;
   pt: windows.TPoint;
 begin
-  //if not enabled or (DragHWnd <> HWnd) then exit;
-  if Enabled then
+  //if not FEnabled or (FDragHWnd <> HWnd) then exit;
+  if FEnabled then
   try
     SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     GetCursorPos(pt);
@@ -1737,19 +1767,19 @@ begin
     DragInst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
 
     // delete //
-    if (DropPlace < 0) or (DropPlace >= ItemCount) then
+    if (FDropPlace < 0) or (FDropPlace >= FItemCount) then
     begin
       DragInst.Delete;
     end else
     // put to a free slot //
-    if DropPlace = DropPlaceEx then
+    if FDropPlace = FDropPlaceEx then
     begin
-      items[DropPlace].h := HWnd;
-      ItemCmd(HWnd, icFloat, 0);
+      FItemArray[FDropPlace].h := HWnd;
+      ItemCmd(HWnd, icUndock, 0);
     end else
     // combine with existing item //
     begin
-      Inst := TCustomItem(GetWindowLong(items[DropPlaceEx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
       // shortcut to stack //
       if (DragInst is TShortcutItem) and (Inst is TStackItem) then
       begin
@@ -1770,12 +1800,12 @@ begin
       // shortcut to shortcut //
       if (DragInst is TShortcutItem) and (Inst is TShortcutItem) then
       begin
-        if (DropPlace >= 0) and (DropPlace < ItemCount) then
+        if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
         begin
           NewItemHWnd := CreateItem(TStackItem.Make(0, '', ''));
           if NewItemHWnd <> THandle(0) then
           begin
-            items[DropPlace].h := NewItemHWnd;
+            FItemArray[FDropPlace].h := NewItemHWnd;
             NewInst := TCustomItem(GetWindowLong(NewItemHWnd, GWL_USERDATA));
             TStackItem(NewInst).AddSubitem(TShortcutItem(Inst).ToString);
             TStackItem(NewInst).AddSubitem(TShortcutItem(DragInst).ToString);
@@ -1785,18 +1815,18 @@ begin
           end;
         end;
       end else begin
-          if (DropPlace >= 0) and (DropPlace < ItemCount) then
+          if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
           begin
-            items[DropPlace].h := HWnd;
-            ItemCmd(HWnd, icFloat, 0);
+            FItemArray[FDropPlace].h := HWnd;
+            ItemCmd(HWnd, icUndock, 0);
           end else begin
             DragInst.Delete;
           end;
       end;
     end;
 
-    DraggingItem := false;
-    DragHWnd := 0;
+    FDraggingItem := false;
+    FDragHWnd := 0;
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
     ItemsChanged;
@@ -1815,18 +1845,18 @@ var
   Inst: TCustomItem;
 begin
   result := THandle(0);
-  if Enabled then
+  if FEnabled then
   try
     idx := 0;
-    while idx < ItemCount do
+    while idx < FItemCount do
     begin
-      if items[idx].h = HWnd then
+      if FItemArray[idx].h = HWnd then
       begin
         result := HWnd;
         break;
       end;
 
-      Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.cmd(icIsItem, integer(HWnd));
       if result <> 0 then break;
       inc(idx);
@@ -1896,12 +1926,12 @@ var
   Inst: TCustomItem;
 begin
   result := 0;
-  if Enabled then
+  if FEnabled then
   try
     item := 0;
-    while item < ItemCount do
+    while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.cmd(id, param);
       inc(item);
     end;
@@ -1918,9 +1948,9 @@ begin
   try
     CopyFontData(Value, FFont);
     item := 0;
-    while item < ItemCount do
+    while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(items[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then Inst.SetFont(Value);
       inc(item);
     end;
@@ -1972,7 +2002,7 @@ var
 begin
   try
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if (Inst is TCustomItem) and (ItemAnimation > 0) then Inst.Animate(ItemAnimation);
+    if (Inst is TCustomItem) and (FItemAnimation > 0) then Inst.Animate(FItemAnimation);
   except
     on e: Exception do err('ItemManager.PluginAnimate', e);
   end;
@@ -2052,14 +2082,14 @@ var
   index: integer;
   Inst: TCustomItem;
 begin
-  if DraggingItem then exit;
+  if FDraggingItem then exit;
   try
     // remove deleted windows //
     try
       index := 0;
-      while index < ItemCount do
+      while index < FItemCount do
       begin
-        Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
         if Inst is TTaskItem then TTaskItem(Inst).RemoveNonExisting;
         inc(index);
       end;
@@ -2076,11 +2106,11 @@ begin
       inc(index);
     end;
 
-    // delete empty items and update not empty ones
-    index := ItemCount - 1;
+    // delete empty FItemArray and update not empty ones
+    index := FItemCount - 1;
     while index >= 0 do
     begin
-      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
         if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete else TTaskItem(Inst).UpdateItem;
       dec(index);
@@ -2100,16 +2130,16 @@ begin
   try
     // do not add registered programs, so check for it
     str := AnsiLowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
-    index := FRegisteredPrograms.IndexOf(str);
-    if index < 0 then index := FRegisteredPrograms.IndexOf(ExtractFileName(str));
+    index := _registeredPrograms.IndexOf(str);
+    if index < 0 then index := _registeredPrograms.IndexOf(ExtractFileName(str));
     if index >= 0 then exit;
 
     // search existing TaskItem for the given window
     found := -1;
     index := 0;
-    while index < ItemCount do
+    while index < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(items[index].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
         if TTaskItem(Inst).WindowInList(HWndTask) then
         begin
@@ -2137,10 +2167,10 @@ var
   idx: integer;
   Inst: TCustomItem;
 begin
-  idx := ItemCount - 1;
+  idx := FItemCount - 1;
   while idx >= 0 do
   begin
-    Inst := TCustomItem(GetWindowLong(items[idx].h, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
     if Inst is TTaskItem then Inst.Delete;
     dec(idx);
   end;

@@ -304,6 +304,10 @@ msgstr "Вставить"
 msgid "Pin to dock"
 msgstr "Закрепить на доке"
 
+#: declu.xplacetaskshere
+msgid "Place tasks here"
+msgstr "Разместить панель задач здесь"
+
 #: declu.xprogramsettings
 msgctxt "declu.xprogramsettings"
 msgid "Program settings"
@@ -669,9 +673,10 @@ msgid "Properties"
 msgstr "Свойства"
 
 #: tfrmmain.caption
+#| msgid "TerryForm"
 msgctxt "tfrmmain.caption"
-msgid "TerryForm"
-msgstr "TerryForm"
+msgid "TDockForm"
+msgstr "TDockForm"
 
 #: tfrmsets.btnautorunadd.caption
 #| msgid "Add"

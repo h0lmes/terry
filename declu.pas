@@ -61,6 +61,7 @@ type
     gpReflection,
     gpReflectionSize,
     gpBlur,
+    gpTaskSpot,
     gpMax,
     // terry commands //
     tcMin = $1000,
@@ -77,7 +78,7 @@ type
     // item commands //
     icMin = $2000,
     icSelect, // informs item that user pressed mouse button on it //
-    icFloat, // informs item that user draging this item //
+    icUndock, // informs item that user draging this item //
     icFree, // marks item as freed //
     icHover, // mouse over //
     icUpdateRunning, // forces item to update it's running indicator //
@@ -253,6 +254,7 @@ resourcestring
   XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
   XPinToDock = 'Pin to dock';
   XKillProcess = 'Kill process';
+  XPlaceTasksHere = 'Place tasks here';
 
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';

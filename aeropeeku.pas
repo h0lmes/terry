@@ -45,6 +45,8 @@ type
     FHeight: integer;
     FWTarget: integer;
     FHTarget: integer;
+    FAlpha: integer;
+    FAlphaTarget: integer;
     FIconSize, FBorderX, FBorderY, FShadow, ThumbW, ThumbH, ItemSplit: integer;
     FTitleHeight, FTitleSplit, FSeparatorW, FSeparatorH: integer;
     FRadius, FSelectionRadius: integer;
@@ -96,7 +98,7 @@ type
     destructor Destroy; override;
     function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
-    procedure CloseAPWindow;
+    procedure CloseAPWindow(Timeout: cardinal = 0);
   end;
 
 var AeroPeekWindow: TAeroPeekWindow;
@@ -131,8 +133,7 @@ class procedure TAeroPeekWindow.Close(Timeout: cardinal = 0);
 begin
   if assigned(AeroPeekWindow) then
   begin
-    if Timeout = 0 then AeroPeekWindow.CloseAPWindow
-    else SetTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE, Timeout, nil);
+    AeroPeekWindow.CloseAPWindow(Timeout);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -342,12 +343,15 @@ begin
       RegisterThumbnails;
       // set items' positions, calulate window size, update workarea
       SetItems;
+      FAlphaTarget := 255;
+      FAlpha := 255;
 
       // set starting position
       if FAnimate then
       begin
         if not FActive then
         begin
+          FAlpha := 25;
           Fx := FXTarget;
           Fy := FYTarget + 20;
           if Site = 1 then // top
@@ -506,7 +510,7 @@ var
   index: integer;
   maxw, maxh, position: integer;
   tmp: integer;
-  maxRate: single;
+  maxRate: extended;
   //
   title: array [0..255] of WideChar;
   dc: HDC;
@@ -555,18 +559,21 @@ begin
 
       if FLayout = apwlHorizontal then
       begin
-        ThumbW := min(FTaskThumbSize, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 - FSeparatorCount * (FSeparatorW + ItemSplit)) div (FItemCount - FSeparatorCount) - ItemSplit);
+        ThumbW := min(FTaskThumbSize, (FWorkArea.Right - FWorkArea.Left - FBorderX * 2 -
+          FSeparatorCount * (FSeparatorW + ItemSplit)) div (FItemCount - FSeparatorCount) - ItemSplit);
         ThumbH := round(ThumbW * maxRate);
       end else begin
         ThumbW := FTaskThumbSize;
         ThumbH := round(ThumbW * maxRate);
-        tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - FSeparatorCount * (FSeparatorH + ItemSplit)) div (FItemCount - FSeparatorCount) - FTitleHeight - FTitleSplit - ItemSplit;
+        tmp := (FWorkArea.Bottom - FWorkArea.Top - FBorderY * 2 - FSeparatorCount * (FSeparatorH + ItemSplit)) div
+          (FItemCount - FSeparatorCount) - FTitleHeight - FTitleSplit - ItemSplit;
         if ThumbH > tmp then
         begin
           ThumbH := tmp;
           ThumbW := round(ThumbH / maxRate);
         end;
       end;
+
     end else begin
       ThumbW := FTaskThumbSize;
       ThumbH := 0;
@@ -585,7 +592,8 @@ begin
           GdipCreateFont(family, FFontSize, 0, 2, font);
           for index := 0 to FItemCount - 1 do
           begin
-            GetWindowTextW(items[index].hwnd, @title, 255);
+            FillChar(title, 512, #0);
+            GetWindowTextW(items[index].hwnd, @title, 254);
             rect.x := 0;
             rect.y := 0;
             rect.Width := 0;
@@ -894,7 +902,7 @@ begin
     GdipDeleteFontFamily(family);
 
     // update window //
-    UpdateLWindow(FHWnd, bmp, 255);
+    UpdateLWindow(FHWnd, bmp, FAlpha);
     GdipDeleteGraphics(hgdip);
     gfx.DeleteBitmap(bmp);
     if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
@@ -991,17 +999,42 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.CloseAPWindow;
+procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
 begin
   try
-    KillTimer(FHWnd, ID_TIMER_SLOW);
-    KillTimer(FHWnd, ID_TIMER_CLOSE);
-    KillTimer(FHWnd, ID_TIMER);
-    UnRegisterThumbnails;
-    ClearImages;
-    ShowWindow(FHWnd, SW_HIDE);
-    FActive := false;
-    TAeroPeekWindow.Cleanup;
+    if Timeout = 0 then
+    begin
+      KillTimer(FHWnd, ID_TIMER_SLOW);
+      KillTimer(FHWnd, ID_TIMER_CLOSE);
+      KillTimer(FHWnd, ID_TIMER);
+      UnRegisterThumbnails;
+      ClearImages;
+      ShowWindow(FHWnd, SW_HIDE);
+      FActive := false;
+      TAeroPeekWindow.Cleanup;
+    end
+    else begin
+      // set desired position
+      {if FAnimate then
+      begin
+          FAlphaTarget := 25;
+          Fx := FXTarget;
+          Fy := FYTarget + 20;
+          if FSite = 1 then // top
+          begin
+            FYTarget := Fy - 20;
+          end else if FSite = 0 then // left
+          begin
+            Fx := FXTarget - 20;
+            FYTarget := Fy;
+          end else if FSite = 2 then // right
+          begin
+            FXTarget := Fx + 20;
+            FYTarget := Fy;
+          end;
+      end;}
+      SetTimer(Handle, ID_TIMER_CLOSE, Timeout, nil);
+    end;
   except
     on e: Exception do err('AeroPeekWindow.CloseWindow', e);
   end;
@@ -1014,7 +1047,7 @@ var
 begin
   if FActive and not FActivating then
   try
-    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) then
+    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) or (FAlpha <> FAlphaTarget) then
     begin
       delta := abs(FXTarget - Fx) div 4;
       if delta < 2 then delta := 2;
@@ -1039,6 +1072,12 @@ begin
       if delta < 2 then delta := 2;
       if FHeight > FHTarget then Dec(FHeight, delta);
       if FHeight < FHTarget then Inc(FHeight, delta);
+
+      delta := abs(FAlphaTarget - FAlpha) div 4;
+      if abs(FAlpha - FAlphaTarget) <= delta then FAlpha := FAlphaTarget;
+      if delta < 1 then delta := 1;
+      if FAlpha > FAlphaTarget then Dec(FAlpha, delta);
+      if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
 
       Paint;
     end;

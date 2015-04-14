@@ -270,6 +270,10 @@ msgstr ""
 msgid "Pin to dock"
 msgstr ""
 
+#: declu.xplacetaskshere
+msgid "Place tasks here"
+msgstr ""
+
 #: declu.xprogramsettings
 msgid "Program settings"
 msgstr ""
@@ -616,7 +620,7 @@ msgid "Properties"
 msgstr ""
 
 #: tfrmmain.caption
-msgid "TerryForm"
+msgid "TDockForm"
 msgstr ""
 
 #: tfrmsets.btnautorunadd.caption

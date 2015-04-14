@@ -40,6 +40,7 @@ type
     TaskThumbSize: integer;
     TaskGrouping: boolean;
     TaskSameMonitor: boolean;
+    TaskSpot: integer;
     StayOnTop: boolean;
     ShowHint: boolean;
     HintEffects: boolean;
@@ -187,6 +188,7 @@ begin
   container.TaskThumbSize := ini.ReadInteger('base', 'TaskThumbSize', 200);
   container.TaskGrouping := ini.ReadBool('base', 'TaskbarGrouping', true);
   container.TaskSameMonitor := ini.ReadBool('base', 'TaskbarSameMonitor', false);
+  container.TaskSpot := ini.ReadInteger('base', 'TaskSpot', -1);
   container.StayOnTop := ini.ReadBool('base', 'StayOnTop', false);
   container.LockDragging := ini.ReadBool('base', 'LockDragging', true);
   container.ShowHint := ini.ReadBool('base', 'ShowHint', true);
@@ -284,6 +286,7 @@ begin
   ini.WriteInteger('base', 'TaskThumbSize', container.TaskThumbSize);
   ini.WriteBool   ('base', 'TaskbarGrouping', container.TaskGrouping);
   ini.WriteBool   ('base', 'TaskbarSameMonitor', container.TaskSameMonitor);
+  ini.WriteInteger('base', 'TaskSpot', container.TaskSpot);
   ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
   ini.WriteBool   ('base', 'LockDragging', container.LockDragging);
   ini.WriteBool   ('base', 'ShowHint', container.ShowHint);
@@ -409,6 +412,7 @@ begin
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpSeparatorAlpha: container.SeparatorAlpha := SetRange(value, 0, 255);
   gpBlur: container.Blur := boolean(value);
+  gpTaskSpot: container.TaskSpot := value;
   end;
 
   result := value;
@@ -466,6 +470,7 @@ begin
   gpBaseAlpha: result := container.BaseAlpha;
   gpSeparatorAlpha: result := container.SeparatorAlpha;
   gpBlur: result := integer(container.Blur);
+  gpTaskSpot: result := container.TaskSpot;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -529,6 +534,7 @@ begin
   dst.OccupyFullMonitor := src.OccupyFullMonitor;
   dst.useShell := src.useShell;
   dst.RunInThread := src.RunInThread;
+  dst.TaskSpot := src.TaskSpot;
 
   CopyFontData(src.Font, dst.Font);
   StrCopy(dst.Shell, pchar(@src.Shell));
