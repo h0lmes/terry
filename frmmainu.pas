@@ -42,11 +42,11 @@ type
     HideKeysPressed: boolean;
     SavedWorkarea: windows.TRect;
     revertMonitor: integer;
-    function CloseQuery: integer;
-    procedure MaintainNotForeground;
+    procedure CreateZOrderWindow;
+    function  CloseQuery: integer;
+    procedure SaveSets;
     procedure RegisterRawInput;
     procedure NativeWndProc(var message: TMessage);
-    procedure CreateZOrderWindow;
     procedure AppException(Sender: TObject; e: Exception);
     procedure AppDeactivate(Sender: TObject);
     procedure WMCopyData(var Message: TMessage);
@@ -59,65 +59,62 @@ type
     procedure WMMouseWheel(var msg: TWMMouseWheel);
     procedure WHMouseMove(LParam: LParam);
     procedure WHButtonDown(button: integer);
-    procedure MouseEnter;
-    procedure MouseLeave;
-    procedure TimerMain;
-    procedure TimerSlow;
-    procedure TimerFSA;
-    procedure TimerRoll;
-    procedure TimerDragLeave;
+    procedure OnMouseEnter;
+    procedure OnMouseLeave;
+    procedure DoMenu;
+    procedure OnTimerMain;
+    procedure OnTimerSlow;
+    procedure OnTimerFSA;
+    procedure OnTimerRoll;
+    procedure OnTimerDragLeave;
     procedure UpdateRunning;
-    function IsHiddenDown: boolean;
-    procedure RollDown;
-    procedure RollUp;
-    procedure RollNHideTimer;
+    function  IsHiddenDown: boolean;
+    procedure DoRollDown;
+    procedure DoRollUp;
+    procedure OnTimerDoRollUpDown;
+    procedure SetForeground;
+    procedure SetNotForeground;
+    procedure MaintainNotForeground;
+    procedure BasePaint(flags: integer);
     procedure HideTaskbar(Hide: boolean);
     procedure SetWorkarea(rect: windows.TRect);
     procedure ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
     procedure UnreserveScreenEdge(Edge: TBaseSite);
-
-    procedure SaveSets;
-    procedure DoMenu;
-    procedure BasePaint(flags: integer);
   public
-    ItemMgr: _ItemManager;
-    DropMgr: _DropManager;
-    AHint: _Hint;
+    ItemMgr: TItemManager;
+    DropMgr: TDropManager;
+    AHint: THint;
     Tray: TTrayController;
     StartMenu: TStartMenuController;
-
+    ///
     wndOffset: integer;
     OldBaseWindowRect: GDIPAPI.TRect;
     OldBaseImageRect: GDIPAPI.TRect;
-
     LastMouseHookPoint: Windows.TPoint;
     MouseOver: boolean;
     InitDone: boolean;
-
     hHook: THandle;
-    hMenu, hMenuCreate: uint;
-
+    hMenu: THandle;
+    hMenuCreate: THandle;
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
     procedure CloseProgram;
     procedure ApplyParams;
-    procedure SetForeground;
-    procedure SetNotForeground;
     procedure err(where: string; e: Exception);
     procedure notify(message: string; silent: boolean = False);
     procedure alert(message: string);
     procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     procedure SetTheme(ATheme: string);
-    function BaseCmd(id: TGParam; param: integer): integer;
+    function  BaseCmd(id: TGParam; param: integer): integer;
     procedure SetParam(id: TGParam; Value: integer);
-    function GetHMenu(ParentMenu: uint): uint;
-    function ContextMenu(pt: Windows.TPoint): boolean;
+    function  GetHMenu(ParentMenu: uint): uint;
+    function  ContextMenu(pt: Windows.TPoint): boolean;
     procedure SetFont(var Value: _FontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
-    function IsLockedMouseEffect: boolean;
-    function GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
-    function GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
+    function  IsLockedMouseEffect: boolean;
+    function  GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
+    function  GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
     procedure MoveDock(iDirection: integer);
     procedure OnDragEnter(list: TStrings; hWnd: uint);
     procedure OnDragOver;
@@ -129,8 +126,8 @@ type
     procedure NewDock;
     procedure RemoveDock;
     procedure OpenWith(filename: string);
-    function FullScreenAppActive(HWnd: HWND): boolean;
-    function ListFullScreenApps: string;
+    function  FullScreenAppActive(HWnd: HWND): boolean;
+    function  ListFullScreenApps: string;
     procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
     procedure execute_cmdline(cmd: string; showcmd: integer = 1);
     procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
@@ -152,22 +149,20 @@ var
   //theFile: string;
 begin
   try
-    closing := False;
-    saving := False;
+    closing := false;
+    saving := false;
     AllowClose := false;
-    PrevBlur := False;
-    InitDone := False;
+    PrevBlur := false;
+    InitDone := false;
     Application.OnException := AppException;
     Application.OnDeactivate := AppDeactivate;
     trayicon.Icon := application.Icon;
     LockList := TList.Create;
     crsection := TCriticalSection.Create;
 
-    AddLog('Init.CreateZOrderWindow');
     CreateZOrderWindow;
 
     // workaround for Windows message handling in LCL //
-    AddLog('Init.NativeWndProc');
     FWndInstance := MakeObjectInstance(NativeWndProc);
     FPrevWndProc := Pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
     SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
@@ -182,25 +177,21 @@ begin
     // ProcessHelper (must be created before tray controller) //
     ProcessHelper := TProcessHelper.Create(toolu.bIsWindowsVista);
 
-    // Sets //
-    AddLog('Init.Sets');
     sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
     revertMonitor := sets.container.Monitor;
 
-    // Theme //
-    AddLog('Init.Theme');
     theme := _Theme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
     if not theme.Load then
     begin
       notify(UTF8ToAnsi(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
-      AddLog('Halt');
+      AddLog('Theme.Halt');
       halt;
     end;
 
     // create ItemManager (disabled, not visible) //
     AddLog('Init.ItemManager');
-    ItemMgr := _ItemManager.Create(false, false, Handle, BaseCmd,
+    ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
       sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
       sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomItems,
       sets.container.Reflection, sets.container.ReflectionSize, sets.container.LaunchInterval,
@@ -224,7 +215,6 @@ begin
     BaseCmd(tcThemeChanged, 0);
 
     // load items //
-    AddLog('Init.LoadItems');
     load_err := false;
     try
       ItemMgr.Load(UnzipPath(sets.SetsPathFile));
@@ -232,6 +222,7 @@ begin
     except
       on e: Exception do
       begin
+        AddLog('Init.LoadItems');
         AddLog(e.message);
         load_err := true;
       end;
@@ -258,7 +249,6 @@ begin
     end;
 
     // Timers //
-    AddLog('Init.Timers');
     SetTimer(handle, ID_TIMER, 10, nil);
     SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
     SetTimer(handle, ID_TIMER_FSA, 2000, nil);
@@ -270,17 +260,14 @@ begin
     StartMenu := TStartMenuController.Create;
 
     // show the dock //
-    AddLog('Init.ItemMgr.Visible');
     BaseCmd(tcSetVisible, 1);
     if sets.GetParam(gpStayOnTop) = 1 then SetParam(gpStayOnTop, 1);
 
     // RawInput (replacement for hook) //
-    AddLog('Init.RegisterRawInput');
     RegisterRawInput;
 
     // DropManager //
-    AddLog('Init.DropManager');
-    DropMgr := _DropManager.Create(Handle);
+    DropMgr := TDropManager.Create(Handle);
     DropMgr.OnDrop := OnDrop;
     DropMgr.OnDragEnter := OnDragEnter;
     DropMgr.OnDragOver := OnDragOver;
@@ -304,7 +291,7 @@ begin
     // 'RollDown' on startup if set so //
     wndOffsetTarget := 0;
     wndOffset := 0;
-    RollDown;
+    DoRollDown;
 
     if sets.container.Hello then TfrmHello.Open;
     InitDone := True;
@@ -390,7 +377,6 @@ begin
       sets := nil;
       TProcessHelper.Cleanup;
       TNotifier.Cleanup;
-      if IsWindow(ZOrderWindow) then DestroyWindow(ZOrderWindow);
       LockList.free;
       // reset window proc
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
@@ -549,17 +535,15 @@ begin
   case id of
     gpMonitor:
       begin
-        UnreserveScreenEdge(sets.container.Site);
         BaseCmd(tcThemeChanged, 0);
         revertMonitor := sets.container.Monitor;
       end;
     gpSite:
       begin
-        UnreserveScreenEdge(sets.container.Site);
         if assigned(theme) then theme.Site := sets.container.Site;
         BaseCmd(tcThemeChanged, 0);
       end;
-    gpAutoHide:               if value = 0 then Rollup;
+    gpAutoHide:               if value = 0 then DoRollUp;
     gpHideTaskBar:            HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
@@ -640,12 +624,11 @@ end;
 procedure Tfrmmain.WHMouseMove(LParam: LParam);
 var
   pt: Windows.Tpoint;
-  mon_rect: Windows.TRect;
+  monitorRect: Windows.TRect;
   OldMouseOver: boolean;
 begin
-  //if not crsection.TryEnter then exit;
   if not IsLockedMouseEffect and assigned(ItemMgr) and IsWindowVisible(Handle) and not closing then
-  try
+  begin
     Windows.GetCursorPos(pt);
     if (pt.x <> LastMouseHookPoint.x) or (pt.y <> LastMouseHookPoint.y) or (LParam = $fffffff) then
     begin
@@ -655,37 +638,35 @@ begin
 
       // detect mouse enter/leave //
       OldMouseOver := MouseOver;
-      mon_rect := ItemMgr.FMonitorRect;
+      monitorRect := ItemMgr.FMonitorRect;
       if sets.container.site = bsBottom then
-        MouseOver := (pt.y >= mon_rect.Bottom - 1) and
+        MouseOver := (pt.y >= monitorRect.Bottom - 1) and
           (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
       else if sets.container.site = bsTop then
-        MouseOver := (pt.y <= mon_rect.Top) and
+        MouseOver := (pt.y <= monitorRect.Top) and
           (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
       else if sets.container.site = bsLeft then
-        MouseOver := (pt.x <= mon_rect.Left) and
+        MouseOver := (pt.x <= monitorRect.Left) and
           (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height)
       else if sets.container.site = bsRight then
-        MouseOver := (pt.x >= mon_rect.Right - 1) and
+        MouseOver := (pt.x >= monitorRect.Right - 1) and
           (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height);
       MouseOver := MouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
 
-      if MouseOver and not OldMouseOver then MouseEnter;
-      if not MouseOver and OldMouseOver then MouseLeave;
+      if MouseOver and not OldMouseOver then OnMouseEnter;
+      if not MouseOver and OldMouseOver then OnMouseLeave;
     end;
-  finally
-    crsection.Leave;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.MouseEnter;
+procedure Tfrmmain.OnMouseEnter;
 begin
   SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoShowTime, nil);
   // set foreground if 'activate' option selected //
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.MouseLeave;
+procedure Tfrmmain.OnMouseLeave;
 begin
   SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoHideTime, nil);
   // just to be sure
@@ -727,10 +708,11 @@ begin
 
   // create submenu 'Add...' //
 
+  AppendMenu(hMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pchar(UTF8ToAnsi(XUndeleteIcon)));
   AppendMenu(hMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
   AppendMenu(hMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
   AppendMenu(hMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XFile)));
-  AppendMenu(hMenuCreate, MF_STRING, $f026, pchar(UTF8ToAnsi(XInstalledApplication)));
+  //AppendMenu(hMenuCreate, MF_STRING, $f026, pchar(UTF8ToAnsi(XInstalledApplication)));
   AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
   AppendMenu(hMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
   AppendMenu(hMenuCreate, MF_SEPARATOR, 0, '-');
@@ -792,7 +774,7 @@ begin
         $f023: cmd := '/command';
         $f024: cmd := '/itemmgr.separator';
         $f025: cmd := '/newdock';
-        $f026: cmd := '/apps';
+        $f026: cmd := '/undelete';
 
         IDM_PASTE: cmd := '/paste';
         IDM_LOCKICONS: cmd := '/lockdragging';
@@ -830,8 +812,7 @@ begin
   end
   else if shift = [ssCtrl] then
   begin
-    if key = 90 {Ctrl+Z} then
-      if assigned(ItemMgr) then ItemMgr.UnDelete;
+    if key = 90 {Ctrl+Z} then execute_cmdline('/undelete');
   end;
 end;
 //------------------------------------------------------------------------------
@@ -875,24 +856,24 @@ begin
   if (msg.wParam = wm_activate) and (msg.lParam = 0) then
   begin
     BaseCmd(tcSetVisible, 1);
-    RollUp;
+    DoRollUp;
   end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMTimer(var msg: TMessage);
 begin
   try
-    if msg.WParam = ID_TIMER then TimerMain
-    else if msg.WParam = ID_TIMER_SLOW then TimerSlow
-    else if msg.WParam = ID_TIMER_FSA then TimerFSA
-    else if msg.WParam = ID_TIMER_ROLL then TimerRoll
-    else if msg.WParam = ID_TIMER_DRAGLEAVE then TimerDragLeave;
+    if msg.WParam = ID_TIMER then OnTimerMain
+    else if msg.WParam = ID_TIMER_SLOW then OnTimerSlow
+    else if msg.WParam = ID_TIMER_FSA then OnTimerFSA
+    else if msg.WParam = ID_TIMER_ROLL then OnTimerRoll
+    else if msg.WParam = ID_TIMER_DRAGLEAVE then OnTimerDragLeave;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.TimerMain;
+procedure Tfrmmain.OnTimerMain;
 begin
   if IsWindowVisible(Handle) then
   begin
@@ -900,10 +881,10 @@ begin
     if assigned(Tray) then Tray.Timer;
     if assigned(StartMenu) then StartMenu.Timer;
   end;
-  RollNHideTimer;
+  OnTimerDoRollUpDown;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.TimerSlow;
+procedure Tfrmmain.OnTimerSlow;
 begin
   if assigned(ItemMgr) and assigned(sets) then
   try
@@ -924,7 +905,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.TimerFSA;
+procedure Tfrmmain.OnTimerFSA;
 var
   fsa: boolean;
 begin
@@ -949,14 +930,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.TimerRoll;
+procedure Tfrmmain.OnTimerRoll;
 var
   sets_visible: boolean;
 begin
   if MouseOver then
   begin
     KillTimer(Handle, ID_TIMER_ROLL);
-    RollUp;
+    DoRollUp;
   end
   else
   begin
@@ -965,7 +946,7 @@ begin
     if not sets_visible then
     begin
       KillTimer(Handle, ID_TIMER_ROLL);
-      RollDown;
+      DoRollDown;
     end;
   end;
 end;
@@ -994,7 +975,7 @@ begin
   result := wndOffsetTarget > 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.RollDown;
+procedure Tfrmmain.DoRollDown;
 begin
   if ItemMgr.FDraggingItem or ItemMgr.FDraggingFile then exit;
   if sets.container.AutoHide and not IsHiddenDown then
@@ -1005,12 +986,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.RollUp;
+procedure Tfrmmain.DoRollUp;
 begin
   wndOffsetTarget := 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.RollNHideTimer;
+procedure Tfrmmain.OnTimerDoRollUpDown;
 var
   KeyPressed: boolean;
   key, KeySet: integer;
@@ -1052,42 +1033,27 @@ end;
 //------------------------------------------------------------------------------
 // bring the dock along with all items to foreground
 procedure Tfrmmain.SetForeground;
+  procedure setfore(h: THandle);
+  begin
+    SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  end;
 begin
   if closing then exit;
   // set all items topmost and place the dock window right underneath
   SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  // set dock window not topmost
+  // set dock window non topmost
   SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  // set all items not topmost
+  // set all items non topmost
   ItemMgr.ZOrder(HWND_NOTOPMOST);
   // place all the items right underneath ZOrderWindow
   ItemMgr.ZOrder(ZOrderWindow);
 
-  // bring to foreground other application windows if exist
-  if assigned(frmItemProp) then
-  try
-    SetWindowPos(frmItemProp.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(frmItemProp.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  except
-  end;
-  if assigned(frmStackProp) then
-  try
-    SetWindowPos(frmStackProp.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(frmStackProp.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  except
-  end;
-  if assigned(frmSets) then
-  try
-    SetWindowPos(frmSets.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(frmSets.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  except
-  end;
-  if assigned(frmThemeEditor) then
-  try
-    SetWindowPos(frmThemeEditor.handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(frmThemeEditor.handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  except
-  end;
+  // bring to the foreground other dock windows if any visible
+  if assigned(frmItemProp) then setfore(frmItemProp.handle);
+  if assigned(frmStackProp) then setfore(frmStackProp.handle);
+  if assigned(frmSets) then setfore(frmSets.handle);
+  if assigned(frmThemeEditor) then setfore(frmThemeEditor.handle);
 end;
 //------------------------------------------------------------------------------
 // its complicated. describe later ...
@@ -1279,7 +1245,7 @@ var
 begin
   if not closing and not IsHiddenDown and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
   begin
-    if InitDone and not assigned(AHint) then AHint := _Hint.Create;
+    if InitDone and not assigned(AHint) then AHint := THint.Create;
     if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
     if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
   end;
@@ -1571,7 +1537,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // trace mouse pointer until it actually leaves the dock area
-procedure Tfrmmain.TimerDragLeave;
+procedure Tfrmmain.OnTimerDragLeave;
 var
   pt: windows.TPoint;
 begin
@@ -1679,7 +1645,7 @@ begin
       index := LockList.IndexOf(pointer(hWnd));
       if index >= 0 then LockList.Delete(index);
     end;
-    SetParam(gpLockMouseEffect, integer(LockList.Count > 0));
+    SetParam(gpLockMouseEffect, integer(IsLockedMouseEffect));
   finally
     crsection.Leave;
   end;
@@ -1871,6 +1837,10 @@ begin
   else if cmd = 'collection' then Run('%pp%\collection.exe')
   else if cmd = 'apps' then Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
+  else if cmd = 'taskmgr' then
+  begin
+    if assigned(ItemMgr) then ItemMgr.UnDelete;
+  end
   else if cmd = 'program' then AddFile
   else if cmd = 'newdock' then NewDock
   else if cmd = 'removedock' then RemoveDock

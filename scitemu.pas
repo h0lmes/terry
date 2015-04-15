@@ -476,16 +476,18 @@ begin
       if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
       GdipCreateFromHDC(bmp.dc, dst);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
+      if (FSite = 1) or (FSite = 3) then
+        GdipFillRectangleI(dst, brush, ItemRect.Left - FItemSpacing div 2, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + FItemSpacing, ItemRect.Bottom - ItemRect.Top + 1)
+      else
+        GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - FItemSpacing div 2, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + FItemSpacing);
       GdipDeleteBrush(brush);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
       // draw the button
       button := false;
       if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
-      FNCHitText := button;
+      FNCHitTestNC := button;
 
       xBitmap := 0;
       yBitmap := 0;
@@ -563,8 +565,8 @@ begin
     // drop indicator
     DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
 
-    ////
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
+    ////
     if not button then
     begin
       if FReflection and (FReflectionSize > 0) and not FFloating then
@@ -744,7 +746,6 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
@@ -755,6 +756,17 @@ begin
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
+
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pchar(UTF8ToAnsi(XKillProcess)));
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
+  else AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
+  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  mii.cbSize := sizeof(MENUITEMINFO);
+  mii.fMask := MIIM_STATE;
+  mii.fState := MFS_DEFAULT;
+  SetMenuItemInfo(FHMenu, $f006, false, @mii);
   LME(true);
 
   // if shell context menu is enabled //
@@ -776,6 +788,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
+var
+  idx: integer;
 begin
   result := 0;
   LME(false);
@@ -788,7 +802,14 @@ begin
     $f004: Delete;
     $f005: DockExecute(FHWnd, pchar('/emptybin'), nil, nil, 1);
     $f006: Exec(eaRun);
-    //$f007..$f020: ;
+    $f007:
+      if FAppList.Count > 0 then
+      begin
+        for idx := FAppList.Count - 1 downto 0 do
+          ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
+      end;
+    $f008: if FIsExecutable then ProcessHelper.Kill(FExecutable);
+    //$f009..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

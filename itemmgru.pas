@@ -20,9 +20,9 @@ type
     se: extended;
   end;
 
-  { _ItemManager }
+  { TItemManager }
 
-  _ItemManager = class
+  TItemManager = class
   private
     FItemSize: integer;
     FBigItemSize: integer;
@@ -198,7 +198,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor _ItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
+constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
@@ -256,7 +256,7 @@ begin
   _registeredPrograms := TStringList.Create;
 end;
 //------------------------------------------------------------------------------
-destructor _ItemManager.Destroy;
+destructor TItemManager.Destroy;
 begin
   FEnabled := false;
   Clear;
@@ -266,12 +266,12 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.Enable(value: boolean);
+procedure TItemManager.Enable(value: boolean);
 begin
   FEnabled := value;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.err(where: string; e: Exception; Critical: boolean = false);
+procedure TItemManager.err(where: string; e: Exception; Critical: boolean = false);
 begin
   if assigned(e) then where := where + ' '#10#13 + e.Message else where := where + ' '#10#13'Error';
   if Critical then
@@ -284,12 +284,12 @@ begin
     raise Exception.Create(where);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.notify(message: string);
+procedure TItemManager.notify(message: string);
 begin
   dockh.notify(0, pchar(message));
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetParam(id: TGParam; value: integer);
+procedure TItemManager.SetParam(id: TGParam; value: integer);
 begin
   try
     AllItemCmd(id, value);
@@ -376,7 +376,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.command(cmd, params: string);
+procedure TItemManager.command(cmd, params: string);
 var
   data: string;
 begin
@@ -401,7 +401,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DoBaseDraw(flags: integer);
+procedure TItemManager.DoBaseDraw(flags: integer);
 begin
   if assigned(FBaseCmd) then FBaseCmd(tcRepaintBase, flags);
 end;
@@ -414,7 +414,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure _ItemManager.Load(fsets: string);
+procedure TItemManager.Load(fsets: string);
 var
   idx: integer;
   cls_name, data: string;
@@ -489,7 +489,7 @@ begin
   ItemsChanged;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.Save(fsets: string);
+procedure TItemManager.Save(fsets: string);
 begin
   try
     if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
@@ -499,7 +499,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.AllItemsSave;
+procedure TItemManager.AllItemsSave;
 var
   idx: integer;
 begin
@@ -514,7 +514,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.ItemSave(HWnd: uint);
+procedure TItemManager.ItemSave(HWnd: uint);
 var
   index: integer;
   Inst: TCustomItem;
@@ -537,7 +537,7 @@ end;
 //
 //------------------------------------------------------------------------------
 // clears the entire items array //
-procedure _ItemManager.Clear;
+procedure TItemManager.Clear;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -558,7 +558,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // clears the "deleted items" array //
-procedure _ItemManager.ClearDeleted;
+procedure TItemManager.ClearDeleted;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -581,7 +581,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // restores deleted items //
-procedure _ItemManager.UnDelete;
+procedure TItemManager.UnDelete;
 begin
   try
     CheckDeleted;
@@ -599,7 +599,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // clears out unwanted items from "deleted items" array //
-procedure _ItemManager.CheckDeleted;
+procedure TItemManager.CheckDeleted;
 var
   h: THandle;
   idx: integer;
@@ -623,7 +623,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemIndex(HWnd: HANDLE): integer;
+function TItemManager.ItemIndex(HWnd: HANDLE): integer;
 var
   idx: integer;
 begin
@@ -644,13 +644,13 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemHWnd(index: integer): HANDLE;
+function TItemManager.ItemHWnd(index: integer): HANDLE;
 begin
   result := 0;
   if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ZOrder(InsertAfter: uint): uint;
+function TItemManager.ZOrder(InsertAfter: uint): uint;
 var
   idx: integer;
 begin
@@ -669,7 +669,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.Timer;
+procedure TItemManager.Timer;
 var
   elapsed: integer;
   doUpdate: boolean;
@@ -716,13 +716,13 @@ begin
   if doUpdate then ItemsChanged;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetTheme;
+procedure TItemManager.SetTheme;
 begin
   AllItemCmd(tcThemeChanged, 0);
   ItemsChanged(true);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.ItemsChanged(FullUpdate: boolean = false);
+procedure TItemManager.ItemsChanged(FullUpdate: boolean = false);
 begin
   if FEnabled then
   try
@@ -735,7 +735,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetVisible(value: boolean);
+procedure TItemManager.SetVisible(value: boolean);
 begin
   if FVisible <> value then
   begin
@@ -749,7 +749,7 @@ begin
   ItemsChanged;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetItems1;
+procedure TItemManager.SetItems1;
   function getHalfBubble: extended;
   var
     i: extended;
@@ -891,7 +891,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.RecalcDock;
+procedure TItemManager.RecalcDock;
 begin
   if FEnabled then
   try
@@ -1006,7 +1006,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetRect: windows.TRect;
+function TItemManager.GetRect: windows.TRect;
 begin
   result.Left := FBaseWindowRect.X + X;
   result.Top := FBaseWindowRect.Y + Y;
@@ -1020,7 +1020,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetZoomEdge: integer;
+function TItemManager.GetZoomEdge: integer;
 begin
   case FSite of
     bsLeft: result := FBaseWindowRect.X + x + widthZoomed;
@@ -1030,7 +1030,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetItems2(force_draw: boolean);
+procedure TItemManager.SetItems2(force_draw: boolean);
 var
   idx: integer;
   wpi, show_items: uint;
@@ -1060,7 +1060,7 @@ end;
 //------------------------------------------------------------------------------
 // insert the list of the items at DropPlace position
 // if DropPlace not exists, then insert at the end of the items array
-procedure _ItemManager.InsertItems(list: TStrings);
+procedure TItemManager.InsertItems(list: TStrings);
 var
   i, dplace: integer;
 begin
@@ -1082,13 +1082,13 @@ end;
 //------------------------------------------------------------------------------
 // insert item at current DropPlace
 // or at the end if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
-procedure _ItemManager.InsertItem(AData: string);
+procedure TItemManager.InsertItem(AData: string);
 begin
   if FEnabled then AddItem(AData, true);
 end;
 //------------------------------------------------------------------------------
 // create an item and put it onto dock
-function _ItemManager.AddItem(data: string; Update: boolean = false): THandle;
+function TItemManager.AddItem(data: string; Update: boolean = false): THandle;
 begin
   result := 0;
   if FItemCount > MAX_ITEM_COUNT then exit;
@@ -1104,7 +1104,7 @@ begin
   if Update then ItemsChanged(true);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.PluginCallCreate(HWnd: HANDLE);
+procedure TItemManager.PluginCallCreate(HWnd: HANDLE);
 var
   Inst: TCustomItem;
 begin
@@ -1122,7 +1122,7 @@ end;
 //
 // if class = stack there could be more than 1 string
 // in this case each one starting from the 2nd should be of shortcut class
-function _ItemManager.CreateItem(data: string): THandle;
+function TItemManager.CreateItem(data: string): THandle;
 var
   class_name, str: string;
   Inst: TCustomItem;
@@ -1135,6 +1135,7 @@ begin
 
     icp.ItemSize := FItemSize;
     icp.BigItemSize := FBigItemSize;
+    icp.ItemSpacing := FItemSpacing;
     icp.LaunchInterval := FLaunchInterval;
     icp.ActivateRunning := FActivateRunning;
     icp.UseShellContextMenus := FUseShellContextMenus;
@@ -1184,7 +1185,7 @@ end;
 // do not call directly !!!
 // items call this using DockH.DockDeleteItem
 // use TCustomItem.Delete instead
-procedure _ItemManager.DeleteItem(HWnd: THandle);
+procedure TItemManager.DeleteItem(HWnd: THandle);
 var
   index, rpIndex: integer;
   Inst: TCustomItem;
@@ -1228,7 +1229,7 @@ end;
 //
 //------------------------------------------------------------------------------
 // calculate and set DropPlace and DropPlaceEx
-procedure _ItemManager.CalcDropPlace(pt: windows.TPoint);
+procedure TItemManager.CalcDropPlace(pt: windows.TPoint);
 var
   tmp: extended;
   prevDropPlace, prevDropPlaceEx: integer;
@@ -1290,7 +1291,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // physically create/move/delete empty item at DropPlace
-procedure _ItemManager.SetDropPlace(index: integer);
+procedure TItemManager.SetDropPlace(index: integer);
 var
   i, currentDropPlace: integer;
 begin
@@ -1361,7 +1362,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // set appropriate indicator for an item at DropPlaceEx
-procedure _ItemManager.SetDropPlaceEx(index: integer);
+procedure TItemManager.SetDropPlaceEx(index: integer);
 var
   DragInst, Inst: TCustomItem;
   atype: integer;
@@ -1393,14 +1394,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 // items area width or height //
-function _ItemManager.IASize: integer;
+function TItemManager.IASize: integer;
 begin
   result := FItemCount * (FItemSize + FItemSpacing);
 end;
 //------------------------------------------------------------------------------
 // calculate item index based on mouse position
 // do not care of the current items positions
-function _ItemManager.ItemFromPoint(Ax, Ay, distance: integer): extended;
+function TItemManager.ItemFromPoint(Ax, Ay, distance: integer): extended;
 var
   BasePoint: integer; // left or top of the first item
   rItemArea: windows.TRect;
@@ -1475,7 +1476,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // calculate item index based on mouse position and items positions
-function _ItemManager.ItemRectFromPoint(Ax, Ay: integer): integer;
+function TItemManager.ItemRectFromPoint(Ax, Ay: integer): integer;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -1508,7 +1509,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // enter/exit zooming mode, maintain zooming
-procedure _ItemManager.Zoom(x, y: integer);
+procedure TItemManager.Zoom(x, y: integer);
 var
   item, saved: extended;
 begin
@@ -1554,7 +1555,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // exit zooming mode
-procedure _ItemManager.UnZoom(do_now: boolean = false);
+procedure TItemManager.UnZoom(do_now: boolean = false);
 begin
   if FEnabled and (FZooming or do_now) then
   begin
@@ -1569,7 +1570,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // check mouse is over the dock
-function _ItemManager.CheckMouseOn: boolean;
+function TItemManager.CheckMouseOn: boolean;
 var
   pt: windows.TPoint;
   wnd: uint;
@@ -1591,7 +1592,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // entry point for MouseMove events
-procedure _ItemManager.WHMouseMove(pt: windows.Tpoint; allow_zoom: boolean = true);
+procedure TItemManager.WHMouseMove(pt: windows.Tpoint; allow_zoom: boolean = true);
 var
   wnd: cardinal;
 begin
@@ -1624,14 +1625,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DragEnter;
+procedure TItemManager.DragEnter;
 begin
   FDraggingItem := false;
   FDraggingFile := true;
   DragOver;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DragLeave;
+procedure TItemManager.DragLeave;
 begin
   FDraggingItem := false;
   FDraggingFile := false;
@@ -1644,7 +1645,7 @@ begin
   AllItemCmd(icHover, 0);
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.DragOver;
+procedure TItemManager.DragOver;
 var
   pt: windows.TPoint;
   wnd: THandle;
@@ -1669,7 +1670,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.WMDeactivateApp;
+procedure TItemManager.WMDeactivateApp;
 var
   idx: integer;
 begin
@@ -1701,7 +1702,7 @@ end;
 //
 //------------------------------------------------------------------------------
 // detach the item
-procedure _ItemManager.Undock(HWnd: HANDLE);
+procedure TItemManager.Undock(HWnd: HANDLE);
 var
   index: integer;
   pt: windows.TPoint;
@@ -1727,7 +1728,7 @@ end;
 // add new item to dock
 // if there is a DropPlace, then put item to DropPlace
 // if DropPlace not exists, then put item at the end of the items array
-procedure _ItemManager.DockAdd(HWnd: THandle);
+procedure TItemManager.DockAdd(HWnd: THandle);
 begin
   if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
   // if FDropPlace exists, then it is not TaskItem //
@@ -1751,7 +1752,7 @@ end;
 //------------------------------------------------------------------------------
 // put the item to dock
 // if necessary create a new stack or put into existing one
-procedure _ItemManager.Dock(HWnd: HANDLE);
+procedure TItemManager.Dock(HWnd: HANDLE);
 var
   idx: integer;
   DragInst, Inst, NewInst: TCustomItem;
@@ -1840,7 +1841,7 @@ end;
 // if item is found - result is HWnd
 // if subitem is found - result is its parent item HWnd
 // if no match found result is 0
-function _ItemManager.IsItem(HWnd: HANDLE): HANDLE;
+function TItemManager.IsItem(HWnd: HANDLE): HANDLE;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -1867,7 +1868,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
+function TItemManager.ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
 var
   Inst: TCustomItem;
   HWndChild: HANDLE;
@@ -1886,7 +1887,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
+function TItemManager.ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
 var
   idx: integer;
   Inst: TCustomItem;
@@ -1908,7 +1909,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
+function TItemManager.ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
 var
   Inst: TCustomItem;
 begin
@@ -1921,7 +1922,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.AllItemCmd(id: TGParam; param: integer): integer;
+function TItemManager.AllItemCmd(id: TGParam; param: integer): integer;
 var
   item: integer;
   Inst: TCustomItem;
@@ -1941,7 +1942,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetFont(var Value: _FontData);
+procedure TItemManager.SetFont(var Value: _FontData);
 var
   item: integer;
   Inst: TCustomItem;
@@ -1960,7 +1961,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetPluginFile(HWnd: HANDLE): string;
+function TItemManager.GetPluginFile(HWnd: HANDLE): string;
 var
   Inst: TCustomItem;
 begin
@@ -1973,7 +1974,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
+procedure TItemManager.SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
 var
   Inst: TCustomItem;
 begin
@@ -1985,7 +1986,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
+procedure TItemManager.SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
 var
   Inst: TCustomItem;
 begin
@@ -1997,7 +1998,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.PluginAnimate(HWnd: HANDLE);
+procedure TItemManager.PluginAnimate(HWnd: HANDLE);
 var
   Inst: TCustomItem;
 begin
@@ -2009,7 +2010,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.SetPluginCaption(HWnd: HANDLE; NewCaption: string);
+procedure TItemManager.SetPluginCaption(HWnd: HANDLE; NewCaption: string);
 var
   Inst: TCustomItem;
 begin
@@ -2021,7 +2022,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetPluginCaption(HWnd: HANDLE): string;
+function TItemManager.GetPluginCaption(HWnd: HANDLE): string;
 var
   Inst: TCustomItem;
 begin
@@ -2034,7 +2035,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
+function TItemManager.GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
 var
   Inst: TCustomItem;
 begin
@@ -2048,7 +2049,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.IsPluginUndocked(HWnd: HANDLE): boolean;
+function TItemManager.IsPluginUndocked(HWnd: HANDLE): boolean;
 var
   Inst: TCustomItem;
 begin
@@ -2061,7 +2062,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _ItemManager.IsSeparator(HWnd: HANDLE): boolean;
+function TItemManager.IsSeparator(HWnd: HANDLE): boolean;
 begin
   try
     result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TSeparatorItem;
@@ -2078,7 +2079,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure _ItemManager.Taskbar;
+procedure TItemManager.Taskbar;
 var
   index: integer;
   Inst: TCustomItem;
@@ -2121,7 +2122,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.AddTaskWindow(HWndTask: THandle);
+procedure TItemManager.AddTaskWindow(HWndTask: THandle);
 var
   index, found, spot: integer;
   HWndItem: THandle;
@@ -2178,7 +2179,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _ItemManager.ClearTaskbar;
+procedure TItemManager.ClearTaskbar;
 var
   idx: integer;
   Inst: TCustomItem;

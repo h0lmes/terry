@@ -39,7 +39,7 @@ type
     FyDocking: integer;
     need_dock: boolean;
     FDockingProgress: single;
-    FNCHitText: boolean; // if true - HitTest returns true for non-client area
+    FNCHitTestNC: boolean; // if true - HitTest returns true for non-client area
 
     FEnabled: boolean;
     FUpdating: boolean;
@@ -57,6 +57,7 @@ type
     FLockMouseEffect: boolean;
     FItemSize: integer;
     FBigItemSize: integer;
+    FItemSpacing: integer;
     FLaunchInterval: integer;
     FActivateRunning: boolean;
     MouseDownPoint: windows.TPoint;
@@ -150,6 +151,7 @@ begin
   FItemSize := AParams.ItemSize;
   FSize := FItemSize;
   FBigItemSize := AParams.BigItemSize;
+  FItemSpacing := AParams.ItemSpacing;
   FLaunchInterval := AParams.LaunchInterval;
   FActivateRunning := AParams.ActivateRunning;
   FReflection := AParams.Reflection;
@@ -168,6 +170,7 @@ begin
   SetWindowLong(FHWnd, GWL_WNDPROC, PtrInt(FPrevWndProc));
   FreeObjectInstance(FWndInstance);
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
+  FHWnd := 0;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -204,7 +207,7 @@ begin
   FxDocking := 0;
   FyDocking := 0;
   need_dock := false;
-  FNCHitText := false;
+  FNCHitTestNC := false;
   FNeedMouseWheel := false;
 end;
 //------------------------------------------------------------------------------
@@ -222,6 +225,11 @@ begin
           Redraw;
         end;
       gpBigItemSize: FBigItemSize := word(param);
+      gpItemSpacing:
+        begin
+          FItemSpacing := word(param);
+          Redraw;
+        end;
       gpReflection:
         begin
           FReflection := boolean(param);
@@ -499,7 +507,7 @@ end;
 //------------------------------------------------------------------------------
 function TCustomItem.HitTest(Ax, Ay: integer): boolean;
 begin
-  if FNCHitText then
+  if FNCHitTestNC then
   begin
     result := true;
     exit;
@@ -509,7 +517,7 @@ end;
 //------------------------------------------------------------------------------
 function TCustomItem.ScreenHitTest(Ax, Ay: integer): boolean;
 begin
-  if FNCHitText then
+  if FNCHitTestNC then
   begin
     result := true;
     exit;
@@ -675,7 +683,8 @@ begin
         else if (msg = wm_close) or (msg = wm_quit) then exit;
 
     end;
-    message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
+    if FHWnd <> 0 then
+      message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
   except
     on e: Exception do raise Exception.Create('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
   end;

@@ -338,6 +338,10 @@ msgstr ""
 msgid "Task manager"
 msgstr ""
 
+#: declu.xundeleteicon
+msgid "Undelete icon (Ctrl+Z)"
+msgstr ""
+
 #: tfrmaddcommand.btnadd.caption
 msgid "Add icon"
 msgstr ""

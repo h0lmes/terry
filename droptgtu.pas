@@ -5,7 +5,7 @@ interface
 uses Windows, Classes, SysUtils, ActiveX, ShlObj, ShellAPI, PIDL, declu, notifieru;
 
 type
-  _DropTarget = class;
+  TDropTarget = class;
 
   TProc = procedure of object;
   TDropProc = procedure(list: TStrings; hWnd: uint) of object;
@@ -13,16 +13,16 @@ type
   // Life states //
   Tgwdt_ls = (gwdt_ls_start, gwdt_ls_exists, gwdt_ls_locked, gwdt_ls_regd);
 
-  _DropManager = class
+  TDropManager = class
   protected
-    FDropTarget: _DropTarget;
+    FDropTarget: TDropTarget;
     procedure  DropTarget_Forget;  // used by DropTarget.Destroy;
   public
     OnDragOver: TProc;
     OnDragLeave: TProc;
     OnDrop: TDropProc;
     OnDragEnter: TDropProc;
-    property  DropTarget: _DropTarget read FDropTarget;
+    property  DropTarget: TDropTarget read FDropTarget;
     // Create in  OwnerForm.OnCreate, Destroy in OwnerForm.OnDestroy
     constructor Create(ADropHWnd: HWND); virtual;
     destructor  Destroy; override;
@@ -40,10 +40,10 @@ type
     function Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
   end;
 
-  _DropTarget = class(TObject, IUnknown, IDropTarget)
+  TDropTarget = class(TObject, IUnknown, IDropTarget)
   private
     FDropHWND: HWND;
-    FDropInterface: _DropManager;
+    FDropInterface: TDropManager;
     FLifeState: Tgwdt_ls;
     FEnable: boolean;
     FRefCount: Integer;
@@ -58,7 +58,7 @@ type
     property Enable: Boolean Read FEnable     Write FEnable;
     property RefCount: Integer read FRefCount;
 
-    constructor Create(ADropHWnd: HWND; ADropManager: _DropManager); virtual;
+    constructor Create(ADropHWnd: HWND; ADropManager: TDropManager); virtual;
     destructor  Destroy; override;
     function ToState_Exists : HResult;
     function ToState_Locked : HResult;
@@ -76,48 +76,48 @@ implementation
 //
 //
 //
-//    _DropManager
+//    TDropManager
 //
 //
 //
 //------------------------------------------------------------------------------
-constructor _DropManager.Create(ADropHWnd: HWND);
+constructor TDropManager.Create(ADropHWnd: HWND);
 begin
   inherited Create;
   FDropTarget := nil;
   DropTarget_Create(ADropHWnd);
 end;
 //------------------------------------------------------------------------------
-destructor _DropManager.Destroy;
+destructor TDropManager.Destroy;
 begin
   if Assigned(FDropTarget) then FDropTarget.Destroy;
   inherited Destroy;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DropTarget_Create(ADropHWnd: HWND): HResult;
+function TDropManager.DropTarget_Create(ADropHWnd: HWND): HResult;
 begin
   result := E_UNEXPECTED;
-  FDropTarget := _DropTarget.Create(ADropHWnd, Self);
+  FDropTarget := TDropTarget.Create(ADropHWnd, Self);
   if Assigned(FDropTarget) then result := DropTarget.ToState_Regd;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DropTarget_Exists: Boolean;
+function TDropManager.DropTarget_Exists: Boolean;
 begin
   result := Assigned(FDropTarget);
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.DropTarget_Forget;
+procedure TDropManager.DropTarget_Forget;
 begin
   FDropTarget := nil;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DropTarget_LifeState: Tgwdt_ls;
+function TDropManager.DropTarget_LifeState: Tgwdt_ls;
 begin
   if DropTarget_Exists then result := DropTarget.LifeState
   else result := gwdt_ls_Start;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListHDrop(h: HDROP; var List: TStrings);
+procedure TDropManager.AddToListHDrop(h: HDROP; var List: TStrings);
 var
   i, size: uint;
   filename: array [0..MAX_PATH - 1] of char;
@@ -141,7 +141,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListIStreamFileName(h: Pointer; var List: TStrings);
+procedure TDropManager.AddToListIStreamFileName(h: Pointer; var List: TStrings);
 var
   ist: IStream;
   stat: STATSTG;
@@ -166,7 +166,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.AddToListHGlobalPIDL(h: HGLOBAL; var List: TStrings);
+procedure TDropManager.AddToListHGlobalPIDL(h: HGLOBAL; var List: TStrings);
 var
   p: Pointer;
   i, gsize, size, qty: longint;
@@ -220,7 +220,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // TODO: check if CIDA is valid
-procedure _DropManager.AddToListIStreamPIDL(h: Pointer; var List: TStrings);
+procedure TDropManager.AddToListIStreamPIDL(h: Pointer; var List: TStrings);
 var
   ist: IStream;
   stat: STATSTG;
@@ -276,7 +276,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropManager.MakeList(const dataObj: IDataObject; var List: TStrings);
+procedure TDropManager.MakeList(const dataObj: IDataObject; var List: TStrings);
 var
   Rslt: HResult;
   EnumFormatEtc: IEnumFormatEtc;
@@ -363,26 +363,26 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropManager.DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 begin
   dwEffect := DROPEFFECT_COPY;
   result := S_OK;
   if assigned(OnDragEnter) then OnDragEnter(nil, WindowFromPoint(pt));
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DragOver(grfKeyState : DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropManager.DragOver(grfKeyState : DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 begin
   if assigned(OnDragOver) then OnDragOver;
   result := S_OK;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.DragLeave: HResult;
+function TDropManager.DragLeave: HResult;
 begin
   if assigned(OnDragLeave) then OnDragLeave;
   result := S_OK;
 end;
 //------------------------------------------------------------------------------
-function _DropManager.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropManager.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 var
   FList: TStrings;
 begin
@@ -414,19 +414,19 @@ const
   di_DragLeave = 5;
   di_Drop = 6;
 //------------------------------------------------------------------------------
-function _DropTarget.QueryInterface(constref IID: TGUID; out Obj): longint; stdcall;
+function TDropTarget.QueryInterface(constref IID: TGUID; out Obj): longint; stdcall;
 const E_NOINTERFACE = $80004002;
 begin
   if GetInterface(IID, Obj) then result := 0 else result := E_NOINTERFACE;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget._AddRef: Integer;
+function TDropTarget._AddRef: Integer;
 begin
   inc(FRefCount);
   result:= FRefCount;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget._Release: Integer;
+function TDropTarget._Release: Integer;
 begin
   dec(FRefCount);
   if FRefCount = 0 then
@@ -436,7 +436,7 @@ begin
   end else result:= FRefCount;
 end;
 //------------------------------------------------------------------------------
-constructor _DropTarget.Create(ADropHWnd: HWND; ADropManager: _DropManager);
+constructor TDropTarget.Create(ADropHWnd: HWND; ADropManager: TDropManager);
 begin
   inherited Create;
   FDropHWND      := ADropHWnd;
@@ -445,7 +445,7 @@ begin
   FEnable        := true;
 end;
 //------------------------------------------------------------------------------
-destructor _DropTarget.Destroy;
+destructor TDropTarget.Destroy;
 begin
   if Assigned(FDropInterface) then FDropInterface.DropTarget_Forget;
   if FLifeState > gwdt_ls_Locked then
@@ -465,7 +465,7 @@ begin
   inherited Destroy;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.ToState_Exists : HResult;
+function TDropTarget.ToState_Exists : HResult;
 begin
   result := S_OK;
   if LifeState = gwdt_ls_Regd then result := ToState_Locked;
@@ -477,7 +477,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.ToState_Locked : HResult;
+function TDropTarget.ToState_Locked : HResult;
 begin
   result := S_OK;
 
@@ -495,7 +495,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.ToState_Regd: HResult;
+function TDropTarget.ToState_Regd: HResult;
 begin
   result := S_OK;
   if LifeState = gwdt_ls_Exists then result := ToState_Locked;
@@ -506,12 +506,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _DropTarget.SetLifeState(Value: Tgwdt_ls);
+procedure TDropTarget.SetLifeState(Value: Tgwdt_ls);
 begin
   FLifeState := Value;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropTarget.DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 begin
   if enable then Result := FDropInterface.DragEnter(dataObj, grfKeyState, pt, dwEffect)
   else
@@ -521,7 +521,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.DragOver(grfKeyState : DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropTarget.DragOver(grfKeyState : DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 begin
   if Enable then result := FDropInterface.DragOver(grfKeyState, pt, dwEffect)
   else
@@ -531,12 +531,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.DragLeave: HResult;
+function TDropTarget.DragLeave: HResult;
 begin
   result := FDropInterface.DragLeave;
 end;
 //------------------------------------------------------------------------------
-function _DropTarget.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
+function TDropTarget.Drop(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult;
 begin
   if Enable then result := FDropInterface.Drop(dataObj, grfKeyState, pt, dwEffect)
   else

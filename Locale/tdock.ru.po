@@ -379,6 +379,10 @@ msgctxt "declu.xtaskmanager"
 msgid "Task manager"
 msgstr "Диспетчер задач"
 
+#: declu.xundeleteicon
+msgid "Undelete icon (Ctrl+Z)"
+msgstr "Отменить удаление значка (Ctrl+Z)"
+
 #: tfrmaddcommand.btnadd.caption
 #| msgid "Add command"
 msgctxt "TFRMADDCOMMAND.BTNADD.CAPTION"

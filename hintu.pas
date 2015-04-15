@@ -6,7 +6,7 @@ uses Windows, Messages, SysUtils, Forms, Math,
   declu, toolu, GDIPAPI, gfx, setsu, dockh;
 
 type
-  _Hint = class
+  THint = class
   private
     hWnd: THandle;
     wndClass: TWndClass;
@@ -42,7 +42,7 @@ implementation
 //------------------------------------------------------------------------------
 function WndProc(wnd: hwnd; message: uint; wParam: integer; lParam: integer): integer; stdcall;
 var
-  p: _Hint;
+  p: THint;
 begin
   if message = WM_NCHITTEST then
   begin
@@ -51,21 +51,21 @@ begin
   end
   else if (message = WM_TIMER) and (wParam = ID_TIMER) then
   begin
-    p := _Hint(GetWindowLong(wnd, GWL_USERDATA));
-    if p is _Hint then p.Timer;
+    p := THint(GetWindowLong(wnd, GWL_USERDATA));
+    if p is THint then p.Timer;
     exit;
   end;
 
   Result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.err(where: string; e: Exception);
+procedure THint.err(where: string; e: Exception);
 begin
   if assigned(e) then dockh.notify(0, pchar(where + #10#13 + e.message))
   else dockh.notify(0, pchar(where));
 end;
 //------------------------------------------------------------------------------
-constructor _Hint.Create;
+constructor THint.Create;
 begin
   inherited;
 
@@ -105,7 +105,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Hint.GetMonitorRect(monitor: integer): Windows.TRect;
+function THint.GetMonitorRect(monitor: integer): Windows.TRect;
 begin
   result.Left := 0;
   result.Top := 0;
@@ -115,7 +115,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
+procedure THint.ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
 var
   hgdip, font, family, brush, path: Pointer;
   rect: TRectF;
@@ -262,7 +262,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.Timer;
+procedure THint.Timer;
 const
   STEP = 1;
   ITER = 4;
@@ -303,7 +303,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.DeactivateHint(hwnd_: uint);
+procedure THint.DeactivateHint(hwnd_: uint);
 begin
   if hwnd_ = wnd_owner then
   try
@@ -319,7 +319,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Hint.UnregisterWindowClass;
+procedure THint.UnregisterWindowClass;
 begin
   try Windows.UnregisterClass('Terry::Hint', WindowClassInstance);
   except
@@ -327,7 +327,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-destructor _Hint.Destroy;
+destructor THint.Destroy;
 begin
   DestroyWindow(hWnd);
   UnregisterWindowClass;

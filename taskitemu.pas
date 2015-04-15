@@ -13,14 +13,14 @@ type
 
   TTaskItem = class(TCustomItem)
   private
-    FProcName: string;
+    FIsExecutable: boolean;
+    FExecutable: string;
     FAppList: TFPList;
     FIsNew: boolean;
     FIsOpen: boolean;
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
-    FIsExecutable: boolean;
     FAttention: boolean;
     procedure BeforeUndock;
     procedure UpdateImage;
@@ -63,7 +63,7 @@ begin
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
-  FProcName := '';
+  FExecutable := '';
   FAppList := TFPList.Create;
   FIsOpen := false;
   FIsNew := true;
@@ -105,18 +105,18 @@ begin
   begin
     FAppList.Add(pointer(hwnd));
     Attention(true);
-    FProcName := ProcessHelper.GetWindowProcessName(hwnd);
-    FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
+    FExecutable := ProcessHelper.GetWindowProcessName(hwnd);
+    FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
     UpdateItemInternal;
     FIsNew := false;
     exit;
   end;
 
   // try to get process executable path
-  if FProcName = '' then
+  if FExecutable = '' then
   begin
-    FProcName := ProcessHelper.GetWindowProcessName(THandle(FAppList.First));
-    FIsExecutable := SameText(ExtractFileExt(FProcName), '.exe');
+    FExecutable := ProcessHelper.GetWindowProcessName(THandle(FAppList.First));
+    FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
 	end;
 
   // if the window is already in this group - do nothing
@@ -125,7 +125,7 @@ begin
   // if the window belong to the same process - add the window to the list
   ProcName := ProcessHelper.GetWindowProcessName(hwnd);
   if ProcName <> '' then
-    if ProcName = FProcName then
+    if ProcName = FExecutable then
     begin
       FAppList.Add(pointer(hwnd));
       Attention(true);
@@ -190,7 +190,7 @@ end;
 procedure TTaskItem.UpdateImage;
 begin
   if FAppList.Count > 0 then
-    LoadAppImage(FProcName, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
+    LoadAppImage(FExecutable, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
@@ -266,7 +266,6 @@ begin
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
       UpdateHint(xReal, yReal);
-      if FIsOpen then UpdatePeekWindow;
     except
       on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
     end;
@@ -282,7 +281,10 @@ begin
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
+      if (FSite = 1) or (FSite = 3) then
+        GdipFillRectangleI(dst, brush, ItemRect.Left - FItemSpacing div 2, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + FItemSpacing, ItemRect.Bottom - ItemRect.Top + 1)
+      else
+        GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - FItemSpacing div 2, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + FItemSpacing);
       GdipDeleteBrush(brush);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
 
@@ -291,7 +293,7 @@ begin
 
       // draw the button
       button := theme.DrawButton(dst, xBitmap, yBitmap, FSize, FAttention);
-      FNCHitText := button;
+      FNCHitTestNC := button;
     except
       on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
     end;
@@ -314,6 +316,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
 
+    if FIsOpen then UpdatePeekWindow;
   except
     on e: Exception do raise Exception.Create('TaskItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
@@ -391,7 +394,7 @@ procedure TTaskItem.Exec(action: TExecuteAction);
 begin
   if (action = eaRun) and FIsExecutable then
   begin
-    dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
+    dockh.DockExecute(FHWnd, pchar(FExecutable), nil, nil, SW_SHOWNORMAL);
 	end
   else
 	if FAppList.Count = 1 then
@@ -422,19 +425,18 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
   else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
+  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
   SetMenuItemInfo(FHMenu, $f004, false, @mii);
-  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   LME(true);
 
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -463,13 +465,13 @@ begin
     $f002:
         if FIsExecutable then
         begin
-          dockh.DockAddProgram(pchar(FProcName));
+          dockh.DockAddProgram(pchar(FExecutable));
           Delete;
         end;
-    $f003: if FIsExecutable then ProcessHelper.Kill(FProcName);
-    $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FProcName), nil, nil, SW_SHOWNORMAL);
+    $f003: if FIsExecutable then ProcessHelper.Kill(FExecutable);
+    $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FExecutable), nil, nil, SW_SHOWNORMAL);
     $f005: dockh.DockExecute(FHWnd, '/taskspot', nil, nil, 0);
-    $f006..$f020: ;
+    //$f006..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

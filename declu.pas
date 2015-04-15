@@ -103,6 +103,7 @@ type
   _ItemCreateParams = packed record
     ItemSize: integer;
     BigItemSize: integer;
+    ItemSpacing: integer;
     LaunchInterval: integer;
     ActivateRunning: boolean;
     UseShellContextMenus: boolean;
@@ -247,6 +248,7 @@ resourcestring
   XCloseAllWindows = 'Close all windows';
   XEmptyBin = 'Empty bin';
   XOpenThemesFolder = 'Open themes folder';
+  XUndeleteIcon = 'Undelete icon (Ctrl+Z)';
 
   XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
   XShortcut = 'Shortcut';
