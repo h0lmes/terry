@@ -4,8 +4,8 @@ unit stackitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
-  Math, IniFiles,
-  GDIPAPI, PIDL, gfx, declu, dockh, toolu, customitemu, stacksubitemu, stackmodeu;
+  Math, IniFiles, GDIPAPI, PIDL,
+  gfx, declu, dockh, toolu, customitemu, customdrawitemu, stacksubitemu, stackmodeu;
 
 const
   MAX_SUBITEMS = 64;
@@ -33,9 +33,8 @@ type
 
   { TStackItem }
 
-  TStackItem = class(TCustomItem)
+  TStackItem = class(TCustomDrawItem)
   private
-    FRunning: boolean;
     FUseShellContextMenus: boolean;
     FImageFile: string;
     FColorData: integer;
@@ -55,6 +54,8 @@ type
     FPreviewImageW: uint;
     FPreviewImageH: uint;
     procedure UpdateItemInternal;
+    procedure BeforeDraw;
+    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure OnDragEnter;
@@ -85,7 +86,6 @@ type
     destructor Destroy; override;
     procedure Init; override;
     procedure SetFont(var Value: _FontData); override;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure MouseHeld(button: TMouseButton); override;
@@ -120,16 +120,16 @@ begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
   FOpenAnimation := AParams.StackOpenAnimation;
+  OnBeforeDraw := BeforeDraw;
+  OnDrawOverlay := DrawOverlay;
   UpdateItem(AData);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Init;
 begin
   inherited;
-
   FImageFile := '';
   FColorData := DEFAULT_COLOR_DATA;
-  FRunning := false;
   FItemCount := 0;
   SetLength(items, MAX_SUBITEMS);
   FState := stsClosed;
@@ -381,102 +381,19 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// set position, size, repaint window //
-procedure TStackItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
-var
-  bmp: _SimpleBitmap;
-  dst: Pointer;
-  hattr, brush: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
-  xReal, yReal: integer; // coord of window
-  ItemRect: windows.TRect;
+// Draw routines ---------------------------------------------------------------
+procedure TStackItem.BeforeDraw;
 begin
-  try
-    if FFreed or FUpdating or (FFloating and not AForce) then exit;
-
-    // update subitems positions if stack is open //
-    if FState = stsOpen then DoStateProgress;
-
-    // set position //
-    try
-      ItemRect := GetRectFromSize(ASize);
-      Fx := Ax;
-      Fy := Ay;
-      FShowItem := AShowItem;
-      if need_dock then
-      begin
-        Ax := FxDocking;
-        Ay := FyDocking;
-      end;
-      xReal := Ax - ItemRect.Left;
-      yReal := Ay - ItemRect.Top;
-
-      if (FSize = ASize) and not AForce then
-      begin
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
-        else SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
-        exit;
-      end else
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
-
-      FSize := ASize;
-      if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
-      UpdateHint(xReal, yReal);
-    except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
-    end;
-
-    // init draw //
-    try
-      bmp.topleft.x := xReal;
-      bmp.topleft.y := yReal;
-      bmp.width := FSize + ItemRect.Left * 2;
-      bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      GdipCreateFromHDC(bmp.dc, dst);
-      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-
-      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      if (FSite = 1) or (FSite = 3) then
-        GdipFillRectangleI(dst, brush, ItemRect.Left - FItemSpacing div 2, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + FItemSpacing, ItemRect.Bottom - ItemRect.Top + 1)
-      else
-        GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - FItemSpacing div 2, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + FItemSpacing);
-      GdipDeleteBrush(brush);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-      xBitmap := 0;
-      yBitmap := 0;
-      inc(xBitmap, ItemRect.Left);
-      inc(yBitmap, ItemRect.Top);
-    except
-      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
-    end;
-
-    // draw icons //
-    CreateColorAttributes(FColorData, FSelected, hattr);
-    if assigned(FImage) then
-      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if hattr <> nil then GdipDisposeImageAttributes(hattr);
-
-    if assigned(FPreviewImage) and (FState = stsClosed) then
-      GdipDrawImageRectRectI(dst, FPreviewImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
-    // drop indicator
-    DrawItemIndicator(dst, FDropIndicator, xBitmap, yBitmap, FSize, FSize);
-
-    ////
-    if FReflection and (FReflectionSize > 0) and not FFloating then
-      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-    if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
-    UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
-
-    // cleanup //
-    DeleteGraphics(dst);
-    DeleteBitmap(bmp);
-  except
-    on e: Exception do raise Exception.Create('StackItem.Draw(' + FCaption + ')'#10#13 + e.message);
-  end;
+  if FState = stsOpen then DoStateProgress;
 end;
+//------------------------------------------------------------------------------
+procedure TStackItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+begin
+  if assigned(FPreviewImage) and (FState = stsClosed) then
+    GdipDrawImageRectRectI(dst, FPreviewImage, x, y, size, size, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
+  DrawItemIndicator(dst, FDropIndicator, x, y, size, size);
+end;
+// Draw routines ---------------------------------------------------------------
 //------------------------------------------------------------------------------
 procedure TStackItem.Timer;
 begin

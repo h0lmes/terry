@@ -4,14 +4,14 @@ unit taskitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes,
-  Math, GDIPAPI, gfx, declu, dockh, customitemu, toolu, processhlp,
-  aeropeeku, dwm_unit, themeu;
+  Math, GDIPAPI, gfx, declu, dockh, customitemu, customdrawitemu,
+  toolu, processhlp, aeropeeku, dwm_unit, themeu;
 
 type
 
   { TTaskItem }
 
-  TTaskItem = class(TCustomItem)
+  TTaskItem = class(TCustomDrawItem)
   private
     FIsExecutable: boolean;
     FExecutable: string;
@@ -21,12 +21,12 @@ type
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
-    FAttention: boolean;
     procedure BeforeUndock;
     procedure UpdateImage;
     procedure UpdateItemInternal;
+    procedure AfterDraw;
+    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
     procedure DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
-    procedure Attention(value: boolean);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
     function ContextMenu(pt: Windows.TPoint): boolean;
@@ -44,7 +44,6 @@ type
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     function cmd(id: TGParam; param: integer): integer; override;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
@@ -67,9 +66,12 @@ begin
   FAppList := TFPList.Create;
   FIsOpen := false;
   FIsNew := true;
+  FRunning := true;
   OnBeforeMouseHover := BeforeMouseHover;
   OnMouseHover := MouseHover;
   OnBeforeUndock := BeforeUndock;
+  OnAfterDraw := AfterDraw;
+  OnDrawOverlay := DrawOverlay;
   SetTimer(FHWnd, ID_TIMER, 1000, nil);
 end;
 //------------------------------------------------------------------------------
@@ -226,101 +228,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// set position, size, repaint window //
-procedure TTaskItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
-var
-  bmp: _SimpleBitmap;
-  dst, brush: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
-  xReal, yReal: integer; // coord of window
-  ItemRect: windows.TRect;
-  button: boolean;
+// Draw routines ---------------------------------------------------------------
+procedure TTaskItem.AfterDraw;
 begin
-  try
-    if FFreed or FUpdating or (FFloating and not AForce) then exit;
-
-    // set position //
-    try
-      ItemRect := GetRectFromSize(ASize);
-      Fx := Ax;
-      Fy := Ay;
-      FShowItem := AShowItem;
-      if need_dock then
-      begin
-        Ax := FxDocking;
-        Ay := FyDocking;
-      end;
-      xReal := Ax - ItemRect.Left;
-      yReal := Ay - ItemRect.Top;
-
-      if (FSize = ASize) and not AForce then
-      begin
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
-        else SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
-        if FIsOpen then UpdatePeekWindow;
-        exit;
-      end else
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
-
-      FSize := ASize;
-      if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
-      UpdateHint(xReal, yReal);
-    except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
-    end;
-
-    // init drawing //
-    try
-      bmp.topleft.x := xReal;
-      bmp.topleft.y := yReal;
-      bmp.width := FSize + ItemRect.Left * 2;
-      bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      GdipCreateFromHDC(bmp.dc, dst);
-      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-
-      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      if (FSite = 1) or (FSite = 3) then
-        GdipFillRectangleI(dst, brush, ItemRect.Left - FItemSpacing div 2, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + FItemSpacing, ItemRect.Bottom - ItemRect.Top + 1)
-      else
-        GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - FItemSpacing div 2, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + FItemSpacing);
-      GdipDeleteBrush(brush);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-      xBitmap := ItemRect.Left;
-      yBitmap := ItemRect.Top;
-
-      // draw the button
-      button := theme.DrawButton(dst, xBitmap, yBitmap, FSize, FAttention);
-      FNCHitTestNC := button;
-    except
-      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
-    end;
-
-    if assigned(FImage) then
-      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
-
-    // draw windows count indicator
-    DrawWindowsCount(dst, FAppList, xBitmap, yBitmap, FSize);
-
-    ////
-    if not button then
-    begin
-      if FReflection and (FReflectionSize > 0) and not FFloating and assigned(FImage) then
-        BitmapReflection(bmp, xBitmap, yBitmap, FSize, FReflectionSize, FSite);
-      theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
-    end;
-    UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
-
-    DeleteGraphics(dst);
-    DeleteBitmap(bmp);
-
-    if FIsOpen then UpdatePeekWindow;
-  except
-    on e: Exception do raise Exception.Create('TaskItem.Draw(' + FCaption + ')'#10#13 + e.message);
-  end;
+  if FIsOpen then UpdatePeekWindow;
 end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+begin
+  DrawWindowsCount(dst, FAppList, x, y, size);
+end;
+// Draw routines ---------------------------------------------------------------
 //------------------------------------------------------------------------------
 procedure TTaskItem.DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
 var
@@ -475,17 +393,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.Attention(value: boolean);
-begin
-  FAttention := value;
-  if FAttention then SetTimer(FHWnd, ID_TIMER_ATTENTION, 5000, nil)
-  else
-  begin
-    KillTimer(FHWnd, ID_TIMER_ATTENTION);
-    Redraw;
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure TTaskItem.BeforeMouseHover(AHover: boolean);
 begin
   FHideHint := TAeroPeekWindow.IsActive;
@@ -522,8 +429,6 @@ begin
         begin
           // "OPEN" TIMER
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
-          // cancel Attention timer
-          if wParam = ID_TIMER_ATTENTION then Attention(false);
         end;
     end;
 end;

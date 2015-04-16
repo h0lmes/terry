@@ -10,6 +10,7 @@ const
 
 type
   TAPWLayout = (apwlHorizontal, apwlVertical);
+  TAPWState = (apwsOpen, apwsClose);
 
   TAeroPeekWindowItem = packed record
     hwnd: THandle;            // target window handle
@@ -67,6 +68,7 @@ type
     FLayout: TAPWLayout;
     FWindowCount, FProcessCount, FItemCount, FSeparatorCount: integer;
     FHoverIndex: integer;
+    FState: TAPWState;
     items: array of TAeroPeekWindowItem;
     procedure AddItems(AppList: TFPList);
     procedure ClearImages;
@@ -98,6 +100,7 @@ type
     destructor Destroy; override;
     function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
+    procedure CloseAPWindowInt;
     procedure CloseAPWindow(Timeout: cardinal = 0);
   end;
 
@@ -161,6 +164,7 @@ end;
 constructor TAeroPeekWindow.Create;
 begin
   inherited;
+  FState := apwsOpen;
   FActive := false;
   FAnimate := true;
   FFontFamily := toolu.GetFont;
@@ -292,6 +296,7 @@ begin
   if not FActivating then
   try
     try
+      FState := apwsOpen;
       FActivating := true;
       KillTimer(FHWnd, ID_TIMER);
       KillTimer(FHWnd, ID_TIMER_SLOW);
@@ -968,7 +973,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.SetAPWindowPosition(AX, AY: integer);
 begin
-  if FActive then
+  if FActive and not (FState = apwsClose) then
   begin
     FXTarget := AX - FWTarget div 2;
     FYTarget := AY - FHTarget;
@@ -999,44 +1004,46 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TAeroPeekWindow.CloseAPWindowInt;
+begin
+  try
+    KillTimer(FHWnd, ID_TIMER_SLOW);
+    KillTimer(FHWnd, ID_TIMER);
+    UnRegisterThumbnails;
+    ClearImages;
+    ShowWindow(FHWnd, SW_HIDE);
+    FActive := false;
+    TAeroPeekWindow.Cleanup;
+  except
+    on e: Exception do err('AeroPeekWindow.CloseAPWindowInt', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
 begin
   try
     if Timeout = 0 then
     begin
-      KillTimer(FHWnd, ID_TIMER_SLOW);
-      KillTimer(FHWnd, ID_TIMER_CLOSE);
-      KillTimer(FHWnd, ID_TIMER);
-      UnRegisterThumbnails;
-      ClearImages;
-      ShowWindow(FHWnd, SW_HIDE);
-      FActive := false;
-      TAeroPeekWindow.Cleanup;
+        KillTimer(FHWnd, ID_TIMER_CLOSE);
+        // set desired position
+        if FAnimate then
+        begin
+            FAlphaTarget := 25;
+            if FSite = 3 then FYTarget := Fy + 20
+            else if FSite = 1 then FYTarget := Fy - 20
+            else if FSite = 0 then FXTarget := Fx - 20
+            else if FSite = 2 then FXTarget := Fx + 20;
+            FState := apwsClose;
+        end else begin
+            CloseAPWindowInt;
+        end;
     end
-    else begin
-      // set desired position
-      {if FAnimate then
-      begin
-          FAlphaTarget := 25;
-          Fx := FXTarget;
-          Fy := FYTarget + 20;
-          if FSite = 1 then // top
-          begin
-            FYTarget := Fy - 20;
-          end else if FSite = 0 then // left
-          begin
-            Fx := FXTarget - 20;
-            FYTarget := Fy;
-          end else if FSite = 2 then // right
-          begin
-            FXTarget := Fx + 20;
-            FYTarget := Fy;
-          end;
-      end;}
-      SetTimer(Handle, ID_TIMER_CLOSE, Timeout, nil);
+    else
+    begin
+        SetTimer(Handle, ID_TIMER_CLOSE, Timeout, nil);
     end;
   except
-    on e: Exception do err('AeroPeekWindow.CloseWindow', e);
+    on e: Exception do err('AeroPeekWindow.CloseAPWindow', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1080,6 +1087,11 @@ begin
       if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
 
       Paint;
+
+      if (FState = apwsClose) and (Fx = FXTarget) and (Fy = FYTarget) then
+      begin
+        CloseAPWindowInt;
+      end;
     end;
   except
     on e: Exception do err('AeroPeekWindow.Timer', e);

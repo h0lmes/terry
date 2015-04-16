@@ -45,6 +45,7 @@ type
     FUpdating: boolean;
     FFloating: boolean;
     FSelected: boolean;
+    FColorData: integer;
     FDropIndicator: integer;
     FReflection: boolean;
     FReflectionSize: integer;
@@ -63,6 +64,7 @@ type
     MouseDownPoint: windows.TPoint;
     FMouseDownButton: TMouseButton;
     FNeedMouseWheel: boolean;
+    FAttention: boolean;
 
     FFont: _FontData;
     FImage: Pointer;
@@ -79,6 +81,7 @@ type
 
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
+    procedure Attention(value: boolean);
     procedure SetCaption(value: string);
     procedure MouseHover(AHover: boolean);
     procedure UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
@@ -187,6 +190,7 @@ begin
   FUpdating := false;
   FFloating := false;
   FSelected := false;
+  FColorData := DEFAULT_COLOR_DATA;
   FDropIndicator := 0;
   FReflection := false;
   FReflectionSize := 16;
@@ -194,6 +198,7 @@ begin
   FShowHint := true;
   FHideHint := false;
   FHintVisible := false;
+  FAttention := false;
   FSite := 3;
   FHover := false;
   FLockMouseEffect := false;
@@ -335,6 +340,17 @@ begin
     FyDocking := FyDockFrom + round((Fy - FyDockFrom) * FDockingProgress);
     Redraw(false);
     if FDockingProgress >= 1 then need_dock := false;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.Attention(value: boolean);
+begin
+  FAttention := value;
+  if FAttention then SetTimer(FHWnd, ID_TIMER_ATTENTION, 5000, nil)
+  else
+  begin
+    KillTimer(FHWnd, ID_TIMER_ATTENTION);
+    Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -666,7 +682,11 @@ begin
                 KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
                 GetCursorPos(wpt);
                 if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
-              end;
+              end
+              else
+              // cancel Attention timer
+              if wParam = ID_TIMER_ATTENTION then
+                Attention(false);
         end
         else if msg = wm_dropfiles then
         begin

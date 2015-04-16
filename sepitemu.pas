@@ -170,7 +170,7 @@ begin
           GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
           if FSeparatorAlpha > 0 then
             DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch, FSeparatorAlpha);
-          if FFloating then DrawItemIndicator(dst, DII_MOVE, ItemRect.Left, ItemRect.Top, FSize, FSize);
+          if FFloating then DrawItemIndicator(dst, DII_MOVE, ItemRect.Left - 10, ItemRect.Top - 10, FSize, FSize);
           UpdateLWindow(FHWnd, bmp, 255);
         finally
           DeleteGraphics(dst);

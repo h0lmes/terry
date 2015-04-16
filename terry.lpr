@@ -26,7 +26,7 @@ uses
   plgitemu, stackitemu, stacksubitemu, hintu, droptgtu, shcontextu, notifieru,
   PIDL, dwm_unit, EColor, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
   processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu,
-  MMDevApi_tlb, mixeru, networksu;
+  MMDevApi_tlb, mixeru, networksu, customdrawitemu;
 
 {$R *.res}
 

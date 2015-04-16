@@ -1,10 +1,10 @@
 unit plgitemu;
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, Dialogs,
-    IniFiles, GDIPAPI, gfx, math, dynlibs, declu, DockH, customitemu, toolu;
+uses Windows, Messages, SysUtils, Controls, Classes, Dialogs, IniFiles,
+  GDIPAPI, gfx, math, dynlibs, declu, DockH, customitemu, customdrawitemu, toolu;
 
-type TPluginItem = class(TCustomItem)
+type TPluginItem = class(TCustomDrawItem)
   private
     lpData: Pointer;
     MouseDownPoint: windows.TPoint;
@@ -30,6 +30,7 @@ type TPluginItem = class(TCustomItem)
     OnWndMessage: _OnProcessMessage;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CreatePlugin(AData: string);
+    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
   public
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
@@ -38,7 +39,6 @@ type TPluginItem = class(TCustomItem)
     //
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -60,6 +60,7 @@ begin
   inherited;
   FFreed := false;
   FNeedMouseWheel := true;
+  OnDrawOverlay := DrawOverlay;
 
   AutoDeleteImage := true;
   FImage := nil;
@@ -178,9 +179,6 @@ begin
         if assigned(FImage) then GdipDisposeImage(FImage);
     except end;
     FImage := AImage;
-    //GdipGetImageWidth(FImage, FIW);
-    //GdipGetImageHeight(FImage, FIH);
-    //AutoDeleteImage := AutoDelete;
     AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
     if not FFloating then Redraw;
   end;
@@ -195,167 +193,18 @@ begin
         if assigned(FImage2) then GdipDisposeImage(FImage2);
     except end;
     FImage2 := AOverlay;
-    //GdipGetImageWidth(FImage2, FIW2);
-    //GdipGetImageHeight(FImage2, FIH2);
-    //AutoDeleteOverlay := AutoDelete;
     AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
     if not FFloating then Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TPluginItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
-var
-  bmp: _SimpleBitmap;
-  dst: Pointer;
-  brush: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
-  xReal, yReal: integer; // coord of window
-  ItemRect: windows.TRect;
-  animation_offset_x, animation_offset_y, animation_size: integer;
+// Draw routines ---------------------------------------------------------------
+procedure TPluginItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
 begin
-  try
-    if FFreed or not FEnabled or (FFloating and not AForce) then exit;
-    animation_offset_x := 0;
-    animation_offset_y := 0;
-    animation_size := 0;
-
-    // set position //
-    try
-      ItemRect := GetRectFromSize(ASize);
-      Fx := Ax;
-      Fy := Ay;
-      FShowItem := AShowItem;
-      if need_dock then
-      begin
-        Ax := FxDocking;
-        Ay := FyDocking;
-      end;
-      xReal := Ax - ItemRect.Left;
-      yReal := Ay - ItemRect.Top;
-
-      // bounce animation //
-      if FAnimationProgress > 0 then
-        if (FAnimationType >= 2) and (FAnimationType <= 4) then
-        begin
-          animation_offset_x := FAnimationProgress mod 30;
-          if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
-          animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
-          if (FSite = 0) or (FSite = 2) then dec(yReal, animation_offset_x);
-        end;
-
-      if (FSize = ASize) and not AForce then
-      begin
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
-        else SetWindowPos(FHWnd, 0, xReal, yReal, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
-        UpdateHint(xReal, yReal);
-        exit;
-      end else
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
-
-      FSize := ASize;
-      if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
-      UpdateHint(xReal, yReal);
-    except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
-    end;
-
-    // init draw //
-    try
-      bmp.topleft.x := xReal;
-      bmp.topleft.y := yReal;
-      bmp.width := FSize + ItemRect.Left * 2;
-      bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      GdipCreateFromHDC(bmp.dc, dst);
-      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
-
-      GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
-      GdipDeleteBrush(brush);
-      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-
-      xBitmap := 0;
-      yBitmap := 0;
-
-      if FAnimationProgress > 0 then
-      begin
-        // rotate //
-        if FAnimationType = 1 then
-        begin
-          dec(xBitmap, ItemRect.Left);
-          dec(yBitmap, ItemRect.Top);
-          dec(xBitmap, FSize div 2);
-          dec(yBitmap, FSize div 2);
-          GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
-          GdipRotateWorldTransform(dst, FAnimationProgress * 6, MatrixOrderPrepend);
-        end;
-        // bounce //
-        if (FAnimationType >= 2) and (FAnimationType <= 4) then
-        begin
-          animation_offset_x := FAnimationProgress mod 30;
-          if animation_offset_x > 15 then animation_offset_x := 30 - animation_offset_x;
-          animation_offset_x := round(anim_bounce[animation_offset_x] * min(FBorder, 40));
-          if FSite = 1 then inc(yBitmap, animation_offset_x)
-          else if FSite = 3 then dec(yBitmap, animation_offset_x);
-        end;
-        // quake //
-        if FAnimationType = 5 then
-        begin
-          if FAnimationProgress mod 2 = 1 then exit;
-          animation_offset_x := random(FItemSize div 3) - FItemSize div 6;
-          animation_offset_y := random(FItemSize div 3) - FItemSize div 6;
-          inc(xBitmap, animation_offset_x);
-          inc(yBitmap, animation_offset_y);
-        end;
-        // swing //
-        if FAnimationType = 6 then
-        begin
-          dec(xBitmap, ItemRect.Left);
-          dec(yBitmap, ItemRect.Top);
-          dec(xBitmap, FSize div 2);
-          dec(yBitmap, FSize div 2);
-          GdipTranslateWorldTransform(dst, -xBitmap, -yBitmap, MatrixOrderPrepend);
-          GdipRotateWorldTransform(dst, sin(FAnimationProgress * 6) * 30, MatrixOrderPrepend);
-        end;
-        // vibrate //
-        if FAnimationType = 7 then
-        begin
-          animation_size := round(sin(FAnimationProgress * 3) * 6);
-          dec(xBitmap, animation_size div 2);
-          dec(yBitmap, animation_size div 2);
-        end;
-        // zoom //
-        if FAnimationType = 8 then
-        begin
-          animation_size := round(sin(FAnimationProgress * 6) * 10);
-          dec(xBitmap, animation_size div 2);
-          dec(yBitmap, animation_size div 2);
-        end;
-      end;
-
-      inc(xBitmap, ItemRect.Left);
-      inc(yBitmap, ItemRect.Top);
-    except
-      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
-    end;
-
-    // draw icons //
-    if assigned(FImage) then
-      GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW, FIH, UnitPixel, nil, nil, nil);
-    if assigned(FImage2) then
-      GdipDrawImageRectRectI(dst, FImage2, xBitmap, yBitmap, FSize + animation_size, FSize + animation_size, 0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
-
-    if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
-    if FReflection and (FReflectionSize > 0) and not FFloating then
-      BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-    UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
-
-    DeleteGraphics(dst);
-    DeleteBitmap(bmp);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Draw(' + FCaption + ')'#10#13 + e.message);
-  end;
+  if assigned(FImage2) then
+    GdipDrawImageRectRectI(dst, FImage2, x, y, size + animationSize, size + animationSize, 0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
 end;
+// Draw routines ---------------------------------------------------------------
 //------------------------------------------------------------------------------
 procedure TPluginItem.Timer;
 begin
