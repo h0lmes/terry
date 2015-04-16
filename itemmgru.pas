@@ -1968,7 +1968,7 @@ begin
   try
     result := '';
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if Inst is TPluginItem then result := TPluginItem(Inst).GetFilename;
+    if Inst is TPluginItem then result := TPluginItem(Inst).Filename;
   except
     on e: Exception do err('ItemManager.GetPluginFile', e);
   end;

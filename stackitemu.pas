@@ -55,7 +55,7 @@ type
     FPreviewImageH: uint;
     procedure UpdateItemInternal;
     procedure BeforeDraw;
-    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+    procedure DrawOverlay(dst: pointer; x, y, size: integer);
     procedure Exec;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure OnDragEnter;
@@ -387,7 +387,7 @@ begin
   if FState = stsOpen then DoStateProgress;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+procedure TStackItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
   if assigned(FPreviewImage) and (FState = stsClosed) then
     GdipDrawImageRectRectI(dst, FPreviewImage, x, y, size, size, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);

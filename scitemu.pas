@@ -42,7 +42,7 @@ type
     procedure CheckIfDynObject;
     procedure DynObjectUpdate;
     procedure AfterDraw;
-    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+    procedure DrawOverlay(dst: pointer; x, y, size: integer);
     procedure DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
@@ -412,7 +412,7 @@ begin
   if FIsOpen then UpdatePeekWindow;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+procedure TShortcutItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
   DrawWindowsCount(dst, FAppList, x, y, size);
   DrawItemIndicator(dst, FDropIndicator, x, y, size, size);

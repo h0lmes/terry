@@ -10,17 +10,17 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
 type
   TOnBeforeDraw = procedure of object;
   TOnAfterDraw = procedure of object;
-  TOnDrawOverlay = procedure(graphics: Pointer; x, y, size, animationSize: integer) of object;
+  TOnDrawOverlay = procedure(graphics: Pointer; x, y, size: integer) of object;
 
   { TCustomDrawItem }
 
   TCustomDrawItem = class(TCustomItem)
   protected
     FRunning: boolean;
-  public
     OnBeforeDraw: TOnBeforeDraw;
     OnAfterDraw: TOnAfterDraw;
     OnDrawOverlay: TOnDrawOverlay;
+  public
     property Running: boolean read FRunning;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
@@ -191,7 +191,7 @@ begin
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     // OnDrawOverlay
-    if assigned(OnDrawOverlay) then OnDrawOverlay(dst, xBitmap, yBitmap, FSize, animation_size);
+    if assigned(OnDrawOverlay) then OnDrawOverlay(dst, xBitmap, yBitmap, FSize + animation_size);
 
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
     if not button then

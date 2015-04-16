@@ -30,15 +30,15 @@ type TPluginItem = class(TCustomDrawItem)
     OnWndMessage: _OnProcessMessage;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure CreatePlugin(AData: string);
-    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+    procedure DrawOverlay(dst: pointer; x, y, size: integer);
   public
+    property Filename: string read PluginFile;
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    function GetFilename: string;
-    //
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
+    function cmd(id: TGParam; param: integer): integer; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -46,7 +46,6 @@ type TPluginItem = class(TCustomDrawItem)
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
     procedure Configure; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
@@ -199,10 +198,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 // Draw routines ---------------------------------------------------------------
-procedure TPluginItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+procedure TPluginItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
-  if assigned(FImage2) then
-    GdipDrawImageRectRectI(dst, FImage2, x, y, size + animationSize, size + animationSize, 0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
+  if assigned(FImage2) then GdipDrawImageRectRectI(dst, FImage2, x, y, size, size, 0, 0, FIW2, FIH2, UnitPixel, nil, nil, nil);
 end;
 // Draw routines ---------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -227,11 +225,6 @@ end;
 procedure TPluginItem.Configure;
 begin
   if assigned(OnConfigure) then OnConfigure(lpData);
-end;
-//------------------------------------------------------------------------------
-function TPluginItem.GetFilename: string;
-begin
-  result := PluginFile;
 end;
 //------------------------------------------------------------------------------
 function TPluginItem.ToString: string;

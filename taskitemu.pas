@@ -25,7 +25,7 @@ type
     procedure UpdateImage;
     procedure UpdateItemInternal;
     procedure AfterDraw;
-    procedure DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+    procedure DrawOverlay(dst: pointer; x, y, size: integer);
     procedure DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
@@ -234,7 +234,7 @@ begin
   if FIsOpen then UpdatePeekWindow;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.DrawOverlay(dst: pointer; x, y, size, animationSize: integer);
+procedure TTaskItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
   DrawWindowsCount(dst, FAppList, x, y, size);
 end;
