@@ -104,9 +104,13 @@ begin
       bmp.topleft.y := yReal;
       bmp.width := FSize + ItemRect.Left * 2;
       bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+      if not CreateBitmap(bmp) then exit; //raise Exception.Create('CreateBitmap failed');
       GdipCreateFromHDC(bmp.dc, dst);
-      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
+      if not assigned(dst) then
+      begin
+        DeleteBitmap(bmp);
+        exit; //raise Exception.Create('CreateGraphics failed');
+      end;
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       if (FSite = 1) or (FSite = 3) then
         GdipFillRectangleI(dst, brush, ItemRect.Left - FItemSpacing div 2, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + FItemSpacing, ItemRect.Bottom - ItemRect.Top + 1)

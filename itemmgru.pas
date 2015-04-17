@@ -580,7 +580,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// restores deleted items //
+// restore deleted item in FILO order //
 procedure TItemManager.UnDelete;
 begin
   try
@@ -601,7 +601,6 @@ end;
 // clears out unwanted items from "deleted items" array //
 procedure TItemManager.CheckDeleted;
 var
-  h: THandle;
   idx: integer;
   Inst: TCustomItem;
 begin
@@ -610,8 +609,7 @@ begin
     if _itemsDeleted.Count > 0 then
       for idx := _itemsDeleted.Count - 1 downto 0 do
       begin
-        h := THandle(_itemsDeleted.Items[idx]);
-        Inst := TCustomItem(GetWindowLong(h, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLong(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
         if Inst is TTaskItem then
         begin
           FreeAndNil(Inst);
@@ -619,7 +617,7 @@ begin
         end;
       end;
   except
-    on e: Exception do err('ItemManager.UnDelete', e);
+    on e: Exception do err('ItemManager.CheckDeleted', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1726,22 +1724,13 @@ begin
 end;
 //------------------------------------------------------------------------------
 // add new item to dock
-// if there is a DropPlace, then put item to DropPlace
+// if there is a DropPlace, then put item there
 // if DropPlace not exists, then put item at the end of the items array
 procedure TItemManager.DockAdd(HWnd: THandle);
 begin
-  if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
-  // if FDropPlace exists, then it is not TaskItem //
-  begin
-    if FDropPlace > FItemCount then FDropPlace := FItemCount;
-    FItemArray[FDropPlace].h := HWnd;
-  end
-  // else check where to dock //
-  else begin
-    SetDropPlace(FItemCount);
-    FItemArray[FDropPlace].h := HWnd;
-    FItemArray[FDropPlace].s := FItemSize;
-  end;
+  if (FDropPlace < 0) or (FDropPlace >= FItemCount) then SetDropPlace(FItemCount);
+  FItemArray[FDropPlace].h := HWnd;
+  FItemArray[FDropPlace].s := FItemSize;
   ItemCmd(HWnd, icFree, 0); // enable item
   ItemCmd(HWnd, icUndock, 0);
   SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);

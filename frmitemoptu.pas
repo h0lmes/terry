@@ -72,6 +72,8 @@ type
     procedure btnApplyClick(Sender: TObject);
     procedure edCmdChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure tbHueChange(Sender: TObject);
   private
     cancel_data: string;
@@ -243,6 +245,12 @@ begin
   action := cafree;
   frmItemProp := nil;
   //SetActiveWindow(frmmain.handle);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ReleaseCapture;
+  postmessage(handle, $a1, 2, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnPropertiesClick(Sender: TObject);

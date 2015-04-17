@@ -38,7 +38,6 @@ type TPluginItem = class(TCustomDrawItem)
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
-    function cmd(id: TGParam; param: integer): integer; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -158,15 +157,6 @@ begin
   except end;
 
   inherited;
-end;
-//------------------------------------------------------------------------------
-function TPluginItem.cmd(id: TGParam; param: integer): integer;
-begin
-  try
-    result := inherited cmd(id, param);
-  except
-    on e: Exception do raise Exception.Create('PluginItem.Cmd'#10#13 + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.UpdateImage(AImage: Pointer; AutoDelete: boolean);
@@ -325,13 +315,13 @@ begin
   LME(false);
   DestroyMenu(FHMenu);
   FHMenu := 0;
-  case wParam of // f001 to f020
+  case wParam of
     $f001: Configure;
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
-    $f005..$f020: ;
-    else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
+    //$f005..$f020: ;
+    //else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

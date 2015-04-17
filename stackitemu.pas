@@ -1087,7 +1087,7 @@ begin
   // get item params //
   for idx := 0 to FItemCount - 1 do
   begin
-    xyaa := mc.GetItemData(FMode, (FState = stsOpening) or (FState = stsOpen), idx, FStateProgress,
+    xyaa := mc.GetItemData(FMode, (FState = stsOpening) or (FState = stsOpen), FShowHint, idx, FStateProgress,
       FItemCount, FSite, FItemSize, FOffset + (FSize - FItemSize) div 2, FDistort);
     items[idx].draw := true;
     items[idx].x := wr.left + xyaa.x;

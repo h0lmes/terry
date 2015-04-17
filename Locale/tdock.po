@@ -279,7 +279,7 @@ msgid "Program settings"
 msgstr ""
 
 #: declu.xrun
-msgid "Run"
+msgid "Run  (Ctrl + Click)"
 msgstr ""
 
 #: declu.xselectworkingdirectory
@@ -339,7 +339,7 @@ msgid "Task manager"
 msgstr ""
 
 #: declu.xundeleteicon
-msgid "Undelete icon (Ctrl+Z)"
+msgid "Undelete icon  (Ctrl+Z)"
 msgstr ""
 
 #: tfrmaddcommand.btnadd.caption

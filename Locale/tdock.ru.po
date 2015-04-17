@@ -243,7 +243,6 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#, fuzzy
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
@@ -314,8 +313,9 @@ msgid "Program settings"
 msgstr "Настройки программы"
 
 #: declu.xrun
-msgid "Run"
-msgstr "Выполнить"
+#| msgid "Run"
+msgid "Run  (Ctrl + Click)"
+msgstr "Выполнить  (Ctrl + Click)"
 
 #: declu.xselectworkingdirectory
 msgid "Select working directory"
@@ -380,8 +380,9 @@ msgid "Task manager"
 msgstr "Диспетчер задач"
 
 #: declu.xundeleteicon
-msgid "Undelete icon (Ctrl+Z)"
-msgstr "Отменить удаление значка (Ctrl+Z)"
+#| msgid "Undelete icon (Ctrl+Z)"
+msgid "Undelete icon  (Ctrl+Z)"
+msgstr "Отменить удаление значка  (Ctrl+Z)"
 
 #: tfrmaddcommand.btnadd.caption
 #| msgid "Add command"
@@ -450,7 +451,7 @@ msgstr "Отмена"
 
 #: tfrmfont.btnexchange.caption
 msgid "< - >"
-msgstr ""
+msgstr "< - >"
 
 #: tfrmfont.btnfontbold.caption
 msgctxt "tfrmfont.btnfontbold.caption"
@@ -984,7 +985,6 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
-#, fuzzy
 #| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
 msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"

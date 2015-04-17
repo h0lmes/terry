@@ -593,11 +593,14 @@ begin
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
 
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pchar(UTF8ToAnsi(XKillProcess)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
-  else AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
-  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  if FRunning then
+  begin
+    AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pchar(UTF8ToAnsi(XKillProcess)));
+    AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+    if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
+    else AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
+  end;
+  AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
@@ -643,7 +646,7 @@ begin
         for idx := FAppList.Count - 1 downto 0 do
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
       end;
-    $f008: if FIsExecutable then ProcessHelper.Kill(FExecutable);
+    $f008: ProcessHelper.Kill(FExecutable);
     //$f009..$f020: ;
   end;
 end;

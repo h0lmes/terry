@@ -901,7 +901,7 @@ begin
     // maintain taskbar visibility
     if sets.container.HideTaskBar then HideTaskbar(true);
   except
-    on e: Exception do raise Exception.Create('Base.OnSlowTimer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.OnTimerSlow'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -926,7 +926,7 @@ begin
       if not fsa and not Visible and HiddenByFSA then BaseCmd(tcSetVisible, 1);
     end;
   except
-    on e: Exception do raise Exception.Create('Base.OnFSATimer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.OnTimerFSA'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1317,8 +1317,8 @@ begin
         ptTaskbar.y := (taskbarRect.Top + taskbarRect.Bottom) div 2;
         taskbarMonitorIndex := screen.MonitorFromPoint(ptTaskbar).MonitorNum;
         // monitor center point
-        taskbarMonitorBounds := screen.Monitors[taskbarMonitorIndex].BoundsRect;
-        taskbarMonitorWorkarea := screen.Monitors[taskbarMonitorIndex].WorkareaRect;
+        taskbarMonitorBounds := GetMonitorBoundsRect(@taskbarMonitorIndex);
+        taskbarMonitorWorkarea := GetMonitorWorkareaRect(@taskbarMonitorIndex);
         ptMon.x := (taskbarMonitorBounds.Right + taskbarMonitorBounds.Left) div 2;
         ptMon.y := (taskbarMonitorBounds.Bottom + taskbarMonitorBounds.Top) div 2;
         // taskbar site
@@ -1410,6 +1410,7 @@ var
   Position: integer;
   WorkArea, Bounds: Windows.TRect;
 begin
+  if assigned(ItemMgr) then
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
@@ -1837,7 +1838,7 @@ begin
   else if cmd = 'collection' then Run('%pp%\collection.exe')
   else if cmd = 'apps' then Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
-  else if cmd = 'taskmgr' then
+  else if cmd = 'undelete' then
   begin
     if assigned(ItemMgr) then ItemMgr.UnDelete;
   end

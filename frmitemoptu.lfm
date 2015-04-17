@@ -16,8 +16,9 @@ object frmItemProp: TfrmItemProp
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnMouseDown = FormMouseDown
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -345,6 +346,7 @@ object frmItemProp: TfrmItemProp
     Top = 31
     Width = 128
     Anchors = [akTop, akRight]
+    OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
     Left = 575

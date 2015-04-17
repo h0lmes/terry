@@ -161,9 +161,13 @@ begin
           bmp.topleft.y:= yReal;
           bmp.width:= FSize + ItemRect.Left * 2;
           bmp.height:= FSize + ItemRect.Top * 2;
-          if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+          if not CreateBitmap(bmp) then exit; //raise Exception.Create('CreateBitmap failed');
           GdipCreateFromHDC(bmp.dc, dst);
-          if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
+          if not assigned(dst) then
+          begin
+            DeleteBitmap(bmp);
+            exit; //raise Exception.Create('CreateGraphics failed');
+          end;
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
           GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 1, ItemRect.Bottom - ItemRect.Top + 1);
           GdipDeleteBrush(brush);
@@ -190,9 +194,13 @@ begin
           bmp.topleft.y := yReal;
           bmp.width := FSize + FReflectionSize * 2;
           bmp.height := FSize + FReflectionSize * 2;
-          if not CreateBitmap(bmp) then raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
+          if not CreateBitmap(bmp) then exit; //raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
           GdipCreateFromHDC(bmp.dc, dst);
-          if not assigned(dst) then raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
+          if not assigned(dst) then
+          begin
+            DeleteBitmap(bmp);
+            exit; //raise Exception.Create('SeparatorItem.Draw CreateGraphics error');
+          end;
           GdipCreateSolidFill(ITEM_BACKGROUND, brush);
           GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
           GdipDeleteBrush(brush);

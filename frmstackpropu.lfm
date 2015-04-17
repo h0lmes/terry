@@ -17,6 +17,7 @@ object frmStackProp: TfrmStackProp
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnMouseDown = FormMouseDown
   Position = poScreenCenter
   LCLVersion = '1.2.4.0'
   object btnOK: TButton
@@ -571,6 +572,7 @@ object frmStackProp: TfrmStackProp
     Top = 20
     Width = 128
     Anchors = [akTop, akRight]
+    OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
     Left = 580

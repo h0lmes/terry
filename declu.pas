@@ -209,7 +209,6 @@ const
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 
 resourcestring
-
   // common //
   XErrorContactDeveloper = 'Contact developer if error is permanent.';
   XErrorCritical = 'Critical error occured. Try to run the program again.';
@@ -224,15 +223,7 @@ resourcestring
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';
   XStartButtonText = 'Start';
-
   // frmterryu //
-  XRun = 'Run';
-  XConfigureIcon = 'Configure icon';
-  XOpenFolderOf = 'Open folder of';
-  XCopy = 'Copy';
-  XPaste = 'Paste';
-  XDeleteIcon = 'Delete icon';
-  XDeleteSeparator = 'Delete separator';
   XEmptyIcon = 'Empty icon';
   XSeparator = 'Separator (space)';
   XDock = 'New dock';
@@ -248,16 +239,22 @@ resourcestring
   XCloseAllWindows = 'Close all windows';
   XEmptyBin = 'Empty bin';
   XOpenThemesFolder = 'Open themes folder';
-  XUndeleteIcon = 'Undelete icon (Ctrl+Z)';
-
+  XUndeleteIcon = 'Undelete icon  (Ctrl+Z)';
   XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
   XShortcut = 'Shortcut';
   XFile = 'File';
   XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
+  // items //
+  XRun = 'Run  (Ctrl + Click)';
+  XConfigureIcon = 'Configure icon';
+  XOpenFolderOf = 'Open folder of';
+  XCopy = 'Copy';
+  XPaste = 'Paste';
+  XDeleteIcon = 'Delete icon';
+  XDeleteSeparator = 'Delete separator';
   XPinToDock = 'Pin to dock';
   XKillProcess = 'Kill process';
   XPlaceTasksHere = 'Place tasks here';
-
   // frmsetsu //
   XLabelCenterOffset = 'Offset from center: %d %%';
   XLabelEdgeOffset = 'Offset from edge: %d pt';
@@ -289,7 +286,6 @@ resourcestring
   XAnimationZoom = 'Zoom';
   XAll = 'All';
   XMonitor = 'Monitor';
-
   // frmitemoptu //
   XShowCmdNormal = 'Normal size';
   XShowCmdMinimized = 'Minimized to taskbar';
@@ -298,10 +294,8 @@ resourcestring
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
   XDistort = 'Distort: %d';
-
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
-
   // trayController //
   XMsgNotificationAreaIcons = 'After you close this message you will see "Notification area icons" window. To use this function uncheck "Always show all icons" at the bottom of the window and set all behaviors to "Only show notifications".';
 

@@ -72,6 +72,8 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure btnApplyClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure listDblClick(Sender: TObject);
     procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
@@ -303,6 +305,12 @@ begin
   action := cafree;
   frmStackProp := nil;
   //SetActiveWindow(frmmain.handle);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ReleaseCapture;
+  postmessage(handle, $a1, 2, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
