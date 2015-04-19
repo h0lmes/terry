@@ -128,7 +128,6 @@ type
     chbBlur: TCheckBox;
     chb_show_running_indicator: TCheckBox;
     chb_activate_running: TCheckBox;
-    lblActivateRunningProgramTip: TLabel;
     chb_use_shell_context_menus: TCheckBox;
     btn_cancel: TBitBtn;
     lv: TListView;

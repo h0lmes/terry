@@ -439,9 +439,9 @@ begin
       end;
       // hint background
       GdipCreatePath(FillModeWinding, path);
-      points[0].x := xBitmap - FCaptionHeight div 4;
+      points[0].x := xBitmap - FCaptionHeight div 8;
       points[0].y := yBitmap - 1;
-      points[1].x := points[0].x + FCaptionWidth - 3 + FCaptionHeight div 2;
+      points[1].x := points[0].x + FCaptionWidth - 3 + FCaptionHeight div 4;
       points[1].y := points[0].y;
       points[2].x := points[1].x;
       points[2].y := points[0].y + FCaptionHeight + 1;
@@ -568,16 +568,17 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  if FRunning then AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
-  mii.cbSize := sizeof(MENUITEMINFO);
-  mii.fMask := MIIM_STATE;
-  mii.fState := MFS_DEFAULT;
-  SetMenuItemInfo(FHMenu, $f006, false, @mii);
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
   if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
+  AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  mii.cbSize := sizeof(MENUITEMINFO);
+  mii.fMask := MIIM_STATE;
+  mii.fState := MFS_DEFAULT;
+  SetMenuItemInfo(FHMenu, $f006, false, @mii);
 
   // if shell context menu is enabled //
   if FUseShellContextMenus and (FCommand <> '') or FIsPIDL then

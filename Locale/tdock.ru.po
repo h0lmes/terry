@@ -883,11 +883,6 @@ msgstr "Не занимать в начале - конце, пиксел"
 msgid "Hotkey to completely hide panel:"
 msgstr "Горячие клавиши для полного скрытия панели:"
 
-#: tfrmsets.lblactivaterunningprogramtip.caption
-msgctxt "TFRMSETS.LBLACTIVATERUNNINGPROGRAMTIP.CAPTION"
-msgid "<Ctrl + Click> to run program anyway"
-msgstr "<Ctrl + Click> для запуска программы в любом случае"
-
 #: tfrmsets.lblanimateicons.caption
 msgctxt "TFRMSETS.LBLANIMATEICONS.CAPTION"
 msgid "Animate icons:"

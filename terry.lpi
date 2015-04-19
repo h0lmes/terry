@@ -101,8 +101,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="485"/>
-        <CursorPos X="13" Y="508"/>
+        <TopLine Value="484"/>
+        <CursorPos X="13" Y="507"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
@@ -182,12 +182,10 @@
         <Filename Value="gfx.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gfx"/>
-        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
         <TopLine Value="116"/>
         <CursorPos X="3" Y="128"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
       <Unit12>
@@ -218,7 +216,7 @@
         <UnitName Value="scitemu"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="617"/>
+        <TopLine Value="576"/>
         <CursorPos X="30" Y="643"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -271,7 +269,6 @@
         <Filename Value="sepitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="sepitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="10"/>
         <WindowIndex Value="0"/>
         <TopLine Value="184"/>
@@ -384,10 +381,11 @@
         <Filename Value="stackitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackitemu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="8"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1067"/>
-        <CursorPos X="89" Y="1090"/>
+        <TopLine Value="726"/>
+        <CursorPos X="8" Y="735"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -409,10 +407,10 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="11"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="325"/>
-        <CursorPos X="3" Y="338"/>
+        <TopLine Value="556"/>
+        <CursorPos X="28" Y="562"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -490,7 +488,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="18"/>
         <CursorPos X="21" Y="29"/>
-        <UsageCount Value="189"/>
+        <UsageCount Value="190"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit38>
       <Unit39>
@@ -1173,7 +1171,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="17"/>
-        <UsageCount Value="138"/>
+        <UsageCount Value="139"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit121>
       <Unit122>
@@ -1191,7 +1189,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="91"/>
         <CursorPos X="66" Y="120"/>
-        <UsageCount Value="135"/>
+        <UsageCount Value="136"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit123>
       <Unit124>
@@ -1217,7 +1215,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="129"/>
         <CursorPos X="43" Y="141"/>
-        <UsageCount Value="115"/>
+        <UsageCount Value="116"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit126>
       <Unit127>
@@ -1246,7 +1244,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="75"/>
         <CursorPos X="24" Y="101"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="27"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>

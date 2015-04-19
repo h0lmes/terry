@@ -732,8 +732,9 @@ begin
     begin
       border := round(FBigItemSize / 8);
       itemSize := (FBigItemSize - border * 2);
-      if FItemCount > 4 then itemSize := round(itemSize / 3)
-      else if FItemCount > 1 then itemSize := round(itemSize / 2);
+      {if FItemCount > 4 then itemSize := round(itemSize / 3)
+      else}
+      if FItemCount > 1 then itemSize := round(itemSize / 2);
 
       FPreviewImageW := FBigItemSize and $fff;
       FPreviewImageH := FBigItemSize and $fff;
@@ -743,16 +744,16 @@ begin
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
       if FItemCount = 1 then
          items[0].item.DrawPreview(g, border, border, itemSize - 2);
-      if (FItemCount >= 2) and (FItemCount <= 4) then
+      if (FItemCount >= 2) {and (FItemCount <= 4)} then
       begin
         for i := 0 to Math.Min(FItemCount, 4) - 1 do
           items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
       end;
-      if FItemCount >= 5 then
+      {if FItemCount >= 5 then
       begin
         for i := 0 to Math.Min(FItemCount, 9) - 1 do
           items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 3), border + (itemSize + 1) * (i div 3), itemSize - 2);
-      end;
+      end;}
       GdipDeleteGraphics(g);
     end;
 

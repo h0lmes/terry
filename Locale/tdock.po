@@ -819,10 +819,6 @@ msgstr ""
 msgid "Hotkey to completely hide panel:"
 msgstr ""
 
-#: tfrmsets.lblactivaterunningprogramtip.caption
-msgid "<Ctrl + Click> to run program anyway"
-msgstr ""
-
 #: tfrmsets.lblanimateicons.caption
 msgid "Animate icons:"
 msgstr ""

@@ -18,15 +18,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -683,7 +683,7 @@ object frmsets: Tfrmsets
       object lblZoomWideness: TLabel
         Left = 295
         Height = 13
-        Top = 292
+        Top = 280
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -699,29 +699,15 @@ object frmsets: Tfrmsets
       object lblZoomedIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 237
+        Top = 230
         Width = 65
         Caption = 'Icon size max'
         ParentColor = False
       end
-      object lblActivateRunningProgramTip: TLabel
-        Left = 15
-        Height = 13
-        Top = 67
-        Width = 184
-        Caption = '<Ctrl + Click> to run program anyway'
-        Font.CharSet = RUSSIAN_CHARSET
-        Font.Color = clGray
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        ParentColor = False
-        ParentFont = False
-        WordWrap = True
-      end
       object cbZoomItems: TCheckBox
         Left = 15
         Height = 19
-        Top = 150
+        Top = 155
         Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnClick = cbZoomItemsClick
@@ -748,17 +734,17 @@ object frmsets: Tfrmsets
       object chb_use_shell_context_menus: TCheckBox
         Left = 15
         Height = 19
-        Top = 92
+        Top = 105
         Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnClick = chb_use_shell_context_menusClick
         TabOrder = 3
       end
       object cboItemAnimationType: TComboBox
-        Left = 40
+        Left = 185
         Height = 21
-        Top = 430
-        Width = 395
+        Top = 70
+        Width = 255
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
@@ -768,7 +754,7 @@ object frmsets: Tfrmsets
       object lblAnimateIcons: TLabel
         Left = 15
         Height = 13
-        Top = 407
+        Top = 75
         Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
@@ -776,7 +762,7 @@ object frmsets: Tfrmsets
       object tbIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 202
+        Top = 200
         Width = 410
         Frequency = 8
         Max = 128
@@ -790,7 +776,7 @@ object frmsets: Tfrmsets
       object tbBigIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 257
+        Top = 248
         Width = 410
         Frequency = 16
         Max = 256
@@ -804,8 +790,8 @@ object frmsets: Tfrmsets
       object tbZoomWidth: TTrackBar
         Left = 310
         Height = 30
-        Top = 312
-        Width = 106
+        Top = 298
+        Width = 130
         Max = 5
         Min = 2
         OnChange = tbZoomWidthChange
@@ -817,7 +803,7 @@ object frmsets: Tfrmsets
       object lblIconSpacing: TLabel
         Left = 15
         Height = 13
-        Top = 292
+        Top = 280
         Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
@@ -825,7 +811,7 @@ object frmsets: Tfrmsets
       object tbIconSpacing: TTrackBar
         Left = 30
         Height = 30
-        Top = 312
+        Top = 298
         Width = 250
         Frequency = 2
         Max = 30
@@ -837,7 +823,7 @@ object frmsets: Tfrmsets
       object chbStackOpenAnimation: TCheckBox
         Left = 15
         Height = 19
-        Top = 120
+        Top = 130
         Width = 150
         Caption = 'Stack open/close animation'
         OnChange = chbStackOpenAnimationChange
@@ -846,7 +832,7 @@ object frmsets: Tfrmsets
       object lblZoomTime: TLabel
         Left = 15
         Height = 13
-        Top = 350
+        Top = 330
         Width = 49
         Caption = 'Zoom time'
         ParentColor = False
@@ -854,8 +840,8 @@ object frmsets: Tfrmsets
       object tbZoomTime: TTrackBar
         Left = 30
         Height = 30
-        Top = 370
-        Width = 386
+        Top = 350
+        Width = 410
         Frequency = 60
         Max = 600
         OnChange = tbZoomTimeChange
