@@ -4,7 +4,7 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customitemu, customdrawitemu,
+  IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customdrawitemu,
   toolu, processhlp, aeropeeku, mixeru, networksu;
 
 type
@@ -77,7 +77,7 @@ type
   end;
 
 implementation
-uses themeu, frmitemoptu;
+uses frmitemoptu;
 //------------------------------------------------------------------------------
 constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
 begin

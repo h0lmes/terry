@@ -374,10 +374,6 @@ msgstr "Настроенные значки"
 msgid "four"
 msgstr "четыре"
 
-#: declu.xstackpreviewfourstack
-msgid "four in stack"
-msgstr "четыре в куче"
-
 #: declu.xstackpreviewnine
 msgid "nine"
 msgstr "девять"

@@ -334,10 +334,6 @@ msgstr ""
 msgid "four"
 msgstr ""
 
-#: declu.xstackpreviewfourstack
-msgid "four in stack"
-msgstr ""
-
 #: declu.xstackpreviewnine
 msgid "nine"
 msgstr ""

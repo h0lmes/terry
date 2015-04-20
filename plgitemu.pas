@@ -4,7 +4,11 @@ interface
 uses Windows, Messages, SysUtils, Controls, Classes, Dialogs, IniFiles,
   GDIPAPI, gfx, math, dynlibs, declu, DockH, customitemu, customdrawitemu, toolu;
 
-type TPluginItem = class(TCustomDrawItem)
+type
+
+  { TPluginItem }
+
+  TPluginItem = class(TCustomDrawItem)
   private
     lpData: Pointer;
     MouseDownPoint: windows.TPoint;
@@ -257,7 +261,8 @@ begin
   sz.cx := FSize;
   sz.cy := FSize;
 
-  if button = mbLeft then if assigned(OnLeftButtonClick) then OnLeftButtonClick(lpData, @pt, @sz);
+  if button = mbLeft then
+    if assigned(OnLeftButtonClick) then OnLeftButtonClick(lpData, @pt, @sz);
 
   if button = mbRight then
   begin

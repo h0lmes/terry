@@ -2,9 +2,13 @@ unit sepitemu;
 
 interface
 uses Windows, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gfx, themeu, declu, dockh, customitemu, toolu;
+  GDIPAPI, gfx, themeu, declu, dockh, customitemu;
 
-type TSeparatorItem = class(TCustomItem)
+type
+
+  { TSeparatorItem }
+
+  TSeparatorItem = class(TCustomItem)
   private
     Margins: windows.TRect;
     FItemsArea2: windows.TRect;
@@ -231,7 +235,7 @@ var
 begin
   if button = mbRight then
   begin
-    windows.GetCursorPos(pt);
+    GetCursorPos(pt);
     ContextMenu(pt);
   end;
 end;
@@ -286,7 +290,6 @@ class function TSeparatorItem.Make: string;
 begin
   result := 'class="separator"';
 end;
-
 //------------------------------------------------------------------------------
 end.
 

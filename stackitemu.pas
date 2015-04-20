@@ -5,13 +5,14 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles, GDIPAPI, PIDL,
-  gfx, declu, dockh, toolu, customitemu, customdrawitemu, stacksubitemu, stackmodeu;
+  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu;
 
 const
   MAX_SUBITEMS = 64;
   STATE_PROGRESS_MIN = 0.0;
   STATE_PROGRESS_MAX = 1.0;
-  DEFAULT_ANIM_SPEED = 4;
+  DEFAULT_ANIM_SPEED = 8;
+  MID_ANIM_SPEED = 4;
   DEFAULT_DISTORT = 1;
   DEFAULT_STACK_PREVIEW = 1;
 
@@ -50,7 +51,7 @@ type
     FDistort: integer;
     FDragOver: boolean;
     FSpecialFolder: string;
-    FPreview: integer; // 0 - none, 1 - four, 2 - nine, 3 - four in stack
+    FPreview: integer; // 0 - none, 1 - four, 2 - nine
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
@@ -189,7 +190,7 @@ begin
         try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), -10, 10);
         except end;
         FPreview := DEFAULT_STACK_PREVIEW;
-        try FPreview := SetRange(strtoint(ini.ReadString(IniSection, 'preview', '')), 0, 3);
+        try FPreview := SetRange(strtoint(ini.ReadString(IniSection, 'preview', '')), 0, 2);
         except end;
         FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
         UpdateSpecialFolder;
@@ -733,18 +734,11 @@ begin
       viewItemCount := Math.Min(FItemCount, 4);
       if FPreview = 2 then viewItemCount := Math.Min(FItemCount, 9);
 
-      if (FPreview = 1) or (FPreview = 2) then
-      begin
-        border := round(FBigItemSize / 8);
-        itemSize := (FBigItemSize - border * 2);
-        if viewItemCount > 4 then itemSize := round(itemSize / 3)
-        else
-        if viewItemCount > 1 then itemSize := round(itemSize / 2);
-      end else
-      begin
-        border := round(FBigItemSize / 8);
-        itemSize := (FBigItemSize - border * 2 - viewItemCount * 4);
-      end;
+	    border := round(FBigItemSize / 8);
+	    itemSize := (FBigItemSize - border * 2);
+	    if viewItemCount > 4 then itemSize := round(itemSize / 3)
+	    else
+	    if viewItemCount > 1 then itemSize := round(itemSize / 2);
 
       FPreviewImageW := FBigItemSize and $fff;
       FPreviewImageH := FBigItemSize and $fff;
@@ -757,15 +751,8 @@ begin
       else
       if (viewItemCount >= 2) and (viewItemCount <= 4) then
       begin
-        if FPreview = 3 then
-        begin
-          for i := viewItemCount - 1 downto 0 do
-            items[i].item.DrawPreview(g, border + i * 8, border + (viewItemCount - 1 - i) * 8, itemSize);
-        end else
-        begin
-          for i := 0 to viewItemCount - 1 do
-            items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
-        end;
+        for i := 0 to viewItemCount - 1 do
+          items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
       end
       else
       if viewItemCount >= 5 then
@@ -1029,8 +1016,8 @@ var
   showItems: boolean;
 begin
   step := mc.GetStep(FMode, FItemCount);
-  if FAnimationSpeed > DEFAULT_ANIM_SPEED then step := step * (1 + (FAnimationSpeed - DEFAULT_ANIM_SPEED) * 0.5);
-  if FAnimationSpeed < DEFAULT_ANIM_SPEED then step := step * (1 - (DEFAULT_ANIM_SPEED - FAnimationSpeed) * 0.15);
+  if FAnimationSpeed > MID_ANIM_SPEED then step := step * (1 + (FAnimationSpeed - MID_ANIM_SPEED) * 0.5);
+  if FAnimationSpeed < MID_ANIM_SPEED then step := step * (1 - (MID_ANIM_SPEED - FAnimationSpeed) * 0.15);
 
   if FState = stsOpen then
   begin

@@ -145,7 +145,6 @@ begin
   cboPreview.Items.Add(XStackPreviewNone);
   cboPreview.Items.Add(XStackPreviewFour);
   cboPreview.Items.Add(XStackPreviewNine);
-  cboPreview.Items.Add(XStackPreviewFourStack);
 end;
 //------------------------------------------------------------------------------
 function TfrmStackProp.SetData(AData: string): boolean;

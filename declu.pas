@@ -298,7 +298,6 @@ resourcestring
   XStackPreviewNone = 'none';
   XStackPreviewFour = 'four';
   XStackPreviewNine = 'nine';
-  XStackPreviewFourStack = 'four in stack';
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
   // trayController //

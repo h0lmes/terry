@@ -3,9 +3,8 @@ unit taskitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes,
-  Math, GDIPAPI, gfx, declu, dockh, customitemu, customdrawitemu,
-  toolu, processhlp, aeropeeku, dwm_unit, themeu;
+uses Windows, Messages, SysUtils, Controls, Classes, Math,
+  GDIPAPI, gfx, declu, dockh, customdrawitemu, processhlp, aeropeeku;
 
 type
 
