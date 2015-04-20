@@ -27,11 +27,12 @@ type
     btnProperties: TButton;
     btnSelectColor: TButton;
     cboMode: TComboBox;
-    chbPreview: TCheckBox;
+    cboPreview: TComboBox;
     DividerBevel1: TDividerBevel;
     edImage: TEdit;
     edCaption: TEdit;
     iPic: TPaintBox;
+    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -140,6 +141,11 @@ begin
   constraints.minwidth := Width;
 
   for idx := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(idx));
+  cboPreview.Clear;
+  cboPreview.Items.Add(XStackPreviewNone);
+  cboPreview.Items.Add(XStackPreviewFour);
+  cboPreview.Items.Add(XStackPreviewNine);
+  cboPreview.Items.Add(XStackPreviewFourStack);
 end;
 //------------------------------------------------------------------------------
 function TfrmStackProp.SetData(AData: string): boolean;
@@ -192,7 +198,8 @@ begin
   except end;
   try tbDistort.Position := strtoint(FetchValue(AData, 'distort="', '";'));
   except end;
-  try chbPreview.Checked := not (FetchValue(AData, 'preview="', '";') = '0');
+  cboPreview.ItemIndex := 1;
+  try cboPreview.ItemIndex := strtoint(FetchValue(AData, 'preview="', '";'));
   except end;
 
   SpecialFolder := FetchValue(AData, 'special_folder="', '";');
@@ -290,7 +297,7 @@ begin
   try
     FChanged := false;
     str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), SpecialFolder,
-      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, chbPreview.Checked);
+      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, cboPreview.ItemIndex);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
     on e: Exception do frmmain.notify('frmStackProp.btnApplyClick'#10#13 + e.message);

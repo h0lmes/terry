@@ -294,6 +294,11 @@ resourcestring
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
   XDistort = 'Distort: %d';
+  // frmstackpropu //
+  XStackPreviewNone = 'none';
+  XStackPreviewFour = 'four';
+  XStackPreviewNine = 'nine';
+  XStackPreviewFourStack = 'four in stack';
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
   // trayController //

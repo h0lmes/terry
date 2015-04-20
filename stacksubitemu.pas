@@ -439,9 +439,9 @@ begin
       end;
       // hint background
       GdipCreatePath(FillModeWinding, path);
-      points[0].x := xBitmap - FCaptionHeight div 8;
+      points[0].x := xBitmap - FCaptionHeight div 10;
       points[0].y := yBitmap - 1;
-      points[1].x := points[0].x + FCaptionWidth - 3 + FCaptionHeight div 4;
+      points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
       points[1].y := points[0].y;
       points[2].x := points[1].x;
       points[2].y := points[0].y + FCaptionHeight + 1;

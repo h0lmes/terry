@@ -13,6 +13,7 @@ const
   STATE_PROGRESS_MAX = 1.0;
   DEFAULT_ANIM_SPEED = 4;
   DEFAULT_DISTORT = 1;
+  DEFAULT_STACK_PREVIEW = 1;
 
 type
   TStackState = (stsClosed, stsOpening, stsOpen, stsClosing);
@@ -49,7 +50,7 @@ type
     FDistort: integer;
     FDragOver: boolean;
     FSpecialFolder: string;
-    FPreview: boolean;
+    FPreview: integer; // 0 - none, 1 - four, 2 - nine, 3 - four in stack
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
@@ -100,7 +101,7 @@ type
     class function Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: boolean = true): string;
+      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW): string;
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
@@ -141,21 +142,18 @@ begin
   FDistort := DEFAULT_DISTORT;
   FDragOver := false;
   FSpecialFolder := '';
-  FPreview := true;
+  FPreview := DEFAULT_STACK_PREVIEW;
   FPreviewImage := nil;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
 begin
   FFreed := true;
-
   try GdipDisposeImage(FImage);
   except end;
   try if FPreviewImage <> nil then GdipDisposeImage(FPreviewImage);
   except end;
-
   DeleteSubitems;
-
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -190,7 +188,8 @@ begin
         except end;
         try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), -10, 10);
         except end;
-        try FPreview := not (ini.ReadString(IniSection, 'preview', '') = '0');
+        FPreview := DEFAULT_STACK_PREVIEW;
+        try FPreview := SetRange(strtoint(ini.ReadString(IniSection, 'preview', '')), 0, 3);
         except end;
         FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
         UpdateSpecialFolder;
@@ -227,7 +226,8 @@ begin
         except end;
         try FDistort := strtoint(FetchValue(AData, 'distort="', '";'));
         except end;
-        try FPreview := not (FetchValue(AData, 'preview="', '";') = '0');
+        FPreview := DEFAULT_STACK_PREVIEW;
+        try FPreview := strtoint(FetchValue(AData, 'preview="', '";'));
         except end;
         FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
         UpdateSpecialFolder;
@@ -624,7 +624,7 @@ begin
   WritePrivateProfileString(szIniGroup, 'animation_speed', pchar(inttostr(FAnimationSpeed)), szIni);
   WritePrivateProfileString(szIniGroup, 'distort', pchar(inttostr(FDistort)), szIni);
   WritePrivateProfileString(szIniGroup, 'special_folder', pchar(FSpecialFolder), szIni);
-  if not FPreview then WritePrivateProfileString(szIniGroup, 'preview', '0', szIni);
+  if FPreview <> DEFAULT_STACK_PREVIEW then WritePrivateProfileString(szIniGroup, 'preview', pchar(inttostr(FPreview)), szIni);
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for idx := 0 to FItemCount - 1 do
@@ -635,7 +635,7 @@ end;
 class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-  ADistort: integer = DEFAULT_DISTORT; APreview: boolean = true): string;
+  ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW): string;
 begin
   result := 'class="stack";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -647,7 +647,7 @@ begin
   if AOffset <> 0 then result := result + 'offset="' + inttostr(AOffset) + '";';
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
-  if not APreview then result := result + 'preview="0";';
+  if APreview <> DEFAULT_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
 end;
 //------------------------------------------------------------------------------
 //
@@ -718,7 +718,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.UpdatePreview;
 var
-  i, border, itemSize: integer;
+  i, border, itemSize, viewItemCount: integer;
   g: Pointer;
 begin
   if FFreed or FUpdating then exit;
@@ -728,13 +728,23 @@ begin
     except end;
     FPreviewImage := nil;
 
-    if (FItemCount > 0) and FPreview then
+    if (FPreview > 0) and (FItemCount > 0) then
     begin
-      border := round(FBigItemSize / 8);
-      itemSize := (FBigItemSize - border * 2);
-      {if FItemCount > 4 then itemSize := round(itemSize / 3)
-      else}
-      if FItemCount > 1 then itemSize := round(itemSize / 2);
+      viewItemCount := Math.Min(FItemCount, 4);
+      if FPreview = 2 then viewItemCount := Math.Min(FItemCount, 9);
+
+      if (FPreview = 1) or (FPreview = 2) then
+      begin
+        border := round(FBigItemSize / 8);
+        itemSize := (FBigItemSize - border * 2);
+        if viewItemCount > 4 then itemSize := round(itemSize / 3)
+        else
+        if viewItemCount > 1 then itemSize := round(itemSize / 2);
+      end else
+      begin
+        border := round(FBigItemSize / 8);
+        itemSize := (FBigItemSize - border * 2 - viewItemCount * 4);
+      end;
 
       FPreviewImageW := FBigItemSize and $fff;
       FPreviewImageH := FBigItemSize and $fff;
@@ -742,18 +752,27 @@ begin
       GdipGetImageGraphicsContext(FPreviewImage, g);
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
-      if FItemCount = 1 then
-         items[0].item.DrawPreview(g, border, border, itemSize - 2);
-      if (FItemCount >= 2) {and (FItemCount <= 4)} then
+      if viewItemCount = 1 then
+         items[0].item.DrawPreview(g, border, border, itemSize - 2)
+      else
+      if (viewItemCount >= 2) and (viewItemCount <= 4) then
       begin
-        for i := 0 to Math.Min(FItemCount, 4) - 1 do
-          items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
-      end;
-      {if FItemCount >= 5 then
+        if FPreview = 3 then
+        begin
+          for i := viewItemCount - 1 downto 0 do
+            items[i].item.DrawPreview(g, border + i * 8, border + (viewItemCount - 1 - i) * 8, itemSize);
+        end else
+        begin
+          for i := 0 to viewItemCount - 1 do
+            items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 2), border + (itemSize + 1) * (i div 2), itemSize - 2);
+        end;
+      end
+      else
+      if viewItemCount >= 5 then
       begin
-        for i := 0 to Math.Min(FItemCount, 9) - 1 do
+        for i := 0 to viewItemCount - 1 do
           items[i].item.DrawPreview(g, border + (itemSize + 1) * (i mod 3), border + (itemSize + 1) * (i div 3), itemSize - 2);
-      end;}
+      end;
       GdipDeleteGraphics(g);
     end;
 

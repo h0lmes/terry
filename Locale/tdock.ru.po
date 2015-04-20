@@ -370,6 +370,22 @@ msgstr "Сверху"
 msgid "Specific icons"
 msgstr "Настроенные значки"
 
+#: declu.xstackpreviewfour
+msgid "four"
+msgstr "четыре"
+
+#: declu.xstackpreviewfourstack
+msgid "four in stack"
+msgstr "четыре в куче"
+
+#: declu.xstackpreviewnine
+msgid "nine"
+msgstr "девять"
+
+#: declu.xstackpreviewnone
+msgid "none"
+msgstr "нет"
+
 #: declu.xstartbuttontext
 msgid "Start"
 msgstr "Пуск"
@@ -1118,15 +1134,15 @@ msgctxt "tfrmstackprop.caption"
 msgid "Properties"
 msgstr "Свойства"
 
-#: tfrmstackprop.chbpreview.caption
-msgid "Show subitems overlay"
-msgstr "Показывать подпункты на значке"
-
 #: tfrmstackprop.dividerbevel1.caption
 #| msgid "Stack contents"
 msgctxt "tfrmstackprop.dividerbevel1.caption"
 msgid "Items in this stack"
 msgstr "Значки в стеке"
+
+#: tfrmstackprop.label1.caption
+msgid "Preview:"
+msgstr "Предпросмотр:"
 
 #: tfrmstackprop.label2.caption
 msgctxt "TFRMSTACKPROP.LABEL2.CAPTION"

@@ -1,13 +1,13 @@
 object frmStackProp: TfrmStackProp
-  Left = 334
-  Height = 461
-  Top = 220
+  Left = 537
+  Height = 537
+  Top = 245
   Width = 735
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
-  ClientHeight = 461
+  ClientHeight = 537
   ClientWidth = 735
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
@@ -23,7 +23,7 @@ object frmStackProp: TfrmStackProp
   object btnOK: TButton
     Left = 10
     Height = 26
-    Top = 425
+    Top = 500
     Width = 91
     Caption = 'OK'
     OnClick = btnOKClick
@@ -32,7 +32,7 @@ object frmStackProp: TfrmStackProp
   object btnApply: TButton
     Left = 105
     Height = 26
-    Top = 425
+    Top = 500
     Width = 91
     Caption = 'Apply'
     OnClick = btnApplyClick
@@ -41,7 +41,7 @@ object frmStackProp: TfrmStackProp
   object btnCancel: TButton
     Left = 200
     Height = 26
-    Top = 425
+    Top = 500
     Width = 91
     Caption = 'Cancel'
     OnClick = btnCancelClick
@@ -49,7 +49,7 @@ object frmStackProp: TfrmStackProp
   end
   object pages: TPageControl
     Left = 10
-    Height = 406
+    Height = 481
     Top = 9
     Width = 543
     ActivePage = tsProperties
@@ -59,7 +59,7 @@ object frmStackProp: TfrmStackProp
     TabOrder = 0
     object tsProperties: TTabSheet
       Caption = 'Properties'
-      ClientHeight = 398
+      ClientHeight = 473
       ClientWidth = 535
       object edCaption: TEdit
         Tag = 10
@@ -93,7 +93,7 @@ object frmStackProp: TfrmStackProp
         Left = 95
         Height = 21
         Top = 80
-        Width = 178
+        Width = 180
         DropDownCount = 20
         ItemHeight = 13
         Style = csDropDownList
@@ -127,7 +127,7 @@ object frmStackProp: TfrmStackProp
         Position = 1
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 5
+        TabOrder = 4
       end
       object tbOffset: TTrackBar
         Left = 10
@@ -142,7 +142,7 @@ object frmStackProp: TfrmStackProp
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 4
+        TabOrder = 3
       end
       object lblDistort: TLabel
         Tag = 10
@@ -164,16 +164,7 @@ object frmStackProp: TfrmStackProp
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False
-        TabOrder = 6
-      end
-      object chbPreview: TCheckBox
-        Left = 310
-        Height = 23
-        Top = 80
-        Width = 200
-        AutoSize = False
-        Caption = 'Show subitems overlay'
-        TabOrder = 3
+        TabOrder = 5
       end
       object lblImage: TLabel
         Tag = 10
@@ -197,7 +188,7 @@ object frmStackProp: TfrmStackProp
         Left = 480
         Height = 25
         Hint = 'Add shortcut/command'
-        Top = 220
+        Top = 250
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -239,13 +230,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbAddIconClick
         Spacing = 0
-        TabOrder = 8
+        TabOrder = 7
       end
       object bbDelIcon: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Delete icon'
-        Top = 250
+        Top = 280
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -287,13 +278,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbDelIconClick
         Spacing = 0
-        TabOrder = 9
+        TabOrder = 8
       end
       object bbEditIcon: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Configure icon'
-        Top = 280
+        Top = 310
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -334,13 +325,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbEditIconClick
         Spacing = 0
-        TabOrder = 10
+        TabOrder = 9
       end
       object bbIconUp: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Move up'
-        Top = 310
+        Top = 340
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -381,13 +372,13 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbIconUpClick
         Spacing = 0
-        TabOrder = 11
+        TabOrder = 10
       end
       object bbIconDown: TBitBtn
         Left = 480
         Height = 25
         Hint = 'Move down'
-        Top = 340
+        Top = 370
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -428,18 +419,18 @@ object frmStackProp: TfrmStackProp
         }
         OnClick = bbIconDownClick
         Spacing = 0
-        TabOrder = 12
+        TabOrder = 11
       end
       object list: TListBox
         Left = 10
-        Height = 163
-        Top = 220
+        Height = 208
+        Top = 250
         Width = 455
         Anchors = [akTop, akLeft, akRight, akBottom]
         ExtendedSelect = False
         ItemHeight = 0
         OnDblClick = listDblClick
-        TabOrder = 7
+        TabOrder = 6
       end
       object DividerBevel1: TDividerBevel
         Left = 10
@@ -450,6 +441,23 @@ object frmStackProp: TfrmStackProp
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
         ParentFont = False
+      end
+      object cboPreview: TComboBox
+        Left = 125
+        Height = 21
+        Top = 215
+        Width = 180
+        ItemHeight = 13
+        Style = csDropDownList
+        TabOrder = 12
+      end
+      object Label1: TLabel
+        Left = 10
+        Height = 13
+        Top = 220
+        Width = 42
+        Caption = 'Preview:'
+        ParentColor = False
       end
     end
     object tsColor: TTabSheet

@@ -330,6 +330,22 @@ msgstr ""
 msgid "Specific icons"
 msgstr ""
 
+#: declu.xstackpreviewfour
+msgid "four"
+msgstr ""
+
+#: declu.xstackpreviewfourstack
+msgid "four in stack"
+msgstr ""
+
+#: declu.xstackpreviewnine
+msgid "nine"
+msgstr ""
+
+#: declu.xstackpreviewnone
+msgid "none"
+msgstr ""
+
 #: declu.xstartbuttontext
 msgid "Start"
 msgstr ""
@@ -1033,12 +1049,12 @@ msgctxt "TFRMSTACKPROP.CAPTION"
 msgid "Properties"
 msgstr ""
 
-#: tfrmstackprop.chbpreview.caption
-msgid "Show subitems overlay"
-msgstr ""
-
 #: tfrmstackprop.dividerbevel1.caption
 msgid "Items in this stack"
+msgstr ""
+
+#: tfrmstackprop.label1.caption
+msgid "Preview:"
 msgstr ""
 
 #: tfrmstackprop.label2.caption
