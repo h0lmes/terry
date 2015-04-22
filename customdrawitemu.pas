@@ -121,7 +121,7 @@ begin
 
       // draw the button
       button := false;
-      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
+      if FRunning and not FFloating then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
       FNCHitTestNC := button;
 
       xBitmap := 0;
@@ -202,7 +202,7 @@ begin
     begin
       if FReflection and (FReflectionSize > 0) and not FFloating then
         BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-      if FRunning then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
+      if FRunning and not FFloating then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
     end;
     UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
     DeleteGraphics(dst);

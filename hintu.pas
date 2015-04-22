@@ -8,32 +8,34 @@ uses Windows, Messages, SysUtils, Forms, Math,
 type
   THint = class
   private
-    hWnd: THandle;
     wndClass: TWndClass;
     WindowClassInstance: uint;
+    FHWnd: THandle;
+    FHWndOwner: uint;
     FActivating: boolean;
-    awidth: integer;
-    aheight: integer;
-    Visible: boolean;
-    Caption: WideString;
+    FVisible: boolean;
+    FCaption: WideString;
     FFont: _FontData;
-    wnd_owner: uint;
-    alpha: integer;
-    ax: integer; // real x
-    ay: integer; // real y
-    aw: integer; // real width
-    need_x: integer;
-    need_y: integer;
-    need_w: integer;
-    need_h: integer;
+    FAlpha: integer;
+    FAlphaTarget: integer;
+    FX: integer;
+    FY: integer;
+    FW: integer;
+    FH: integer;
+    FXTarget: integer;
+    FYTarget: integer;
+    FWTarget: integer;
+    FHTarget: integer;
     FBorder: integer;
     procedure err(where: string; e: Exception);
+    procedure Paint;
   public
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
-    procedure DeactivateHint(hwnd_: uint);
+    procedure ActivateHint(hwndOwner: uint; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
+    procedure DeactivateHint(hwndOwner: uint);
+    procedure DeactivateImmediate;
     procedure Timer;
     procedure UnregisterWindowClass;
   end;
@@ -42,7 +44,7 @@ implementation
 //------------------------------------------------------------------------------
 function WndProc(wnd: hwnd; message: uint; wParam: integer; lParam: integer): integer; stdcall;
 var
-  p: THint;
+  objHint: THint;
 begin
   if message = WM_NCHITTEST then
   begin
@@ -51,11 +53,10 @@ begin
   end
   else if (message = WM_TIMER) and (wParam = ID_TIMER) then
   begin
-    p := THint(GetWindowLong(wnd, GWL_USERDATA));
-    if p is THint then p.Timer;
+    objHint := THint(GetWindowLong(wnd, GWL_USERDATA));
+    if objHint is THint then objHint.Timer;
     exit;
   end;
-
   Result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
@@ -72,8 +73,8 @@ begin
   StrCopy(@FFont.Name[0], PChar(GetFont));
   FFont.size := GetfontSize;
   FFont.color := $ffffffff;
-  alpha := 0;
-  Visible := False;
+  FAlpha := 0;
+  FVisible := False;
 
   try
     wndClass.style          := 0;
@@ -97,8 +98,8 @@ begin
   end;
 
   try
-    hWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, 'TDock::Hint', '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
-    if IsWindow(hWnd) then SetWindowLong(hWnd, GWL_USERDATA, cardinal(self))
+    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, 'TDock::Hint', '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    if IsWindow(FHWnd) then SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self))
     else err('Hint.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('Hint.Create.CreateWindowEx', e);
@@ -115,37 +116,41 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure THint.ActivateHint(hwndOwner: uint; caption_: WideString; x, y, monitor: integer; ASite: TBaseSite);
+procedure THint.ActivateHint(hwndOwner: uint; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
 var
-  hgdip, font, family, brush, path: Pointer;
+  wdc, dc: THandle;
+  dst, font, family: Pointer;
+  awidth, aheight: integer;
   rect: TRectF;
-  wa: Windows.TRect;
-  bmp: _SimpleBitmap;
-  mi: MONITORINFO;
-  points: array [0..3] of GDIPAPI.TPoint;
+  workArea: Windows.TRect;
+  monInfo: MONITORINFO;
 begin
-  if IsWindow(hWnd) then
+  if IsWindow(FHWnd) then
   try
     FActivating := True;
     try
-      wnd_owner := hwndOwner;
-      Caption := caption_;
+      FHWndOwner := hwndOwner;
+      FCaption := ACaption;
       CopyFontData(sets.container.Font, FFont);
       FBorder := 7;
 
       // measure string //
-      bmp.dc := CreateCompatibleDC(0);
-      if bmp.dc = 0 then raise Exception.Create('Hint.ActivateHint.CreateCompatibleDC failed');
-      GdipCreateFromHDC(bmp.dc, hgdip);
+      wdc := GetDC(FHWnd);
+      dc := CreateCompatibleDC(wdc);
+      ReleaseDC(FHWnd, wdc);
+      if dc = 0 then raise Exception.Create('Hint.ActivateHint.CreateCompatibleDC failed');
+      GdipCreateFromHDC(dc, dst);
       GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
       GdipCreateFont(family, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
       rect.x := 0;
       rect.y := 0;
       rect.Width := 0;
       rect.Height := 0;
-      GdipMeasureString(hgdip, PWideChar(Caption), -1, font, @rect, nil, @rect, nil, nil);
-      GdipDeleteGraphics(hgdip);
-      DeleteDC(bmp.dc);
+      GdipMeasureString(dst, PWideChar(FCaption), -1, font, @rect, nil, @rect, nil, nil);
+      GdipDeleteGraphics(dst);
+      DeleteDC(dc);
+      GdipDeleteFont(font);
+      GdipDeleteFontFamily(family);
 
       // calc hint dimensions and position //
       aheight := round(rect.Height) + 2;
@@ -164,24 +169,34 @@ begin
         dec(x, awidth div 2);
       end;
 
-      mi.cbSize := sizeof(MONITORINFO);
-      GetMonitorInfoA(monitor, @mi);
-      wa := mi.rcWork;
-      if x + awidth > wa.right then x := wa.right - awidth;
-      if y + aheight > wa.Bottom then y := wa.Bottom - aheight;
-      if x < wa.left then x := wa.left;
-      if y < wa.top then y := wa.top;
+      monInfo.cbSize := sizeof(MONITORINFO);
+      GetMonitorInfoA(monitor, @monInfo);
+      workArea := monInfo.rcWork;
+      if x + awidth > workArea.right then x := workArea.right - awidth;
+      if y + aheight > workArea.Bottom then y := workArea.Bottom - aheight;
+      if x < workArea.left then x := workArea.left;
+      if y < workArea.top then y := workArea.top;
 
-      need_x := x;
-      need_y := y;
-      if not sets.container.HintEffects then alpha := 255;
-      if not Visible and (alpha = 0) or not sets.container.HintEffects then
+      FXTarget := x;
+      FYTarget := y;
+      FWTarget := awidth;
+      FHTarget := aheight;
+      if not sets.container.HintEffects then FAlpha := 255;
+      if not FVisible and (FAlpha = 0) or not sets.container.HintEffects then
       begin
-        ax := x;
-        ay := y;
+        FX := x;
+        FY := y;
+        FW := awidth;
+        FH := aheight;
       end else begin
-        if (ASite = bsTop) or (ASite = bsBottom) then ay := y
-        else ax := x;
+        if (ASite = bsTop) or (ASite = bsBottom) then
+        begin
+          FY := y;
+          FH := aheight;
+        end else begin
+          FX := x;
+          FW := awidth;
+        end;
       end;
     except
       on e: Exception do
@@ -192,63 +207,10 @@ begin
       end;
     end;
 
-    // background //
-
     try
-      bmp.topleft.x := ax - FBorder;
-      bmp.topleft.y := ay - FBorder;
-      bmp.Width := awidth + FBorder * 2;
-      bmp.Height := aheight + FBorder * 2;
-      gfx.CreateBitmap(bmp);
-      GdipCreateFromHDC(bmp.dc, hgdip);
-      GdipGraphicsClear(hgdip, 0);
-      GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
-      GdipSetTextRenderingHint(hgdip, TextRenderingHintAntiAlias);
-      GdipTranslateWorldTransform(hgdip, FBorder, FBorder, MatrixOrderPrepend);
-      GdipCreatePath(FillModeWinding, path);
-      // compose path
-      points[0].x := 0;
-      points[0].y := 0;
-      points[1].x := aWidth;
-      points[1].y := 0;
-      points[2].x := aWidth;
-      points[2].y := aHeight;
-      points[3].x := 0;
-      points[3].y := aHeight;
-      GdipAddPathClosedCurve2I(path, points, 4, 15 / aWidth);
-      // fill
-      GdipCreateSolidFill($ff000000 + FFont.backcolor and $ffffff, brush);
-      GdipFillPath(hgdip, brush, path);
-      GdipDeleteBrush(brush);
-      GdipDeletePath(path);
-    except
-      on e: Exception do
-      begin
-        err('Hint.ActivateHint.Background', e);
-        FActivating := False;
-        exit;
-      end;
-    end;
-
-    // text //
-
-    try
-      rect.Y := 1;
-      rect.X := aheight div 4 + 1;
-      GdipCreateSolidFill(FFont.color, brush);
-      GdipDrawString(hgdip, PWideChar(Caption), -1, font, @rect, nil, brush);
-      GdipDeleteBrush(brush);
-
-      UpdateLWindow(hWnd, bmp, alpha);
-      SetWindowPos(hWnd, hwnd_topmost, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
-
-      if not Visible and sets.container.HintEffects then SetTimer(hWnd, ID_TIMER, 10, nil);
-      Visible := True;
-
-      GdipDeleteFont(font);
-      GdipDeleteFontFamily(family);
-      GdipDeleteGraphics(hgdip);
-      DeleteBitmap(bmp);
+      Paint;
+      if not FVisible and sets.container.HintEffects then SetTimer(FHWnd, ID_TIMER, 10, nil);
+      FVisible := True;
     except
       on e: Exception do
       begin
@@ -262,6 +224,69 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure THint.Paint;
+var
+  dst, font, family, brush, path: Pointer;
+  rect: TRectF;
+  bmp: _SimpleBitmap;
+  points: array [0..3] of GDIPAPI.TPoint;
+begin
+    // background //
+    try
+      bmp.topleft.x := FX - FBorder;
+      bmp.topleft.y := FY - FBorder;
+      bmp.Width := FW + FBorder * 2;
+      bmp.Height := FH + FBorder * 2;
+      gfx.CreateBitmap(bmp);
+      GdipCreateFromHDC(bmp.dc, dst);
+      GdipGraphicsClear(dst, 0);
+      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+      GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+      GdipTranslateWorldTransform(dst, FBorder, FBorder, MatrixOrderPrepend);
+      GdipCreatePath(FillModeWinding, path);
+      // compose path
+      points[0].x := 0;
+      points[0].y := 0;
+      points[1].x := FW;
+      points[1].y := 0;
+      points[2].x := FW;
+      points[2].y := FH;
+      points[3].x := 0;
+      points[3].y := FH;
+      GdipAddPathClosedCurve2I(path, points, 4, 15 / FW);
+      // fill
+      GdipCreateSolidFill($ff000000 + FFont.backcolor and $ffffff, brush);
+      GdipFillPath(dst, brush, path);
+      GdipDeleteBrush(brush);
+      GdipDeletePath(path);
+    except
+      on e: Exception do raise Exception.Create('Hint.ActivateHint.Background'#13 + e.message);
+    end;
+
+    // text //
+    try
+      GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+      GdipCreateFont(family, FFont.size, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
+      rect.Y := 1;
+      rect.X := FH div 4 + 1;
+      rect.Width := FW - 2;
+      rect.Height := FH - 1;
+      GdipCreateSolidFill(FFont.color, brush);
+      GdipDrawString(dst, PWideChar(FCaption), -1, font, @rect, nil, brush);
+      GdipDeleteBrush(brush);
+
+      UpdateLWindow(FHWnd, bmp, FAlpha);
+      SetWindowPos(FHWnd, hwnd_topmost, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
+
+      GdipDeleteFont(font);
+      GdipDeleteFontFamily(family);
+      GdipDeleteGraphics(dst);
+      DeleteBitmap(bmp);
+    except
+      on e: Exception do raise Exception.Create('Hint.ActivateHint.Text'#13 + e.message);
+    end;
+end;
+//------------------------------------------------------------------------------
 procedure THint.Timer;
 const
   STEP = 1;
@@ -272,30 +297,40 @@ var
   delta: integer;
 begin
   try
-    if (not Visible and (alpha > 0)) or (Visible and (alpha < 255)) or (need_x <> ax) or (need_y <> ay) then
+    if (not FVisible and (FAlpha > 0)) or (FVisible and (FAlpha < 255)) or (FXTarget <> FX) or (FYTarget <> FY) or (FWTarget <> FW) or (FHTarget <> FH) then
     begin
-      delta := abs(255 - alpha) div AITER;
-      if Visible then alpha := alpha + ifthen(delta < ASTEP, ASTEP, delta)
-      else alpha := alpha - ifthen(delta < ASTEP, ASTEP, delta);
-      if alpha < 0 then alpha := 0;
-      if alpha > 255 then alpha := 255;
+      delta := abs(255 - FAlpha) div AITER;
+      if FVisible then FAlpha += ifthen(delta < ASTEP, ASTEP, delta)
+      else FAlpha -= ifthen(delta < ASTEP, ASTEP, delta);
+      if FAlpha < 0 then FAlpha := 0;
+      if FAlpha > 255 then FAlpha := 255;
 
-      delta := abs(need_x - ax) div ITER;
-      if abs(need_x - ax) < STEP then ax := need_x
-      else if need_x > ax then ax := ax + ifthen(delta < STEP, STEP, delta)
-      else if need_x < ax then ax := ax - ifthen(delta < STEP, STEP, delta);
+      delta := abs(FXTarget - FX) div ITER;
+      if abs(FXTarget - FX) < STEP then FX := FXTarget
+      else if FXTarget > FX then FX += ifthen(delta < STEP, STEP, delta)
+      else if FXTarget < FX then FX -= ifthen(delta < STEP, STEP, delta);
 
-      delta := abs(need_y - ay) div ITER;
-      if abs(need_y - ay) < STEP then ay := need_y
-      else if need_y > ay then ay := ay + ifthen(delta < STEP, STEP, delta)
-      else if need_y < ay then ay := ay - ifthen(delta < STEP, STEP, delta);
+      delta := abs(FYTarget - FY) div ITER;
+      if abs(FYTarget - FY) < STEP then FY := FYTarget
+      else if FYTarget > FY then FY += ifthen(delta < STEP, STEP, delta)
+      else if FYTarget < FY then FY -= ifthen(delta < STEP, STEP, delta);
 
-      UpdateLWindowPosAlpha(hWnd, ax - FBorder, ay - FBorder, alpha);
+      delta := abs(FWTarget - FW) div ITER;
+      if abs(FWTarget - FW) < STEP then FW := FWTarget
+      else if FWTarget > FW then FW += ifthen(delta < STEP, STEP, delta)
+      else if FWTarget < FW then FW -= ifthen(delta < STEP, STEP, delta);
 
-      if not Visible and (alpha = 0) then
+      delta := abs(FHTarget - FH) div ITER;
+      if abs(FHTarget - FH) < STEP then FH := FHTarget
+      else if FHTarget > FH then FH += ifthen(delta < STEP, STEP, delta)
+      else if FHTarget < FH then FH -= ifthen(delta < STEP, STEP, delta);
+
+      Paint;
+
+      if not FVisible and (FAlpha = 0) then
       begin
-        KillTimer(hWnd, ID_TIMER);
-        ShowWindow(hWnd, 0);
+        KillTimer(FHWnd, ID_TIMER);
+        ShowWindow(FHWnd, 0);
       end;
     end;
   except
@@ -303,19 +338,31 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure THint.DeactivateHint(hwnd_: uint);
+procedure THint.DeactivateHint(hwndOwner: uint);
 begin
-  if hwnd_ = wnd_owner then
+  if hwndOwner = FHWndOwner then
   try
-    Visible := false;
+    FVisible := false;
     if not sets.container.HintEffects then
     begin
-      alpha := 0;
-      KillTimer(hWnd, ID_TIMER);
-      ShowWindow(hWnd, 0);
+      FAlpha := 0;
+      KillTimer(FHWnd, ID_TIMER);
+      ShowWindow(FHWnd, 0);
     end;
   except
     on e: Exception do err('Hint.DeactivateHint', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure THint.DeactivateImmediate;
+begin
+  try
+    FVisible := false;
+    FAlpha := 0;
+    KillTimer(FHWnd, ID_TIMER);
+    ShowWindow(FHWnd, 0);
+  except
+    on e: Exception do err('Hint.DeactivateImmediate', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -329,7 +376,7 @@ end;
 //------------------------------------------------------------------------------
 destructor THint.Destroy;
 begin
-  DestroyWindow(hWnd);
+  DestroyWindow(FHWnd);
   UnregisterWindowClass;
   inherited;
 end;

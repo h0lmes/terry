@@ -92,7 +92,6 @@ begin
   FParams:= '';
   FDir:= '';
   FImageFile:= '';
-  FColorData:= DEFAULT_COLOR_DATA;
   FShowCmd:= 0;
   FHide:= false;
   FRunning:= false;

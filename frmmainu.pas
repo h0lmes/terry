@@ -1243,7 +1243,8 @@ procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer)
 var
   monitor: cardinal;
 begin
-  if not closing and not IsHiddenDown and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
+  if not closing and not IsHiddenDown
+     and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
   begin
     if InitDone and not assigned(AHint) then AHint := THint.Create;
     if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
@@ -1254,6 +1255,37 @@ end;
 procedure Tfrmmain.DeactivateHint(hwnd: uint);
 begin
   if not closing and assigned(AHint) then AHint.DeactivateHint(hwnd);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.LockMouseEffect(hWnd: HWND; lock: boolean);
+var
+  index: integer;
+begin
+  crsection.Acquire;
+  try
+    if lock then
+    begin
+      LockList.Add(pointer(hWnd));
+    end else begin
+      index := LockList.IndexOf(pointer(hWnd));
+      if index >= 0 then LockList.Delete(index);
+    end;
+    if IsLockedMouseEffect then AHint.DeactivateImmediate;
+    SetParam(gpLockMouseEffect, integer(IsLockedMouseEffect));
+  finally
+    crsection.Leave;
+  end;
+end;
+//------------------------------------------------------------------------------
+function Tfrmmain.IsLockedMouseEffect: boolean;
+begin
+  result := LockList.Count > 0;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.SetFont(var Value: _FontData);
+begin
+  CopyFontData(Value, sets.container.Font);
+  if assigned(ItemMgr) then ItemMgr.SetFont(Value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AppException(Sender: TObject; e: Exception);
@@ -1631,36 +1663,6 @@ begin
     docks.RequestRemoveDock(sets.SetsPathFile);
     execute_cmdline('/quit');
   end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.LockMouseEffect(hWnd: HWND; lock: boolean);
-var
-  index: integer;
-begin
-  crsection.Acquire;
-  try
-    if lock then
-    begin
-      LockList.Add(pointer(hWnd));
-    end else begin
-      index := LockList.IndexOf(pointer(hWnd));
-      if index >= 0 then LockList.Delete(index);
-    end;
-    SetParam(gpLockMouseEffect, integer(IsLockedMouseEffect));
-  finally
-    crsection.Leave;
-  end;
-end;
-//------------------------------------------------------------------------------
-function Tfrmmain.IsLockedMouseEffect: boolean;
-begin
-  result := LockList.Count > 0;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.SetFont(var Value: _FontData);
-begin
-  CopyFontData(Value, sets.container.Font);
-  if assigned(ItemMgr) then ItemMgr.SetFont(Value);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OpenWith(filename: string);

@@ -120,13 +120,20 @@ var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
   bIsWindowsVista: boolean; // must be externally set to "true" if running Vista or greater
+  mainWindow: THandle;
 
 implementation
 //--------------------------------------------------------------------------------------------------
 function CreateBitmap(var bmp: _SimpleBitmap): boolean;
+var
+  wdc: THandle;
 begin
   result:= false;
-  bmp.dc:= windows.CreateCompatibleDC(0);
+  wdc := GetDC(mainWindow);
+  try bmp.dc:= windows.CreateCompatibleDC(wdc);
+  finally ReleaseDC(mainWindow, wdc);
+  end;
+
   if bmp.dc <> 0 then
   begin
     Fillchar(bmp.bi, sizeof(bmp.bi), #0);

@@ -79,12 +79,12 @@ type
     procedure RecalcDock;
     procedure SetItems2(force_draw: boolean);
 
-    function IASize: integer;
-    function ItemFromPoint(Ax, Ay, distance: integer): extended;
-    function ItemRectFromPoint(Ax, Ay: integer): integer;
+    function  IASize: integer;
+    function  ItemFromPoint(Ax, Ay, distance: integer): extended;
+    function  ItemRectFromPoint(Ax, Ay: integer): integer;
 
     // items //
-    function AddItem(data: string; Update: boolean = false): THandle;
+    function  AddItem(data: string; Update: boolean = false): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
   public
     FItemArray: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
@@ -133,8 +133,8 @@ type
     procedure Enable(value: boolean);
     procedure SetParam(id: TGParam; value: integer);
     procedure command(cmd, params: string);
-    function GetRect: windows.TRect;
-    function GetZoomEdge: integer;
+    function  GetRect: windows.TRect;
+    function  GetZoomEdge: integer;
 
     procedure Timer;
     procedure SetTheme;
@@ -149,25 +149,25 @@ type
     procedure ClearTaskbar;
 
     // items //
-    function ItemIndex(HWnd: HANDLE): integer;
-    function ItemHWnd(index: integer): HANDLE;
+    function  ItemIndex(HWnd: HANDLE): integer;
+    function  ItemHWnd(index: integer): HANDLE;
     procedure Clear;
     procedure ClearDeleted;
     procedure UnDelete;
     procedure CheckDeleted;
-    function ZOrder(InsertAfter: uint): uint;
+    function  ZOrder(InsertAfter: uint): uint;
     procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
-    function CreateItem(data: string): THandle;
+    function  CreateItem(data: string): THandle;
     procedure DeleteItem(HWnd: THandle);
 
     // mouse effects //
-    procedure CalcDropPlace(pt: windows.TPoint);
+    procedure SetDropPlaceFromPoint(pt: windows.TPoint);
     procedure SetDropPlace(index: integer);
     procedure SetDropPlaceEx(index: integer);
     procedure Zoom(x, y: integer);
     procedure UnZoom(do_now: boolean = false);
-    function CheckMouseOn: boolean;
+    function  CheckMouseOn: boolean;
     procedure WHMouseMove(pt: windows.TPoint; allow_zoom: boolean = true);
     procedure DragEnter;
     procedure DragOver;
@@ -178,22 +178,22 @@ type
     procedure Undock(HWnd: HANDLE);
     procedure DockAdd(HWnd: THandle);
     procedure Dock(HWnd: HANDLE);
-    function IsItem(HWnd: HANDLE): HANDLE;
-    function ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
-    function ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
-    function ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
-    function AllItemCmd(id: TGParam; param: integer): integer;
+    function  IsItem(HWnd: HANDLE): HANDLE;
+    function  ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
+    function  ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
+    function  ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
+    function  AllItemCmd(id: TGParam; param: integer): integer;
     procedure SetFont(var Value: _FontData);
     procedure PluginCallCreate(HWnd: HANDLE);
-    function GetPluginFile(HWnd: HANDLE): string;
+    function  GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
     procedure SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
     procedure PluginAnimate(HWnd: HANDLE);
     procedure SetPluginCaption(HWnd: HANDLE; NewCaption: string);
-    function GetPluginCaption(HWnd: HANDLE): string;
-    function GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
-    function IsPluginUndocked(HWnd: HANDLE): boolean;
-    function IsSeparator(HWnd: HANDLE): boolean;
+    function  GetPluginCaption(HWnd: HANDLE): string;
+    function  GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
+    function  IsPluginUndocked(HWnd: HANDLE): boolean;
+    function  IsSeparator(HWnd: HANDLE): boolean;
 end;
 
 implementation
@@ -1227,7 +1227,7 @@ end;
 //
 //------------------------------------------------------------------------------
 // calculate and set DropPlace and DropPlaceEx
-procedure TItemManager.CalcDropPlace(pt: windows.TPoint);
+procedure TItemManager.SetDropPlaceFromPoint(pt: windows.TPoint);
 var
   tmp: extended;
   prevDropPlace, prevDropPlaceEx: integer;
@@ -1615,7 +1615,7 @@ begin
     // drop place //
     if FDraggingItem or FDraggingFile then
     begin
-      CalcDropPlace(pt);
+      SetDropPlaceFromPoint(pt);
       if allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
     end;
   except
@@ -1753,7 +1753,7 @@ begin
   try
     SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     GetCursorPos(pt);
-    CalcDropPlace(pt);
+    SetDropPlaceFromPoint(pt);
 
     DragInst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
 

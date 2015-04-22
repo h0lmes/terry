@@ -39,7 +39,6 @@ type
   private
     FUseShellContextMenus: boolean;
     FImageFile: string;
-    FColorData: integer;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
     FItemCount: integer;
     FState: TStackState;
@@ -131,7 +130,6 @@ procedure TStackItem.Init;
 begin
   inherited;
   FImageFile := '';
-  FColorData := DEFAULT_COLOR_DATA;
   FItemCount := 0;
   SetLength(items, MAX_SUBITEMS);
   FState := stsClosed;
@@ -532,9 +530,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Exec;
 begin
-  if (FState = stsClosed) or (FState = stsClosing) then OpenStack
-  else
-  if (FState = stsOpen) or (FState = stsOpening) then CloseStack;
+  if (FState = stsClosed) or (FState = stsClosing) then OpenStack else CloseStack;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.OnDragEnter;

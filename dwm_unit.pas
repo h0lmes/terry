@@ -40,6 +40,13 @@ type
       DWMWA_FREEZE_REPRESENTATION // Freeze the window's thumbnail image with its current visuals
   );
 
+  _DWMFLIP3DWINDOWPOLICY = (
+      DWMFLIP3D_DEFAULT,
+      DWMFLIP3D_EXCLUDEBELOW,
+      DWMFLIP3D_EXCLUDEABOVE,
+      DWMFLIP3D_LAST
+  );
+
   _DWM_BLURBEHIND = record
     dwFlags: dword;
     fEnable: bool;
@@ -181,6 +188,8 @@ begin
   begin
     value := -1;
     DwmSetWindowAttribute(AHandle, DWMWA_EXCLUDED_FROM_PEEK, @value, sizeof(value));
+    value := integer(_DWMFLIP3DWINDOWPOLICY.DWMFLIP3D_EXCLUDEBELOW);
+    DwmSetWindowAttribute(AHandle, DWMWA_FLIP3D_POLICY, @value, sizeof(value));
   end;
 end;
 //------------------------------------------------------------------------------

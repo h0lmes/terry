@@ -513,19 +513,20 @@ function TStackModeController.GetParallel(Opening, ShowHint: boolean; Index: int
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
   cols, rows: integer;
-  x, y: extended;
+  x, y, p: extended;
 begin
   result.x := 0;
   result.y := 0;
   result.alpha := 0;
   result.angle := 0;
 
+  p := 0.7 + (sin(progress * PI / 2) * 0.3);
   result.alpha := round(255 * Progress);
   result.hint_alpha := round(max(Progress - 0.5, 0) * 510);
   result.s := ItemSize;
   result.angle := 0;
-  x := Offset + Progress * ItemSize * 2.5 - ItemSize;
-  y := (ItemSize + 3 + abs(Distort * 2)) * ((index - (ItemCount - 1) / 2));
+  x := Offset + p * ItemSize * 2.5 - ItemSize;
+  y := (ItemSize + 3 + abs(Distort * 2)) * ((index - (ItemCount - 1) / 2)) * p;
   case Site of
     0: begin
         result.hint_align := 6;

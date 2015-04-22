@@ -18,7 +18,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
@@ -683,7 +683,7 @@ object frmsets: Tfrmsets
       object lblZoomWideness: TLabel
         Left = 295
         Height = 13
-        Top = 280
+        Top = 283
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -691,7 +691,7 @@ object frmsets: Tfrmsets
       object lblIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 182
+        Top = 185
         Width = 42
         Caption = 'Icon size'
         ParentColor = False
@@ -699,7 +699,7 @@ object frmsets: Tfrmsets
       object lblZoomedIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 230
+        Top = 233
         Width = 65
         Caption = 'Icon size max'
         ParentColor = False
@@ -762,7 +762,7 @@ object frmsets: Tfrmsets
       object tbIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 200
+        Top = 203
         Width = 410
         Frequency = 8
         Max = 128
@@ -776,7 +776,7 @@ object frmsets: Tfrmsets
       object tbBigIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 248
+        Top = 251
         Width = 410
         Frequency = 16
         Max = 256
@@ -790,7 +790,7 @@ object frmsets: Tfrmsets
       object tbZoomWidth: TTrackBar
         Left = 310
         Height = 30
-        Top = 298
+        Top = 301
         Width = 130
         Max = 5
         Min = 2
@@ -803,7 +803,7 @@ object frmsets: Tfrmsets
       object lblIconSpacing: TLabel
         Left = 15
         Height = 13
-        Top = 280
+        Top = 283
         Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
@@ -811,7 +811,7 @@ object frmsets: Tfrmsets
       object tbIconSpacing: TTrackBar
         Left = 30
         Height = 30
-        Top = 298
+        Top = 301
         Width = 250
         Frequency = 2
         Max = 30
@@ -832,7 +832,7 @@ object frmsets: Tfrmsets
       object lblZoomTime: TLabel
         Left = 15
         Height = 13
-        Top = 330
+        Top = 333
         Width = 49
         Caption = 'Zoom time'
         ParentColor = False
@@ -840,7 +840,7 @@ object frmsets: Tfrmsets
       object tbZoomTime: TTrackBar
         Left = 30
         Height = 30
-        Top = 350
+        Top = 353
         Width = 410
         Frequency = 60
         Max = 600
