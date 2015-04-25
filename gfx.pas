@@ -79,7 +79,7 @@ function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
     psize: LPSIZE; hdcSrc: HDC; pptSrc: LPPOINT; crKey: COLORREF;
     pblend: LPBLENDFUNCTION; dwFlags: DWORD): BOOL; stdcall; external 'user32.dll';
 
-function CreateBitmap(var bmp: _SimpleBitmap): boolean;
+function CreateBitmap(var bmp: _SimpleBitmap; HWnd: THandle): boolean;
 procedure DeleteBitmap(var bmp: _SimpleBitmap);
 procedure BitmapReflection(var bmp: _SimpleBitmap; XOffset, YOffset, size, ReflectionSize, Direction: integer);
 function CreateRegionFromMask(bmp: _SimpleBitmap): HRGN;
@@ -120,18 +120,17 @@ var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
   bIsWindowsVista: boolean; // must be externally set to "true" if running Vista or greater
-  mainWindow: THandle;
 
 implementation
 //--------------------------------------------------------------------------------------------------
-function CreateBitmap(var bmp: _SimpleBitmap): boolean;
+function CreateBitmap(var bmp: _SimpleBitmap; HWnd: THandle): boolean;
 var
   wdc: THandle;
 begin
   result:= false;
-  wdc := GetDC(mainWindow);
+  wdc := GetDC(HWnd);
   try bmp.dc:= windows.CreateCompatibleDC(wdc);
-  finally ReleaseDC(mainWindow, wdc);
+  finally ReleaseDC(HWnd, wdc);
   end;
 
   if bmp.dc <> 0 then

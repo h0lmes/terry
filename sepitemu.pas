@@ -99,13 +99,13 @@ begin
     // set position //
     try
       ItemRect := GetRectFromSize(ASize);
-      Fx := Ax;
-      Fy := Ay;
+      FX := Ax;
+      FY := Ay;
       FShowItem := AShowItem;
       if need_dock then
       begin
-        Ax := FxDocking;
-        Ay := FyDocking;
+        Ax := FXDocking;
+        Ay := FYDocking;
       end;
       xReal := Ax - ItemRect.Left;
       yReal := Ay - ItemRect.Top;
@@ -165,7 +165,7 @@ begin
           bmp.topleft.y:= yReal;
           bmp.width:= FSize + ItemRect.Left * 2;
           bmp.height:= FSize + ItemRect.Top * 2;
-          if not CreateBitmap(bmp) then exit; //raise Exception.Create('CreateBitmap failed');
+          if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('CreateBitmap failed');
           GdipCreateFromHDC(bmp.dc, dst);
           if not assigned(dst) then
           begin
@@ -198,7 +198,7 @@ begin
           bmp.topleft.y := yReal;
           bmp.width := FSize + FReflectionSize * 2;
           bmp.height := FSize + FReflectionSize * 2;
-          if not CreateBitmap(bmp) then exit; //raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
+          if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('SeparatorItem.Draw CreateBitmap error');
           GdipCreateFromHDC(bmp.dc, dst);
           if not assigned(dst) then
           begin

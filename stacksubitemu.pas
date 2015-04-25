@@ -366,7 +366,7 @@ begin
       bmp.topleft.y := yReal;
       bmp.width := FSize + ItemRect.Left * 2;
       bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
+      if not CreateBitmap(bmp, FHWnd) then raise Exception.Create('CreateBitmap failed');
       dst := CreateGraphics(bmp.dc, 0);
       if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
 

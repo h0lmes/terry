@@ -12,6 +12,7 @@ type
     WindowClassInstance: uint;
     FHWnd: THandle;
     FHWndOwner: uint;
+    FSite: TBaseSite;
     FActivating: boolean;
     FVisible: boolean;
     FCaption: WideString;
@@ -130,6 +131,7 @@ begin
     FActivating := True;
     try
       FHWndOwner := hwndOwner;
+      FSite := ASite;
       FCaption := ACaption;
       CopyFontData(sets.container.Font, FFont);
       FBorder := 7;
@@ -177,17 +179,33 @@ begin
       if x < workArea.left then x := workArea.left;
       if y < workArea.top then y := workArea.top;
 
+      FAlphaTarget := 255;
       FXTarget := x;
       FYTarget := y;
       FWTarget := awidth;
       FHTarget := aheight;
-      if not sets.container.HintEffects then FAlpha := 255;
-      if not FVisible and (FAlpha = 0) or not sets.container.HintEffects then
+      if not sets.container.HintEffects then
       begin
+        FAlpha := 255;
         FX := x;
         FY := y;
         FW := awidth;
         FH := aheight;
+      end else if not FVisible and (FAlpha = 0) then
+      begin
+        FAlpha := 0;
+        FX := x;
+        FY := y;
+        FW := awidth;
+        FH := aheight;
+        {if (FSite = bsTop) or (FSite = bsBottom) then
+        begin
+          FW := 10;
+          FX := FXTarget + (FWTarget - 10) div 2;
+        end else begin
+          FH := 10;
+          FY := FYTarget + (FHTarget - 10) div 2;
+        end;}
       end else begin
         if (ASite = bsTop) or (ASite = bsBottom) then
         begin
@@ -237,14 +255,19 @@ begin
       bmp.topleft.y := FY - FBorder;
       bmp.Width := FW + FBorder * 2;
       bmp.Height := FH + FBorder * 2;
-      gfx.CreateBitmap(bmp);
+      if not gfx.CreateBitmap(bmp, FHWnd) then exit;
       GdipCreateFromHDC(bmp.dc, dst);
+      if not assigned(dst) then
+      begin
+        DeleteBitmap(bmp);
+        exit;
+      end;
       GdipGraphicsClear(dst, 0);
       GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
       GdipTranslateWorldTransform(dst, FBorder, FBorder, MatrixOrderPrepend);
-      GdipCreatePath(FillModeWinding, path);
       // compose path
+      GdipCreatePath(FillModeWinding, path);
       points[0].x := 0;
       points[0].y := 0;
       points[1].x := FW;
@@ -260,7 +283,7 @@ begin
       GdipDeleteBrush(brush);
       GdipDeletePath(path);
     except
-      on e: Exception do raise Exception.Create('Hint.ActivateHint.Background'#13 + e.message);
+      on e: Exception do raise Exception.Create('Hint.Paint.Background'#13 + e.message);
     end;
 
     // text //
@@ -283,7 +306,7 @@ begin
       GdipDeleteGraphics(dst);
       DeleteBitmap(bmp);
     except
-      on e: Exception do raise Exception.Create('Hint.ActivateHint.Text'#13 + e.message);
+      on e: Exception do raise Exception.Create('Hint.Paint.Text'#13 + e.message);
     end;
 end;
 //------------------------------------------------------------------------------
@@ -343,7 +366,17 @@ begin
   if hwndOwner = FHWndOwner then
   try
     FVisible := false;
-    if not sets.container.HintEffects then
+    if sets.container.HintEffects then
+    begin
+      {if (FSite = bsTop) or (FSite = bsBottom) then
+      begin
+        FWTarget := 10;
+        FXTarget := FX + (FW - 10) div 2;
+      end else begin
+        FHTarget := 10;
+        FYTarget := FY + (FH - 10) div 2;
+      end;}
+    end else
     begin
       FAlpha := 0;
       KillTimer(FHWnd, ID_TIMER);

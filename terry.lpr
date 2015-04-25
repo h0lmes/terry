@@ -567,7 +567,6 @@ begin
   AddLog('MainWindow');
   Application.ShowMainForm := false;
   Application.CreateForm(Tfrmmain, frmmain);
-  gfx.mainWindow := frmmain.Handle;
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
 

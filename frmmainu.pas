@@ -913,7 +913,7 @@ begin
     // keep the edge of the screen reserved if set so
     if sets.container.ReserveScreenEdge then ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
 
-    // hide/show the dock by fullscreen apps
+    // hide/show the dock if fullscreen apps active
     if HiddenByFSA and Visible then HiddenByFSA := false;
     fsa := FullScreenAppActive(0);
     if sets.container.AutoHideOnFullScreenApp then
@@ -1142,23 +1142,22 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.BasePaint(flags: integer);
 var
-  hgdip, hbrush: Pointer;
+  dst, hbrush: Pointer;
   bmp: gfx._SimpleBitmap;
-  RepaintBase: boolean;
+  needRepaint: boolean;
   rgn: HRGN;
 begin
   if assigned(ItemMgr) and assigned(theme) and Visible and not closing then
   try
-    hgdip := nil;
-    bmp.dc := 0;
-    RepaintBase := flags and 1 = 1;
+    dst := nil;
+    needRepaint := flags and 1 = 1;
 
     if (ItemMgr.FBaseImageRect.X <> OldBaseImageRect.X) or
       (ItemMgr.FBaseImageRect.Y <> OldBaseImageRect.Y) or
       (ItemMgr.FBaseImageRect.Width <> OldBaseImageRect.Width) or
       (ItemMgr.FBaseImageRect.Height <> OldBaseImageRect.Height) then
     begin
-      RepaintBase := True;
+      needRepaint := True;
       OldBaseImageRect := ItemMgr.FBaseImageRect;
     end;
     if (ItemMgr.FBaseWindowRect.X <> OldBaseWindowRect.X) or
@@ -1166,29 +1165,33 @@ begin
       (ItemMgr.FBaseWindowRect.Width <> OldBaseWindowRect.Width) or
       (ItemMgr.FBaseWindowRect.Height <> OldBaseWindowRect.Height) then
     begin
-      RepaintBase := True;
+      needRepaint := True;
       OldBaseWindowRect := ItemMgr.FBaseWindowRect;
     end;
 
-    if RepaintBase then
+    if needRepaint then
     try
       // prepare a bitmap //
       bmp.topleft.x := ItemMgr.FBaseWindowRect.x;
       bmp.topleft.y := ItemMgr.FBaseWindowRect.y;
       bmp.Width := ItemMgr.FBaseWindowRect.Width;
       bmp.Height := ItemMgr.FBaseWindowRect.Height;
-      if not CreateBitmap(bmp) then raise Exception.Create('CreateBitmap failed');
-      hgdip := gfx.CreateGraphics(bmp.dc);
-      if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
-      GdipSetCompositingMode(hgdip, CompositingModeSourceOver);
-      GdipSetCompositingQuality(hgdip, CompositingQualityHighSpeed);
-      GdipSetSmoothingMode(hgdip, SmoothingModeHighSpeed);
-      GdipSetPixelOffsetMode(hgdip, PixelOffsetModeHighSpeed);
-      GdipSetInterpolationMode(hgdip, InterpolationModeHighQualityBicubic);
+      if not CreateBitmap(bmp, Handle) then exit; //raise Exception.Create('CreateBitmap failed');
+      dst := gfx.CreateGraphics(bmp.dc);
+      if not assigned(dst) then
+      begin
+        DeleteBitmap(bmp);
+        exit; //raise Exception.Create('CreateGraphics failed');
+      end;
+      GdipSetCompositingMode(dst, CompositingModeSourceOver);
+      GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
+      GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
+      GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
       // workaround to eliminate rumble on certain backgrounds while dragging a file //
-      if ItemMgr.FDraggingFile then GdipGraphicsClear(hgdip, ITEM_BACKGROUND);
+      if ItemMgr.FDraggingFile then GdipGraphicsClear(dst, ITEM_BACKGROUND);
       // draw dock background image //
-      Theme.DrawBackground(hgdip, ItemMgr.FBaseImageRect, sets.container.BaseAlpha);
+      Theme.DrawBackground(dst, ItemMgr.FBaseImageRect, sets.container.BaseAlpha);
       // update dock window //
       UpdateLWindow(handle, bmp, 255);
 
@@ -1207,7 +1210,7 @@ begin
       end;
 
     finally
-      gfx.DeleteGraphics(hgdip);
+      gfx.DeleteGraphics(dst);
       gfx.DeleteBitmap(bmp);
     end;
   except

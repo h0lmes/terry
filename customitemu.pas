@@ -29,14 +29,14 @@ type
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
     FCaption: string;
-    Fx: integer;
-    Fy: integer;
+    FX: integer;
+    FY: integer;
     FSize: integer;
     FBorder: integer;
     FxDockFrom: integer;
     FyDockFrom: integer;
-    FxDocking: integer;
-    FyDocking: integer;
+    FXDocking: integer;
+    FYDocking: integer;
     need_dock: boolean;
     FDockingProgress: single;
     FNCHitTestNC: boolean; // if true - HitTest returns true for non-client area
@@ -95,8 +95,8 @@ type
     property Floating: boolean read FFloating;
     property HWnd: uint read FHWnd;
     property Caption: string read FCaption write SetCaption;
-    property X: integer read Fx;
-    property Y: integer read Fy;
+    property X: integer read FX;
+    property Y: integer read FY;
     property Size: integer read FSize;
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
@@ -137,7 +137,7 @@ begin
   Init;
 
   FHWndParent := AHWndParent;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, Fx, Fy, FSize, FSize, FHWndParent, 0, hInstance, nil);
+  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
@@ -183,8 +183,8 @@ begin
   FFreed := false;
   FEnabled := true;
   FCaption := '';
-  Fx := -3000;
-  Fy := -3000;
+  FX := -3000;
+  FY := -3000;
   FSize := 32;
   FCaption := '';
   FUpdating := false;
@@ -209,8 +209,8 @@ begin
   FIW := 32;
   FIH := 32;
   FShowItem := SWP_HIDEWINDOW;
-  FxDocking := 0;
-  FyDocking := 0;
+  FXDocking := 0;
+  FYDocking := 0;
   need_dock := false;
   FNCHitTestNC := false;
   FNeedMouseWheel := false;
@@ -291,8 +291,8 @@ begin
             wRect := ScreenRect;
             FxDockFrom := wRect.Left;
             FyDockFrom := wRect.Top;
-            FxDocking := FxDockFrom;
-            FyDocking := FyDockFrom;
+            FXDocking := FxDockFrom;
+            FYDocking := FyDockFrom;
             FDockingProgress := 0;
           end;
           Redraw;
@@ -326,7 +326,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Redraw(Force: boolean = true);
 begin
-  Draw(Fx, Fy, FSize, Force, 0, FShowItem);
+  Draw(FX, FY, FSize, Force, 0, FShowItem);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Timer;
@@ -336,8 +336,8 @@ begin
   if need_dock then
   begin
     FDockingProgress += 0.05;
-    FxDocking := FxDockFrom + round((Fx - FxDockFrom) * FDockingProgress);
-    FyDocking := FyDockFrom + round((Fy - FyDockFrom) * FDockingProgress);
+    FXDocking := FxDockFrom + round((FX - FxDockFrom) * FDockingProgress);
+    FYDocking := FyDockFrom + round((FY - FyDockFrom) * FDockingProgress);
     Redraw(false);
     if FDockingProgress >= 1 then need_dock := false;
   end;
