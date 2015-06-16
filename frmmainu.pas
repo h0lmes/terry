@@ -612,8 +612,8 @@ begin
     WM_SETTINGCHANGE : WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
     WM_APP_RUN_THREAD_END: CloseHandle(message.lParam);
+    else message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
   end;
-  with message do result := CallWindowProc(FPrevWndProc, Handle, Msg, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WHButtonDown(button: integer);
@@ -1246,12 +1246,16 @@ procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer)
 var
   monitor: cardinal;
 begin
-  if not closing and not IsHiddenDown
-     and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
-  begin
-    if InitDone and not assigned(AHint) then AHint := THint.Create;
-    if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
-    if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
+  try
+    if not closing and not IsHiddenDown
+       and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
+    begin
+      if InitDone and not assigned(AHint) then AHint := THint.Create;
+      if hwnd = 0 then monitor := MonitorFromWindow(Handle, 0) else monitor := MonitorFromWindow(hwnd, 0);
+      if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
+    end;
+  except
+    on e: Exception do toolu.AddLog('frmmain.ActivateHint' + #10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1679,7 +1683,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMMouseWheel(var msg: TWMMouseWheel);
 begin
-  if msg.WheelDelta < 0 then TMixer.CInc(-1) else if msg.WheelDelta > 0 then TMixer.CInc(1);
+  //if msg.WheelDelta < 0 then TMixer.CInc(-1) else if msg.WheelDelta > 0 then TMixer.CInc(1);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMDisplayChange(var Message: TMessage);

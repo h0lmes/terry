@@ -736,10 +736,6 @@ msgstr ""
 msgid "Show hint (icon name)"
 msgstr ""
 
-#: tfrmsets.cbstayontop.caption
-msgid "Stay on top of other windows"
-msgstr ""
-
 #: tfrmsets.cbuseshell.caption
 msgid "Use this shell to open local and network folders:"
 msgstr ""

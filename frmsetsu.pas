@@ -123,7 +123,6 @@ type
     edAutoHideTime: TEdit;
     edAutoShowTime: TEdit;
     lblMouseOverTip: TLabel;
-    cbStayOnTop: TCheckBox;
     cbHideTaskBar: TCheckBox;
     chbBlur: TCheckBox;
     chb_show_running_indicator: TCheckBox;
@@ -182,7 +181,6 @@ type
     procedure cbActivateOnMouseClick(Sender: TObject);
     procedure lblMailToClick(Sender: TObject);
     procedure cbHideTaskBarClick(Sender: TObject);
-    procedure cbStayOnTopClick(Sender: TObject);
     procedure tbCenterOffsetPercentChange(Sender: TObject);
     procedure cbShowHintClick(Sender: TObject);
     procedure cbCtrlClick(Sender: TObject);
@@ -316,7 +314,6 @@ begin
   edAutoHideTime.Text := inttostr(sets.container.autohidetime);
   edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
   edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
-  cbStayOnTop.Checked := sets.container.StayOnTop;
 
   hkAutoSlide.Text := ShortCutToTextEx(sets.container.HideKeys and not (scCtrl + scAlt + scShift));
   cbCtrl.checked := (sets.container.HideKeys and scCtrl <> 0);
@@ -603,11 +600,6 @@ end;
 procedure Tfrmsets.cbActivateOnMouseClick(Sender: TObject);
 begin
   frmmain.SetParam(gpActivateOnMouse, integer(cbActivateOnMouse.Checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.cbStayOnTopClick(Sender: TObject);
-begin
-  frmmain.SetParam(gpStayOnTop, integer(cbStayOnTop.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbCenterOffsetPercentChange(Sender: TObject);

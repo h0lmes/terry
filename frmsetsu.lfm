@@ -24,9 +24,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsPosition
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -342,11 +342,11 @@ object frmsets: Tfrmsets
       object gbAutoSlide: TGroupBox
         Left = 15
         Height = 131
-        Top = 345
+        Top = 265
         Width = 430
         ClientHeight = 113
         ClientWidth = 426
-        TabOrder = 5
+        TabOrder = 4
         object lblHideDelay: TLabel
           Left = 13
           Height = 13
@@ -405,16 +405,6 @@ object frmsets: Tfrmsets
           TabOrder = 2
         end
       end
-      object cbStayOnTop: TCheckBox
-        Left = 15
-        Height = 19
-        Top = 320
-        Width = 162
-        Caption = 'Stay on top of other windows'
-        Enabled = False
-        OnClick = cbStayOnTopClick
-        TabOrder = 4
-      end
       object stMoveDockHint: TStaticText
         Left = 15
         Height = 50
@@ -423,7 +413,7 @@ object frmsets: Tfrmsets
         Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
         Color = clDefault
         ParentColor = False
-        TabOrder = 6
+        TabOrder = 5
       end
       object chbOccupyFullMonitor: TCheckBox
         Left = 15
@@ -432,7 +422,7 @@ object frmsets: Tfrmsets
         Width = 187
         Caption = 'Occupy full monitor width or height'
         OnChange = chbOccupyFullMonitorChange
-        TabOrder = 7
+        TabOrder = 6
       end
       object Label2: TLabel
         Left = 15
@@ -448,7 +438,7 @@ object frmsets: Tfrmsets
         Top = 225
         Width = 65
         OnChange = edStartOffsetChange
-        TabOrder = 8
+        TabOrder = 7
       end
       object edEndOffset: TEdit
         Left = 380
@@ -456,7 +446,7 @@ object frmsets: Tfrmsets
         Top = 225
         Width = 65
         OnChange = edEndOffsetChange
-        TabOrder = 9
+        TabOrder = 8
       end
     end
     object tsStyle: TTabSheet

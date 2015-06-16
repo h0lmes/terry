@@ -26,7 +26,6 @@ TFRMSETS.LBLHIDEDELAY.CAPTION=Delay before hide down (in milliseconds)
 TFRMSETS.LBLVISIBLEPART.CAPTION=Visible part size in pixels
 TFRMSETS.LBLSHOWDELAY.CAPTION=Delay before show up (in milliseconds)
 TFRMSETS.CBAUTOHIDE.CAPTION=Slide into screen edge when mouse is not over the dock
-TFRMSETS.CBSTAYONTOP.CAPTION=Stay on top of other windows
 TFRMSETS.STMOVEDOCKHINT.CAPTION=Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor
 TFRMSETS.CHBOCCUPYFULLMONITOR.CAPTION=Occupy full monitor width or height
 TFRMSETS.LABEL2.CAPTION=Do not occupy at the start - end, pixel

@@ -798,10 +798,6 @@ msgstr "Shift"
 msgid "Show hint (icon name)"
 msgstr "Показывать подсказки (имена значков)"
 
-#: tfrmsets.cbstayontop.caption
-msgid "Stay on top of other windows"
-msgstr "Оставаться поверх всех окон"
-
 #: tfrmsets.cbuseshell.caption
 msgid "Use this shell to open local and network folders:"
 msgstr "Использовать этот шелл для открытия локальных и сетевых папок:"
