@@ -36,6 +36,7 @@ type
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
     HiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
+    EdgeReservedByDock: boolean;
     LockList: TList; // disables zoom and related. stores hadles of windows that have requested a lock //
     crsection: TCriticalSection;
     wndOffsetTarget: integer;
@@ -56,7 +57,6 @@ type
     procedure WMDisplayChange(var Message: TMessage);
     procedure WMSettingChange(var Message: TMessage);
     procedure WMCompositionChanged(var Message: TMessage);
-    procedure WMMouseWheel(var msg: TWMMouseWheel);
     procedure WHMouseMove(LParam: LParam);
     procedure WHButtonDown(button: integer);
     procedure OnMouseEnter;
@@ -154,6 +154,7 @@ begin
     AllowClose := false;
     PrevBlur := false;
     InitDone := false;
+    EdgeReservedByDock := false;
     Application.OnException := AppException;
     Application.OnDeactivate := AppDeactivate;
     trayicon.Icon := application.Icon;
@@ -358,6 +359,7 @@ begin
     crsection.Acquire;
     closing := True;
     AddLog('CloseQuery begin');
+    if EdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
     HideTaskbar(false);
     BaseCmd(tcSaveSets, 0);
     try
@@ -531,7 +533,7 @@ begin
 
   value := sets.StoreParam(id, value);
 
-  // take some actions prior to notifying ItemMgr //
+  // take some actions prior to notify ItemMgr //
   case id of
     gpMonitor:
       begin
@@ -606,7 +608,6 @@ begin
         AllowClose := true;
         message.Result := CloseQuery;
       end;
-    WM_MOUSEWHEEL : WMMouseWheel(TWMMouseWheel(message));
     WM_COPYDATA : WMCopyData(message);
     WM_DISPLAYCHANGE : WMDisplayChange(message);
     WM_SETTINGCHANGE : WMSettingChange(message);
@@ -664,6 +665,8 @@ begin
   SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoShowTime, nil);
   // set foreground if 'activate' option selected //
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
+  // unhover aeropeek
+  if TAeroPeekWindow.IsActive then TAeroPeekWindow.CMouseLeave;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnMouseLeave;
@@ -1277,7 +1280,7 @@ begin
       index := LockList.IndexOf(pointer(hWnd));
       if index >= 0 then LockList.Delete(index);
     end;
-    if IsLockedMouseEffect then AHint.DeactivateImmediate;
+    if IsLockedMouseEffect and assigned(AHint) then AHint.DeactivateImmediate;
     SetParam(gpLockMouseEffect, integer(IsLockedMouseEffect));
   finally
     crsection.Leave;
@@ -1451,6 +1454,7 @@ var
 begin
   if assigned(ItemMgr) then
   try
+    EdgeReservedByDock := true;
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
     Bounds := GetMonitorBoundsRect;
@@ -1510,6 +1514,7 @@ var
   Changed: boolean;
   WorkArea, Bounds: Windows.TRect;
 begin
+  if EdgeReservedByDock then
   try
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
@@ -1681,11 +1686,6 @@ begin
   ShellExecute(application.mainform.handle, nil, 'rundll32.exe', pchar('shell32.dll,OpenAs_RunDLL ' + _file), nil, 1);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.WMMouseWheel(var msg: TWMMouseWheel);
-begin
-  //if msg.WheelDelta < 0 then TMixer.CInc(-1) else if msg.WheelDelta > 0 then TMixer.CInc(1);
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmmain.WMDisplayChange(var Message: TMessage);
 begin
   screen.UpdateMonitors;
@@ -1844,7 +1844,7 @@ begin
     Tfrmsets.Open(i);
   end
   else if cmd = 'cmd' then Tfrmcmd.Open
-  else if cmd = 'collection' then Run('%pp%\collection.exe')
+  else if cmd = 'collection' then Run('%pp%\images')
   else if cmd = 'apps' then Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
   else if cmd = 'undelete' then

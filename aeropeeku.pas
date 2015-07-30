@@ -94,12 +94,14 @@ type
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
     class function ActivatedBy(HostWnd: THandle): boolean;
+    class procedure CMouseLeave;
     class procedure Cleanup;
 
     constructor Create;
     destructor Destroy; override;
     function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
+    procedure MouseLeave;
     procedure CloseAPWindowInt;
     procedure CloseAPWindow(Timeout: cardinal = 0);
   end;
@@ -154,6 +156,11 @@ begin
   if assigned(AeroPeekWindow) then result := AeroPeekWindow.Active and (AeroPeekWindow.HostHandle = HostWnd);
 end;
 //------------------------------------------------------------------------------
+class procedure TAeroPeekWindow.CMouseLeave;
+begin
+  if assigned(AeroPeekWindow) then AeroPeekWindow.MouseLeave;
+end;
+//------------------------------------------------------------------------------
 // destroy window
 class procedure TAeroPeekWindow.Cleanup;
 begin
@@ -168,7 +175,7 @@ begin
   FActive := false;
   FAnimate := true;
   FFontFamily := toolu.GetFont;
-  FFontSize := round(toolu.GetFontSize * 1.45);
+  FFontSize := round(toolu.GetFontSize * 1.6);
   FCloseButtonDownIndex := -1;
   FItemCount := 0;
   FHoverIndex := -1;
@@ -310,6 +317,7 @@ begin
       FHostWnd := HostWnd;
       FSite := Site;
       FTaskThumbSize := TaskThumbSize;
+      FHoverIndex := -1;
       // get monitor work area
       FPt.x := AX;
       FPt.y := AY;
@@ -328,7 +336,7 @@ begin
       // assign colors
       dwm.GetColorizationColor(FColor1, opaque);
       FColor1 := FColor1 and $ffffff or $a0000000;
-      FColor2 := $10ffffff;
+      FColor2 := $40ffffff;
       if not FCompositionEnabled then
       begin
         FColor1 := $ff6083a7;
@@ -526,15 +534,15 @@ begin
     // set primary params
     if FCompositionEnabled then
     begin
-      FBorderX := 22;
-      FBorderY := 22;
-      FShadow := 8;
+      FBorderX := 17;
+      FBorderY := 17;
+      FShadow := 0;
       FIconSize := 16;
       FTitleHeight := 20;
-      FTitleSplit := 9;
-      ItemSplit := 16;
-      FCloseButtonSize := 17;
-      FRadius := 6;
+      FTitleSplit := 14;
+      ItemSplit := FBorderX * 2;
+      FCloseButtonSize := FTitleHeight - 2;
+      FRadius := 0;
       FSelectionRadius := 2;
     end else begin
       FBorderX := 18;
@@ -650,10 +658,10 @@ begin
         if items[index].hwnd <> 0 then
         begin
           items[index].rectSel := items[index].rect;
-          items[index].rectSel.Left -= 5;
-          items[index].rectSel.Top -= 5;
-          items[index].rectSel.Right += 5;
-          items[index].rectSel.Bottom += 5;
+          items[index].rectSel.Left -= FBorderX - FRadius;
+          items[index].rectSel.Top -= FBorderX - FRadius;
+          items[index].rectSel.Right += FBorderX - FRadius;
+          items[index].rectSel.Bottom += FBorderX - FRadius;
 
           items[index].rectThumb := items[index].rect;
           items[index].rectThumb.Top += FTitleHeight;
@@ -787,7 +795,7 @@ begin
       GdipSetClipPath(hgdip, shadow_path, CombineModeComplement);
       // FShadow gradient
       GdipCreatePathGradientFromPath(shadow_path, brush);
-      GdipSetPathGradientCenterColor(brush, $ff000000);
+      GdipSetPathGradientCenterColor(brush, $b0000000);
       shadowEndColor[0] := 0;
       count := 1;
       GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
@@ -812,9 +820,10 @@ begin
     // light border
     GdipResetPath(path);
     AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, FRadius);
-    GdipCreatePen1($a0ffffff, 1, UnitPixel, pen);
+    GdipCreatePen1($10ffffff, 1, UnitPixel, pen);
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
+    // clean
     GdipDeletePath(path);
 
     // item selection
@@ -828,10 +837,10 @@ begin
       GdipFillPath(hgdip, brush, path);
       GdipDeleteBrush(brush);
       // selection border
-      GdipCreatePen1($c0ffffff, 1, UnitPixel, pen);
-      GdipDrawPath(hgdip, pen, path);
-      GdipDeletePen(pen);
-      GdipDeletePath(path);
+      //GdipCreatePen1($c0ffffff, 1, UnitPixel, pen);
+      //GdipDrawPath(hgdip, pen, path);
+      //GdipDeletePen(pen);
+      //GdipDeletePath(path);
     end;
 
     // item hover selection
@@ -845,9 +854,9 @@ begin
       GdipFillPath(hgdip, brush, path);
       GdipDeleteBrush(brush);
       // selection border
-      GdipCreatePen1($50ffffff, 1, UnitPixel, pen);
-      GdipDrawPath(hgdip, pen, path);
-      GdipDeletePen(pen);
+      //GdipCreatePen1($50ffffff, 1, UnitPixel, pen);
+      //GdipDrawPath(hgdip, pen, path);
+      //GdipDeletePen(pen);
       GdipDeletePath(path);
       // close button
       rect := WinRectToGDIPRect(items[FHoverIndex].rectClose);
@@ -930,44 +939,17 @@ procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; P
 var
   brush, pen, path: Pointer;
   crossRect: GDIPAPI.TRect;
-  color1, color2: cardinal;
+  color: cardinal;
 begin
-  if Pressed then
-  begin
-    color1 := $ffff3030;
-    color2 := $ffff3030;
-  end else begin
-    color1 := $ffffa0a0;
-    color2 := $ffff3030;
-  end;
-  // button
-  GdipCreatePath(FillModeWinding, path);
-  AddPathRoundRect(path, rect, 2);
-  GdipCreateLineBrushFromRectI(@rect, color1, color2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
-  GdipFillPath(hgdip, brush, path);
-  GdipDeleteBrush(brush);
-  GdipCreatePen1($a0000000, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
-  //
-  GdipResetPath(path);
-  AddPathRoundRect(path, rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2, 2);
-  GdipCreatePen1($60ffffff, 1, UnitPixel, pen);
-  GdipDrawPath(hgdip, pen, path);
-  GdipDeletePen(pen);
-  GdipDeletePath(path);
-  // cross
-  crossRect.Width := rect.Width div 2;
-  crossRect.Height := rect.Height div 2;
-  crossRect.X := rect.X + (rect.Width - crossRect.Width) div 2;
-  crossRect.Y := rect.Y + (rect.Height - crossRect.Height) div 2;
-  GdipCreatePen1($a0000000, 4, UnitPixel, pen);
+  color := $ffffffff;
+  if Pressed then color := $80ffffff;
+  crossRect.Width := rect.Width - 4;
+  crossRect.Height := rect.Height - 4;
+  crossRect.X := rect.X + 2;
+  crossRect.Y := rect.Y + 2;
+  GdipCreatePen1(color, 2, UnitPixel, pen);
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
-  GdipDeletePen(pen);
-  GdipCreatePen1($c0ffffff, 2, UnitPixel, pen);
-  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y + 1, crossRect.X + crossRect.Width - 1, crossRect.Y + crossRect.Height - 1);
-  GdipDrawLineI(hgdip, pen, crossRect.X + 1, crossRect.Y - 1 + crossRect.Height, crossRect.X + crossRect.Width - 1, crossRect.Y + 1);
   GdipDeletePen(pen);
 end;
 //------------------------------------------------------------------------------
@@ -1001,6 +983,15 @@ begin
 
     if FCompositionEnabled then UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255)
     else SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.MouseLeave;
+begin
+  if FHoverIndex > -1 then
+  begin
+    FHoverIndex := -1;
+    Paint;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1170,11 +1161,7 @@ begin
           end;
         end;
     end;
-    if not hovered and (FHoverIndex > -1) then
-    begin
-      FHoverIndex := -1;
-      Paint;
-    end;
+    if not hovered and (FHoverIndex > -1) then MouseLeave;
   end
   // WM_TIMER
   else if msg.msg = WM_TIMER then
