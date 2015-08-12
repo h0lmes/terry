@@ -561,7 +561,7 @@ begin
 
   AddLog('Application');
   Application.Initialize;
-  h := WidgetSet.AppHandle; //FindWindow('Window', 'tdock');
+  h := WidgetSet.AppHandle;
   SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
 
   AddLog('MainWindow');

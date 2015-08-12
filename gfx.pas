@@ -507,16 +507,16 @@ procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer);
 begin
   GdipStartPathFigure(path);
   if radius * 2 < w then GdipAddPathLineI(path, x + radius, y, x + w - radius - 1, y); // top line
-  GdipAddPathArcI(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
+  if radius > 0 then GdipAddPathArcI(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
 
   if radius * 2 < h then GdipAddPathLineI(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1); // right line
-  GdipAddPathArcI(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
+  if radius > 0 then GdipAddPathArcI(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
 
   if radius * 2 < w then GdipAddPathLineI(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1); // bottom line
-  GdipAddPathArcI(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
+  if radius > 0 then GdipAddPathArcI(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
 
   if radius * 2 < h then GdipAddPathLineI(path, x, y + h - radius - 1, x, y + radius); // left line
-  GdipAddPathArcI(path, x, y, radius * 2, radius * 2, 180, 90);
+  if radius > 0 then GdipAddPathArcI(path, x, y, radius * 2, radius * 2, 180, 90);
   GdipClosePathFigure(path);
 end;
 //------------------------------------------------------------------------------
@@ -524,16 +524,16 @@ procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: Single);
 begin
   GdipStartPathFigure(path);
   if radius * 2 < w then GdipAddPathLine(path, x + radius, y, x + w - radius - 1, y); // top line
-  GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
+  if radius > 0 then GdipAddPathArc(path, x + w - radius * 2 - 1, y, radius * 2, radius * 2, 270, 90);
 
   if radius * 2 < h then GdipAddPathLine(path, x + w - 1, y + radius, x + w - 1, y + h - radius - 1); // right line
-  GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
+  if radius > 0 then GdipAddPathArc(path, x + w - radius * 2 - 1, y + h - radius * 2 - 1, radius * 2, radius * 2, 0, 90);
 
   if radius * 2 < w then GdipAddPathLine(path, x + w - radius - 1, y + h - 1, x + radius, y + h - 1); // bottom line
-  GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
+  if radius > 0 then GdipAddPathArc(path, x, y + h - radius * 2 - 1, radius * 2, radius * 2, 90, 90);
 
   if radius * 2 < h then GdipAddPathLine(path, x, y + h - radius - 1, x, y + radius); // left line
-  GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
+  if radius > 0 then GdipAddPathArc(path, x, y, radius * 2, radius * 2, 180, 90);
   GdipClosePathFigure(path);
 end;
 //------------------------------------------------------------------------------

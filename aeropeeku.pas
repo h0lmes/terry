@@ -303,8 +303,12 @@ begin
   if not FActivating then
   try
     try
-      FState := apwsOpen;
       FActivating := true;
+      FHostWnd := HostWnd;
+      FSite := Site;
+      FTaskThumbSize := TaskThumbSize;
+      FState := apwsOpen;
+      KillTimer(FHWnd, ID_TIMER_CLOSE);
       KillTimer(FHWnd, ID_TIMER);
       KillTimer(FHWnd, ID_TIMER_SLOW);
       UnRegisterThumbnails;
@@ -314,10 +318,7 @@ begin
         CloseAPWindow;
         exit;
       end;
-      FHostWnd := HostWnd;
-      FSite := Site;
-      FTaskThumbSize := TaskThumbSize;
-      FHoverIndex := -1;
+
       // get monitor work area
       FPt.x := AX;
       FPt.y := AY;
@@ -358,6 +359,7 @@ begin
       SetItems;
       FAlphaTarget := 255;
       FAlpha := 255;
+      FHoverIndex := -1;
 
       // set starting position
       if FAnimate then
@@ -390,7 +392,7 @@ begin
 
       // show the window
       Paint;
-      // set foreground
+      // set it as foreground
       SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
       SetTimer(FHWnd, ID_TIMER, 10, nil);
       SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
@@ -534,16 +536,16 @@ begin
     // set primary params
     if FCompositionEnabled then
     begin
-      FBorderX := 17;
-      FBorderY := 17;
+      FBorderX := 16;
+      FBorderY := 16;
       FShadow := 0;
       FIconSize := 16;
-      FTitleHeight := 20;
+      FTitleHeight := 19;
       FTitleSplit := 14;
-      ItemSplit := FBorderX * 2;
+      ItemSplit := FBorderX * 2 - 1;
       FCloseButtonSize := FTitleHeight - 2;
       FRadius := 0;
-      FSelectionRadius := 2;
+      FSelectionRadius := 0;
     end else begin
       FBorderX := 18;
       FBorderY := 14;
@@ -780,20 +782,17 @@ begin
     hgdip := CreateGraphics(bmp.dc, 0);
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
-
-    //
     GdipCreatePath(FillModeWinding, path);
     AddPathRoundRect(path, FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2, FRadius);
 
     // shadow
     if FShadow > 0 then
     begin
-      // FShadow path
       GdipCreatePath(FillModeWinding, shadow_path);
       AddPathRoundRect(shadow_path, 0, 0, FWidth, FHeight, trunc(FRadius * 2.5));
       GdipSetClipPath(hgdip, path, CombineModeReplace);
       GdipSetClipPath(hgdip, shadow_path, CombineModeComplement);
-      // FShadow gradient
+
       GdipCreatePathGradientFromPath(shadow_path, brush);
       GdipSetPathGradientCenterColor(brush, $b0000000);
       shadowEndColor[0] := 0;
@@ -808,59 +807,48 @@ begin
       GdipDeletePath(shadow_path);
     end;
 
-    // background fill
+    // background
     rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
     GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
     GdipFillPath(hgdip, brush, path);
     GdipDeleteBrush(brush);
-    // dark border
-    GdipCreatePen1($a0000000, 1, UnitPixel, pen);
+    GdipCreatePen1($a0000000, 1, UnitPixel, pen); // dark border
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
-    // light border
-    GdipResetPath(path);
+    GdipResetPath(path); // light border
     AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, FRadius);
     GdipCreatePen1($10ffffff, 1, UnitPixel, pen);
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
-    // clean
     GdipDeletePath(path);
 
-    // item selection
-    if (FItemCount > 0) and (FForegroundWindowIndex > -1) then
+    if FItemCount > 0 then
     begin
-      GdipCreatePath(FillModeWinding, path);
-      // selection fill
-      rect := WinRectToGDIPRect(items[FForegroundWindowIndex].rectSel);
-      AddPathRoundRect(path, rect, FSelectionRadius);
-      GdipCreateSolidFill($40b0d0ff, brush);
-      GdipFillPath(hgdip, brush, path);
-      GdipDeleteBrush(brush);
-      // selection border
-      //GdipCreatePen1($c0ffffff, 1, UnitPixel, pen);
-      //GdipDrawPath(hgdip, pen, path);
-      //GdipDeletePen(pen);
-      //GdipDeletePath(path);
-    end;
+      // foreground item
+      if FForegroundWindowIndex > -1 then
+      begin
+        GdipCreatePath(FillModeWinding, path);
+        rect := WinRectToGDIPRect(items[FForegroundWindowIndex].rectSel);
+        AddPathRoundRect(path, rect, FSelectionRadius);
+        GdipCreateSolidFill($40b0d0ff, brush);
+        GdipFillPath(hgdip, brush, path);
+        GdipDeleteBrush(brush);
+        GdipDeletePath(path);
+      end;
 
-    // item hover selection
-    if (FItemCount > 0) and (FHoverIndex > -1) then
-    begin
-      GdipCreatePath(FillModeWinding, path);
-      // selection fill
-      rect := WinRectToGDIPRect(items[FHoverIndex].rectSel);
-      AddPathRoundRect(path, rect, FSelectionRadius);
-      GdipCreateSolidFill($30ffffff, brush);
-      GdipFillPath(hgdip, brush, path);
-      GdipDeleteBrush(brush);
-      // selection border
-      //GdipCreatePen1($50ffffff, 1, UnitPixel, pen);
-      //GdipDrawPath(hgdip, pen, path);
-      //GdipDeletePen(pen);
-      GdipDeletePath(path);
-      // close button
-      rect := WinRectToGDIPRect(items[FHoverIndex].rectClose);
-      DrawCloseButton(hgdip, rect, FCloseButtonDownIndex = FHoverIndex);
+      // hover item
+      if FHoverIndex > -1 then
+      begin
+        GdipCreatePath(FillModeWinding, path);
+        rect := WinRectToGDIPRect(items[FHoverIndex].rectSel);
+        AddPathRoundRect(path, rect, FSelectionRadius);
+        GdipCreateSolidFill($30ffffff, brush);
+        GdipFillPath(hgdip, brush, path);
+        GdipDeleteBrush(brush);
+        GdipDeletePath(path);
+        // close button
+        DrawCloseButton(hgdip, WinRectToGDIPRect(items[FHoverIndex].rectClose), FCloseButtonDownIndex = FHoverIndex);
+      end;
     end;
 
     // icons and titles ... or separators
@@ -947,7 +935,9 @@ begin
   crossRect.Height := rect.Height - 4;
   crossRect.X := rect.X + 2;
   crossRect.Y := rect.Y + 2;
-  GdipCreatePen1(color, 2, UnitPixel, pen);
+  GdipCreatePen1(color, 3, UnitPixel, pen);
+  GdipSetPenStartCap(pen, LineCapRound);
+  GdipSetPenEndCap(pen, LineCapRound);
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
   GdipDeletePen(pen);
@@ -992,6 +982,7 @@ begin
   begin
     FHoverIndex := -1;
     Paint;
+    CloseAPWindow(500);
   end;
 end;
 //------------------------------------------------------------------------------
