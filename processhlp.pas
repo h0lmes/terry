@@ -245,25 +245,47 @@ var
   index: integer;
   wnd: THandle;
   pid, wpid: DWORD;
-  pids: TFPList;
+  pids, newAppList: TFPList;
 begin
   if not FReady then exit;
-  AppList.Clear;
+  newAppList := TFPList.Create;
   pids := TFPList.Create;
+
   try
     GetProcessPIDs(Name, pids);
-    if pids.Count = 0 then exit;
-
-    index := 0;
-    while index < listAppWindows.count do
+    if pids.Count > 0 then
     begin
-      wnd := THandle(listAppWindows.items[index]);
-      GetWindowThreadProcessId(wnd, @wpid);
-      if pids.IndexOf(Pointer(wpid)) >= 0 then AppList.Add(pointer(wnd));
-      inc(index);
+      index := 0;
+      while index < listAppWindows.count do
+      begin
+        wnd := THandle(listAppWindows.items[index]);
+        GetWindowThreadProcessId(wnd, @wpid);
+        if pids.IndexOf(Pointer(wpid)) >= 0 then newAppList.Add(pointer(wnd));
+        inc(index);
+      end;
     end;
   finally
     pids.free;
+  end;
+
+  try
+    if newAppList.Count = 0 then AppList.Clear
+    else begin
+      index := 0;
+      while index < newAppList.Count do
+      begin
+        if AppList.IndexOf(newAppList.Items[index]) < 0 then AppList.Add(newAppList.Items[index]);
+        inc(index);
+      end;
+      index := AppList.Count - 1;
+      while index >= 0 do
+      begin
+        if newAppList.IndexOf(AppList.Items[index]) < 0 then AppList.Delete(index);
+        dec(index);
+      end;
+    end;
+  finally
+    newAppList.free;
   end;
 end;
 //------------------------------------------------------------------------------
