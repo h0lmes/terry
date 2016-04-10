@@ -491,6 +491,7 @@ var
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
+  AddLog('>>> TDock app start');
 
   // set global vars, though this is not a good practice
   // os version
@@ -507,10 +508,7 @@ begin
 
   // multi-dock support //
 
-  AddLog('--------------------------------------');
-  AddLog('MultiDock');
   TMultiDock.Create_();
-
   // read sets filename from params
   ProgramPath := IncludeTrailingPathDelimiter(ExtractFilePath(Paramstr(0)));
   SetsFilename := '';
@@ -544,7 +542,6 @@ begin
 
   // check running instances //
 
-  AddLog('Mutex');
   hMutex := CreateMutex(nil, false, pchar('Global\' + PROGRAM_GUID + encodePath(SetsFilename)));
   if GetLastError = ERROR_ALREADY_EXISTS then
   begin
@@ -559,12 +556,10 @@ begin
 
   // application //
 
-  AddLog('Application');
   Application.Initialize;
   h := WidgetSet.AppHandle;
   SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
 
-  AddLog('MainWindow');
   Application.ShowMainForm := false;
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
@@ -574,15 +569,13 @@ begin
   Notifier := TNotifier.Create;
   mixer := TMixer.Create;
 
-  AddLog('Init');
   frmmain.Init(SetsFilename);
   Application.ShowMainForm := true;
   frmmain.ExecAutorun;
 
-  AddLog('AppRun');
   Application.Run;
 
   CloseHandle(hMutex);
   TMultiDock.Destroy_;
-  AddLog('EndProgram');
+  AddLog('>>> End');
 end.
