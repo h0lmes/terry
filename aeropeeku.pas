@@ -660,10 +660,18 @@ begin
         if items[index].hwnd <> 0 then
         begin
           items[index].rectSel := items[index].rect;
-          items[index].rectSel.Left -= FBorderX - FRadius;
-          items[index].rectSel.Top -= FBorderX - FRadius;
-          items[index].rectSel.Right += FBorderX - FRadius;
-          items[index].rectSel.Bottom += FBorderX - FRadius;
+          if FCompositionEnabled then
+          begin
+            items[index].rectSel.Left -= FBorderX - FRadius;
+            items[index].rectSel.Top -= FBorderX - FRadius;
+            items[index].rectSel.Right += FBorderX - FRadius;
+            items[index].rectSel.Bottom += FBorderX - FRadius;
+          end else begin
+            items[index].rectSel.Left -= 5;
+            items[index].rectSel.Top -= 5;
+            items[index].rectSel.Right += 5;
+            items[index].rectSel.Bottom += 5;
+          end;
 
           items[index].rectThumb := items[index].rect;
           items[index].rectThumb.Top += FTitleHeight;
