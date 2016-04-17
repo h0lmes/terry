@@ -204,6 +204,10 @@ msgstr ""
 msgid "Run the program again."
 msgstr ""
 
+#: declu.xmsgrunrestore
+msgid "Run restore operation from the context menu."
+msgstr ""
+
 #: declu.xmsgsetsrestored
 msgid "The settings are restored from backup."
 msgstr ""
@@ -705,11 +709,7 @@ msgid "Settings"
 msgstr ""
 
 #: tfrmsets.cbactivateonmouse.caption
-msgid "Activate dock on mouseover"
-msgstr ""
-
-#: tfrmsets.cbalt.caption
-msgid "Alt"
+msgid "Activate dock on mouseover after, msec"
 msgstr ""
 
 #: tfrmsets.cbautohide.caption
@@ -720,16 +720,8 @@ msgstr ""
 msgid "Start with Windows "
 msgstr ""
 
-#: tfrmsets.cbctrl.caption
-msgid "Ctrl"
-msgstr ""
-
 #: tfrmsets.cbhidetaskbar.caption
 msgid "Hide Windows taskbar"
-msgstr ""
-
-#: tfrmsets.cbshift.caption
-msgid "Shift"
 msgstr ""
 
 #: tfrmsets.cbshowhint.caption
@@ -745,11 +737,20 @@ msgid "Zoom icons when mouse is over"
 msgstr ""
 
 #: tfrmsets.chbautohideonfullscreenapp.caption
-msgid "Hide while fullscreen application active (game, etc) "
+msgid "Hide dock completely while fullscreen application active (game, etc) "
 msgstr ""
 
 #: tfrmsets.chbblur.caption
 msgid "Enable Aero Glass"
+msgstr ""
+
+#: tfrmsets.chbglobalconsole.caption
+msgid "Open console"
+msgstr ""
+
+#: tfrmsets.chbglobalhide.caption
+msgctxt "TFRMSETS.CHBGLOBALHIDE.CAPTION"
+msgid "Hide dock completely"
 msgstr ""
 
 #: tfrmsets.chbhinteffects.caption
@@ -811,8 +812,16 @@ msgctxt "TFRMSETS.DIVIDERBEVEL1.CAPTION"
 msgid "Font"
 msgstr ""
 
+#: tfrmsets.edactivateonmouseinterval.text
+msgid "400"
+msgstr ""
+
 #: tfrmsets.gbautostart.caption
 msgid "  Autostart  "
+msgstr ""
+
+#: tfrmsets.gbhide.caption
+msgid "Global hotkeys"
 msgstr ""
 
 #: tfrmsets.label1.caption
@@ -821,10 +830,6 @@ msgstr ""
 
 #: tfrmsets.label2.caption
 msgid "Do not occupy at the start - end, pixel"
-msgstr ""
-
-#: tfrmsets.label6.caption
-msgid "Hotkey to completely hide panel:"
 msgstr ""
 
 #: tfrmsets.lblanimateicons.caption

@@ -217,6 +217,7 @@ begin
   FBigItemSize := BigItemSize;
   FZoomWidth := ZoomWidth;
   FZoomTime := ZoomTime;
+  if FZoomTime < 1 then FZoomTime := 1;
   FItemSpacing := ItemSpacing;
   FZoomItems := ZoomItems;
   FReflection := Reflection;
@@ -366,8 +367,12 @@ begin
       gpUseShellContextMenus:   FUseShellContextMenus := value <> 0;
       gpShowHint:               FShowHint := value <> 0;
       gpStackOpenAnimation:     FStackOpenAnimation := value <> 0;
-      gpZoomTime:               FZoomTime := value;
-      gpLockMouseEffect:        FLockMouseEffect := value <> 0;
+      gpZoomTime:
+        begin
+          FZoomTime := value;
+          if FZoomTime < 1 then FZoomTime := 1;
+				end;
+			gpLockMouseEffect:        FLockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
       gpOccupyFullMonitor:      FOccupyFullMonitor := value <> 0;
     end;
@@ -471,8 +476,9 @@ begin
       // basic FItemArray //
       AddItem(TShortcutItem.Make(0, UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png'));
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
-      AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
+      AddItem(TShortcutItem.Make(0, 'Parameters', 'ms-settings:', '', '', '%sysdir%\shell32.dll,315'));
+      AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
       AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));

@@ -337,7 +337,8 @@ begin
       // assign colors
       dwm.GetColorizationColor(FColor1, opaque);
       FColor1 := FColor1 and $ffffff or $a0000000;
-      FColor2 := $40ffffff;
+      FColor2 := FColor1;
+      //FColor2 := $40ffffff;
       if not FCompositionEnabled then
       begin
         FColor1 := $ff6083a7;

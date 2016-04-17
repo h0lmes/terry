@@ -4,7 +4,6 @@ object frmsets: Tfrmsets
   Top = 191
   Width = 587
   BorderIcons = [biSystemMenu]
-  BorderStyle = bsSizeToolWin
   Caption = 'Settings'
   ClientHeight = 561
   ClientWidth = 587
@@ -24,9 +23,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsSystem
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 4
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -35,7 +34,7 @@ object frmsets: Tfrmsets
       object lblMouseOverTip: TLabel
         Left = 15
         Height = 13
-        Top = 200
+        Top = 150
         Width = 369
         Caption = 'Move mouse pointer to the edge of the screen to put the dock to foreground'
         Font.CharSet = RUSSIAN_CHARSET
@@ -48,11 +47,11 @@ object frmsets: Tfrmsets
       object cbActivateOnMouse: TCheckBox
         Left = 15
         Height = 19
-        Top = 180
-        Width = 156
-        Caption = 'Activate dock on mouseover'
+        Top = 130
+        Width = 214
+        Caption = 'Activate dock on mouseover after, msec'
         OnClick = cbActivateOnMouseClick
-        TabOrder = 3
+        TabOrder = 4
       end
       object cbautorun: TCheckBox
         Left = 15
@@ -65,69 +64,52 @@ object frmsets: Tfrmsets
       end
       object gbHide: TGroupBox
         Left = 15
-        Height = 95
-        Top = 385
+        Height = 85
+        Top = 355
         Width = 431
-        ClientHeight = 77
+        Caption = 'Global hotkeys'
+        ClientHeight = 67
         ClientWidth = 427
-        TabOrder = 4
-        object cbCtrl: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 25
-          Width = 37
-          Caption = 'Ctrl'
-          OnClick = cbCtrlClick
+        TabOrder = 6
+        object hkHide: TEdit
+          Left = 290
+          Height = 21
+          Top = 8
+          Width = 125
+          OnKeyDown = hkHideKeyDown
           TabOrder = 0
         end
-        object cbAlt: TCheckBox
-          Left = 58
+        object chbGlobalConsole: TCheckBox
+          Left = 10
           Height = 19
-          Top = 25
-          Width = 33
-          Caption = 'Alt'
-          OnClick = cbCtrlClick
+          Top = 35
+          Width = 85
+          Caption = 'Open console'
+          OnClick = chbGlobalConsoleClick
           TabOrder = 1
         end
-        object cbShift: TCheckBox
-          Left = 104
+        object chbGlobalHide: TCheckBox
+          Left = 10
           Height = 19
-          Top = 25
-          Width = 42
-          Caption = 'Shift'
-          OnClick = cbCtrlClick
+          Top = 10
+          Width = 120
+          Caption = 'Hide dock completely'
+          OnClick = chbGlobalHideClick
           TabOrder = 2
         end
-        object hkAutoSlide: TEdit
-          Left = 159
+        object hkConsole: TEdit
+          Left = 290
           Height = 21
-          Top = 24
-          Width = 71
-          OnKeyDown = hkAutoSlideKeyDown
+          Top = 33
+          Width = 125
+          OnKeyDown = hkConsoleKeyDown
           TabOrder = 3
-        end
-        object chbAutoHideOnFullScreenApp: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 50
-          Width = 265
-          Caption = 'Hide while fullscreen application active (game, etc) '
-          OnClick = chbAutoHideOnFullScreenAppClick
-          TabOrder = 4
-        end
-        object Label6: TLabel
-          Left = 10
-          Height = 13
-          Top = 4
-          Width = 157
-          Caption = 'Hotkey to completely hide panel:'
-          ParentColor = False
         end
       end
       object cbHideTaskBar: TCheckBox
         Left = 15
         Height = 19
-        Top = 90
+        Top = 40
         Width = 126
         Caption = 'Hide Windows taskbar'
         OnClick = cbHideTaskBarClick
@@ -136,7 +118,7 @@ object frmsets: Tfrmsets
       object chbReserveScreenEdge: TCheckBox
         Left = 15
         Height = 19
-        Top = 115
+        Top = 65
         Width = 122
         Caption = 'Reserve screen edge'
         OnClick = chbReserveScreenEdgeClick
@@ -145,7 +127,7 @@ object frmsets: Tfrmsets
       object tbReserveScreenEdgePercent: TTrackBar
         Left = 15
         Height = 31
-        Top = 140
+        Top = 90
         Width = 271
         Frequency = 20
         Max = 200
@@ -153,34 +135,16 @@ object frmsets: Tfrmsets
         PageSize = 20
         Position = 100
         ShowSelRange = False
-        TabOrder = 5
+        TabOrder = 3
       end
-      object cbShowHint: TCheckBox
-        Left = 15
-        Height = 19
-        Top = 40
-        Width = 126
-        Caption = 'Show hint (icon name)'
-        OnClick = cbShowHintClick
-        TabOrder = 6
-      end
-      object chbHintEffects: TCheckBox
-        Left = 15
-        Height = 19
-        Top = 65
-        Width = 110
-        Caption = 'Enable hint effects'
-        OnClick = chbHintEffectsClick
-        TabOrder = 7
-      end
-      object GroupBox1: TGroupBox
+      object gbTaskbar: TGroupBox
         Left = 15
         Height = 150
-        Top = 225
+        Top = 195
         Width = 431
         ClientHeight = 132
         ClientWidth = 427
-        TabOrder = 8
+        TabOrder = 7
         object chbTaskbar: TCheckBox
           Left = 10
           Height = 19
@@ -232,8 +196,8 @@ object frmsets: Tfrmsets
           TabOrder = 4
         end
       end
-      object Panel1: TPanel
-        Left = 270
+      object panelRemove: TPanel
+        Left = 268
         Height = 35
         Top = 15
         Width = 178
@@ -242,7 +206,7 @@ object frmsets: Tfrmsets
         ClientWidth = 178
         Color = 176
         ParentColor = False
-        TabOrder = 9
+        TabOrder = 8
         object btnRemoveDock: TButton
           Left = 5
           Height = 25
@@ -252,6 +216,24 @@ object frmsets: Tfrmsets
           OnClick = btnRemoveDockClick
           TabOrder = 0
         end
+      end
+      object edActivateOnMouseInterval: TEdit
+        Left = 366
+        Height = 21
+        Top = 128
+        Width = 80
+        OnChange = edActivateOnMouseIntervalChange
+        TabOrder = 5
+        Text = '400'
+      end
+      object chbAutoHideOnFullScreenApp: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 170
+        Width = 344
+        Caption = 'Hide dock completely while fullscreen application active (game, etc) '
+        OnClick = chbAutoHideOnFullScreenAppClick
+        TabOrder = 9
       end
     end
     object tsPosition: TTabSheet
@@ -673,7 +655,7 @@ object frmsets: Tfrmsets
       object lblZoomWideness: TLabel
         Left = 295
         Height = 13
-        Top = 283
+        Top = 333
         Width = 55
         Caption = 'Zoom width'
         ParentColor = False
@@ -681,7 +663,7 @@ object frmsets: Tfrmsets
       object lblIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 185
+        Top = 235
         Width = 42
         Caption = 'Icon size'
         ParentColor = False
@@ -689,7 +671,7 @@ object frmsets: Tfrmsets
       object lblZoomedIconSize: TLabel
         Left = 15
         Height = 13
-        Top = 233
+        Top = 283
         Width = 65
         Caption = 'Icon size max'
         ParentColor = False
@@ -697,7 +679,7 @@ object frmsets: Tfrmsets
       object cbZoomItems: TCheckBox
         Left = 15
         Height = 19
-        Top = 155
+        Top = 205
         Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnClick = cbZoomItemsClick
@@ -706,7 +688,7 @@ object frmsets: Tfrmsets
       object chb_show_running_indicator: TCheckBox
         Left = 15
         Height = 19
-        Top = 15
+        Top = 65
         Width = 194
         Caption = 'Show indicator for running programs'
         OnClick = chb_show_running_indicatorClick
@@ -715,7 +697,7 @@ object frmsets: Tfrmsets
       object chb_activate_running: TCheckBox
         Left = 15
         Height = 19
-        Top = 40
+        Top = 90
         Width = 190
         Caption = 'Activate program if already running'
         OnClick = chb_activate_runningClick
@@ -724,7 +706,7 @@ object frmsets: Tfrmsets
       object chb_use_shell_context_menus: TCheckBox
         Left = 15
         Height = 19
-        Top = 105
+        Top = 155
         Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnClick = chb_use_shell_context_menusClick
@@ -733,7 +715,7 @@ object frmsets: Tfrmsets
       object cboItemAnimationType: TComboBox
         Left = 185
         Height = 21
-        Top = 70
+        Top = 120
         Width = 255
         DropDownCount = 10
         ItemHeight = 13
@@ -744,7 +726,7 @@ object frmsets: Tfrmsets
       object lblAnimateIcons: TLabel
         Left = 15
         Height = 13
-        Top = 75
+        Top = 125
         Width = 70
         Caption = 'Animate icons:'
         ParentColor = False
@@ -752,7 +734,7 @@ object frmsets: Tfrmsets
       object tbIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 203
+        Top = 253
         Width = 410
         Frequency = 8
         Max = 128
@@ -766,7 +748,7 @@ object frmsets: Tfrmsets
       object tbBigIconSize: TTrackBar
         Left = 30
         Height = 30
-        Top = 251
+        Top = 301
         Width = 410
         Frequency = 16
         Max = 256
@@ -780,7 +762,7 @@ object frmsets: Tfrmsets
       object tbZoomWidth: TTrackBar
         Left = 310
         Height = 30
-        Top = 301
+        Top = 351
         Width = 130
         Max = 5
         Min = 2
@@ -793,7 +775,7 @@ object frmsets: Tfrmsets
       object lblIconSpacing: TLabel
         Left = 15
         Height = 13
-        Top = 283
+        Top = 333
         Width = 60
         Caption = 'Icon spacing'
         ParentColor = False
@@ -801,7 +783,7 @@ object frmsets: Tfrmsets
       object tbIconSpacing: TTrackBar
         Left = 30
         Height = 30
-        Top = 301
+        Top = 351
         Width = 250
         Frequency = 2
         Max = 30
@@ -813,7 +795,7 @@ object frmsets: Tfrmsets
       object chbStackOpenAnimation: TCheckBox
         Left = 15
         Height = 19
-        Top = 130
+        Top = 180
         Width = 150
         Caption = 'Stack open/close animation'
         OnChange = chbStackOpenAnimationChange
@@ -822,7 +804,7 @@ object frmsets: Tfrmsets
       object lblZoomTime: TLabel
         Left = 15
         Height = 13
-        Top = 333
+        Top = 383
         Width = 49
         Caption = 'Zoom time'
         ParentColor = False
@@ -830,7 +812,7 @@ object frmsets: Tfrmsets
       object tbZoomTime: TTrackBar
         Left = 30
         Height = 30
-        Top = 353
+        Top = 403
         Width = 410
         Frequency = 60
         Max = 600
@@ -839,6 +821,24 @@ object frmsets: Tfrmsets
         Position = 0
         ShowSelRange = False
         TabOrder = 10
+      end
+      object chbHintEffects: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 40
+        Width = 110
+        Caption = 'Enable hint effects'
+        OnClick = chbHintEffectsClick
+        TabOrder = 11
+      end
+      object cbShowHint: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 15
+        Width = 126
+        Caption = 'Show hint (icon name)'
+        OnClick = cbShowHintClick
+        TabOrder = 12
       end
     end
     object tsSystem: TTabSheet

@@ -23,7 +23,10 @@ type
     ItemSpacing: integer;
     ZoomItems: boolean;
     ZoomTime: integer;
-    HideKeys: integer;
+    GlobalHotkeyFlag_Hide: boolean;
+    GlobalHotkeyValue_Hide: integer;
+    GlobalHotkeyFlag_Console: boolean;
+    GlobalHotkeyValue_Console: integer;
     DropDistance: integer;
     LaunchInterval: integer;
     ActivateRunning: boolean;
@@ -31,6 +34,7 @@ type
     ItemAnimation: integer;
     LaunchInThread: boolean;
     ActivateOnMouse: boolean;
+    ActivateOnMouseInterval: integer;
     CloseCmdWindow: boolean;
     HideTaskBar: boolean;
     ReserveScreenEdge: boolean;
@@ -84,7 +88,7 @@ type
     procedure Save; overload;
     procedure Save(ASetsFile: string); overload;
     function Backup: boolean;
-    function Restore: boolean;
+    function Restore(backupFilename: string): boolean;
     function StoreParam(id: TGParam; value: integer): integer;
     function GetParam(id: TGParam): integer;
     procedure StoreSetsContainer;
@@ -113,6 +117,11 @@ begin
   container.CenterOffsetPercent := 50;
   container.EdgeOffset := 0;
   container.ActivateOnMouse := true;
+  container.ActivateOnMouseInterval := 400;
+  container.GlobalHotkeyFlag_Hide := false;
+  container.GlobalHotkeyValue_Hide := 16506;
+  container.GlobalHotkeyFlag_Console := false;
+  container.GlobalHotkeyValue_Console := 0;
   container.site := bsBottom;
   container.CloseCmdWindow := true;
   container.BaseAlpha := 255;
@@ -174,11 +183,15 @@ begin
   container.ZoomTime := SetRange(ini.ReadInteger('base', 'ZoomTime', 120), 0, 600);
   container.AutoHidePixels := ini.ReadInteger('base', 'AutoHidePixels', 15);
   container.DropDistance := container.ItemSize;
-  container.HideKeys := ini.ReadInteger('base', 'HideKeys', 16490);
+  container.GlobalHotkeyFlag_Hide := ini.ReadBool('base', 'GlobalHotkeyFlag_Hide', false);
+  container.GlobalHotkeyValue_Hide := ini.ReadInteger('base', 'GlobalHotkeyValue_Hide', 16506);
+  container.GlobalHotkeyFlag_Console := ini.ReadBool('base', 'GlobalHotkeyFlag_Console', false);
+  container.GlobalHotkeyValue_Console := ini.ReadInteger('base', 'GlobalHotkeyValue_Console', 0);
   container.autohide := ini.ReadBool('base', 'AutoHide', false);
   container.LaunchInThread := ini.ReadBool('base', 'LaunchInThread', true);
   container.ZoomItems := ini.ReadBool('base', 'ZoomItems', true);
   container.ActivateOnMouse := ini.ReadBool('base', 'ActivateOnMouse', true);
+  container.ActivateOnMouseInterval := SetRange(ini.ReadInteger('base', 'ActivateOnMouseInterval', 400), 0, 2000);
   container.CloseCmdWindow := ini.ReadBool('base', 'CloseCmdWindow', true);
   container.HideTaskBar := ini.ReadBool('base', 'HideTaskBar', false);
   container.ReserveScreenEdge := ini.ReadBool('base', 'ReserveScreenEdge', false);
@@ -270,13 +283,17 @@ begin
   ini.WriteInteger('base', 'ItemSpacing', container.ItemSpacing);
   ini.WriteInteger('base', 'ZoomWidth', container.ZoomWidth);
   ini.WriteInteger('base', 'ZoomTime', container.ZoomTime);
-  ini.WriteInteger('base', 'HideKeys', container.HideKeys);
+  ini.WriteBool   ('base', 'GlobalHotkeyFlag_Hide', container.GlobalHotkeyFlag_Hide);
+  ini.WriteInteger('base', 'GlobalHotkeyValue_Hide', container.GlobalHotkeyValue_Hide);
+  ini.WriteBool   ('base', 'GlobalHotkeyFlag_Console', container.GlobalHotkeyFlag_Console);
+  ini.WriteInteger('base', 'GlobalHotkeyValue_Console', container.GlobalHotkeyValue_Console);
   ini.WriteBool   ('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
   ini.WriteBool   ('base', 'UseShell', container.useShell);
   ini.WriteBool   ('base', 'RunInThread', container.RunInThread);
   ini.WriteBool   ('base', 'ZoomItems', container.ZoomItems);
   ini.WriteBool   ('base', 'LaunchInThread', container.launchInThread);
   ini.WriteBool   ('base', 'ActivateOnMouse', container.ActivateOnMouse);
+  ini.WriteInteger('base', 'ActivateOnMouseInterval', container.ActivateOnMouseInterval);
   ini.WriteBool   ('base', 'CloseCmdWindow', container.CloseCmdWindow);
   ini.WriteBool   ('base', 'HideTaskBar', container.HideTaskBar);
   ini.WriteBool   ('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
@@ -325,37 +342,59 @@ begin
 end;
 //------------------------------------------------------------------------------
 function _Sets.Backup: boolean;
+var
+  backupFile, lastBackupFile: string;
+  list: TStrings;
+  lastBackupFS, setsFS: TFileStream;
+  identical: boolean;
 begin
   result := true;
   try
-    if FileExists(ChangeFileExt(SetsPathFile, '.bak')) then
-      result := windows.DeleteFile(PChar(ChangeFileExt(SetsPathFile, '.bak')));
-    if result then
-      result := windows.CopyFile(pchar(SetsPathFile), pchar(ChangeFileExt(SetsPathFile, '.bak')), false);
+    backupFile := ExcludeTrailingPathDelimiter(ExtractFileDir(SetsPathFile)) + '\Backup';
+
+    // list all backup files
+    list := TStringList.Create;
+    toolu.searchfiles(backupFile, 'sets*.ini', list);
+    toolu.qSortStrings(list);
+
+    // compare the last one (if exists) with the settings file
+    identical := false;
+    if list.Count > 0 then
+    begin
+      lastBackupFile := backupFile + '\' + list.Strings[list.Count - 1];
+      lastBackupFS := TFileStream.Create(lastBackupFile, fmOpenRead);
+      setsFS := TFileStream.Create(SetsPathFile, fmOpenRead);
+      identical := IsIdenticalStreams(lastBackupFS, setsFS);
+      lastBackupFS.free;
+      setsFS.free;
+		end;
+    list.free;
+
+    // if exists and they are identical - exit
+    if identical then exit;
+
+    if not DirectoryExists(backupFile) then windows.CreateDirectory(pchar(backupFile), nil);
+    backupFile := backupFile + '\sets-' + FormatDateTime('yyyy-MM-dd-hh-nn-ss', Now) + '.ini';
+    if not windows.CopyFile(pchar(SetsPathFile), pchar(backupFile), false) then result := false;
   except
     on e: Exception do raise Exception.Create('Sets.Backup'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
-function _Sets.Restore: boolean;
-var
-  bakfile: string;
+function _Sets.Restore(backupFilename: string): boolean;
 begin
   result := false;
   try
     AddLog('Sets.Restore');
+
+    if not FileExists(backupFilename) then
+      raise Exception.Create('Backup file not found!');
+
     if FileExists(SetsPathFile) then
-      if not windows.DeleteFile(PChar(SetsPathFile)) then raise Exception.Create('DeleteSetsFile failed');
+      if not windows.DeleteFile(PChar(SetsPathFile)) then
+        raise Exception.Create('Can not delete settings file!');
 
-    bakfile := ChangeFileExt(SetsPathFile, '.tmpini');
-    if FileExists(bakfile) then
-       if windows.MoveFile(pchar(bakfile), pchar(SetsPathFile)) then result := true;
-
-    if not result then
-    begin
-      bakfile := ChangeFileExt(SetsPathFile, '.bak');
-      if windows.CopyFile(pchar(bakfile), pchar(SetsPathFile), false) then result := true;
-    end;
+    if windows.CopyFile(pchar(backupFilename), pchar(SetsPathFile), false) then result := true;
   except
     on e: Exception do raise Exception.Create('Sets.Restore'#10#13 + e.message);
   end;
@@ -380,7 +419,10 @@ begin
   gpAutoHideTime: container.AutoHideTime := value;
   gpAutoShowTime: container.AutoShowTime := value;
   gpAutoHidePixels: container.AutoHidePixels := SetRange(value, 0, 9999);
-  gpHideKeys: container.HideKeys:= value;
+  gpGlobalHotkeyFlag_Hide: container.GlobalHotkeyFlag_Hide:= boolean(value);
+  gpGlobalHotkeyValue_Hide: container.GlobalHotkeyValue_Hide:= value;
+  gpGlobalHotkeyFlag_Console: container.GlobalHotkeyFlag_Console:= boolean(value);
+  gpGlobalHotkeyValue_Console: container.GlobalHotkeyValue_Console:= value;
   gpDropDistance: container.DropDistance := SetRange(value, 50, 500);
   gpLaunchInterval: container.LaunchInterval := SetRange(value, 0, 9999);
   gpActivateRunning: container.ActivateRunning := boolean(value);
@@ -391,6 +433,7 @@ begin
   gpAutoHide: container.AutoHide := boolean(value);
   gpLaunchInThread: container.LaunchInThread := boolean(value);
   gpActivateOnMouse: container.ActivateOnMouse := boolean(value);
+  gpActivateOnMouseInterval: container.ActivateOnMouseInterval := SetRange(value, 0, 2000);
   gpCloseCmdWindow: container.CloseCmdWindow := boolean(value);
   gpHideTaskbar: container.HideTaskbar := boolean(value);
   gpReserveScreenEdge: container.ReserveScreenEdge := boolean(value);
@@ -438,7 +481,10 @@ begin
   gpAutoHideTime: result := container.AutoHideTime;
   gpAutoShowTime: result := container.AutoShowTime;
   gpAutoHidePixels: result := container.AutoHidePixels;
-  gpHideKeys: result := container.HideKeys;
+  gpGlobalHotkeyFlag_Hide: result := integer(container.GlobalHotkeyFlag_Hide);
+  gpGlobalHotkeyValue_Hide: result := container.GlobalHotkeyValue_Hide;
+  gpGlobalHotkeyFlag_Console: result := integer(container.GlobalHotkeyFlag_Console);
+  gpGlobalHotkeyValue_Console: result := container.GlobalHotkeyValue_Console;
   gpDropDistance: result := container.DropDistance;
   gpLaunchInterval: result := container.LaunchInterval;
   gpActivateRunning: result := integer(container.ActivateRunning);
@@ -449,6 +495,7 @@ begin
   gpAutoHide: result := integer(container.AutoHide);
   gpLaunchInThread: result := integer(container.LaunchInThread);
   gpActivateOnMouse: result := integer(container.ActivateOnMouse);
+  gpActivateOnMouseInterval: result := container.ActivateOnMouseInterval;
   gpCloseCmdWindow: result := integer(container.CloseCmdWindow);
   gpHideTaskbar: result := integer(container.HideTaskbar);
   gpReserveScreenEdge: result := integer(container.ReserveScreenEdge);
@@ -502,7 +549,10 @@ begin
   dst.ZoomTime := src.ZoomTime;
   dst.ItemSpacing := src.ItemSpacing;
   dst.ZoomItems := src.ZoomItems;
-  dst.HideKeys := src.HideKeys;
+  dst.GlobalHotkeyFlag_Hide := src.GlobalHotkeyFlag_Hide;
+  dst.GlobalHotkeyValue_Hide := src.GlobalHotkeyValue_Hide;
+  dst.GlobalHotkeyFlag_Console := src.GlobalHotkeyFlag_Console;
+  dst.GlobalHotkeyValue_Console := src.GlobalHotkeyValue_Console;
   dst.DropDistance := src.DropDistance;
   dst.LaunchInterval := src.LaunchInterval;
   dst.ActivateRunning := src.ActivateRunning;
@@ -510,6 +560,7 @@ begin
   dst.ItemAnimation := src.ItemAnimation;
   dst.launchInThread := src.launchInThread;
   dst.ActivateOnMouse := src.ActivateOnMouse;
+  dst.ActivateOnMouseInterval := src.ActivateOnMouseInterval;
   dst.CloseCmdWindow := src.CloseCmdWindow;
   dst.HideTaskbar := src.HideTaskbar;
   dst.ReserveScreenEdge := src.ReserveScreenEdge;
@@ -599,7 +650,7 @@ begin
     if not assigned(PluginFilesList) then PluginFilesList:= TStringList.Create;
     PluginsList.clear;
     PluginFilesList.clear;
-    toolu.SearchFilesRecurse(PluginsPath, '*.dll', PluginFilesList);
+    toolu.SearchFilesRecursive(PluginsPath, '*.dll', PluginFilesList);
 
     idx := 0;
     while idx < PluginFilesList.Count do

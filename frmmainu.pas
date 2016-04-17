@@ -41,11 +41,15 @@ type
     crsection: TCriticalSection;
     wndOffsetTarget: integer;
     HideKeysPressed: boolean;
+    ConsoleKeysPressed: boolean;
     SavedWorkarea: windows.TRect;
     revertMonitor: integer;
     procedure CreateZOrderWindow;
     function  CloseQuery: integer;
+		procedure DoGlobalHotkeys;
+		function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
+    procedure Restore(backupFile: string);
     procedure RegisterRawInput;
     procedure NativeWndProc(var message: TMessage);
     procedure AppException(Sender: TObject; e: Exception);
@@ -66,6 +70,7 @@ type
     procedure OnTimerSlow;
     procedure OnTimerFSA;
     procedure OnTimerRoll;
+    procedure OnTimerForeground;
     procedure OnTimerDragLeave;
     procedure UpdateRunning;
     function  IsHiddenDown: boolean;
@@ -86,6 +91,7 @@ type
     AHint: THint;
     Tray: TTrayController;
     StartMenu: TStartMenuController;
+    bIsWin10: boolean;
     ///
     wndOffset: integer;
     OldBaseWindowRect: GDIPAPI.TRect;
@@ -144,9 +150,6 @@ uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Init(SetsFilename: string);
-var
-  load_err: boolean;
-  //theFile: string;
 begin
   try
     closing := false;
@@ -190,7 +193,7 @@ begin
       halt;
     end;
 
-    // create ItemManager (disabled, not visible) //
+    // create ItemManager (disabled, invisible, ...) //
     AddLog('Init.ItemManager');
     ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
       sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
@@ -202,7 +205,6 @@ begin
       sets.container.TaskLivePreviews, sets.container.TaskGrouping,
       sets.container.TaskThumbSize, sets.container.TaskSpot,
       sets.container.ShowHint, sets.container.Font);
-    //ApplyParams;
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
@@ -216,37 +218,21 @@ begin
     BaseCmd(tcThemeChanged, 0);
 
     // load items //
-    load_err := false;
     try
       ItemMgr.Load(UnzipPath(sets.SetsPathFile));
       ItemMgr.Enable(true);
+      if not sets.Backup then
+      begin
+        AddLog('Init.BackupFailed');
+        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
+      end;
     except
       on e: Exception do
       begin
-        AddLog('Init.LoadItems');
+        AddLog('Init.LoadItems failed');
         AddLog(e.message);
-        load_err := true;
+        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgRunRestore)), PROGRAM_NAME, MB_ICONEXCLAMATION);
       end;
-    end;
-    if load_err then
-    begin
-        if sets.Restore then
-        begin
-          AddLog('Init.Restore.Succeed');
-          messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
-          halt;
-        end else begin
-          AddLog('Init.Restore.Failed');
-          messagebox(handle,
-            pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
-          halt;
-        end;
-    end
-    else
-    if not sets.Backup then
-    begin
-        AddLog('Init.BackupFailed');
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
     end;
 
     // Timers //
@@ -275,7 +261,6 @@ begin
     DropMgr.OnDragLeave := OnDragLeave;
 
     // apply the theme to do the full repaint //
-    //ApplyParams;
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
@@ -287,7 +272,6 @@ begin
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
     BaseCmd(tcThemeChanged, 0);
-    //BaseCmd(tcThemeChanged, 0);
 
     // 'RollDown' on startup if set so //
     wndOffsetTarget := 0;
@@ -469,6 +453,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.Restore(backupFile: string);
+begin
+  if sets.Restore(backupFile) then
+  begin
+    AddLog('Restore.Succeeded');
+    messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+    halt;
+  end else begin
+    AddLog('Restore.Failed');
+    messagebox(handle,
+      pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
+    halt;
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmmain.SetTheme(ATheme: string);
 begin
   StrCopy(sets.container.ThemeName, PChar(aTheme));
@@ -513,7 +512,7 @@ begin
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         Visible := boolean(param);
-        if boolean(param) then SetForeground;
+        if boolean(param) then MaintainNotForeground;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
@@ -664,14 +663,19 @@ procedure Tfrmmain.OnMouseEnter;
 begin
   SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoShowTime, nil);
   // set foreground if 'activate' option selected //
-  if IsWindowVisible(handle) and sets.container.ActivateOnMouse then SetForeground;
-  // unhover aeropeek
+  if IsWindowVisible(handle) and sets.container.ActivateOnMouse then
+  begin
+    if sets.container.ActivateOnMouseInterval = 0 then SetForeground
+    else SetTimer(Handle, ID_TIMER_FOREGROUND, sets.container.ActivateOnMouseInterval, nil);
+	end;
+	// unhover aeropeek
   if TAeroPeekWindow.IsActive then TAeroPeekWindow.CMouseLeave;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnMouseLeave;
 begin
   SetTimer(Handle, ID_TIMER_ROLL, sets.container.AutoHideTime, nil);
+  KillTimer(Handle, ID_TIMER_FOREGROUND);
   // just to be sure
   ItemMgr.DragLeave;
 end;
@@ -870,13 +874,16 @@ begin
     else if msg.WParam = ID_TIMER_SLOW then OnTimerSlow
     else if msg.WParam = ID_TIMER_FSA then OnTimerFSA
     else if msg.WParam = ID_TIMER_ROLL then OnTimerRoll
-    else if msg.WParam = ID_TIMER_DRAGLEAVE then OnTimerDragLeave;
+    else if msg.WParam = ID_TIMER_DRAGLEAVE then OnTimerDragLeave
+    else if msg.WParam = ID_TIMER_FOREGROUND then OnTimerForeground;
   except
     on e: Exception do err('Base.WMTimer', e);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnTimerMain;
+var
+  setsVisible: boolean;
 begin
   if IsWindowVisible(Handle) then
   begin
@@ -884,7 +891,12 @@ begin
     if assigned(Tray) then Tray.Timer;
     if assigned(StartMenu) then StartMenu.Timer;
   end;
+
   OnTimerDoRollUpDown;
+
+  setsVisible := false;
+  if assigned(frmsets) then setsVisible := frmsets.visible;
+  if not setsVisible then DoGlobalHotkeys;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnTimerSlow;
@@ -954,6 +966,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.OnTimerForeground;
+begin
+  KillTimer(Handle, ID_TIMER_FOREGROUND);
+  if MouseOver then SetForeground;
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmmain.UpdateRunning;
 var
   parent: THandle;
@@ -995,9 +1013,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnTimerDoRollUpDown;
-var
-  KeyPressed: boolean;
-  key, KeySet: integer;
 begin
   if sets.container.AutoHide then
     if wndoffset <> wndOffsetTarget then
@@ -1013,25 +1028,48 @@ begin
         ItemMgr.ItemsChanged;
       end;
     end;
-
+end;
+//------------------------------------------------------------------------------
+function Tfrmmain.IsHotkeyPressed(hotkey: integer): boolean;
+var
+  key, shift, pressedShift: integer;
+begin
+  result := false;
+  key := hotkey and not (scShift + scCtrl + scAlt);
+  shift := hotkey and (scShift + scCtrl + scAlt);
+  if key <= 0 then exit;
+  result := getasynckeystate(key) < 0;
+  pressedShift := scNone;
+  if getasynckeystate(16) < 0 then inc(pressedShift, scShift);
+  if getasynckeystate(17) < 0 then inc(pressedShift, scCtrl);
+  if getasynckeystate(18) < 0 then inc(pressedShift, scAlt);
+  if shift <> pressedShift then result := false;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.DoGlobalHotkeys;
+var
+  KeyPressed: boolean;
+begin
   // hide/show
-  KeyPressed := false;
-  Key := sets.container.HideKeys and not (scShift + scCtrl + scAlt);
-  if Key > 0 then KeyPressed := getasynckeystate(Key) < 0;
-  KeySet := scNone;
-  if getasynckeystate(16) < 0 then inc(KeySet, scShift);
-  if getasynckeystate(17) < 0 then inc(KeySet, scCtrl);
-  if getasynckeystate(18) < 0 then inc(KeySet, scAlt);
-  if sets.container.HideKeys and (scShift + scCtrl + scAlt) <> KeySet then KeyPressed := false;
-  if KeyPressed then
+  if sets.container.GlobalHotkeyFlag_Hide then
   begin
-    if not HideKeysPressed then
-    begin
-      BaseCmd(tcToggleVisible, 0);
-      HideKeysPressed := true;
-    end;
-  end
-  else HideKeysPressed := false;
+	    KeyPressed := IsHotkeyPressed(sets.container.GlobalHotkeyValue_Hide);
+	    if not KeyPressed then HideKeysPressed := false
+	    else begin
+	      if not HideKeysPressed then BaseCmd(tcToggleVisible, 0);
+	      HideKeysPressed := true;
+	    end;
+	end;
+	// command window (console)
+  if sets.container.GlobalHotkeyFlag_Console then
+  begin
+	    KeyPressed := IsHotkeyPressed(sets.container.GlobalHotkeyValue_Console);
+	    if not KeyPressed then ConsoleKeysPressed := false
+	    else begin
+	      if not ConsoleKeysPressed then execute_cmdline('/cmd');
+	      ConsoleKeysPressed := true;
+	    end;
+	end;
 end;
 //------------------------------------------------------------------------------
 // bring the dock along with all items to foreground
@@ -1832,10 +1870,10 @@ begin
   cmd2 := cutafter(cmd, '.');
 
   if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cmd2, params)
-  else if cmd = 'quit' then frmmain.CloseProgram
-  else if cmd = 'hide' then frmmain.BaseCmd(tcSetVisible, 0)
-  else if cmd = 'say' then frmmain.notify(toolu.UnzipPath(params))
-  else if cmd = 'alert' then frmmain.alert(toolu.UnzipPath(params))
+  else if cmd = 'quit' then         frmmain.CloseProgram
+  else if cmd = 'hide' then         frmmain.BaseCmd(tcSetVisible, 0)
+  else if cmd = 'say' then          frmmain.notify(toolu.UnzipPath(params))
+  else if cmd = 'alert' then        frmmain.alert(toolu.UnzipPath(params))
   else if cmd = 'togglevisible' then frmmain.BaseCmd(tcToggleVisible, 0)
   else if cmd = 'togglesystaskbar' then frmmain.BaseCmd(tcToggleTaskbar, 0)
   else if cmd = 'sets' then
@@ -1843,28 +1881,30 @@ begin
     if not trystrtoint(params, i) then i := 0;
     Tfrmsets.Open(i);
   end
-  else if cmd = 'cmd' then Tfrmcmd.Open
-  else if cmd = 'collection' then Run('%pp%\images')
-  else if cmd = 'apps' then Run('%pp%\apps.exe')
-  else if cmd = 'taskmgr' then Run('%sysdir%\taskmgr.exe')
+  else if cmd = 'cmd' then          Tfrmcmd.Open
+	else if cmd = 'collection' then   Run('%pp%\images')
+  else if cmd = 'apps' then         Run('%pp%\apps.exe')
+  else if cmd = 'taskmgr' then      Run('%sysdir%\taskmgr.exe')
   else if cmd = 'undelete' then
   begin
-    if assigned(ItemMgr) then ItemMgr.UnDelete;
+    if assigned(ItemMgr) then       ItemMgr.UnDelete;
   end
-  else if cmd = 'program' then AddFile
-  else if cmd = 'newdock' then NewDock
-  else if cmd = 'removedock' then RemoveDock
-  else if cmd = 'command' then TfrmAddCommand.Open
-  else if cmd = 'hello' then TfrmHello.Open
-  else if cmd = 'help' then TfrmTip.Open
-  else if cmd = 'backup' then sets.Backup
-  else if cmd = 'restore' then sets.Restore
-  else if cmd = 'paste' then ItemMgr.InsertItem(GetClipboard)
-  else if cmd = 'tray' then Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'volume' then Tray.ShowVolumeControl(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'networks' then Tray.ShowNetworks(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'battery' then Tray.ShowBattery(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'startmenu' then StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'program' then      AddFile
+  else if cmd = 'newdock' then      NewDock
+  else if cmd = 'removedock' then   RemoveDock
+  else if cmd = 'command' then      TfrmAddCommand.Open
+  else if cmd = 'hello' then        TfrmHello.Open
+  else if cmd = 'help' then         TfrmTip.Open
+  else if cmd = 'backup' then       sets.Backup
+  else if cmd = 'restore' then      sets.Restore(params)
+  else if cmd = 'paste' then        ItemMgr.InsertItem(GetClipboard)
+  else if cmd = 'tray' then         Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'autotray' then     Tray.SwitchAutoTray
+  else if cmd = 'volume' then       Tray.ShowVolumeControl(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'networks' then     Tray.ShowNetworks(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'battery' then      Tray.ShowBattery(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'actioncenter' then Tray.ShowActionCenter(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'startmenu' then    StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'theme' then // themes popup menu
   begin
     GetCursorPos(pt);
@@ -1900,21 +1940,17 @@ begin
       SetParam(gpTaskSpot, i);
     end;
   end
-  else if cmd = 'autotray' then Tray.SwitchAutoTray
-  else if cmd = 'themeeditor' then TfrmThemeEditor.Open
+  else if cmd = 'themeeditor' then  TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
-  else if cmd = 'site' then SetParam(gpSite, integer(StringToSite(params)))
-  else if cmd = 'logoff' then    ProcessHelper.Shutdown(ifthen(params = 'force', 4, 0))
-  else if cmd = 'shutdown' then  ProcessHelper.Shutdown(ifthen(params = 'force', 5, 1))
-  else if cmd = 'reboot' then    ProcessHelper.Shutdown(ifthen(params = 'force', 6, 2))
-  else if cmd = 'suspend' then   ProcessHelper.SetSuspendState(false)
-  else if cmd = 'hibernate' then ProcessHelper.SetSuspendState(true)
-  else if cmd = 'kill' then      ProcessHelper.Kill(params)
-  else if cmd = 'displayoff' then sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
-  else if cmd = 'emptybin' then
-  begin
-    SHEmptyRecycleBin(Handle, nil, 0);
-  end
+  else if cmd = 'site' then         SetParam(gpSite, integer(StringToSite(params)))
+  else if cmd = 'logoff' then       ProcessHelper.Shutdown(ifthen(params = 'force', 4, 0))
+  else if cmd = 'shutdown' then     ProcessHelper.Shutdown(ifthen(params = 'force', 5, 1))
+  else if cmd = 'reboot' then       ProcessHelper.Shutdown(ifthen(params = 'force', 6, 2))
+  else if cmd = 'suspend' then      ProcessHelper.SetSuspendState(false)
+  else if cmd = 'hibernate' then    ProcessHelper.SetSuspendState(true)
+  else if cmd = 'kill' then         ProcessHelper.Kill(params)
+  else if cmd = 'displayoff' then   sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
+  else if cmd = 'emptybin' then     SHEmptyRecycleBin(Handle, nil, 0)
   else if cmd = 'regp' then
   begin
     for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);

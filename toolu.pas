@@ -143,7 +143,7 @@ function IsDriveIdent(ident: string): boolean;
 procedure qSortStrings(var list: TStrings);
 procedure searchfiles(path, mask: string; list: TStrings);
 procedure searchfolders(path: string; list: TStrings);
-procedure searchfilesrecurse(path, mask: string; list: TStrings;
+procedure searchfilesrecursive(path, mask: string; list: TStrings;
   level: cardinal = 0; maxlevel: cardinal = 255; maxcount: integer = $7fffffff);
 function ReadIniString(IniFile, IniSection, KeyName, Default: string): string;
 function ReadIniInteger(IniFile, IniSection, KeyName: string; Default: integer): integer;
@@ -179,6 +179,7 @@ function wacmd(cmd: cardinal): boolean;
 procedure AddLog(LogString: string);
 procedure TruncLog(fs: TFileStream);
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
+function IsIdenticalStreams(Source, Destination: TStream): boolean;
 
 var
   ShGetKnownFolderPath: TShGetKnownFolderPath;
@@ -530,7 +531,7 @@ begin
   if not (fhandle = INVALID_HANDLE_VALUE) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------
-procedure searchfilesrecurse(path, mask: string; list: TStrings;
+procedure searchfilesrecursive(path, mask: string; list: TStrings;
   level: cardinal = 0; maxlevel: cardinal = 255; maxcount: integer = $7fffffff);
 var
   fhandle: THandle;
@@ -546,12 +547,12 @@ begin
   begin
     filename := strpas(f.cFileName);
     if ((f.dwFileAttributes and 16) = 16) and (filename <> '.') and (filename <> '..') and (level < maxlevel) then
-      searchfilesrecurse(path + filename, mask, list, level + 1);
+      searchfilesrecursive(path + filename, mask, list, level + 1);
     while FindNextFile(fhandle, f) do
     begin
       filename := strpas(f.cFileName);
       if ((f.dwFileAttributes and 16) = 16) and (filename <> '.') and (filename <> '..') and (level < maxlevel) then
-        searchfilesrecurse(path + filename, mask, list, level + 1, maxlevel);
+        searchfilesrecursive(path + filename, mask, list, level + 1, maxlevel);
     end;
   end;
   if not (fhandle = INVALID_HANDLE_VALUE) then Windows.FindClose(fhandle);
@@ -714,8 +715,8 @@ begin
   Result := filename;
   if fileexists(filename) then exit;
   list := TStringList.Create;
-  searchfilesrecurse(UnzipPath('%pf%'), filename + '.exe', list, 1, 3, 1);
-  searchfilesrecurse(UnzipPath('%pfx86%'), filename + '.exe', list, 1, 3, 1);
+  searchfilesrecursive(UnzipPath('%pf%'), filename + '.exe', list, 1, 3, 1);
+  searchfilesrecursive(UnzipPath('%pfx86%'), filename + '.exe', list, 1, 3, 1);
   if list.Count > 0 then Result := list[0];
   list.Free;
 end;
@@ -1209,6 +1210,33 @@ var
 begin
   recip := BSM_APPLICATIONS;
   BroadcastSystemMessage(BSF_IGNORECURRENTTASK + BSF_FORCEIFHUNG + BSF_POSTMESSAGE, @recip, msg, wparam, lparam);
+end;
+//------------------------------------------------------------------------------
+function IsIdenticalStreams(Source, Destination: TStream): boolean;
+const
+    Block_Size = 4096;
+var
+    Buffer_1: array[0..Block_Size-1] of byte;
+    Buffer_2: array[0..Block_Size-1] of byte;
+    Buffer_Length: integer;
+begin
+  Result := false;
+
+  if Source.Size <> Destination.Size then Exit;
+
+  FillChar(Buffer_1, Block_Size, #0);
+  FillChar(Buffer_2, Block_Size, #0);
+  Source.Seek(0, soBeginning);
+  Destination.Seek(0, soBeginning);
+  while Source.Position < Source.Size do
+  begin
+      Buffer_Length := Source.Read(Buffer_1, Block_Size);
+      Destination.Read(Buffer_2, Block_Size);
+
+      if not CompareMem(@Buffer_1, @Buffer_2, Buffer_Length) then Exit;
+  end;
+
+  Result := true;
 end;
 //------------------------------------------------------------------------------
 end.

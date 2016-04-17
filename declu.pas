@@ -34,13 +34,17 @@ type
     gpAutoHide,
     gpAutoHideTime,
     gpAutoHidePixels,
-    gpHideKeys,
+    gpGlobalHotkeyFlag_Hide,
+    gpGlobalHotkeyValue_Hide,
+    gpGlobalHotkeyFlag_Console,
+    gpGlobalHotkeyValue_Console,
     gpDropDistance,
     gpLaunchInterval,
     gpUseShell,
     gpRunInThread,
     gpLaunchInThread,
     gpActivateOnMouse,
+    gpActivateOnMouseInterval,
     gpCloseCmdWindow,
     gpHideTaskBar,
     gpStayOnTop,
@@ -205,6 +209,7 @@ const
   ID_TIMER_ROLL             = 8;
   ID_TIMER_DRAGLEAVE        = 9;
   ID_TIMER_ATTENTION        = 10;
+  ID_TIMER_FOREGROUND       = 11;
 
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 
@@ -219,6 +224,7 @@ resourcestring
   XErrorSetsRestoreFailed = 'Restore operation failed.';
   XMsgSetsRestored = 'The settings are restored from backup.';
   XMsgRunAgain = 'Run the program again.';
+  XMsgRunRestore = 'Run restore operation from the context menu.';
   XErrorSetsBackupFailed = 'Failed to backup settings.';
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';

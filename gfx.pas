@@ -1205,7 +1205,8 @@ begin
       end
       else
       begin
-        ico := GetIconFromFileSH(imagefile);
+        ico := 0;
+        if iIcon = 0 then ico := GetIconFromFileSH(imagefile);
         if ico = 0 then
         begin
           ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @iIcon);

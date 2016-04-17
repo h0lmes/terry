@@ -22,8 +22,10 @@ type
     btnRunNow: TButton;
     btn_ok1: TBitBtn;
     btnColor: TButton;
-    cbShowHint: TCheckBox;
-    chbHintEffects: TCheckBox;
+		cbShowHint: TCheckBox;
+		chbAutoHideOnFullScreenApp: TCheckBox;
+		chbGlobalConsole: TCheckBox;
+		chbHintEffects: TCheckBox;
     chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
     chbStackOpenAnimation: TCheckBox;
@@ -34,13 +36,16 @@ type
     chbTaskbarSameMonitor: TCheckBox;
     chbOccupyFullMonitor: TCheckBox;
     chb_reflection: TCheckBox;
+		chbGlobalHide: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
+		edActivateOnMouseInterval: TEdit;
     edStartOffset: TEdit;
     edEndOffset: TEdit;
     gbAutostart: TGroupBox;
-    GroupBox1: TGroupBox;
+    gbTaskbar: TGroupBox;
+		hkConsole: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     lblBackgroundTransparency1: TLabel;
@@ -50,7 +55,6 @@ type
     lblIconSpacing: TLabel;
     lblBackgroundTransparency: TLabel;
     lblAnimateIcons: TLabel;
-    Label6: TLabel;
     lblCredits: TLabel;
     lblCredits1: TLabel;
     lblCredits2: TLabel;
@@ -63,7 +67,7 @@ type
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
-    Panel1: TPanel;
+    panelRemove: TPanel;
     pbox: TPaintBox;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
@@ -104,11 +108,7 @@ type
     tbCenterOffsetPercent: TTrackBar;
     btn_ok: TBitBtn;
     gbHide: TGroupBox;
-    cbCtrl: TCheckBox;
-    cbAlt: TCheckBox;
-    cbShift: TCheckBox;
-    hkAutoSlide: TEdit;
-    chbAutoHideOnFullScreenApp: TCheckBox;
+    hkHide: TEdit;
     lblMonitor: TLabel;
     cbo_monitor: TComboBox;
     lblZoomedIconSize: TLabel;
@@ -139,6 +139,8 @@ type
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
+		procedure chbGlobalConsoleClick(Sender: TObject);
+		procedure chbGlobalHideClick(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
     procedure chbReserveScreenEdgeClick(Sender: TObject);
     procedure chbRunInThreadChange(Sender: TObject);
@@ -148,15 +150,17 @@ type
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure chbTaskbarSameMonitorChange(Sender: TObject);
     procedure chbOccupyFullMonitorChange(Sender: TObject);
+		procedure edActivateOnMouseIntervalChange(Sender: TObject);
     procedure edEndOffsetChange(Sender: TObject);
     procedure edStartOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure hkAutoSlideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure btn_cancelClick(Sender: TObject);
     procedure chbBlurClick(Sender: TObject);
     procedure chb_reflectionClick(Sender: TObject);
     procedure chb_show_running_indicatorClick(Sender: TObject);
     procedure chb_activate_runningClick(Sender: TObject);
+		procedure hkConsoleKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+		procedure hkHideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lbThemeDblClick(Sender: TObject);
     procedure lbThemeSelectionChange(Sender: TObject; User: boolean);
     procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
@@ -183,7 +187,6 @@ type
     procedure cbHideTaskBarClick(Sender: TObject);
     procedure tbCenterOffsetPercentChange(Sender: TObject);
     procedure cbShowHintClick(Sender: TObject);
-    procedure cbCtrlClick(Sender: TObject);
     procedure edLaunchIntervalChange(Sender: TObject);
     procedure cboBaseSiteChange(Sender: TObject);
     procedure tbIconSizeChange(Sender: TObject);
@@ -226,17 +229,15 @@ begin
   messagebox(frmmain.handle, pchar(s), PROGRAM_NAME, MB_ICONERROR);
 end;
 //------------------------------------------------------------------------------
-function ShortCutToTextEx(ShortCut: TShortCut): string;
-begin
-  case ShortCut and $ff of
-    $6A: result := 'Num *';
-    $6B: result := 'Num +';
-    $6D: result := 'Num -';
-    $6E: result := 'Num Del';
-    $6F: result := 'Num /';
-    else result:= ShortCutToText(ShortCut);
-  end;
-end;
+{
+insert the following into function ShortCutToText of unit LCLProc
+$6A: Name := 'Num *';
+$6B: Name := 'Num +';
+$6D: Name := 'Num -';
+$6E: Name := 'Num Del';
+$6F: Name := 'Num /';
+$C0: Name := '`';
+}
 //------------------------------------------------------------------------------
 class procedure Tfrmsets.Open(APageIndex: integer);
 begin
@@ -247,6 +248,20 @@ begin
   end;
 
   sets.StoreSetsContainer;
+  try
+	    if not sets.Backup then
+	    begin
+	      AddLog('frmsets.Open.Backup failed');
+	      messagebox(application.mainform.handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
+	    end;
+  except
+    on e: Exception do
+    begin
+      AddLog('frmsets.Open.Backup exception');
+      AddLog(e.message);
+      messagebox(application.mainform.handle, pchar(UTF8ToAnsi(e.message)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+    end;
+  end;
   if not assigned(frmsets) then application.CreateForm(self, frmsets);
   frmsets.PageIndex := APageIndex;
   frmsets.show;
@@ -311,14 +326,17 @@ begin
 
   cbAutoHide.Checked := sets.container.autohide;
   cbActivateOnMouse.Checked := sets.container.ActivateOnMouse;
+  edActivateOnMouseInterval.OnChange := nil;
+  edActivateOnMouseInterval.Text := inttostr(sets.container.ActivateOnMouseInterval);
+  edActivateOnMouseInterval.OnChange := edActivateOnMouseIntervalChange;
   edAutoHideTime.Text := inttostr(sets.container.autohidetime);
   edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
   edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
 
-  hkAutoSlide.Text := ShortCutToTextEx(sets.container.HideKeys and not (scCtrl + scAlt + scShift));
-  cbCtrl.checked := (sets.container.HideKeys and scCtrl <> 0);
-  cbAlt.checked := (sets.container.HideKeys and scAlt <> 0);
-  cbShift.checked := (sets.container.HideKeys and scShift <> 0);
+  hkHide.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
+  hkConsole.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
+  chbGlobalHide.Checked := sets.container.GlobalHotkeyFlag_Hide;
+  chbGlobalConsole.Checked := sets.container.GlobalHotkeyFlag_Console;
 
   chbAutoHideOnFullScreenApp.checked := sets.container.AutoHideOnFullScreenApp;
 
@@ -602,6 +620,13 @@ begin
   frmmain.SetParam(gpActivateOnMouse, integer(cbActivateOnMouse.Checked));
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.edActivateOnMouseIntervalChange(Sender: TObject);
+var
+  value: integer;
+begin
+  if trystrtoint(edActivateOnMouseInterval.Text, value) then frmmain.SetParam(gpActivateOnMouseInterval, value);
+end;
+//------------------------------------------------------------------------------
 procedure Tfrmsets.tbCenterOffsetPercentChange(Sender: TObject);
 begin
   frmmain.SetParam(gpCenterOffsetPercent, tbCenterOffsetPercent.Position);
@@ -620,22 +645,26 @@ begin
   lblEdgeOffset.Caption := format(XLabelEdgeOffset, [sets.container.EdgeOffset]);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbCtrlClick(Sender: TObject);
+procedure Tfrmsets.hkHideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  if cbCtrl.checked then sets.container.HideKeys := sets.container.HideKeys or scCtrl
-  else sets.container.HideKeys := sets.container.HideKeys and not scCtrl;
-  if cbAlt.checked then sets.container.HideKeys := sets.container.HideKeys or scAlt
-  else sets.container.HideKeys := sets.container.HideKeys and not scAlt;
-  if cbShift.checked then sets.container.HideKeys := sets.container.HideKeys or scShift
-  else sets.container.HideKeys := sets.container.HideKeys and not scShift;
+  sets.container.GlobalHotkeyValue_Hide := ShortCut(Key, Shift);
+  TEdit(Sender).Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.hkAutoSlideKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure Tfrmsets.hkConsoleKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  sets.container.HideKeys := sets.container.HideKeys and $ffffff00 + Key;
-  TEdit(Sender).Text := ShortCutToTextEx(ShortCut(Key, Shift));
-  Key := 0;
+  sets.container.GlobalHotkeyValue_Console := ShortCut(Key, Shift);
+  TEdit(Sender).Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbGlobalHideClick(Sender: TObject);
+begin
+  frmmain.SetParam(gpGlobalHotkeyFlag_Hide, integer(chbGlobalHide.checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbGlobalConsoleClick(Sender: TObject);
+begin
+  frmmain.SetParam(gpGlobalHotkeyFlag_Console, integer(chbGlobalConsole.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbAutoHideOnFullScreenAppClick(Sender: TObject);

@@ -564,6 +564,7 @@ begin
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
+  frmmain.bIsWin10 := VerInfo.dwMajorVersion >= 10;
 
   RegisterWindowItemClass;
   Notifier := TNotifier.Create;

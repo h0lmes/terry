@@ -4,7 +4,6 @@ interface
 uses Windows, Classes, SysUtils, Registry, declu, processhlp;
 
 type
-  TTCWindowType = (tcwtTrayOverflow, tcwtVolume, tcwtNetworks);
 
   { TTrayController }
 
@@ -29,6 +28,7 @@ type
     procedure EnableAutoTray;
     procedure DisableAutoTray;
     procedure ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+		procedure ShowActionCenter(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
     procedure ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -123,6 +123,23 @@ begin
   SendMessage(hwnd, BM_CLICK, 0, 0);
 end;
 //------------------------------------------------------------------------------
+// win 10 feature. not yet working. TODO
+procedure TTrayController.ShowActionCenter(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+var
+  HWnd: cardinal;
+begin
+  FControlWindow := 0;
+  FShown := false;
+  FControl := false;
+  // open Win 10 style Action Center window
+  hwnd := FindWindow('Shell_TrayWnd', nil);
+  hwnd := FindWindowEx(hwnd, 0, 'TrayNotifyWnd', nil);
+  hwnd := FindWindowEx(hwnd, 0, 'TrayButton', nil);
+  SetActiveWindow(hwnd);
+  SetForegroundWindow(hwnd);
+  SendMessage(hwnd, BM_CLICK, 0, 0); // this for sure does a click but nothing happens
+end;
+//------------------------------------------------------------------------------
 procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
   HWnd: cardinal;
@@ -168,9 +185,16 @@ begin
 
   // open View Available Networks
   RunAvailableNetworks;
-  FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
-  FShown := false;
-  FControl := true;
+  if frmmain.bIsWin10 then
+  begin
+    FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
+    FShown := false;
+    FControl := true;
+	end else begin
+    FControlWindow := 0;
+    FShown := false;
+    FControl := false;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -248,7 +272,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunAvailableNetworks;
 begin
-  frmmain.Run('rundll32.exe', 'van.dll,RunVAN', '', sw_shownormal);
+  if frmmain.bIsWin10 then frmmain.Run('ms-settings:network', '', '', sw_shownormal)
+  else frmmain.Run('rundll32.exe', 'van.dll,RunVAN', '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunNotificationAreaIcons;
