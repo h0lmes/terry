@@ -23,9 +23,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsGeneral
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 0
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -182,7 +182,7 @@ object frmsets: Tfrmsets
           TabOrder = 3
         end
         object tbAeroPeekThumbSize: TTrackBar
-          Left = 25
+          Left = 10
           Height = 31
           Top = 65
           Width = 271
@@ -194,27 +194,6 @@ object frmsets: Tfrmsets
           Position = 200
           ShowSelRange = False
           TabOrder = 4
-        end
-      end
-      object panelRemove: TPanel
-        Left = 268
-        Height = 35
-        Top = 15
-        Width = 178
-        BevelOuter = bvNone
-        ClientHeight = 35
-        ClientWidth = 178
-        Color = 176
-        ParentColor = False
-        TabOrder = 8
-        object btnRemoveDock: TButton
-          Left = 5
-          Height = 25
-          Top = 5
-          Width = 169
-          Caption = 'Remove this dock'
-          OnClick = btnRemoveDockClick
-          TabOrder = 0
         end
       end
       object edActivateOnMouseInterval: TEdit
@@ -233,7 +212,37 @@ object frmsets: Tfrmsets
         Width = 344
         Caption = 'Hide dock completely while fullscreen application active (game, etc) '
         OnClick = chbAutoHideOnFullScreenAppClick
+        TabOrder = 8
+      end
+      object panelRemove: TPanel
+        Left = 15
+        Height = 35
+        Top = 450
+        Width = 430
+        BevelOuter = bvNone
+        ClientHeight = 35
+        ClientWidth = 430
+        Color = 176
+        ParentColor = False
         TabOrder = 9
+        object btnRemoveDock: TButton
+          Left = 5
+          Height = 25
+          Top = 5
+          Width = 169
+          Caption = 'Remove this dock'
+          OnClick = btnRemoveDockClick
+          TabOrder = 0
+        end
+        object btnRestore: TButton
+          Left = 180
+          Height = 25
+          Top = 5
+          Width = 245
+          Caption = 'Restore settings'
+          OnClick = btnRestoreClick
+          TabOrder = 1
+        end
       end
     end
     object tsPosition: TTabSheet
@@ -814,11 +823,12 @@ object frmsets: Tfrmsets
         Height = 30
         Top = 403
         Width = 410
-        Frequency = 60
-        Max = 600
+        Frequency = 40
+        Max = 400
+        Min = 1
         OnChange = tbZoomTimeChange
-        PageSize = 60
-        Position = 0
+        PageSize = 40
+        Position = 1
         ShowSelRange = False
         TabOrder = 10
       end

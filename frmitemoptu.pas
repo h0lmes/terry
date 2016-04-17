@@ -74,6 +74,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+		procedure FormShow(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
   private
     cancel_data: string;
@@ -122,16 +123,19 @@ procedure TfrmItemProp.FormCreate(Sender: TObject);
 begin
   FChanged := false;
 
+  cboWindow.Items.Add(XShowCmdNormal);
+  cboWindow.Items.Add(XShowCmdMinimized);
+  cboWindow.Items.Add(XShowCmdMaximized);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.FormShow(Sender: TObject);
+begin
   font.Name := GetFont;
   font.size := GetFontSize;
   clientheight := btnOK.top + btnOK.Height + 7;
   constraints.minheight := Height;
   constraints.maxheight := Height;
   constraints.minwidth := Width;
-
-  cboWindow.Items.Add(XShowCmdNormal);
-  cboWindow.Items.Add(XShowCmdMinimized);
-  cboWindow.Items.Add(XShowCmdMaximized);
 end;
 //------------------------------------------------------------------------------
 function TfrmItemProp.SetData(AData: string): boolean;

@@ -9,7 +9,7 @@ object frmHello: TfrmHello
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object Label3: TLabel
     Left = 45
     Height = 15
@@ -101,7 +101,7 @@ object frmHello: TfrmHello
     Left = 45
     Height = 15
     Top = 45
-    Width = 270
+    Width = 269
     Caption = 'You can view useful tips at any time by pressing F1.'
     ParentColor = False
   end

@@ -26,7 +26,7 @@ uses
   plgitemu, stackitemu, stacksubitemu, hintu, droptgtu, shcontextu, notifieru,
   PIDL, dwm_unit, EColor, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
   processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu,
-  MMDevApi_tlb, mixeru, networksu, customdrawitemu;
+  MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu;
 
 {$R *.res}
 
@@ -492,6 +492,7 @@ begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
   AddLog('>>> TDock app start');
+  toolu.ScalingFactor := 100;
 
   // set global vars, though this is not a good practice
   // os version

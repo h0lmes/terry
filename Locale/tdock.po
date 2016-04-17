@@ -1,5 +1,14 @@
 msgid ""
-msgstr "Content-Type: text/plain; charset=UTF-8"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.7\n"
 
 #: declu.xaddicon
 msgid "Add ..."
@@ -205,7 +214,7 @@ msgid "Run the program again."
 msgstr ""
 
 #: declu.xmsgrunrestore
-msgid "Run restore operation from the context menu."
+msgid "Run restore operation."
 msgstr ""
 
 #: declu.xmsgsetsrestored
@@ -643,6 +652,15 @@ msgstr ""
 msgid "TDockForm"
 msgstr ""
 
+#: tfrmrestore.btnrestore.caption
+msgid "Restore selected backup"
+msgstr ""
+
+#: tfrmrestore.caption
+msgctxt "tfrmrestore.caption"
+msgid "Restore settings from backup"
+msgstr ""
+
 #: tfrmsets.btnautorunadd.caption
 msgid "Add program"
 msgstr ""
@@ -692,6 +710,11 @@ msgstr ""
 
 #: tfrmsets.btnremovedock.caption
 msgid "Remove this dock"
+msgstr ""
+
+#: tfrmsets.btnrestore.caption
+msgctxt "tfrmsets.btnrestore.caption"
+msgid "Restore settings"
 msgstr ""
 
 #: tfrmsets.btn_cancel.caption

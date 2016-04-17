@@ -18,6 +18,7 @@ object frmStackProp: TfrmStackProp
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnMouseDown = FormMouseDown
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.2.2.0'
   object btnOK: TButton

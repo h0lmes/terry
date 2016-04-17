@@ -18,7 +18,8 @@ type
     btnDebug: TButton;
     btnFontBold: TSpeedButton;
     btnFontItalic: TSpeedButton;
-    btnRemoveDock: TButton;
+		btnRemoveDock: TButton;
+		btnRestore: TButton;
     btnRunNow: TButton;
     btn_ok1: TBitBtn;
     btnColor: TButton;
@@ -67,7 +68,7 @@ type
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
-    panelRemove: TPanel;
+		panelRemove: TPanel;
     pbox: TPaintBox;
     stMoveDockHint: TStaticText;
     tbBaseAlpha: TTrackBar;
@@ -138,6 +139,7 @@ type
     procedure btnColorClick(Sender: TObject);
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
+		procedure btnRestoreClick(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
 		procedure chbGlobalConsoleClick(Sender: TObject);
 		procedure chbGlobalHideClick(Sender: TObject);
@@ -269,8 +271,6 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.FormCreate(Sender: TObject);
 begin
-  font.name := GetFont;
-  font.size := GetFontSize;
   lblTitle.Font.Size := 18;
   lblTitle.Font.Color := clGray;
   lblCredits.Font.Color := clGray;
@@ -309,6 +309,9 @@ procedure Tfrmsets.FormShow(Sender: TObject);
 var
   maj, min, rel, build, i, mCount: integer;
 begin
+  font.name := GetFont;
+  font.size := GetFontSize;
+
   constraints.MinHeight := Height;
   constraints.MaxHeight := Height;
   constraints.MinWidth := Width;
@@ -559,6 +562,11 @@ end;
 procedure Tfrmsets.btnRemoveDockClick(Sender: TObject);
 begin
   frmmain.execute_cmdline('/removedock');
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.btnRestoreClick(Sender: TObject);
+begin
+  frmmain.execute_cmdline('/restore');
 end;
 //------------------------------------------------------------------------------
 //

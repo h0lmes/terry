@@ -21,6 +21,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+		procedure FormShow(Sender: TObject);
   private
     FIndex: integer;
     list: TStrings;
@@ -41,14 +42,21 @@ begin
   if not FileExists(UnzipPath('%pp%\tips.txt')) then exit;
   Application.CreateForm(TfrmTip, frmTip);
   frmTip.Show;
-  frmTip.font.size := toolu.GetFontSize;
-  frmTip.font.name := toolu.GetFont;
-  frmTip.Load;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.FormCreate(Sender: TObject);
 begin
   list := TStringList.Create;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmTip.FormShow(Sender: TObject);
+begin
+  font.name := GetFont;
+  font.size := GetFontSize;
+  memo.font.name := GetFont;
+  memo.font.size := GetFontSize * 4 div 3;
+
+  Load;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -70,8 +78,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.Load;
 begin
-  memo.font.size := 12;
-  memo.font.name := toolu.GetFont;
   list.LoadFromFile(UnzipPath('%pp%\tips.txt'));
   FIndex := 0;
   btnNext.Click;

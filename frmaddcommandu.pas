@@ -95,6 +95,9 @@ var
   group, groupName, classname, name, command, params, icon, description: string;
 begin
   try
+    font.name := GetFont;
+    font.size := GetFontSize;
+
     constraints.MinHeight := ClientHeight;
     constraints.MinWidth := ClientWidth;
 

@@ -120,9 +120,7 @@ const
   KF_FLAG_NO_APPCONTAINER_REDIRECTION = $10000;
 
 function GetFont: string;
-function GetContentFont: string;
 function GetFontSize: integer;
-function GetContentFontSize: integer;
 function cut(itext, ch: string): string;
 function cutafter(itext, ch: string): string;
 procedure split(itext, ch: string; var str1, str2: string);
@@ -185,6 +183,7 @@ var
   ShGetKnownFolderPath: TShGetKnownFolderPath;
   bIsWindowsVista: boolean;
   bIsWow64: boolean;
+  ScalingFactor: integer;
 
 implementation
 //------------------------------------------------------------------------------
@@ -197,15 +196,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function GetContentFont: string;
-begin
-  Result := 'verdana';
-  try
-    if bIsWindowsVista then Result := 'calibri';
-  except
-  end;
-end;
-//------------------------------------------------------------------------------
 function GetFontSize: integer;
 begin
   Result := 8;
@@ -213,15 +203,7 @@ begin
     if bIsWindowsVista then Result := 9;
   except
   end;
-end;
-//------------------------------------------------------------------------------
-function GetContentFontSize: integer;
-begin
-  Result := 8;
-  try
-    if bIsWindowsVista then Result := 10;
-  except
-  end;
+  if ScalingFactor > 100 then Result := Result * ScalingFactor div 100;
 end;
 //------------------------------------------------------------------------------
 function cut(itext, ch: string): string;

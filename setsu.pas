@@ -67,19 +67,23 @@ type
 
   _Sets = class
   private
-    PluginsPath: string;
+    FSetsPathFile: string;
+    FPluginsPath: string;
     PluginsList: TStrings;
     PluginFilesList: TStrings;
-    FRestored: boolean;
+    FBackupsPath: string;
+    BackupsList: TStrings;
+    FThemesPath: string;
   public
     container: _SetsContainer;
     cancel_container: _SetsContainer;
     ParentHWnd: THandle;
-    SetsPathFile: string;
-    ThemesPath: string;
     AutoRunList: TStrings;
 
-    property Restored: boolean read FRestored;
+    property SetsPathFile: string read FSetsPathFile;
+    property BackupsPath: string read FBackupsPath;
+    property PluginsPath: string read FPluginsPath;
+    property ThemesPath: string read FThemesPath;
 
     constructor Create(ASetsFile, AProgPath: string; Handle: THandle);
     destructor Destroy; override;
@@ -127,13 +131,15 @@ begin
   container.BaseAlpha := 255;
   container.SeparatorAlpha := 255;
   container.Hello := true;
-  SetsPathFile := ASetsFile;
-  PluginsPath := AProgPath + '\Docklets';
-  ThemesPath := IncludeTrailingPathDelimiter(AProgPath) + 'Themes\';
+  FSetsPathFile := ASetsFile;
+  FBackupsPath := IncludeTrailingPathDelimiter(AProgPath) + 'Backup';
+  FPluginsPath := IncludeTrailingPathDelimiter(AProgPath) + 'Docklets';
+  FThemesPath := IncludeTrailingPathDelimiter(AProgPath) + 'Themes\';
 end;
 //------------------------------------------------------------------------------
 destructor _Sets.Destroy;
 begin
+  if assigned(BackupsList) then BackupsList.free;
   if assigned(PluginsList) then PluginsList.free;
   if assigned(PluginFilesList) then PluginFilesList.free;
   if assigned(AutoRunList) then AutoRunList.free;
@@ -141,7 +147,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.Load(ASetsFile: string);
 begin
-  SetsPathFile := ASetsFile;
+  FSetsPathFile := ASetsFile;
   Load;
 end;
 //------------------------------------------------------------------------------
@@ -151,14 +157,6 @@ var
   ini: TIniFile;
   tmplist: TStrings;
 begin
-  FRestored := false;
-  // restore from backup if sets file lost //
-  if not FileExists(SetsPathFile) and FileExists(ChangeFileExt(SetsPathFile, '.bak')) then
-  begin
-    windows.CopyFile(pchar(ChangeFileExt(SetsPathFile, '.bak')), pchar(SetsPathFile), true);
-    FRestored := true;
-  end;
-
   // load sets //
   ini:= TIniFile.Create(SetsPathFile);
   // base //
@@ -247,7 +245,7 @@ end;
 //------------------------------------------------------------------------------
 procedure _Sets.Save(ASetsFile: string);
 begin
-  SetsPathFile := ASetsFile;
+  FSetsPathFile := ASetsFile;
   Save;
 end;
 //------------------------------------------------------------------------------
@@ -350,18 +348,18 @@ var
 begin
   result := true;
   try
-    backupFile := ExcludeTrailingPathDelimiter(ExtractFileDir(SetsPathFile)) + '\Backup';
+    if not FileExists(SetsPathFile) then exit;
 
     // list all backup files
     list := TStringList.Create;
-    toolu.searchfiles(backupFile, 'sets*.ini', list);
+    toolu.SearchFilesRecursive(BackupsPath, 'sets*.ini', list);
     toolu.qSortStrings(list);
 
     // compare the last one (if exists) with the settings file
     identical := false;
     if list.Count > 0 then
     begin
-      lastBackupFile := backupFile + '\' + list.Strings[list.Count - 1];
+      lastBackupFile := list.Strings[list.Count - 1];
       lastBackupFS := TFileStream.Create(lastBackupFile, fmOpenRead);
       setsFS := TFileStream.Create(SetsPathFile, fmOpenRead);
       identical := IsIdenticalStreams(lastBackupFS, setsFS);
@@ -373,11 +371,11 @@ begin
     // if exists and they are identical - exit
     if identical then exit;
 
-    if not DirectoryExists(backupFile) then windows.CreateDirectory(pchar(backupFile), nil);
-    backupFile := backupFile + '\sets-' + FormatDateTime('yyyy-MM-dd-hh-nn-ss', Now) + '.ini';
+    if not DirectoryExists(BackupsPath) then windows.CreateDirectory(pchar(BackupsPath), nil);
+    backupFile := BackupsPath + '\sets-' + FormatDateTime('yyyy-MM-dd-hh-nn-ss', Now) + '.ini';
     if not windows.CopyFile(pchar(SetsPathFile), pchar(backupFile), false) then result := false;
   except
-    on e: Exception do raise Exception.Create('Sets.Backup'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Backup '#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -396,7 +394,7 @@ begin
 
     if windows.CopyFile(pchar(backupFilename), pchar(SetsPathFile), false) then result := true;
   except
-    on e: Exception do raise Exception.Create('Sets.Restore'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Restore '#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

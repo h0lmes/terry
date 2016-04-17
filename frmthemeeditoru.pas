@@ -55,7 +55,6 @@ procedure TfrmThemeEditor.FormShow(Sender: TObject);
 begin
   font.name:= GetFont;
   font.size:= GetFontSize;
-
   Constraints.MaxHeight := Height;
   Constraints.MinHeight := Height;
 

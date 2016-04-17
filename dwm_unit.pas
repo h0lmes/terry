@@ -65,12 +65,40 @@ type
   end;
   P_DWM_THUMBNAIL_PROPERTIES = ^_DWM_THUMBNAIL_PROPERTIES;
 
+	_WINDOWCOMPOSITIONATTRIBUTE = (
+      WCA_ACCENT_POLICY = 19
+  );
+
+  _ACCENTSTATE = (
+		  ACCENT_DISABLED = 0,
+		  ACCENT_ENABLE_GRADIENT = 1,
+		  ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
+		  ACCENT_ENABLE_BLURBEHIND = 3,
+		  ACCENT_INVALID_STATE = 4
+	);
+
+  TWindowCompositionAttributeData = packed record
+    attribute: THandle; //_WINDOWCOMPOSITIONATTRIBUTE;
+    data: Pointer;
+    size: dword;
+  end;
+
+  TAccentPolicy = packed record
+    AccentState: integer; //_ACCENTSTATE;
+		AccentFlags: integer;
+	  GradientColor: integer;
+	  AnimationId: integer;
+  end;
+
   { TDWMHelper }
 
   TDWMHelper = class
     private
       IsVista: boolean;
+      IsWin7: boolean;
+      IsWin10: boolean;
       hDwmLib: uint;
+      SetWindowCompositionAttribute: function(Wnd: HWND; const AttrData: TWindowCompositionAttributeData): BOOL; stdcall;
       DwmIsCompositionEnabled: function(pfEnabled: PBoolean): HRESULT; stdcall;
       DwmEnableBlurBehindWindow: function(Wnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
       DwmSetWindowAttribute: function(Wnd: HWND; dwAttribute: _DWMWINDOWATTRIBUTE; pvAttribute: Pointer; cb: DWORD): HRESULT; stdcall;
@@ -116,17 +144,21 @@ var
 begin
   VerInfo.dwOSVersionInfoSize:= sizeof(TOSVersionInfo);
   GetVersionEx(VerInfo);
-  IsVista:= VerInfo.dwMajorVersion >= 6;
+  IsVista := VerInfo.dwMajorVersion >= 6;
+  IsWin7 := (VerInfo.dwMajorVersion > 6) or ((VerInfo.dwMajorVersion = 6) and (VerInfo.dwMinorVersion >= 2));
+  IsWin10 := VerInfo.dwMajorVersion >= 10;
+
+  SetWindowCompositionAttribute := GetProcAddress(GetModuleHandle(user32), 'SetWindowCompositionAttribute');
 
   hDwmLib:= LoadLibrary('dwmapi.dll');
   if hDwmLib <> 0 then
   begin
-    @DwmIsCompositionEnabled:= GetProcAddress(hDwmLib, 'DwmIsCompositionEnabled');
-    @DwmEnableBlurBehindWindow:= GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
-    @DwmSetWindowAttribute:= GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
-    @DwmGetWindowAttribute:= GetProcAddress(hDwmLib, 'DwmGetWindowAttribute');
-    @DwmExtendFrameIntoClientArea:= GetProcAddress(hDwmLib, 'DwmExtendFrameIntoClientArea');
-    @DwmGetColorizationColor:= GetProcAddress(hDwmLib, 'DwmGetColorizationColor');
+    @DwmIsCompositionEnabled := GetProcAddress(hDwmLib, 'DwmIsCompositionEnabled');
+    @DwmEnableBlurBehindWindow := GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
+    @DwmSetWindowAttribute := GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
+    @DwmGetWindowAttribute := GetProcAddress(hDwmLib, 'DwmGetWindowAttribute');
+    @DwmExtendFrameIntoClientArea := GetProcAddress(hDwmLib, 'DwmExtendFrameIntoClientArea');
+    @DwmGetColorizationColor := GetProcAddress(hDwmLib, 'DwmGetColorizationColor');
     //
     @DwmRegisterThumbnail := GetProcAddress(hDwmLib, 'DwmRegisterThumbnail');
     @DwmUnregisterThumbnail := GetProcAddress(hDwmLib, 'DwmUnregisterThumbnail');
@@ -155,29 +187,59 @@ end;
 procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
   bb: _DWM_BLURBEHIND;
+  accent: TAccentPolicy;
+  data: TWindowCompositionAttributeData;
 begin
-  if CompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
+  if IsWin10 then
   begin
-    ZeroMemory(@bb, SizeOf(bb));
-    bb.dwFlags:= 3;
-    bb.fEnable:= true;
-    bb.hRgnBlur:= rgn;
-    DwmEnableBlurBehindWindow(AHandle, @bb);
-  end else
-    DisableBlurBehindWindow(AHandle);
+	  ZeroMemory(@accent, sizeof(TAccentPolicy));
+	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
+	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_ENABLE_BLURBEHIND);
+	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
+	  data.size := sizeof(TAccentPolicy);
+	  data.data := @accent;
+	  SetWindowCompositionAttribute(AHandle, data);
+  end
+  else
+  begin
+	    if CompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
+	    begin
+	      ZeroMemory(@bb, SizeOf(bb));
+	      bb.dwFlags:= 3;
+	      bb.fEnable:= true;
+	      bb.hRgnBlur:= rgn;
+	      DwmEnableBlurBehindWindow(AHandle, @bb);
+	    end else
+	      DisableBlurBehindWindow(AHandle);
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
   bb: _DWM_BLURBEHIND;
+  accent: TAccentPolicy;
+  data: TWindowCompositionAttributeData;
 begin
-  if @DwmEnableBlurBehindWindow <> nil then
+  if IsWin10 then
   begin
-    ZeroMemory(@bb, SizeOf(bb));
-    bb.dwFlags:= 1;
-    bb.fEnable:= false;
-    DwmEnableBlurBehindWindow(AHandle, @bb);
-  end;
+	  ZeroMemory(@accent, sizeof(TAccentPolicy));
+	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
+	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
+	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
+	  data.size := sizeof(TAccentPolicy);
+	  data.data := @accent;
+	  SetWindowCompositionAttribute(AHandle, data);
+  end
+  else
+  begin
+	    if @DwmEnableBlurBehindWindow <> nil then
+	    begin
+	      ZeroMemory(@bb, SizeOf(bb));
+	      bb.dwFlags:= 1;
+	      bb.fEnable:= false;
+	      DwmEnableBlurBehindWindow(AHandle, @bb);
+	    end;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExcludeFromPeek(const AHandle: THandle);
@@ -337,7 +399,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 initialization
-  DWM:= TDWMHelper.Create;
+  DWM := TDWMHelper.Create;
 finalization
   DWM.free;
 end.

@@ -91,6 +91,7 @@ type
     icDragLeave,
     icIsItem,
     icDropIndicator,
+    icVisible,
     icMax);
 
   PFontData = ^_FontData;
@@ -172,7 +173,6 @@ const
   function GetMonitorInfoA(hMonitor: THandle; lpmi: pointer): bool; stdcall; external 'user32.dll';
   function SHGetNameFromIDList(_para1:LPCITEMIDLIST; sigdnName: longint; _para2:LPTSTR):WINBOOL; external 'shell32.dll' name 'SHGetNameFromIDList';
 
-
 const
   PROGRAM_NAME = 'TDock';
   PROGRAM_REGKEY = 'tdock';
@@ -182,6 +182,8 @@ const
   RollStep = 4;
   NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
   NOT_AN_ITEM = $ffff; // result const in case when item (items[]) not found
+
+  WM_DPICHANGED = $02E0;
 
   // private Terry WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
@@ -224,7 +226,7 @@ resourcestring
   XErrorSetsRestoreFailed = 'Restore operation failed.';
   XMsgSetsRestored = 'The settings are restored from backup.';
   XMsgRunAgain = 'Run the program again.';
-  XMsgRunRestore = 'Run restore operation from the context menu.';
+  XMsgRunRestore = 'Run restore operation.';
   XErrorSetsBackupFailed = 'Failed to backup settings.';
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';

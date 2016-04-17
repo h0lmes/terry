@@ -131,7 +131,7 @@ end;
 procedure TNotifier.Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
 var
   hgdip, path, hbrush, hpen: Pointer;
-  caption_font, message_font, caption_font_family, message_font_family: Pointer;
+  caption_font, message_font, font_family: Pointer;
   caption_rect, text_rect: TRectF;
   message_margin, wa: Windows.TRect;
   bmp: _SimpleBitmap;
@@ -169,10 +169,9 @@ begin
 
   // context //
   try
-    GdipCreateFontFamilyFromName(PWideChar(WideString(GetFont)), nil, caption_font_family);
-    GdipCreateFontFamilyFromName(PWideChar(WideString(GetContentFont)), nil, message_font_family);
-    GdipCreateFont(caption_font_family, 16, 1, 2, caption_font);
-    GdipCreateFont(message_font_family, 14, 0, 2, message_font);
+    GdipCreateFontFamilyFromName(PWideChar(WideString(GetFont)), nil, font_family);
+    GdipCreateFont(font_family, 16, 1, 2, caption_font);
+    GdipCreateFont(font_family, 14, 0, 2, message_font);
   except
     on e: Exception do
     begin
@@ -321,8 +320,7 @@ begin
   try
     GdipDeleteFont(caption_font);
     GdipDeleteFont(message_font);
-    GdipDeleteFontFamily(caption_font_family);
-    GdipDeleteFontFamily(message_font_family);
+    GdipDeleteFontFamily(font_family);
     GdipDeleteGraphics(hgdip);
     gfx.DeleteBitmap(bmp);
   except

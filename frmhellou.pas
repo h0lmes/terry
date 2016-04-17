@@ -51,12 +51,13 @@ begin
   Application.CreateForm(TfrmHello, frmHello);
   frmHello.Show;
   frmHello.btnAutorun.Enabled := not CheckAutorun;
-  frmHello.font.size := toolu.GetFontSize;
-  frmHello.font.name := toolu.GetFont;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.FormShow(Sender: TObject);
 begin
+  font.name := GetFont;
+  font.size := GetFontSize;
+
   Label1.Font.Bold := true;
   Label2.Font.Bold := true;
   Label4.Font.Bold := true;

@@ -9,6 +9,7 @@ object frmTip: TfrmTip
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '1.2.2.0'
   object memo: TMemo

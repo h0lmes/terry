@@ -49,7 +49,6 @@ type
 		procedure DoGlobalHotkeys;
 		function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
-    procedure Restore(backupFile: string);
     procedure RegisterRawInput;
     procedure NativeWndProc(var message: TMessage);
     procedure AppException(Sender: TObject; e: Exception);
@@ -61,6 +60,7 @@ type
     procedure WMDisplayChange(var Message: TMessage);
     procedure WMSettingChange(var Message: TMessage);
     procedure WMCompositionChanged(var Message: TMessage);
+    procedure WMDPIChanged(var Message: TMessage);
     procedure WHMouseMove(LParam: LParam);
     procedure WHButtonDown(button: integer);
     procedure OnMouseEnter;
@@ -106,6 +106,7 @@ type
     procedure ExecAutorun;
     procedure CloseProgram;
     procedure ApplyParams;
+    procedure Restore(backupFile: string);
     procedure err(where: string; e: Exception);
     procedure notify(message: string; silent: boolean = False);
     procedure alert(message: string);
@@ -145,7 +146,7 @@ var frmmain: Tfrmmain;
 implementation
 uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
   frmStackPropu, frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
-  frmtipu, multidocku;
+  frmtipu, multidocku, frmrestoreu;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
@@ -229,9 +230,11 @@ begin
     except
       on e: Exception do
       begin
+        SaveSets;
         AddLog('Init.LoadItems failed');
         AddLog(e.message);
         messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgRunRestore)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+        TfrmRestore.Open;
       end;
     end;
 
@@ -239,8 +242,6 @@ begin
     SetTimer(handle, ID_TIMER, 10, nil);
     SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
     SetTimer(handle, ID_TIMER_FSA, 2000, nil);
-
-    if sets.Restored then notify(UTF8ToAnsi(XMsgSetsRestored));
 
     // Tray and StartMenu controllers //
     Tray := TTrayController.Create;
@@ -455,15 +456,15 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Restore(backupFile: string);
 begin
+  notify('Restore: ' + backupFile);
   if sets.Restore(backupFile) then
   begin
     AddLog('Restore.Succeeded');
-    messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+    messagebox(handle, pchar(UTF8ToAnsi(XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
     halt;
   end else begin
     AddLog('Restore.Failed');
-    messagebox(handle,
-      pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
+    messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
     halt;
   end;
 end;
@@ -512,7 +513,7 @@ begin
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         Visible := boolean(param);
-        if boolean(param) then MaintainNotForeground;
+        //if boolean(param) then SetNotForeground;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
@@ -611,6 +612,7 @@ begin
     WM_DISPLAYCHANGE : WMDisplayChange(message);
     WM_SETTINGCHANGE : WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
+    WM_DPICHANGED: WMDPIChanged(message);
     WM_APP_RUN_THREAD_END: CloseHandle(message.lParam);
     else message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
   end;
@@ -707,7 +709,6 @@ var
 begin
   if IsMenu(hMenu) then DestroyMenu(hMenu);
   if ParentMenu = 0 then hMenu := CreatePopupMenu else hMenu := ParentMenu;
-  hMenuCreate := CreatePopupMenu;
 
   if ParentMenu = 0 then
     if IsValidItemString(GetClipboard) then
@@ -715,6 +716,7 @@ begin
 
   // create submenu 'Add...' //
 
+  hMenuCreate := CreatePopupMenu;
   AppendMenu(hMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pchar(UTF8ToAnsi(XUndeleteIcon)));
   AppendMenu(hMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
   AppendMenu(hMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
@@ -731,8 +733,8 @@ begin
     idx := 0;
     while idx < sets.GetPluginCount do
     begin
-      AppendMenu(hMenuCreate, MF_STRING, $f041 + idx, PChar(sets.GetPluginName(idx)));
-      Inc(idx);
+      AppendMenu(hMenuCreate, MF_STRING, $f041 + idx, pchar(sets.GetPluginName(idx)));
+      inc(idx);
     end;
   end;
 
@@ -1744,6 +1746,13 @@ begin
   message.Result := 0;
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmmain.WMDPIChanged(var Message: TMessage);
+begin
+  //GetDpiForMonitor
+  BaseCmd(tcThemeChanged, 0);
+  message.Result := 0;
+end;
+//------------------------------------------------------------------------------
 function Tfrmmain.FullScreenAppActive(HWnd: HWND): boolean;
 const
   clsPM = 'Progman';
@@ -1896,7 +1905,7 @@ begin
   else if cmd = 'hello' then        TfrmHello.Open
   else if cmd = 'help' then         TfrmTip.Open
   else if cmd = 'backup' then       sets.Backup
-  else if cmd = 'restore' then      sets.Restore(params)
+  else if cmd = 'restore' then      TfrmRestore.Open
   else if cmd = 'paste' then        ItemMgr.InsertItem(GetClipboard)
   else if cmd = 'tray' then         Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'autotray' then     Tray.SwitchAutoTray

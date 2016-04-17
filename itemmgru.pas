@@ -746,6 +746,7 @@ begin
     UnZoom(true);
     AllItemCmd(icHover, 0);
     AllItemCmd(icSelect, 0);
+    AllItemCmd(icVisible, integer(value));
     FHoverItemHWnd := 0;
     FSelectedItemHWnd := 0;
   end;

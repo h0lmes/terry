@@ -75,6 +75,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+		procedure FormShow(Sender: TObject);
     procedure listDblClick(Sender: TObject);
     procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
@@ -133,18 +134,21 @@ var
 begin
   FChanged := false;
 
+  for idx := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(idx));
+  cboPreview.Clear;
+  cboPreview.Items.Add(XStackPreviewNone);
+  cboPreview.Items.Add(XStackPreviewFour);
+  cboPreview.Items.Add(XStackPreviewNine);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.FormShow(Sender: TObject);
+begin
   font.Name := GetFont;
   font.size := GetFontSize;
   clientheight := btnOK.top + btnOK.Height + 7;
   constraints.minheight := Height;
   constraints.maxheight := Height;
   constraints.minwidth := Width;
-
-  for idx := 0 to mc.GetModeCount - 1 do cboMode.Items.Add(mc.GetModeName(idx));
-  cboPreview.Clear;
-  cboPreview.Items.Add(XStackPreviewNone);
-  cboPreview.Items.Add(XStackPreviewFour);
-  cboPreview.Items.Add(XStackPreviewNine);
 end;
 //------------------------------------------------------------------------------
 function TfrmStackProp.SetData(AData: string): boolean;

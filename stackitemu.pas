@@ -74,7 +74,7 @@ type
     function ItemIndex(HWnd: HANDLE): integer;
     procedure AllSubitemsCmd(id: TGParam; param: integer);
     procedure OpenStack;
-    procedure CloseStack;
+    procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
     procedure ShowStackState;
   public
@@ -345,6 +345,8 @@ begin
         end;
       icDragOver: OnDragOver;
       icDragLeave: OnDragLeave;
+      icVisible:
+        if not boolean(param) then CloseStack(true);
       icIsItem:
         begin
           result := 0;
@@ -994,14 +996,19 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.CloseStack;
+procedure TStackItem.CloseStack(immediate: boolean = false);
 begin
   if not FFreed and (FItemCount > 0) and ((FState = stsOpen) or (FState = stsOpening)) then
   begin
     cmd(icSelect, 0);
     FStateProgress := 1;
     FState := stsClosing;  // further progress is being done by timer //
-  end;
+    if immediate then
+    begin
+      FStateProgress := 0;
+      DoStateProgress;
+		end;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.DoStateProgress;
