@@ -82,7 +82,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="498"/>
@@ -298,10 +297,11 @@
         <Filename Value="dwm_unit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwm_unit"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="184"/>
-        <CursorPos X="14" Y="193"/>
+        <TopLine Value="188"/>
+        <CursorPos X="28" Y="241"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -1282,7 +1282,7 @@
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="frmmainu.pas"/>
         <Caret Line="512" Column="42" TopLine="498"/>
@@ -1396,13 +1396,9 @@
         <Caret Line="1113" Column="18" TopLine="1095"/>
       </Position28>
       <Position29>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1136" Column="50" TopLine="1158"/>
-      </Position29>
-      <Position30>
         <Filename Value="terry.lpr"/>
         <Caret Line="209" Column="11" TopLine="183"/>
-      </Position30>
+      </Position29>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

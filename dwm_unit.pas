@@ -189,8 +189,7 @@ procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
   bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
-  noncliPolicy: dword;
-  cliPolicy: bool;
+  flag: bool;
   data: TWindowCompositionAttributeData;
 begin
   if IsWin10 then
@@ -203,13 +202,10 @@ begin
 	  data.data := @accent;
 	  SetWindowCompositionAttribute(AHandle, data);
 
-    noncliPolicy := 0;
-    DwmSetWindowAttribute(AHandle, DWMWA_NCRENDERING_POLICY, @noncliPolicy, sizeof(noncliPolicy));
-
-    cliPolicy := true;
+    flag := true;
 	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
-	  data.size := sizeof(cliPolicy);
-	  data.data := @cliPolicy;
+	  data.size := sizeof(flag);
+	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
   end
   else
@@ -230,7 +226,7 @@ procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
   bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
-  cliPolicy: bool;
+  flag: bool;
   data: TWindowCompositionAttributeData;
 begin
   if IsWin10 then
@@ -242,10 +238,11 @@ begin
 	  data.size := sizeof(TAccentPolicy);
 	  data.data := @accent;
 	  SetWindowCompositionAttribute(AHandle, data);
-	  cliPolicy := false;
+
+    flag := false;
 	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
-	  data.size := sizeof(cliPolicy);
-	  data.data := @cliPolicy;
+	  data.size := sizeof(flag);
+	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
   end
   else
