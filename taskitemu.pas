@@ -3,7 +3,7 @@ unit taskitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, Math,
+uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math,
   GDIPAPI, gfx, declu, dockh, customdrawitemu, processhlp, aeropeeku;
 
 type
@@ -334,6 +334,15 @@ begin
   ClosePeekWindow;
 end;
 //------------------------------------------------------------------------------
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+begin
+  result := false;
+  if hData <> 0 then
+  begin
+    AppendMenu(HMENU(dwData), MF_STRING, 0, pchar(lpszString + ' = 0x' + inttohex(hData, 8)));
+    result := true;
+  end;
+end;
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
@@ -342,6 +351,8 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
+  //jwaWindows.EnumPropsEx(THandle(FAppList.First), @EnumPropProc, FHMenu);
+  //AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));

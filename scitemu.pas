@@ -3,7 +3,7 @@ unit scitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
+uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
   IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customdrawitemu,
   toolu, processhlp, aeropeeku, mixeru, networksu;
 
@@ -571,6 +571,15 @@ begin
   ClosePeekWindow;
 end;
 //------------------------------------------------------------------------------
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+begin
+  result := false;
+  if hData <> 0 then
+  begin
+    AppendMenu(HMENU(dwData), MF_STRING, 0, pchar(lpszString + ' = 0x' + inttohex(hData, 8)));
+    result := true;
+  end;
+end;
 function TShortcutItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   filename: string;
@@ -580,10 +589,8 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  mii.cbSize := sizeof(MENUITEMINFO);
-  mii.fMask := MIIM_STATE;
-  mii.fState := MFS_DEFAULT;
-  SetMenuItemInfo(FHMenu, $f006, false, @mii);
+  //jwaWindows.EnumPropsEx(THandle(FAppList.First), @EnumPropProc, FHMenu);
+  //AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
