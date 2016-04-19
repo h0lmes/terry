@@ -334,10 +334,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+begin
+  result := false;
+  if hData <> 0 then
+  begin
+    AddLog('prop: ' + lpszString + ' = 0x' + inttohex(hData, 8));
+    result := true;
+  end;
+end;
+//------------------------------------------------------------------------------
 function TShortcutItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
   temp: uint;
+  idx: integer;
 begin
   try
     result := inherited cmd(id, param);
@@ -365,6 +376,18 @@ begin
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
       gpSite: if FRunning then Redraw;
       tcThemeChanged: if FRunning then Redraw;
+      tcDebugInfo:
+        if FAppList.Count > 0 then // debug window props info
+        begin
+          for idx := 0 to FAppList.Count - 1 do
+          begin
+            AddLog(FCaption + ' >>> hwnd: 0x' + inttohex(integer(FAppList.Items[idx]), 8));
+            try jwaWindows.EnumPropsEx(THandle(FAppList.Items[idx]), @EnumPropProc, 0);
+            except on e: Exception do AddLog(e.message);
+            end;
+            AddLog('-');
+          end;
+        end;
 
       // commands //
       icUpdateRunning: UpdateItemRunningState;
@@ -379,6 +402,8 @@ begin
           FDropIndicator := 0;
           Redraw;
         end;
+
+      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate(2);
     end;
 
   except
@@ -571,15 +596,6 @@ begin
   ClosePeekWindow;
 end;
 //------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
-begin
-  result := false;
-  if hData <> 0 then
-  begin
-    AppendMenu(HMENU(dwData), MF_STRING, 0, pchar(lpszString + ' = 0x' + inttohex(hData, 8)));
-    result := true;
-  end;
-end;
 function TShortcutItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   filename: string;
@@ -589,8 +605,6 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  //jwaWindows.EnumPropsEx(THandle(FAppList.First), @EnumPropProc, FHMenu);
-  //AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
   AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
   AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
@@ -604,7 +618,10 @@ begin
     AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pchar(UTF8ToAnsi(XKillProcess)));
     AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
     if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
-    else AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
+    else begin
+      AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
+      AppendMenu(FHMenu, MF_STRING, $f009, pchar(UTF8ToAnsi(XMinimizeRestoreAllWindows)));
+    end;
   end;
   AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
@@ -653,7 +670,8 @@ begin
           ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
       end;
     $f008: ProcessHelper.Kill(FExecutable);
-    //$f009..$f020: ;
+    $f009: ProcessHelper.ActivateWindowList(FAppList);
+    //$f00a..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

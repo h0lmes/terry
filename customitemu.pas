@@ -4,7 +4,7 @@ unit customitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
-  declu, dockh, GDIPAPI, gfx;
+  declu, dockh, GDIPAPI, gfx, toolu;
 
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
@@ -706,7 +706,11 @@ begin
     if FHWnd <> 0 then
       message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
   except
-    on e: Exception do raise Exception.Create('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
+    on e: Exception do
+    begin
+      AddLog('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
+      messagebox(0, pchar('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message), nil, 0);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

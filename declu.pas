@@ -78,6 +78,7 @@ type
     tcZOrder,
     tcToggleVisible,
     tcToggleTaskbar,
+    tcDebugInfo,
     tcMax,
     // item commands //
     icMin = $2000,
@@ -92,6 +93,7 @@ type
     icIsItem,
     icDropIndicator,
     icVisible,
+    icFlashTaskWindow,
     icMax);
 
   PFontData = ^_FontData;
@@ -245,6 +247,7 @@ resourcestring
   XExit = 'Exit';
   XCloseWindow = 'Close window';
   XCloseAllWindows = 'Close all windows';
+  XMinimizeRestoreAllWindows = 'Minimize/restore all windows';
   XEmptyBin = 'Empty bin';
   XOpenThemesFolder = 'Open themes folder';
   XUndeleteIcon = 'Undelete icon  (Ctrl+Z)';

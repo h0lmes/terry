@@ -216,6 +216,10 @@ msgstr "Ширина увеличения: %d"
 msgid "Lock icons"
 msgstr "Закрепить значки"
 
+#: declu.xminimizerestoreallwindows
+msgid "Minimize/restore all windows"
+msgstr "Свернуть/восстановить все окна"
+
 #: declu.xmonitor
 msgctxt "declu.xmonitor"
 msgid "Monitor"

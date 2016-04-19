@@ -4,7 +4,7 @@ unit taskitemu;
 
 interface
 uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gfx, declu, dockh, customdrawitemu, processhlp, aeropeeku;
+  GDIPAPI, gfx, declu, dockh, toolu, customdrawitemu, processhlp, aeropeeku;
 
 type
 
@@ -194,9 +194,20 @@ begin
     LoadAppImage(FExecutable, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+begin
+  result := false;
+  if hData <> 0 then
+  begin
+    AddLog(lpszString + ' = 0x' + inttohex(hData, 8));
+    result := true;
+  end;
+end;
+//------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
 var
   temp: uint;
+  idx: integer;
 begin
   try
     result := inherited cmd(id, param);
@@ -217,8 +228,23 @@ begin
       gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
       gpTaskThumbSize: FTaskThumbSize := param;
       gpTaskGrouping: FTaskGrouping := boolean(param);
+      tcDebugInfo:
+        if FAppList.Count > 0 then // debug window props info
+        begin
+          for idx := 0 to FAppList.Count - 1 do
+          begin
+            AddLog(FCaption + ' >>> hwnd: 0x' + inttohex(integer(FAppList.Items[idx]), 8));
+            try jwaWindows.EnumPropsEx(THandle(FAppList.Items[idx]), @EnumPropProc, 0);
+            except on e: Exception do AddLog(e.message);
+            end;
+            AddLog('-');
+          end;
+        end;
 
       // commands //
+
+      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate(2);
+
       icIsItem: result := 0;
     end;
 
@@ -334,15 +360,6 @@ begin
   ClosePeekWindow;
 end;
 //------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
-begin
-  result := false;
-  if hData <> 0 then
-  begin
-    AppendMenu(HMENU(dwData), MF_STRING, 0, pchar(lpszString + ' = 0x' + inttohex(hData, 8)));
-    result := true;
-  end;
-end;
 function TTaskItem.ContextMenu(pt: Windows.TPoint): boolean;
 var
   msg: TMessage;
@@ -351,15 +368,16 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
-  //jwaWindows.EnumPropsEx(THandle(FAppList.First), @EnumPropProc, FHMenu);
-  //AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
   AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseWindow)))
-  else AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XCloseAllWindows)));
+  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
+  else begin
+    AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
+    AppendMenu(FHMenu, MF_STRING, $f009, pchar(UTF8ToAnsi(XMinimizeRestoreAllWindows)));
+  end;
   AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
@@ -382,14 +400,6 @@ begin
   DestroyMenu(FHMenu);
   FHMenu := 0;
   case wParam of // f001 to f020
-    $f001:
-      if FAppList.Count > 0 then
-      begin
-        for idx := FAppList.Count - 1 downto 0 do
-          ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
-      end else begin
-        Delete;
-      end;
     $f002:
         if FIsExecutable then
         begin
@@ -399,7 +409,16 @@ begin
     $f003: if FIsExecutable then ProcessHelper.Kill(FExecutable);
     $f004: if FIsExecutable then dockh.DockExecute(FHWnd, pchar(FExecutable), nil, nil, SW_SHOWNORMAL);
     $f005: dockh.DockExecute(FHWnd, '/taskspot', nil, nil, 0);
-    //$f006..$f020: ;
+    $f007:
+      if FAppList.Count > 0 then
+      begin
+        for idx := FAppList.Count - 1 downto 0 do
+          ProcessHelper.CloseWindow(THandle(FAppList.Items[idx]));
+      end else begin
+        Delete;
+      end;
+    $f009: ProcessHelper.ActivateWindowList(FAppList);
+    //$f00a..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

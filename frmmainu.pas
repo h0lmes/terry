@@ -47,6 +47,7 @@ type
     procedure CreateZOrderWindow;
     function  CloseQuery: integer;
 		procedure DoGlobalHotkeys;
+    procedure FlashTaskWindow(hwnd: HWND);
 		function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
     procedure RegisterRawInput;
@@ -102,6 +103,7 @@ type
     hHook: THandle;
     hMenu: THandle;
     hMenuCreate: THandle;
+    WM_SHELLHOOK: integer;
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
     procedure CloseProgram;
@@ -173,6 +175,9 @@ begin
     SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
 
     dwm.ExcludeFromPeek(Handle);
+
+    WM_SHELLHOOK := RegisterWindowMessage('SHELLHOOK');
+    RegisterShellHookWindow(Handle);
 
     // hook //
     //theFile := UnzipPath('%pp%\hook.dll');
@@ -365,6 +370,8 @@ begin
       TProcessHelper.Cleanup;
       TNotifier.Cleanup;
       LockList.free;
+
+      DeregisterShellHookWindow(Handle);
       // reset window proc
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       FreeObjectInstance(FWndInstance);
@@ -519,6 +526,7 @@ begin
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
     tcToggleTaskbar: frmmain.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
     tcGetVisible: Result := integer(ItemMgr.Visible);
+    tcDebugInfo: if assigned(ItemMgr) then ItemMgr.AllItemCmd(tcDebugInfo, 0);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -584,6 +592,13 @@ var
   ri: RAWINPUT;
 begin
   message.result := 0;
+
+  if message.msg = WM_SHELLHOOK then
+  begin
+    if message.wParam = HSHELL_FLASH then FlashTaskWindow(message.lParam);
+    exit;
+  end;
+
   case message.msg of
     WM_INPUT:
       if not closing then
@@ -680,6 +695,11 @@ begin
   KillTimer(Handle, ID_TIMER_FOREGROUND);
   // just to be sure
   ItemMgr.DragLeave;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
+begin
+  if assigned(ItemMgr) then ItemMgr.AllItemCmd(icFlashTaskWindow, hwnd);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
@@ -1885,6 +1905,7 @@ begin
   else if cmd = 'alert' then        frmmain.alert(toolu.UnzipPath(params))
   else if cmd = 'togglevisible' then frmmain.BaseCmd(tcToggleVisible, 0)
   else if cmd = 'togglesystaskbar' then frmmain.BaseCmd(tcToggleTaskbar, 0)
+  else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
   else if cmd = 'sets' then
   begin
     if not trystrtoint(params, i) then i := 0;

@@ -196,6 +196,10 @@ msgstr ""
 msgid "Lock icons"
 msgstr ""
 
+#: declu.xminimizerestoreallwindows
+msgid "Minimize/restore all windows"
+msgstr ""
+
 #: declu.xmonitor
 msgctxt "declu.xmonitor"
 msgid "Monitor"
