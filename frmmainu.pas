@@ -1112,7 +1112,7 @@ begin
   // place all the items right underneath ZOrderWindow
   ItemMgr.ZOrder(ZOrderWindow);
 
-  // bring to the foreground other dock windows if any visible
+  // bring to the foreground other program windows if any visible
   if assigned(frmItemProp) then setfore(frmItemProp.handle);
   if assigned(frmStackProp) then setfore(frmStackProp.handle);
   if assigned(frmSets) then setfore(frmSets.handle);
@@ -1124,7 +1124,7 @@ procedure Tfrmmain.SetNotForeground;
 
 function IsDockWnd(wnd: uint): boolean;
 begin
-  result := (wnd = handle) or not (ItemMgr.IsItem(wnd) = 0);
+  result := (wnd = handle) or (ItemMgr.IsItem(wnd) <> 0);
 end;
 
 function ZOrderIndex(hWnd: uint): integer;
@@ -1251,7 +1251,7 @@ begin
       GdipSetSmoothingMode(dst, SmoothingModeHighSpeed);
       GdipSetPixelOffsetMode(dst, PixelOffsetModeHighSpeed);
       GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
-      // workaround to eliminate rumble on certain backgrounds while dragging a file //
+      // workaround to eliminate twitch with certain backgrounds while dragging a file //
       if ItemMgr.FDraggingFile then GdipGraphicsClear(dst, ITEM_BACKGROUND);
       // draw dock background image //
       Theme.DrawBackground(dst, ItemMgr.FBaseImageRect, sets.container.BaseAlpha);

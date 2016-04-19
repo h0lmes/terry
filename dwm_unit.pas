@@ -66,6 +66,7 @@ type
   P_DWM_THUMBNAIL_PROPERTIES = ^_DWM_THUMBNAIL_PROPERTIES;
 
 	_WINDOWCOMPOSITIONATTRIBUTE = (
+      WCA_CLIENTRENDERING_POLICY = 16,
       WCA_ACCENT_POLICY = 19
   );
 
@@ -188,6 +189,8 @@ procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
   bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
+  noncliPolicy: dword;
+  cliPolicy: bool;
   data: TWindowCompositionAttributeData;
 begin
   if IsWin10 then
@@ -198,6 +201,15 @@ begin
 	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
 	  data.size := sizeof(TAccentPolicy);
 	  data.data := @accent;
+	  SetWindowCompositionAttribute(AHandle, data);
+
+    noncliPolicy := 0;
+    DwmSetWindowAttribute(AHandle, DWMWA_NCRENDERING_POLICY, @noncliPolicy, sizeof(noncliPolicy));
+
+    cliPolicy := true;
+	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
+	  data.size := sizeof(cliPolicy);
+	  data.data := @cliPolicy;
 	  SetWindowCompositionAttribute(AHandle, data);
   end
   else
@@ -218,6 +230,7 @@ procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
   bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
+  cliPolicy: bool;
   data: TWindowCompositionAttributeData;
 begin
   if IsWin10 then
@@ -228,6 +241,11 @@ begin
 	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
 	  data.size := sizeof(TAccentPolicy);
 	  data.data := @accent;
+	  SetWindowCompositionAttribute(AHandle, data);
+	  cliPolicy := false;
+	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
+	  data.size := sizeof(cliPolicy);
+	  data.data := @cliPolicy;
 	  SetWindowCompositionAttribute(AHandle, data);
   end
   else

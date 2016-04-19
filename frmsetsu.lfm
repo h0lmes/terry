@@ -23,9 +23,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 470
-    ActivePage = tsIcons
+    ActivePage = tsPosition
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -322,8 +322,8 @@ object frmsets: Tfrmsets
         Top = 150
         Width = 202
         Frequency = 10
-        Max = 100
-        Min = -100
+        Max = 50
+        Min = -50
         OnChange = tbEdgeOffsetChange
         PageSize = 10
         Position = 0

@@ -854,7 +854,7 @@ begin
       inc(i);
     end;
 
-    // icon position when FZooming (within bubble excluding center bubble icon) //
+    // icons positions while FZooming (within bubble, excluding center bubble icon) //
     if ZoomItemSizeDiff > 0 then
     begin
       i := trunc(_ZoomInOutItem) - 1;
