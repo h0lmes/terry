@@ -1,3 +1,13 @@
+//------------------------------------------------------------------------------
+//
+//
+//
+// This unit incorporates functionality to interact with Desktop Windows Manager
+//
+//
+//
+//------------------------------------------------------------------------------
+
 unit dwm_unit;
 
 interface
@@ -117,7 +127,7 @@ type
     public
       constructor Create;
       destructor Destroy; override;
-      function CompositionEnabled: boolean;
+      function IsCompositionEnabled: boolean;
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
       procedure ExcludeFromPeek(const AHandle: THandle);
@@ -176,24 +186,25 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-function TDWMHelper.CompositionEnabled: boolean;
+function TDWMHelper.IsCompositionEnabled: boolean;
 var
   enabled: Boolean;
 begin
-  enabled:= false;
+  enabled := false;
   if @DwmIsCompositionEnabled <> nil then DwmIsCompositionEnabled(@enabled);
   result:= enabled;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
-  bb: _DWM_BLURBEHIND;
+  //bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
   flag: bool;
   data: TWindowCompositionAttributeData;
+  margins: windows.TRect;
 begin
-  if IsWin10 then
-  begin
+  //if IsWin10 then
+  //begin
 	  ZeroMemory(@accent, sizeof(TAccentPolicy));
 	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
 	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_ENABLE_BLURBEHIND);
@@ -207,10 +218,10 @@ begin
 	  data.size := sizeof(flag);
 	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
-  end
+  {end
   else
   begin
-	    if CompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
+	    if IsCompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
 	    begin
 	      ZeroMemory(@bb, SizeOf(bb));
 	      bb.dwFlags:= 3;
@@ -219,18 +230,18 @@ begin
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
 	    end else
 	      DisableBlurBehindWindow(AHandle);
-	end;
+	end;}
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
-  bb: _DWM_BLURBEHIND;
+  //bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
   flag: bool;
   data: TWindowCompositionAttributeData;
 begin
-  if IsWin10 then
-  begin
+  {if IsWin10 then
+  begin}
 	  ZeroMemory(@accent, sizeof(TAccentPolicy));
 	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
 	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
@@ -244,7 +255,7 @@ begin
 	  data.size := sizeof(flag);
 	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
-  end
+  {end
   else
   begin
 	    if @DwmEnableBlurBehindWindow <> nil then
@@ -254,7 +265,7 @@ begin
 	      bb.fEnable:= false;
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
 	    end;
-	end;
+	end;}
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExcludeFromPeek(const AHandle: THandle);
@@ -300,7 +311,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExtendFrameIntoClientArea(const AHandle: THandle; margins: windows.TRect);
 begin
-  if CompositionEnabled then
+  if IsCompositionEnabled then
     if @DwmExtendFrameIntoClientArea <> nil then
       DwmExtendFrameIntoClientArea(AHandle, margins);
 end;
@@ -310,7 +321,7 @@ var
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
 begin
   result := false;
-  if CompositionEnabled then
+  if IsCompositionEnabled then
   begin
     result := Succeeded(DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId));
 
@@ -330,7 +341,7 @@ var
   dstRatio, srcRatio: single;
 begin
   result := false;
-  if CompositionEnabled then
+  if IsCompositionEnabled then
   begin
     result := Succeeded(DwmQueryThumbnailSourceSize(hThumbnailId, @Size));
     w := Size.cx;
@@ -348,7 +359,7 @@ var
 begin
   result := false;
   try
-  if CompositionEnabled then
+  if IsCompositionEnabled then
   begin
       DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
       dstRatio := 1;
@@ -389,7 +400,7 @@ var
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
 begin
   result := false;
-  if CompositionEnabled then
+  if IsCompositionEnabled then
   begin
       FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
       dskThumbProps.dwFlags := DWM_TNP_VISIBLE;

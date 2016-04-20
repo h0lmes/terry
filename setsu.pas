@@ -372,7 +372,7 @@ begin
     if identical then exit;
 
     if not DirectoryExists(BackupsPath) then windows.CreateDirectory(pchar(BackupsPath), nil);
-    backupFile := BackupsPath + '\sets-' + FormatDateTime('yyyy-MM-dd-hh-nn-ss', Now) + '.ini';
+    backupFile := BackupsPath + '\sets__' + FormatDateTime('yyyy-MM-dd__hh-nn-ss', Now) + '.ini';
     if not windows.CopyFile(pchar(SetsPathFile), pchar(backupFile), false) then result := false;
   except
     on e: Exception do raise Exception.Create('Sets.Backup '#10#13 + e.message);

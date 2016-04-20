@@ -217,6 +217,7 @@ begin
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
+    SetParam(gpBlur, sets.GetParam(gpBlur));
     BaseCmd(tcThemeChanged, 0);
 
     // load items //
@@ -547,8 +548,15 @@ begin
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
-    gpBlur:                   BasePaint(1);
-    gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
+    gpBlur:
+        if boolean(value) then
+        begin
+          if sets.container.Blur and Theme.BlurEnabled then
+            DWM.EnableBlurBehindWindow(handle, 0);
+        end else begin
+          DWM.DisableBlurBehindWindow(handle);
+				end;
+		gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
@@ -1221,12 +1229,12 @@ begin
       bmp.topleft.y := ItemMgr.FBaseWindowRect.y;
       bmp.Width := ItemMgr.FBaseWindowRect.Width;
       bmp.Height := ItemMgr.FBaseWindowRect.Height;
-      if not CreateBitmap(bmp, Handle) then exit; //raise Exception.Create('CreateBitmap failed');
+      if not CreateBitmap(bmp, Handle) then exit;
       dst := gfx.CreateGraphics(bmp.dc);
       if not assigned(dst) then
       begin
         DeleteBitmap(bmp);
-        exit; //raise Exception.Create('CreateGraphics failed');
+        exit;
       end;
       GdipSetCompositingMode(dst, CompositingModeSourceOver);
       GdipSetCompositingQuality(dst, CompositingQualityHighSpeed);
@@ -1241,7 +1249,7 @@ begin
       UpdateLWindow(handle, bmp, 255);
 
       // deal with blur //
-      if dwm.CompositionEnabled and sets.container.Blur and Theme.BlurEnabled then
+      {if sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
         rgn := Theme.GetBackgroundRgn(ItemMgr.FBaseImageRect);
@@ -1252,7 +1260,7 @@ begin
       begin
         PrevBlur := false;
         DWM.DisableBlurBehindWindow(handle);
-      end;
+      end;}
 
     finally
       gfx.DeleteGraphics(dst);

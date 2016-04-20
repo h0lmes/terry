@@ -329,7 +329,7 @@ begin
       FWorkArea := mi.rcWork;
 
       //
-      FCompositionEnabled := dwm.CompositionEnabled and LivePreviews and (AppList.Count <= 10);
+      FCompositionEnabled := dwm.IsCompositionEnabled and LivePreviews and (AppList.Count <= 10);
       FAnimate := FCompositionEnabled;
       FLayout := apwlHorizontal;
       if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;

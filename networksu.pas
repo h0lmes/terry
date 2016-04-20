@@ -1,3 +1,14 @@
+//------------------------------------------------------------------------------
+//
+//
+//
+// This unit incorporates functionality to interact with
+// windows network manager to handle network related events
+//
+//
+//
+//------------------------------------------------------------------------------
+
 unit networksu;
 
 {$mode delphi}

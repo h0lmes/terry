@@ -410,7 +410,7 @@ begin
   lbTheme.OnSelectionChange := nil;
   theme.SearchThemes(sets.container.ThemeName, lbTheme);
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
-  chbBlur.Enabled := dwm.CompositionEnabled;
+  chbBlur.Enabled := dwm.IsCompositionEnabled;
   chbBlur.OnClick := nil;
   chbBlur.checked := sets.container.Blur;
   chbBlur.OnClick := chbBlurClick;

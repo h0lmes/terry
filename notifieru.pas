@@ -253,7 +253,7 @@ begin
   try
     GdipCreatePath(FillModeAlternate, path);
     AddPathRoundRect(path, 0, 0, FW, FH, radius);
-    if dwm.CompositionEnabled then alpha := $80000000 else alpha := $ff101010;
+    if dwm.IsCompositionEnabled then alpha := $80000000 else alpha := $ff101010;
     // fill
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
@@ -299,7 +299,7 @@ begin
     end;
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
     SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
-    if dwm.CompositionEnabled then
+    if dwm.IsCompositionEnabled then
     begin
       rgn := CreateRoundRectRgn(0, 0, FW, FH, radius * 2, radius * 2);
       DWM.EnableBlurBehindWindow(FHWnd, rgn);
