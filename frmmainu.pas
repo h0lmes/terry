@@ -32,7 +32,6 @@ type
     saving: boolean;
     AllowClose: boolean;
     PrevBlur: boolean;
-    ZOrderWindow: uint;
     FWndInstance: TFarProc;
     FPrevWndProc: TFarProc;
     HiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
@@ -44,7 +43,6 @@ type
     ConsoleKeysPressed: boolean;
     SavedWorkarea: windows.TRect;
     revertMonitor: integer;
-    procedure CreateZOrderWindow;
     function  CloseQuery: integer;
 		procedure DoGlobalHotkeys;
     procedure FlashTaskWindow(hwnd: HWND);
@@ -166,8 +164,6 @@ begin
     trayicon.Icon := application.Icon;
     LockList := TList.Create;
     crsection := TCriticalSection.Create;
-
-    CreateZOrderWindow;
 
     // workaround for Windows message handling in LCL //
     FWndInstance := MakeObjectInstance(NativeWndProc);
@@ -314,17 +310,6 @@ begin
       end;
   except
     on e: Exception do err('Base.ExecAutorun', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.CreateZOrderWindow;
-begin
-  try
-    ZOrderWindow := CreateWindowEx(WS_EX_TOOLWINDOW, 'tooltips_class32',
-      'ZOrder', WS_CHILD, 0, 0, 0, 0, handle, 0, hInstance, nil);
-    if not IsWindow(ZOrderWindow) then notify('Base.CreateZOrderWindow. Window was not created');
-  except
-    on e: Exception do err('Base.CreateZOrderWindow', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -520,7 +505,7 @@ begin
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         Visible := boolean(param);
-        //if boolean(param) then SetNotForeground;
+        //if boolean(param) then SetForeground;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
@@ -609,8 +594,8 @@ begin
           raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
         if ri.header.dwType = RIM_TYPEMOUSE then
         begin
-          if ri.mouse.usButtonFlags and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
-          if ri.mouse.usButtonFlags and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
+          if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
+          if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
           WHMouseMove(0);
         end;
         exit;
@@ -1109,8 +1094,6 @@ begin
   SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   // set all items non topmost
   ItemMgr.ZOrder(HWND_NOTOPMOST);
-  // place all the items right underneath ZOrderWindow
-  ItemMgr.ZOrder(ZOrderWindow);
 
   // bring to the foreground other program windows if any visible
   if assigned(frmItemProp) then setfore(frmItemProp.handle);
@@ -1179,7 +1162,6 @@ begin
   begin
     SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
     ItemMgr.ZOrder(wnd);
-    ItemMgr.ZOrder(ZOrderWindow);
     ItemMgr.UnZoom();
   end;
 end;
