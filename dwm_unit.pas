@@ -197,14 +197,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
 var
-  //bb: _DWM_BLURBEHIND;
+  bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
   flag: bool;
   data: TWindowCompositionAttributeData;
   margins: windows.TRect;
 begin
-  //if IsWin10 then
-  //begin
+  if IsWin10 then
+  begin
 	  ZeroMemory(@accent, sizeof(TAccentPolicy));
 	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
 	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_ENABLE_BLURBEHIND);
@@ -218,30 +218,30 @@ begin
 	  data.size := sizeof(flag);
 	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
-  {end
+  end
   else
   begin
 	    if IsCompositionEnabled and (@DwmEnableBlurBehindWindow <> nil) then
 	    begin
 	      ZeroMemory(@bb, SizeOf(bb));
-	      bb.dwFlags:= 3;
-	      bb.fEnable:= true;
-	      bb.hRgnBlur:= rgn;
+	      bb.dwFlags := 3;
+	      bb.fEnable := true;
+	      bb.hRgnBlur := 0;
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
 	    end else
 	      DisableBlurBehindWindow(AHandle);
-	end;}
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
 var
-  //bb: _DWM_BLURBEHIND;
+  bb: _DWM_BLURBEHIND;
   accent: TAccentPolicy;
   flag: bool;
   data: TWindowCompositionAttributeData;
 begin
-  {if IsWin10 then
-  begin}
+  if IsWin10 then
+  begin
 	  ZeroMemory(@accent, sizeof(TAccentPolicy));
 	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
 	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
@@ -255,17 +255,17 @@ begin
 	  data.size := sizeof(flag);
 	  data.data := @flag;
 	  SetWindowCompositionAttribute(AHandle, data);
-  {end
+  end
   else
   begin
 	    if @DwmEnableBlurBehindWindow <> nil then
 	    begin
 	      ZeroMemory(@bb, SizeOf(bb));
-	      bb.dwFlags:= 1;
-	      bb.fEnable:= false;
+	      bb.dwFlags := 1;
+	      bb.fEnable := false;
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
 	    end;
-	end;}
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExcludeFromPeek(const AHandle: THandle);
