@@ -41,7 +41,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="135">
+    <Units Count="136">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -216,10 +216,11 @@
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="448"/>
-        <CursorPos X="23" Y="496"/>
+        <TopLine Value="185"/>
+        <CursorPos X="26" Y="203"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -239,8 +240,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="DropTgtU"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="81"/>
-        <CursorPos X="29" Y="100"/>
+        <TopLine Value="57"/>
+        <CursorPos X="8" Y="73"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
@@ -290,8 +291,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="PIDL"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="103"/>
-        <CursorPos X="3" Y="110"/>
+        <TopLine Value="176"/>
+        <CursorPos X="48" Y="195"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -299,7 +300,6 @@
         <Filename Value="dwm_unit.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dwm_unit"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
         <TopLine Value="191"/>
@@ -743,9 +743,9 @@
       <Unit66>
         <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\objpas\sysutils\syspchh.inc"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="9"/>
-        <CursorPos X="10" Y="38"/>
-        <UsageCount Value="2"/>
+        <TopLine Value="7"/>
+        <CursorPos X="10" Y="25"/>
+        <UsageCount Value="10"/>
       </Unit66>
       <Unit67>
         <Filename Value="C:\lazarus\fpc\2.6.4\source\packages\winunits-base\src\shlobj.pp"/>
@@ -1209,7 +1209,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="138"/>
         <CursorPos X="54" Y="24"/>
-        <UsageCount Value="183"/>
+        <UsageCount Value="184"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit126>
       <Unit127>
@@ -1237,7 +1237,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="74"/>
         <CursorPos X="40" Y="83"/>
-        <UsageCount Value="94"/>
+        <UsageCount Value="95"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>
       <Unit130>
@@ -1280,11 +1280,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="54"/>
+        <UsageCount Value="55"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
+      <Unit135>
+        <Filename Value="C:\lazarus\fpc\2.6.4\source\rtl\i386\strings.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="254"/>
+        <CursorPos X="52" Y="213"/>
+        <UsageCount Value="10"/>
+      </Unit135>
     </Units>
-    <JumpHistory Count="23" HistoryIndex="22">
+    <JumpHistory Count="24" HistoryIndex="23">
       <Position1>
         <Filename Value="itemmgru.pas"/>
         <Caret Line="66" Column="12" TopLine="50"/>
@@ -1374,9 +1381,13 @@
         <Caret Line="480" Column="5" TopLine="465"/>
       </Position22>
       <Position23>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1199" Column="24" TopLine="1219"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="496" Column="23" TopLine="189"/>
       </Position23>
+      <Position24>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="203" Column="53" TopLine="190"/>
+      </Position24>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

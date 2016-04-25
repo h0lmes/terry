@@ -24,6 +24,7 @@ function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 function PIDL_GetFileFolder(pidl: PItemIDList; var folder: IShellFolder): boolean;
 procedure PIDL_Free(pidl: PItemIDList);
 function IsGUID(str: string): boolean;
+function IsUniApp(str: string): boolean;
 function IsPIDLString(str: string): boolean;
 function CSIDL_ToInt(csidl: string): integer;
 
@@ -194,7 +195,7 @@ var
 begin
   result := '';
   if PIDL_GetDisplayName(nil, pidl, SHGDN_FORPARSING, pszName, MAX_PATH) then result := strpas(pszName);
-  if IsGUID(result) then
+  if IsGUID(result) or IsUniApp(result) then
   begin
     apidl := PIDL_GetFromPath(pchar(result));
     if assigned(apidl) then
@@ -290,6 +291,12 @@ end;
 function IsGUID(str: string): boolean;
 begin
   result := strlcomp(pchar(str), '::{', 3) = 0;
+end;
+//------------------------------------------------------------------------------
+// universal app ends with "!app"
+function IsUniApp(str: string): boolean;
+begin
+  result := strlicomp(pchar(RightStr(str, 4)), '!app', 4) = 0;
 end;
 //------------------------------------------------------------------------------
 // proprietary format PIDL string starts with "::::"
