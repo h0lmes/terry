@@ -43,6 +43,7 @@ type
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
     destructor Destroy; override;
     function cmd(id: TGParam; param: integer): integer; override;
+    procedure Timer; override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
@@ -303,6 +304,24 @@ begin
         GdipDeleteFont(hfont);
         GdipDeleteFontFamily(family);
       end;
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.Timer;
+begin
+  try
+    inherited;
+    if FFreed or FUpdating then exit;
+
+    // animation //
+    if FAnimationProgress > 0 then
+    begin
+      inc(FAnimationProgress);
+      if FAnimationProgress >= FAnimationEnd then FAnimationProgress := 0;
+      Redraw;
+    end;
+  except
+    on e: Exception do raise Exception.Create('TTaskItem.Timer'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 function TTaskItem.ToString: string;

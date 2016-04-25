@@ -477,7 +477,6 @@ begin
     tcRepaintBase: BasePaint(param);
     tcMenu: DoMenu;
     tcSaveSets: SaveSets;
-    tcZOrder: SetForeground;
     // a big command to rearrange everything
     tcThemeChanged:
       if assigned(ItemMgr) then
@@ -548,14 +547,7 @@ begin
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
-    gpBlur:
-        if boolean(value) then
-        begin
-          if sets.container.Blur and Theme.BlurEnabled then
-            DWM.EnableBlurBehindWindow(handle, 0);
-        end else begin
-          DWM.DisableBlurBehindWindow(handle);
-				end;
+    gpBlur:                   BasePaint(1);
 		gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
   end;
 
@@ -1198,7 +1190,6 @@ var
   dst, hbrush: Pointer;
   bmp: gfx._SimpleBitmap;
   needRepaint: boolean;
-  rgn: HRGN;
 begin
   if assigned(ItemMgr) and assigned(theme) and Visible and not closing then
   try
@@ -1249,18 +1240,16 @@ begin
       UpdateLWindow(handle, bmp, 255);
 
       // deal with blur //
-      {if sets.container.Blur and Theme.BlurEnabled then
+      if sets.container.Blur and Theme.BlurEnabled then
       begin
         PrevBlur := true;
-        rgn := Theme.GetBackgroundRgn(ItemMgr.FBaseImageRect);
-        if rgn <> 0 then DWM.EnableBlurBehindWindow(handle, rgn);
-        DeleteObject(rgn);
+        DWM.EnableBlurBehindWindow(handle, Theme.GetBackgroundRgn(ItemMgr.FBaseImageRect));
       end
       else if PrevBlur then
       begin
         PrevBlur := false;
         DWM.DisableBlurBehindWindow(handle);
-      end;}
+      end;
 
     finally
       gfx.DeleteGraphics(dst);

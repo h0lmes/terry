@@ -75,7 +75,6 @@ type
     tcThemeChanged,
     tcSetVisible,
     tcGetVisible,
-    tcZOrder,
     tcToggleVisible,
     tcToggleTaskbar,
     tcDebugInfo,

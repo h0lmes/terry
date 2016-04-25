@@ -226,11 +226,13 @@ begin
 	      ZeroMemory(@bb, SizeOf(bb));
 	      bb.dwFlags := 3;
 	      bb.fEnable := true;
-	      bb.hRgnBlur := 0;
+	      bb.hRgnBlur := rgn;
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
 	    end else
 	      DisableBlurBehindWindow(AHandle);
 	end;
+
+  if rgn <> 0 then DeleteObject(rgn);
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.DisableBlurBehindWindow(const AHandle: THandle);
@@ -242,6 +244,7 @@ var
 begin
   if IsWin10 then
   begin
+    SetWindowRgn(AHandle, 0, true);
 	  ZeroMemory(@accent, sizeof(TAccentPolicy));
 	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
 	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
