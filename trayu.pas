@@ -196,7 +196,7 @@ begin
 
   // open View Available Networks
   RunAvailableNetworks;
-  if frmmain.bIsWin10 then
+  if frmmain.RunsOnWin10 then
   begin
     FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
     FShown := false;
@@ -283,7 +283,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunAvailableNetworks;
 begin
-  if frmmain.bIsWin10 then frmmain.Run('ms-settings:network', '', '', sw_shownormal)
+  if frmmain.RunsOnWin10 then frmmain.Run('ms-settings:network', '', '', sw_shownormal)
   else frmmain.Run('rundll32.exe', 'van.dll,RunVAN', '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------

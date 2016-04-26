@@ -54,6 +54,7 @@ type
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
+    FBackgroundWindow: uint;
     procedure UpdateItemInternal;
     procedure BeforeDraw;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
@@ -77,6 +78,8 @@ type
     procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
     procedure ShowStackState;
+    procedure CreateBackgroundWindowIfNotExists;
+    procedure ShowBackgroundWindow(AX, AY, AW, AH: integer);
   public
     property ItemCount: integer read FItemCount;
 
@@ -143,6 +146,7 @@ begin
   FSpecialFolder := '';
   FPreview := DEFAULT_STACK_PREVIEW;
   FPreviewImage := nil;
+  FBackgroundWindow := 0;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -153,6 +157,7 @@ begin
   try if FPreviewImage <> nil then GdipDisposeImage(FPreviewImage);
   except end;
   DeleteSubitems;
+  if IsWindow(FBackgroundWindow) then DestroyWindow(FBackgroundWindow);
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -1082,6 +1087,7 @@ var
   wpi: uint;
   wr: windows.TRect;
   xyaa: TStackItemData;
+  Xmin, Ymin, Xmax, Ymax: integer;
 begin
   if FItemCount = 0 then
   begin
@@ -1093,6 +1099,11 @@ begin
   wr := ScreenRect;
   wr.left += FSize div 2;
   wr.top += FSize div 2;
+
+  Xmin := 9999;
+  Ymin := 9999;
+  Xmax := 0;
+  Ymax := 0;
 
   // get item params //
   for idx := 0 to FItemCount - 1 do
@@ -1107,6 +1118,22 @@ begin
     items[idx].angle := xyaa.angle;
     items[idx].hint_align := xyaa.hint_align;
     items[idx].hint_alpha := xyaa.hint_alpha;
+    if items[idx].x < Xmin then Xmin := items[idx].x;
+    if items[idx].y < Ymin then Ymin := items[idx].y;
+    if items[idx].x > Xmax then Xmax := items[idx].x;
+    if items[idx].y > Ymax then Ymax := items[idx].y;
+  end;
+
+  if FState = stsOpen then
+  begin
+    CreateBackgroundWindowIfNotExists;
+    Xmin -= 70;
+    Ymin -= 50;
+    Xmax += 70;
+    Ymax += 50;
+    ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
+  end else begin
+    ShowWindow(FBackgroundWindow, SW_HIDE);
   end;
 
   // draw items //
@@ -1114,6 +1141,53 @@ begin
   begin
     if items[idx].draw then items[idx].item.Draw(items[idx].x, items[idx].y, items[idx].s,
       items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, false);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.CreateBackgroundWindowIfNotExists;
+begin
+  if not IsWindow(FBackgroundWindow) then
+  try
+    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, 'Window',
+      'TDockStackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
+  except
+    on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.ShowBackgroundWindow(AX, AY, AW, AH: integer);
+var
+  bmp: _SimpleBitmap;
+  dst, brush: Pointer;
+  path: Pointer;
+begin
+  if IsWindow(FBackgroundWindow) then
+  try
+    bmp.topleft.x := AX;
+    bmp.topleft.y := AY;
+    bmp.width := AW;
+    bmp.height := AH;
+    if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('CreateBitmap failed');
+    GdipCreateFromHDC(bmp.dc, dst);
+    if not assigned(dst) then
+    begin
+      DeleteBitmap(bmp);
+      exit; //raise Exception.Create('CreateGraphics failed');
+    end;
+    GdipCreateSolidFill($d0000000, brush);
+    GdipCreatePath(FillModeWinding, path);
+    gfx.AddPathRoundRect(path, 0, 0, AW, AH, 16);
+    GdipFillPath(dst, brush, path);
+    GdipDeletePath(path);
+    GdipDeleteBrush(brush);
+
+    UpdateLWindow(FBackgroundWindow, bmp, 255);
+    DeleteGraphics(dst);
+    DeleteBitmap(bmp);
+
+    SetWindowPos(FBackgroundWindow, FHWndParent, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_SHOWWINDOW);
+  except
+    on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

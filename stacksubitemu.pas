@@ -366,9 +366,13 @@ begin
       bmp.topleft.y := yReal;
       bmp.width := FSize + ItemRect.Left * 2;
       bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp, FHWnd) then raise Exception.Create('CreateBitmap failed');
+      if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('CreateBitmap failed');
       dst := CreateGraphics(bmp.dc, 0);
-      if not assigned(dst) then raise Exception.Create('CreateGraphics failed');
+      if not assigned(dst) then
+      begin
+        DeleteBitmap(bmp);
+        exit; //raise Exception.Create('CreateGraphics failed');
+      end;
 
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
@@ -402,35 +406,35 @@ begin
     // hint (caption) //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
     begin
-      if AHintAlign = 4 then
+      if AHintAlign = HORIZONTAL_LEFT then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
         xBitmap := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = 5 then
+      if AHintAlign = VERTICAL_TOP then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle - 90, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = 6 then
+      if AHintAlign = HORIZONTAL_RIGHT then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = 7 then
+      if AHintAlign = VERTICAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle + 90, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = 0 then
+      if AHintAlign = HORIZONTAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);

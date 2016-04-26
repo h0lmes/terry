@@ -558,6 +558,7 @@ begin
   // application //
 
   Application.Initialize;
+  Application.Title := PROGRAM_TITLE;
   h := WidgetSet.AppHandle;
   SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
 
@@ -565,7 +566,7 @@ begin
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
-  frmmain.bIsWin10 := VerInfo.dwMajorVersion >= 10;
+  frmmain.RunsOnWin10 := VerInfo.dwMajorVersion >= 10;
 
   RegisterWindowItemClass;
   Notifier := TNotifier.Create;

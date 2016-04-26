@@ -166,9 +166,6 @@ type
     dwFlags: dword;
   end;
 
-const
-  MONITOR_DEFAULTTONEAREST = 2;
-
   function MonitorFromWindow(HWND: hwnd; dwFlags: DWORD): THandle; stdcall; external 'user32.dll';
   function MonitorFromPoint(pt: windows.TPoint; dwFlags: DWORD): THandle; stdcall; external 'user32.dll';
   function GetMonitorInfoA(hMonitor: THandle; lpmi: pointer): bool; stdcall; external 'user32.dll';
@@ -176,6 +173,7 @@ const
 
 const
   PROGRAM_NAME = 'TDock';
+  PROGRAM_TITLE = 'TDockApp';
   PROGRAM_REGKEY = 'tdock';
   PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
   WINITEM_CLASS = 'TDockWClass';
@@ -183,14 +181,23 @@ const
   RollStep = 4;
   NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
   NOT_AN_ITEM = $ffff; // result const in case when item (items[]) not found
+  MONITOR_DEFAULTTONEAREST = 2;
 
+  // icon Hint align
+  HORIZONTAL_BOTTOM = 0;
+  HORIZONTAL_LEFT = 4;
+  VERTICAL_TOP = 5;
+  HORIZONTAL_RIGHT = 6;
+  VERTICAL_BOTTOM = 7;
+
+  // common window messages
   WM_DPICHANGED = $02E0;
 
-  // private Terry WM_APP messages //
+  // private WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
   WM_APP_RUN_THREAD_END = WM_APP + 2;
 
-  // popup menu command IDs //
+  // private popup menu command IDs //
   IDM_PASTE = $f030;
   IDM_LOCKICONS = $f031;
   IDM_COLLECTION = $f032;
@@ -201,7 +208,7 @@ const
   // WM_COPYDATA CDS.dwType
   DATA_PROGRAM = $f001; // TProgramData struct
 
-  // system timer event ID's //
+  // private timer event IDs //
   ID_TIMER                  = 1;
   ID_TIMER_SLOW             = 2;
   ID_TIMER_FSA              = 3;

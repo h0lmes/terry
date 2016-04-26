@@ -4,11 +4,14 @@ unit stackmodeu;
 
 interface
 
-uses Classes, SysUtils, Math;
+uses Classes, SysUtils, Math, declu;
 
 const
   MODE_COUNT = 8;
   MAX_DISTORT = 10;
+  PI = 3.14159;
+  DEFMODE_BIG = 4;
+  DEFMODE_SMALL = 1;
 
 type
   TStackItemData = packed record
@@ -20,12 +23,6 @@ type
     hint_align: integer;
     hint_alpha: integer;
   end;
-  // hint align:
-  // 0 = horiz under icon
-  // 4 = horiz to the left of an icon
-  // 5 = vert at the top of an icon
-  // 6 = horiz to the right of an icon
-  // 7 = vert at the bottom of an icon
 
   TStackModeController = class(TObject)
   private
@@ -54,11 +51,6 @@ type
     function GetItemData(Mode: integer; Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
   end;
-
-const
-  PI = 3.14159;
-  DEFMODE_BIG = 4;
-  DEFMODE_SMALL = 1;
 
 var
   mc: TStackModeController;
@@ -150,24 +142,24 @@ begin
     0: begin
         result.x := round(x);
         result.y := round(y);
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
       end;
     2: begin
         result.x := -round(x);
         result.y := round(y);
         result.angle := 360 - result.angle;
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
       end;
     1: begin
         result.x := -round(y);
         result.y := round(x);
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
       end;
     3: begin
         result.x := -round(y);
         result.y := -round(x);
         result.angle := 360 - result.angle;
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
       end;
   end;
 end;
@@ -198,24 +190,24 @@ begin
     0: begin
         result.x := round(x);
         result.y := -round(y);
-        result.hint_align := 7;
+        result.hint_align := VERTICAL_BOTTOM;
       end;
     2: begin
         result.x := -round(x);
         result.y := -round(y);
         result.angle := 360 - result.angle;
-        result.hint_align := 7;
+        result.hint_align := VERTICAL_BOTTOM;
       end;
     1: begin
         result.x := round(y);
         result.y := round(x);
-        result.hint_align := 4;
+        result.hint_align := HORIZONTAL_LEFT;
       end;
     3: begin
         result.x := round(y);
         result.y := -round(x);
         result.angle := 360 - result.angle;
-        result.hint_align := 4;
+        result.hint_align := HORIZONTAL_LEFT;
       end;
   end;
 end;
@@ -237,7 +229,7 @@ begin
   s := 0.9 + (sin(progress * PI / 2) * 0.1);
   result.alpha := round(255 * progress);
   result.hint_alpha := 255;
-  result.hint_align := 0;
+  result.hint_align := HORIZONTAL_BOTTOM;
   d := Distort * 3;
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
@@ -306,7 +298,7 @@ begin
   if Progress = 1 then result.hint_alpha := 255;
   //result.hint_alpha := round(510 * progress) - 255;
   //if result.hint_alpha < 0 then result.hint_alpha := 0;
-  result.hint_align := 0;
+  result.hint_align := HORIZONTAL_BOTTOM;
   d := Distort * 3;
   result.s := ItemSize;
   cols := ceil(sqrt(ItemCount));
@@ -377,22 +369,22 @@ begin
     0: begin
         result.x := round(x);
         result.y := round(y);
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
       end;
     2: begin
         result.x := -round(x);
         result.y := round(y);
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
       end;
     1: begin
         result.x := -round(y);
         result.y := round(x);
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
       end;
     3: begin
         result.x := -round(y);
         result.y := -round(x);
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
       end;
   end;
 end;
@@ -429,27 +421,27 @@ begin
   result.angle := (index - (ItemCount - 1) / 2) * degPerStep;
   case Site of
     0: begin
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
         result.x := round(x);
         result.y := round(y);
         if result.angle < 0 then result.angle := 360 + result.angle;
       end;
     2: begin
-        result.hint_align := 4;
+        result.hint_align := HORIZONTAL_LEFT;
         result.x := -round(x);
         result.y := round(y);
         result.angle := -result.angle;
         if result.angle < 0 then result.angle := 360 + result.angle;
       end;
     1: begin
-        result.hint_align := 7;
+        result.hint_align := VERTICAL_BOTTOM;
         result.x := round(y);
         result.y := round(x);
         result.angle := -result.angle;
         if result.angle < 0 then result.angle := 360 + result.angle;
       end;
     3: begin
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
         result.x := round(y);
         result.y := -round(x);
         if result.angle < 0 then result.angle := 360 + result.angle;
@@ -485,24 +477,24 @@ begin
   result.hint_alpha := round(max(d - 0.5, 0) * 510);
   case Site of
     0: begin
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
         result.x := round(x);
         result.y := round(y);
       end;
     2: begin
-        result.hint_align := 4;
+        result.hint_align := HORIZONTAL_LEFT;
         result.x := -round(x);
         result.y := round(y);
         result.angle := -result.angle;
       end;
     1: begin
-        result.hint_align := 7;
+        result.hint_align := VERTICAL_BOTTOM;
         result.x := round(y);
         result.y := round(x);
         result.angle := -result.angle;
       end;
     3: begin
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
         result.x := round(y);
         result.y := -round(x);
       end;
@@ -529,24 +521,24 @@ begin
   y := (ItemSize + 3 + abs(Distort * 2)) * ((index - (ItemCount - 1) / 2)) * p;
   case Site of
     0: begin
-        result.hint_align := 6;
+        result.hint_align := HORIZONTAL_RIGHT;
         result.x := round(x);
         result.y := round(y);
       end;
     2: begin
-        result.hint_align := 4;
+        result.hint_align := HORIZONTAL_LEFT;
         result.x := -round(x);
         result.y := round(y);
         result.angle := -result.angle;
       end;
     1: begin
-        result.hint_align := 7;
+        result.hint_align := VERTICAL_BOTTOM;
         result.x := round(y);
         result.y := round(x);
         result.angle := -result.angle;
       end;
     3: begin
-        result.hint_align := 5;
+        result.hint_align := VERTICAL_TOP;
         result.x := round(y);
         result.y := -round(x);
       end;
