@@ -24,6 +24,7 @@ type
     FAlpha: integer;
     FHintAlign: integer;
     FHintAlpha: integer;
+    FHintBackground: boolean;
     FQueryDelete: boolean;
     FFont: _FontData;
     FIsExecutable: boolean;
@@ -79,7 +80,8 @@ type
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); virtual; abstract;
-    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean); virtual; abstract;
+    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
+    function Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual; abstract;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
     function ToString: string; virtual;
     function SaveToString: string; virtual; abstract;
@@ -120,7 +122,8 @@ type
     constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); overload; override;
-    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean); override;
+    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
+    function Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
     function ToString: string; override;
     function SaveToString: string; override;
@@ -324,7 +327,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // set position, size, repaint window //
-procedure TShortcutSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AForce: boolean);
+procedure TShortcutSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean);
 var
   bmp: _SimpleBitmap;
   dst: Pointer;
@@ -353,6 +356,7 @@ begin
       if AHintAlpha < 0 then AHintAlpha := 0;
       if AHintAlpha > 255 then AHintAlpha := 255;
       FHintAlpha := AHintAlpha;
+      FHintBackground := AHintBackground;
       ItemRect := GetRectFromSize(FSize);
       xReal := Ax - ItemRect.Left - FSize div 2;
       yReal := Ay - ItemRect.Top - FSize div 2;
@@ -442,22 +446,25 @@ begin
         yBitmap := FSize div 2 + 3;
       end;
       // hint background
-      GdipCreatePath(FillModeWinding, path);
-      points[0].x := xBitmap - FCaptionHeight div 10;
-      points[0].y := yBitmap - 1;
-      points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
-      points[1].y := points[0].y;
-      points[2].x := points[1].x;
-      points[2].y := points[0].y + FCaptionHeight + 1;
-      points[3].x := points[0].x;
-      points[3].y := points[2].y;
-      GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
-      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
-      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-      GdipFillPath(dst, brush, path);
-      GdipDeleteBrush(brush);
-      GdipDeletePath(path);
-      //
+      if AHintBackground then
+      begin
+	        GdipCreatePath(FillModeWinding, path);
+	        points[0].x := xBitmap - FCaptionHeight div 10;
+	        points[0].y := yBitmap - 1;
+	        points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
+	        points[1].y := points[0].y;
+	        points[2].x := points[1].x;
+	        points[2].y := points[0].y + FCaptionHeight + 1;
+	        points[3].x := points[0].x;
+	        points[3].y := points[2].y;
+	        GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
+	        GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
+	        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+	        GdipFillPath(dst, brush, path);
+	        GdipDeleteBrush(brush);
+	        GdipDeletePath(path);
+			end;
+			//
       rect.X := xBitmap;
       rect.Y := yBitmap;
       rect.Width := FCaptionWidth;
@@ -483,6 +490,82 @@ begin
 
   except
     on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ')'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+// returns position of the item window //
+function TShortcutSubitem.Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
+  procedure RotatePoint(cx, cy: integer; theta: single; var pt: windows.TPoint);
+  var
+    tempX, tempY: single;
+  begin
+    tempX := pt.x - cx;
+	  tempY := pt.y - cy;
+    pt.x := round(cx + tempX * cos(theta) - tempY * sin(theta));
+	  pt.y := round(cy + tempX * sin(theta) + tempY * cos(theta));
+	end;
+  procedure RotateRect(cx, cy: integer; theta: single; var rect: windows.TRect);
+  var
+    topLeft, topRight, bottomLeft, bottomRight: windows.TPoint;
+  begin
+    topLeft := rect.TopLeft;
+    topRight.x := rect.Right;
+    topRight.y := rect.Top;
+    bottomRight := rect.BottomRight;
+    bottomLeft.x := rect.Left;
+    bottomLeft.y := rect.Bottom;
+    RotatePoint(cx, cy, theta, topLeft);
+    RotatePoint(cx, cy, theta, topRight);
+    RotatePoint(cx, cy, theta, bottomRight);
+    RotatePoint(cx, cy, theta, bottomLeft);
+    rect.Left := min(topLeft.x, min(topRight.x, min(bottomRight.x, bottomLeft.x)));
+    rect.Top := min(topLeft.y, min(topRight.y, min(bottomRight.y, bottomLeft.y)));
+    rect.Right := max(topLeft.x, max(topRight.x, max(bottomRight.x, bottomLeft.x)));
+    rect.Bottom := max(topLeft.y, max(topRight.y, max(bottomRight.y, bottomLeft.y)));
+	end;
+
+begin
+  try
+    if FFreed or FUpdating or FQueryDelete then exit;
+
+    result.Left := Ax - ASize div 2;
+    result.Right := result.Left + ASize;
+    result.Top := Ay - ASize div 2;
+    result.Bottom := result.Top + ASize;
+
+    // correct item box using caption size //
+    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) then
+    begin
+      if AHintAlign = HORIZONTAL_LEFT then
+      begin
+        result.Left := Ax - FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+			end else
+      if AHintAlign = VERTICAL_TOP then
+      begin
+        result.Top := Ay - FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+      end else
+      if AHintAlign = HORIZONTAL_RIGHT then
+      begin
+        result.Right := result.Left + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
+      end else
+      if AHintAlign = VERTICAL_BOTTOM then
+      begin
+        result.Bottom := result.Top + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
+      end else
+      if AHintAlign = HORIZONTAL_BOTTOM then
+      begin
+        if FCaptionWidth > ASize then
+        begin
+          result.Left := Ax - FCaptionWidth div 2;
+          result.Right := result.Left + FCaptionWidth;
+        end;
+        result.Bottom += 3 + FCaptionHeight;
+      end;
+      if AAngle > 0 then RotateRect(Ax, Ay, (360 - AAngle) / 3.13159286, result);
+    end;
+
+  except
+    on e: Exception do raise Exception.Create('StackSubitem.Measure(' + caption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -812,7 +895,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.Redraw;
 begin
-  if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+  if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, FHintBackground, true);
 end;
 //------------------------------------------------------------------------------
 function TCustomSubitem.cmd(id: TGParam; param: integer): integer;
@@ -834,7 +917,7 @@ begin
         if FSelected <> boolean(param) then
         begin
           FSelected := boolean(param);
-          if IsWindowVisible(FHwnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, true);
+          if IsWindowVisible(FHwnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, FHintBackground, true);
         end;
     end;
 

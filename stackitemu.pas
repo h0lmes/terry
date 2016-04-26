@@ -5,7 +5,7 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles, GDIPAPI, PIDL,
-  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu;
+  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu, dwm_unit;
 
 const
   MAX_SUBITEMS = 64;
@@ -55,6 +55,9 @@ type
     FPreviewImageW: uint;
     FPreviewImageH: uint;
     FBackgroundWindow: uint;
+    FBackgroundBlur: boolean;
+    FBackgroundAlpha: uint;
+    FBackgroundColor: uint;
     procedure UpdateItemInternal;
     procedure BeforeDraw;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
@@ -80,6 +83,9 @@ type
     procedure ShowStackState;
     procedure CreateBackgroundWindowIfNotExists;
     procedure ShowBackgroundWindow(AX, AY, AW, AH: integer);
+    procedure ZOrderTop;
+    procedure ZOrderNoTop;
+    function ZOrderItems(InsertAfter: uint): uint;
   public
     property ItemCount: integer read FItemCount;
 
@@ -147,6 +153,9 @@ begin
   FPreview := DEFAULT_STACK_PREVIEW;
   FPreviewImage := nil;
   FBackgroundWindow := 0;
+  FBackgroundBlur := true;
+  FBackgroundAlpha := $50;
+  FBackgroundColor := 0;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -1085,9 +1094,10 @@ procedure TStackItem.ShowStackState;
 var
   idx: integer;
   wpi: uint;
-  wr: windows.TRect;
+  wr, itemRect: windows.TRect;
   xyaa: TStackItemData;
   Xmin, Ymin, Xmax, Ymax: integer;
+  backgroundVisible: boolean;
 begin
   if FItemCount = 0 then
   begin
@@ -1118,30 +1128,41 @@ begin
     items[idx].angle := xyaa.angle;
     items[idx].hint_align := xyaa.hint_align;
     items[idx].hint_alpha := xyaa.hint_alpha;
-    if items[idx].x < Xmin then Xmin := items[idx].x;
-    if items[idx].y < Ymin then Ymin := items[idx].y;
-    if items[idx].x > Xmax then Xmax := items[idx].x;
-    if items[idx].y > Ymax then Ymax := items[idx].y;
   end;
 
-  if FState = stsOpen then
-  begin
-    CreateBackgroundWindowIfNotExists;
-    Xmin -= 70;
-    Ymin -= 50;
-    Xmax += 70;
-    Ymax += 50;
-    ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
-  end else begin
-    ShowWindow(FBackgroundWindow, SW_HIDE);
-  end;
+  backgroundVisible := mc.AllowBackground(FMode, FItemCount);
 
   // draw items //
   for idx := 0 to FItemCount - 1 do
   begin
     if items[idx].draw then items[idx].item.Draw(items[idx].x, items[idx].y, items[idx].s,
-      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, false);
+      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, not backgroundVisible, false);
   end;
+
+  if backgroundVisible then
+  begin
+    if FState = stsOpen then
+    begin
+      for idx := 0 to FItemCount - 1 do
+      begin
+        itemRect := items[idx].item.Measure(items[idx].x, items[idx].y, items[idx].s, items[idx].angle, items[idx].hint_align);
+        if itemRect.Left < Xmin then Xmin := itemRect.Left;
+        if itemRect.Top < Ymin then Ymin := itemRect.Top;
+        if itemRect.Right > Xmax then Xmax := itemRect.Right;
+        if itemRect.Bottom > Ymax then Ymax := itemRect.Bottom;
+      end;
+      CreateBackgroundWindowIfNotExists;
+      Xmin -= 20;
+      Ymin -= 20;
+      Xmax += 20;
+      Ymax += 20;
+      ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
+      ZOrderTop;
+    end else begin
+      ShowWindow(FBackgroundWindow, SW_HIDE);
+      ZOrderNoTop;
+		end;
+	end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.CreateBackgroundWindowIfNotExists;
@@ -1159,7 +1180,6 @@ procedure TStackItem.ShowBackgroundWindow(AX, AY, AW, AH: integer);
 var
   bmp: _SimpleBitmap;
   dst, brush: Pointer;
-  path: Pointer;
 begin
   if IsWindow(FBackgroundWindow) then
   try
@@ -1174,20 +1194,58 @@ begin
       DeleteBitmap(bmp);
       exit; //raise Exception.Create('CreateGraphics failed');
     end;
-    GdipCreateSolidFill($d0000000, brush);
-    GdipCreatePath(FillModeWinding, path);
-    gfx.AddPathRoundRect(path, 0, 0, AW, AH, 16);
-    GdipFillPath(dst, brush, path);
-    GdipDeletePath(path);
+    GdipCreateSolidFill(FBackgroundAlpha * $1000000 + FBackgroundColor and $ffffff, brush);
+    GdipFillRectangleI(dst, brush, 0, 0, AW, AH);
     GdipDeleteBrush(brush);
 
     UpdateLWindow(FBackgroundWindow, bmp, 255);
+    if FBackgroundBlur then DWM.EnableBlurBehindWindow(FBackgroundWindow, 0)
+    else DWM.DisableBlurBehindWindow(FBackgroundWindow);
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
 
     SetWindowPos(FBackgroundWindow, FHWndParent, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_SHOWWINDOW);
   except
     on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.ZOrderTop;
+begin
+  try
+    // set all items topmost and place the dock window right underneath
+	  SetWindowPos(FHWnd, ZOrderItems(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  except
+    on e: Exception do raise Exception.Create('StackItem.ZOrderTop'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.ZOrderNoTop;
+begin
+  try
+    // set dock window non topmost
+	  SetWindowPos(FHWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	  // set all items non topmost
+	  ZOrderItems(HWND_NOTOPMOST);
+  except
+    on e: Exception do raise Exception.Create('StackItem.ZOrderNoTop'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TStackItem.ZOrderItems(InsertAfter: uint): uint;
+var
+  idx: integer;
+begin
+  result := 0;
+  if FEnabled then
+  begin
+    if FItemCount > 0 then result := items[0].hWnd;
+    idx := 0;
+    while idx < FItemCount do
+    begin
+      SetWindowPos(items[idx].hWnd, InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
+      inc(idx);
+    end;
   end;
 end;
 //------------------------------------------------------------------------------

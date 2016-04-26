@@ -332,7 +332,7 @@ begin
   if FAllowCloseProgram then
   try
     crsection.Acquire;
-    FProgramIsClosing := True;
+    FProgramIsClosing := true;
     AddLog('CloseQuery begin');
     if FEdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
     HideTaskbar(false);
@@ -1086,13 +1086,15 @@ procedure Tfrmmain.SetForeground;
     SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   end;
 begin
-  if FProgramIsClosing then exit;
-  // set all items topmost and place the dock window right underneath
-  SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  // set dock window non topmost
-  SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-  // set all items non topmost
-  ItemMgr.ZOrder(HWND_NOTOPMOST);
+  if assigned(ItemMgr) then
+  begin
+	    // set all items topmost and place the dock window right underneath
+	    SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	    // set dock window non topmost
+	    SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	    // set all items non topmost
+	    ItemMgr.ZOrder(HWND_NOTOPMOST);
+	end;
 
   // bring to the foreground other program windows if any visible
   if assigned(frmItemProp) then setfore(frmItemProp.handle);
@@ -1101,7 +1103,7 @@ begin
   if assigned(frmThemeEditor) then setfore(frmThemeEditor.handle);
 end;
 //------------------------------------------------------------------------------
-// its complicated. describe later ...
+// it is complicated. describe later ...
 procedure Tfrmmain.SetNotForeground;
 
 function IsDockWnd(wnd: uint): boolean;
@@ -1157,7 +1159,7 @@ begin
 
   awnd := GetAncestor(wnd, GA_ROOTOWNER);
   if IsWindow(awnd) then wnd := awnd;
-  if DockAboveWnd(wnd) then
+  if assigned(ItemMgr) and DockAboveWnd(wnd) then
   begin
     SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
     ItemMgr.ZOrder(wnd);

@@ -27,6 +27,7 @@ type
   TStackModeController = class(TObject)
   private
     names: array [0..MODE_COUNT] of string;
+    background: array [0..MODE_COUNT] of boolean;
     function GetFan(Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
     function GetFanAlt(Opening, ShowHint: boolean; Index: integer; Progress: extended;
@@ -47,6 +48,7 @@ type
     constructor Create;
     function GetModeCount: integer;
     function GetModeName(Mode: integer): string;
+    function AllowBackground(Mode: integer; ItemCount: integer): boolean;
     function GetStep(Mode: integer; ItemCount: integer): extended;
     function GetItemData(Mode: integer; Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
@@ -68,6 +70,15 @@ begin
   names[6] := 'Sun';
   names[7] := 'Parallel Wave';
   names[8] := 'Parallel';
+  background[0] := false;
+  background[1] := false;
+  background[2] := false;
+  background[3] := true;
+  background[4] := true;
+  background[5] := false;
+  background[6] := false;
+  background[7] := false;
+  background[8] := false;
 end;
 //------------------------------------------------------------------------------
 function TStackModeController.GetModeCount: integer;
@@ -78,6 +89,15 @@ end;
 function TStackModeController.GetModeName(Mode: integer): string;
 begin
   result := names[mode];
+end;
+//------------------------------------------------------------------------------
+function TStackModeController.AllowBackground(Mode: integer; ItemCount: integer): boolean;
+begin
+  if Mode = 0 then
+  begin
+    if ItemCount > 15 then Mode := DEFMODE_BIG else Mode := DEFMODE_SMALL;
+  end;
+  result := background[mode];
 end;
 //------------------------------------------------------------------------------
 function TStackModeController.GetStep(Mode: integer; ItemCount: integer): extended;
