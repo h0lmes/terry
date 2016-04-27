@@ -54,9 +54,9 @@ type
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
+    FShowBackground: boolean;
     FBackgroundWindow: uint;
     FBackgroundBlur: boolean;
-    FBackgroundAlpha: uint;
     FBackgroundColor: uint;
     procedure UpdateItemInternal;
     procedure BeforeDraw;
@@ -110,7 +110,8 @@ type
     class function Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW): string;
+      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
+      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEFAULT_STACK_BGCOLOR): string;
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
@@ -153,9 +154,9 @@ begin
   FPreview := DEFAULT_STACK_PREVIEW;
   FPreviewImage := nil;
   FBackgroundWindow := 0;
+  FShowBackground := false;
   FBackgroundBlur := true;
-  FBackgroundAlpha := $50;
-  FBackgroundColor := 0;
+  FBackgroundColor := DEFAULT_STACK_BGCOLOR;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -206,6 +207,11 @@ begin
         except end;
         FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
         UpdateSpecialFolder;
+        try FShowBackground := boolean(strtoint(ini.ReadString(IniSection, 'background', '0')));
+        except end;
+        try FBackgroundBlur := boolean(strtoint(ini.ReadString(IniSection, 'background_blur', '1')));
+        except end;
+        FBackgroundColor := toolu.StringToColor(ini.ReadString(IniSection, 'background_color', toolu.ColorToString(DEFAULT_STACK_BGCOLOR)));
 
         idx := 1;
         repeat
@@ -229,6 +235,9 @@ begin
         FAnimationSpeed := DEFAULT_ANIM_SPEED;
         FDistort := DEFAULT_DISTORT;
         FSpecialFolder := '';
+        FShowBackground := false;
+        FBackgroundBlur := true;
+        FBackgroundColor := DEFAULT_STACK_BGCOLOR;
         try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
         except end;
         try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
@@ -244,6 +253,12 @@ begin
         except end;
         FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
         UpdateSpecialFolder;
+        try FShowBackground := boolean(strtoint(FetchValue(AData, 'background="', '";')));
+        except end;
+        try FBackgroundBlur := boolean(strtoint(FetchValue(AData, 'background_blur="', '";')));
+        except end;
+        try FBackgroundColor := strtoint(FetchValue(AData, 'background_color="', '";'));
+        except end;
 
         if list.count > 1 then
         begin
@@ -425,7 +440,8 @@ end;
 function TStackItem.ToString: string;
 begin
   result := Make(FHWnd, FCaption, FImageFile, FSpecialFolder,
-    FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview);
+    FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview,
+    FShowBackground, FBackgroundBlur, FBackgroundColor);
 end;
 //------------------------------------------------------------------------------
 function TStackItem.ToStringFullCopy: string;
@@ -638,6 +654,10 @@ begin
   WritePrivateProfileString(szIniGroup, 'distort', pchar(inttostr(FDistort)), szIni);
   WritePrivateProfileString(szIniGroup, 'special_folder', pchar(FSpecialFolder), szIni);
   if FPreview <> DEFAULT_STACK_PREVIEW then WritePrivateProfileString(szIniGroup, 'preview', pchar(inttostr(FPreview)), szIni);
+  if FShowBackground then WritePrivateProfileString(szIniGroup, 'background', '1', szIni);
+  if FShowBackground then WritePrivateProfileString(szIniGroup, 'background_blur', '1', szIni);
+  if FBackgroundColor <> DEFAULT_STACK_BGCOLOR then
+    WritePrivateProfileString(szIniGroup, 'background_color', pchar(toolu.ColorToString(FBackgroundColor)), szIni);
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for idx := 0 to FItemCount - 1 do
@@ -648,7 +668,8 @@ end;
 class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-  ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW): string;
+  ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
+  AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEFAULT_STACK_BGCOLOR): string;
 begin
   result := 'class="stack";';
   result := result + 'hwnd="' + inttostr(AHWnd) + '";';
@@ -661,6 +682,9 @@ begin
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
   if APreview <> DEFAULT_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
+  if AShowBackground then result := result + 'background="1";';
+  if ABackgroundBlur then result := result + 'background_blur="1";';
+  if ABackgroundColor <> DEFAULT_STACK_BGCOLOR then result := result + 'background_color="' + toolu.ColorToString(ABackgroundColor) + '";';
 end;
 //------------------------------------------------------------------------------
 //
@@ -1097,7 +1121,6 @@ var
   wr, itemRect: windows.TRect;
   xyaa: TStackItemData;
   Xmin, Ymin, Xmax, Ymax: integer;
-  backgroundVisible: boolean;
 begin
   if FItemCount = 0 then
   begin
@@ -1130,16 +1153,14 @@ begin
     items[idx].hint_alpha := xyaa.hint_alpha;
   end;
 
-  backgroundVisible := mc.AllowBackground(FMode, FItemCount);
-
   // draw items //
   for idx := 0 to FItemCount - 1 do
   begin
     if items[idx].draw then items[idx].item.Draw(items[idx].x, items[idx].y, items[idx].s,
-      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, not backgroundVisible, false);
+      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, not FShowBackground, false);
   end;
 
-  if backgroundVisible then
+  if FShowBackground then
   begin
     if FState = stsOpen then
     begin
@@ -1155,7 +1176,7 @@ begin
       Xmin -= 20;
       Ymin -= 20;
       Xmax += 20;
-      Ymax += 20;
+      Ymax += 18;
       ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
       ZOrderTop;
     end else begin
@@ -1194,17 +1215,16 @@ begin
       DeleteBitmap(bmp);
       exit; //raise Exception.Create('CreateGraphics failed');
     end;
-    GdipCreateSolidFill(FBackgroundAlpha * $1000000 + FBackgroundColor and $ffffff, brush);
+    GdipCreateSolidFill(FBackgroundColor, brush);
     GdipFillRectangleI(dst, brush, 0, 0, AW, AH);
     GdipDeleteBrush(brush);
 
     UpdateLWindow(FBackgroundWindow, bmp, 255);
+    SetWindowPos(FBackgroundWindow, 0, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_NOZORDER + SWP_SHOWWINDOW);
     if FBackgroundBlur then DWM.EnableBlurBehindWindow(FBackgroundWindow, 0)
     else DWM.DisableBlurBehindWindow(FBackgroundWindow);
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
-
-    SetWindowPos(FBackgroundWindow, FHWndParent, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_SHOWWINDOW);
   except
     on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow'#10#13 + e.message);
   end;

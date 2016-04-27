@@ -83,8 +83,9 @@ msgid "Delete separator"
 msgstr "Удалить разделитель"
 
 #: declu.xdistort
-msgid "Distort: %d"
-msgstr "Искажение: %d"
+#| msgid "Distort: %d"
+msgid "Spacing/Distortion: %d"
+msgstr "Интервал/искажение: %d"
 
 #: declu.xdock
 msgid "New dock"
@@ -252,7 +253,6 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#, fuzzy
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
@@ -432,8 +432,8 @@ msgctxt "TFRMCOLOR.BTNOK.CAPTION"
 msgid "OK"
 msgstr "OK"
 
-#: tfrmcolor.frmcolor.caption
-msgctxt "TFRMCOLOR.FRMCOLOR.CAPTION"
+#: tfrmcolor.caption
+msgctxt "tfrmcolor.caption"
 msgid "Select color"
 msgstr "Выбрать цвет"
 
@@ -460,6 +460,10 @@ msgstr "L"
 #: tfrmcolor.label6.caption
 msgid "S"
 msgstr "S"
+
+#: tfrmcolor.lblbackgroundalpha.caption
+msgid "Alpha channel"
+msgstr "Альфа-канал"
 
 #: tfrmdebug.caption
 msgctxt "tfrmdebug.caption"
@@ -1016,7 +1020,6 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
-#, fuzzy
 #| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
 msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
@@ -1150,16 +1153,32 @@ msgctxt "tfrmstackprop.btnselectcolor.caption"
 msgid "Select color"
 msgstr "Выбрать цвет"
 
+#: tfrmstackprop.button1.caption
+msgid "Select background color"
+msgstr "Выбрать цвет фона"
+
 #: tfrmstackprop.caption
 msgctxt "tfrmstackprop.caption"
 msgid "Properties"
 msgstr "Свойства"
+
+#: tfrmstackprop.chbbackground.caption
+msgid "Show background"
+msgstr "Показывать фон"
+
+#: tfrmstackprop.chbbackgroundblur.caption
+msgid "Blur"
+msgstr "Размытие"
 
 #: tfrmstackprop.dividerbevel1.caption
 #| msgid "Stack contents"
 msgctxt "tfrmstackprop.dividerbevel1.caption"
 msgid "Items in this stack"
 msgstr "Значки в стеке"
+
+#: tfrmstackprop.dividerbevel2.caption
+msgid "Stack background"
+msgstr "Фон стека"
 
 #: tfrmstackprop.label1.caption
 msgid "Preview:"
@@ -1195,8 +1214,9 @@ msgid "Name"
 msgstr "Имя"
 
 #: tfrmstackprop.lbldistort.caption
-msgid "Distort"
-msgstr "Искажение"
+#| msgid "Distort"
+msgid "Spacing/Distortion"
+msgstr "Интервал/искажение"
 
 #: tfrmstackprop.lblimage.caption
 msgctxt "tfrmstackprop.lblimage.caption"

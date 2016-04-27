@@ -81,7 +81,7 @@ msgid "Delete separator"
 msgstr ""
 
 #: declu.xdistort
-msgid "Distort: %d"
+msgid "Spacing/Distortion: %d"
 msgstr ""
 
 #: declu.xdock
@@ -395,8 +395,8 @@ msgctxt "tfrmcolor.btnok.caption"
 msgid "OK"
 msgstr ""
 
-#: tfrmcolor.frmcolor.caption
-msgctxt "tfrmcolor.frmcolor.caption"
+#: tfrmcolor.caption
+msgctxt "TFRMCOLOR.CAPTION"
 msgid "Select color"
 msgstr ""
 
@@ -422,6 +422,10 @@ msgstr ""
 
 #: tfrmcolor.label6.caption
 msgid "S"
+msgstr ""
+
+#: tfrmcolor.lblbackgroundalpha.caption
+msgid "Alpha channel"
 msgstr ""
 
 #: tfrmdebug.caption
@@ -1068,13 +1072,29 @@ msgctxt "TFRMSTACKPROP.BTNSELECTCOLOR.CAPTION"
 msgid "Select color"
 msgstr ""
 
+#: tfrmstackprop.button1.caption
+msgid "Select background color"
+msgstr ""
+
 #: tfrmstackprop.caption
 msgctxt "TFRMSTACKPROP.CAPTION"
 msgid "Properties"
 msgstr ""
 
+#: tfrmstackprop.chbbackground.caption
+msgid "Show background"
+msgstr ""
+
+#: tfrmstackprop.chbbackgroundblur.caption
+msgid "Blur"
+msgstr ""
+
 #: tfrmstackprop.dividerbevel1.caption
 msgid "Items in this stack"
+msgstr ""
+
+#: tfrmstackprop.dividerbevel2.caption
+msgid "Stack background"
 msgstr ""
 
 #: tfrmstackprop.label1.caption
@@ -1111,7 +1131,7 @@ msgid "Name"
 msgstr ""
 
 #: tfrmstackprop.lbldistort.caption
-msgid "Distort"
+msgid "Spacing/Distortion"
 msgstr ""
 
 #: tfrmstackprop.lblimage.caption

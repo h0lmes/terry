@@ -303,14 +303,14 @@ resourcestring
   XAnimationZoom = 'Zoom';
   XAll = 'All';
   XMonitor = 'Monitor';
-  // frmitemoptu //
+  // frmitemoptu / frmstackpropu //
   XShowCmdNormal = 'Normal size';
   XShowCmdMinimized = 'Minimized to taskbar';
   XShowCmdMaximized = 'Maximized to fullscreen';
   XSelectWorkingDirectory = 'Select working directory';
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
-  XDistort = 'Distort: %d';
+  XDistort = 'Spacing/Distortion: %d';
   // frmstackpropu //
   XStackPreviewNone = 'none';
   XStackPreviewFour = 'four';

@@ -26,9 +26,13 @@ type
     btnCancel: TButton;
     btnProperties: TButton;
     btnSelectColor: TButton;
+    Button1: TButton;
     cboMode: TComboBox;
     cboPreview: TComboBox;
+    chbBackgroundBlur: TCheckBox;
+    chbBackground: TCheckBox;
     DividerBevel1: TDividerBevel;
+    DividerBevel2: TDividerBevel;
     edImage: TEdit;
     edCaption: TEdit;
     iPic: TPaintBox;
@@ -84,7 +88,8 @@ type
     cancel_data: string;
     UpdateItemProc: _uproc;
     color_: uint;
-    color_data: integer;
+    color_data: uint;
+    background_color: uint;
     SpecialFolder: string;
     ItemHWnd: uint;
     FChanged: boolean;
@@ -204,6 +209,14 @@ begin
   cboPreview.ItemIndex := 1;
   try cboPreview.ItemIndex := strtoint(FetchValue(AData, 'preview="', '";'));
   except end;
+  try chbBackground.checked := FetchValue(AData, 'background="', '";') = '1';
+  except end;
+  try chbBackgroundBlur.checked := FetchValue(AData, 'background_blur="', '";') = '1';
+  except end;
+  try
+    background_color := DEFAULT_STACK_BGCOLOR;
+    background_color := toolu.StringToColor(FetchValue(AData, 'background_color="', '";'));
+  except end;
 
   SpecialFolder := FetchValue(AData, 'special_folder="', '";');
 
@@ -300,7 +313,8 @@ begin
   try
     FChanged := false;
     str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), SpecialFolder,
-      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, cboPreview.ItemIndex);
+      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, cboPreview.ItemIndex,
+      chbBackground.Checked, chbBackgroundBlur.Checked, background_color);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
     on e: Exception do frmmain.notify('frmStackProp.btnApplyClick'#10#13 + e.message);
@@ -312,9 +326,8 @@ begin
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   FImage := nil;
-  action := cafree;
+  action := caFree;
   frmStackProp := nil;
-  //SetActiveWindow(frmmain.handle);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

@@ -495,35 +495,6 @@ end;
 //------------------------------------------------------------------------------
 // returns position of the item window //
 function TShortcutSubitem.Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
-  procedure RotatePoint(cx, cy: integer; theta: single; var pt: windows.TPoint);
-  var
-    tempX, tempY: single;
-  begin
-    tempX := pt.x - cx;
-	  tempY := pt.y - cy;
-    pt.x := round(cx + tempX * cos(theta) - tempY * sin(theta));
-	  pt.y := round(cy + tempX * sin(theta) + tempY * cos(theta));
-	end;
-  procedure RotateRect(cx, cy: integer; theta: single; var rect: windows.TRect);
-  var
-    topLeft, topRight, bottomLeft, bottomRight: windows.TPoint;
-  begin
-    topLeft := rect.TopLeft;
-    topRight.x := rect.Right;
-    topRight.y := rect.Top;
-    bottomRight := rect.BottomRight;
-    bottomLeft.x := rect.Left;
-    bottomLeft.y := rect.Bottom;
-    RotatePoint(cx, cy, theta, topLeft);
-    RotatePoint(cx, cy, theta, topRight);
-    RotatePoint(cx, cy, theta, bottomRight);
-    RotatePoint(cx, cy, theta, bottomLeft);
-    rect.Left := min(topLeft.x, min(topRight.x, min(bottomRight.x, bottomLeft.x)));
-    rect.Top := min(topLeft.y, min(topRight.y, min(bottomRight.y, bottomLeft.y)));
-    rect.Right := max(topLeft.x, max(topRight.x, max(bottomRight.x, bottomLeft.x)));
-    rect.Bottom := max(topLeft.y, max(topRight.y, max(bottomRight.y, bottomLeft.y)));
-	end;
-
 begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
@@ -561,7 +532,7 @@ begin
         end;
         result.Bottom += 3 + FCaptionHeight;
       end;
-      if AAngle > 0 then RotateRect(Ax, Ay, (360 - AAngle) / 3.13159286, result);
+      if AAngle > 0 then RotateRect(Ax, Ay, (360 - AAngle) / 3.14159286, result);
     end;
 
   except

@@ -131,6 +131,8 @@ function FetchValue(itext: string; Value, delim: string): string;
 function PosEx(Value, atext: string; startpos: integer): integer;
 function cuttolast(itext, ch: string): string;
 function cutafterlast(itext, ch: string): string;
+procedure RotatePoint(cx, cy: integer; theta: single; var pt: windows.TPoint);
+procedure RotateRect(cx, cy: integer; theta: single; var rect: windows.TRect);
 function StringToRect(str: string): Windows.Trect;
 function RectToString(r: Windows.Trect): string;
 function StringToSize(str: string): Windows.TSize;
@@ -385,6 +387,40 @@ begin
     Dec(i);
   end;
   Result := itext;
+end;
+//------------------------------------------------------------------------------
+// cx, cy - rotation center
+// theta in radians
+procedure RotatePoint(cx, cy: integer; theta: single; var pt: windows.TPoint);
+var
+  tempX, tempY: single;
+begin
+  tempX := pt.x - cx;
+  tempY := pt.y - cy;
+  pt.x := round(cx + tempX * cos(theta) - tempY * sin(theta));
+  pt.y := round(cy + tempX * sin(theta) + tempY * cos(theta));
+end;
+//------------------------------------------------------------------------------
+// cx, cy - rotation center
+// theta in radians
+procedure RotateRect(cx, cy: integer; theta: single; var rect: windows.TRect);
+var
+  topLeft, topRight, bottomLeft, bottomRight: windows.TPoint;
+begin
+  topLeft := rect.TopLeft;
+  topRight.x := rect.Right;
+  topRight.y := rect.Top;
+  bottomRight := rect.BottomRight;
+  bottomLeft.x := rect.Left;
+  bottomLeft.y := rect.Bottom;
+  RotatePoint(cx, cy, theta, topLeft);
+  RotatePoint(cx, cy, theta, topRight);
+  RotatePoint(cx, cy, theta, bottomRight);
+  RotatePoint(cx, cy, theta, bottomLeft);
+  rect.Left := min(topLeft.x, min(topRight.x, min(bottomRight.x, bottomLeft.x)));
+  rect.Top := min(topLeft.y, min(topRight.y, min(bottomRight.y, bottomLeft.y)));
+  rect.Right := max(topLeft.x, max(topRight.x, max(bottomRight.x, bottomLeft.x)));
+  rect.Bottom := max(topLeft.y, max(topRight.y, max(bottomRight.y, bottomLeft.y)));
 end;
 //------------------------------------------------------------------------------
 function StringToRect(str: string): Windows.Trect;
