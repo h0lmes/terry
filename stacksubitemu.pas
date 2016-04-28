@@ -6,6 +6,9 @@ interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
   GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp;
 
+const
+  MAX_CAPTION_WIDTH = 150;
+
 type
   TCustomSubitem = class
   protected
@@ -1036,7 +1039,7 @@ begin
     GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
     GdipDeleteGraphics(hgdip);
     DeleteDC(dc);
-    FCaptionWidth := min(ceil(rect.Width), 150);
+    FCaptionWidth := min(ceil(rect.Width), MAX_CAPTION_WIDTH);
     FCaptionHeight := ceil(rect.Height);
     FBorder := FCaptionWidth + FCaptionHeight + 8;
   end;
@@ -1074,7 +1077,7 @@ begin
       end
       else if message.msg = wm_mbuttondown then
       begin
-          SetActiveWindow(FHWndParent);
+            SetActiveWindow(FHWndParent);
       end
       else if message.msg = wm_lbuttonup then
       begin

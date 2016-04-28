@@ -177,6 +177,7 @@ const
   PROGRAM_REGKEY = 'tdock';
   PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
   WINITEM_CLASS = 'TDockWClass';
+  AEROPEEK_CLASS = 'TDAeroPeekWClass';
   ITEM_BACKGROUND = $2808080;
   RollStep = 4;
   NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
