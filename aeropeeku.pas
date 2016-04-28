@@ -183,7 +183,7 @@ begin
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, AEROPEEK_CLASS, nil, WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, 'AeroPeekWindow', WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then
     begin
       SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));

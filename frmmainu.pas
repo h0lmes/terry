@@ -1757,31 +1757,38 @@ function Tfrmmain.FullScreenAppActive(HWnd: HWND): boolean;
 const
   clsPM = 'Progman';
   clsWW = 'WorkerW';
-  clsAVP = 'AVP.SandboxBorderWindow';
+  clsAVP = 'AVP.SandboxBorderWindow'; // Kaspersky
 var
   wnd: hWnd;
   rc, rMonitor: windows.TRect;
-  cls: array [0..10] of char;
+  cls: array [0..23] of char;
 begin
   result := false;
   rMonitor := ItemMgr.FMonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
-    if not IsWindow(wnd) then exit
-    else
-    if IsWindowVisible(Wnd) then
+    if wnd = Handle then exit; // exit if we reached main dock window
+    if IsWindow(wnd) then
     begin
-        GetWindowRect(wnd, rc);
-        if (GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0) and
-          (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
-        begin
-          GetClassName(wnd, cls, 20);
-          result := (strlcomp(@cls, clsPM, 7) <> 0) and (strlcomp(@cls, clsWW, 7) <> 0) and (strlcomp(@cls, clsAVP, 7) <> 0);
-          exit;
-        end;
-    end;
-    wnd := GetWindow(wnd, GW_HWNDNEXT);
+	      if IsWindowVisible(wnd) then
+	      begin
+	          if GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0 then
+            begin
+		            GetWindowRect(wnd, rc);
+		            if (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
+							  begin
+		              GetClassName(wnd, cls, 23);
+		              if (strlcomp(@cls, clsPM, 7) <> 0) and (strlcomp(@cls, clsWW, 7) <> 0) and (strlcomp(@cls, clsAVP, 23) <> 0) then
+                  begin
+                      result := true;
+                      exit;
+									end;
+								end;
+						end;
+	      end;
+		end;
+		wnd := GetWindow(wnd, GW_HWNDNEXT);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1796,7 +1803,22 @@ begin
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
   begin
-    if IsWindowVisible(Wnd) then
+    if wnd = Handle then
+    begin
+      result := result + 'HWnd = ' + inttostr(wnd) + #13#10;
+      FillChar(cls, MAX_PATH, #0);
+      GetClassName(wnd, cls, MAX_PATH);
+      result := result + 'Class = ' + strpas(@cls) + #13#10;
+      FillChar(cls, MAX_PATH, #0);
+      GetWindowText(wnd, cls, MAX_PATH);
+      result := result + 'Text = ' + strpas(@cls) + #13#10;
+      result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + #13#10;
+      FillChar(cls, MAX_PATH, #0);
+      GetWindowModuleFileName(wnd, cls, MAX_PATH);
+      result := result + 'Module = ' + strpas(@cls) + #13#10#13#10;
+		end
+    else
+		if IsWindowVisible(Wnd) then
     begin
         GetWindowRect(wnd, rc);
         if (GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0) and

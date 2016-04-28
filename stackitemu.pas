@@ -1190,8 +1190,8 @@ procedure TStackItem.CreateBackgroundWindowIfNotExists;
 begin
   if not IsWindow(FBackgroundWindow) then
   try
-    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, 'Window',
-      'TDockStackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
+    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
+      'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
   except
     on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists'#10#13 + e.message);
   end;

@@ -1,7 +1,7 @@
 object frmStackProp: TfrmStackProp
-  Left = 537
+  Left = 534
   Height = 630
-  Top = 245
+  Top = 178
   Width = 735
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
@@ -20,7 +20,7 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
     Left = 10
     Height = 26
