@@ -19,6 +19,10 @@ msgstr "Создать ..."
 msgid "All"
 msgstr "Все"
 
+#: declu.xalphachannel
+msgid "Alpha channel: %d"
+msgstr "Альфа-канал: %d"
+
 #: declu.xanimationbounce3times
 msgid "Bounce 3 times"
 msgstr "Подпрыгивание 3 раза"
@@ -462,6 +466,7 @@ msgid "S"
 msgstr "S"
 
 #: tfrmcolor.lblbackgroundalpha.caption
+msgctxt "tfrmcolor.lblbackgroundalpha.caption"
 msgid "Alpha channel"
 msgstr "Альфа-канал"
 
@@ -1148,14 +1153,15 @@ msgctxt "tfrmstackprop.btnproperties.caption"
 msgid "Back to properties"
 msgstr "Вернуться к свойствам"
 
+#: tfrmstackprop.btnselectbkcolor.caption
+msgctxt "tfrmstackprop.btnselectbkcolor.caption"
+msgid "Select background color"
+msgstr "Выбрать цвет фона"
+
 #: tfrmstackprop.btnselectcolor.caption
 msgctxt "tfrmstackprop.btnselectcolor.caption"
 msgid "Select color"
 msgstr "Выбрать цвет"
-
-#: tfrmstackprop.button1.caption
-msgid "Select background color"
-msgstr "Выбрать цвет фона"
 
 #: tfrmstackprop.caption
 msgctxt "tfrmstackprop.caption"
@@ -1217,6 +1223,11 @@ msgstr "Имя"
 #| msgid "Distort"
 msgid "Spacing/Distortion"
 msgstr "Интервал/искажение"
+
+#: tfrmstackprop.lbldistort1.caption
+msgctxt "tfrmstackprop.lbldistort1.caption"
+msgid "Alpha channel"
+msgstr "Альфа-канал"
 
 #: tfrmstackprop.lblimage.caption
 msgctxt "tfrmstackprop.lblimage.caption"

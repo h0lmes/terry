@@ -26,7 +26,7 @@ type
     btnCancel: TButton;
     btnProperties: TButton;
     btnSelectColor: TButton;
-    Button1: TButton;
+    btnSelectBkColor: TButton;
     cboMode: TComboBox;
     cboPreview: TComboBox;
     chbBackgroundBlur: TCheckBox;
@@ -41,6 +41,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
+    lblDistort1: TLabel;
     lblImage: TLabel;
     lblDistort: TLabel;
     lblCaption: TLabel;
@@ -52,6 +53,7 @@ type
     pages: TPageControl;
     tbAnimationSpeed: TTrackBar;
     tbDistort: TTrackBar;
+    tbBackgroundAlpha: TTrackBar;
     tbOffset: TTrackBar;
     tsProperties: TTabSheet;
     tsColor: TTabSheet;
@@ -67,6 +69,7 @@ type
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
+    procedure btnSelectBkColorClick(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -81,6 +84,7 @@ type
       Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure listDblClick(Sender: TObject);
+    procedure tbBackgroundAlphaChange(Sender: TObject);
     procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
     procedure tbOffsetChange(Sender: TObject);
@@ -216,6 +220,7 @@ begin
   try
     background_color := DEFAULT_STACK_BGCOLOR;
     background_color := toolu.StringToColor(FetchValue(AData, 'background_color="', '";'));
+    tbBackgroundAlpha.Position := background_color shr 24 and $ff;
   except end;
 
   SpecialFolder := FetchValue(AData, 'special_folder="', '";');
@@ -361,12 +366,28 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
 begin
-  lblOffset.Caption := Format(XOffsetOfIcons, [tbOffset.Position]);
+  TTrackBar(Sender).Caption := Format(XOffsetOfIcons, [TTrackBar(Sender).Position]);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbDistortChange(Sender: TObject);
 begin
-  lblDistort.Caption := Format(XDistort, [tbDistort.Position]);
+  TTrackBar(Sender).Caption := Format(XDistort, [TTrackBar(Sender).Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);
+begin
+  with TColorDialog.Create(self) do
+  begin
+    Color := gfx.SwapColor(background_color and $ffffff);
+    if Execute then background_color := (background_color and $ff000000) + gfx.SwapColor(Color and $ffffff);
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbBackgroundAlphaChange(Sender: TObject);
+begin
+  TTrackBar(Sender).Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
+  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position and $ff shl 24;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnClearImageClick(Sender: TObject);

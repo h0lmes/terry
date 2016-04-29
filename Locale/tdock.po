@@ -18,6 +18,10 @@ msgstr ""
 msgid "All"
 msgstr ""
 
+#: declu.xalphachannel
+msgid "Alpha channel: %d"
+msgstr ""
+
 #: declu.xanimationbounce3times
 msgid "Bounce 3 times"
 msgstr ""
@@ -425,6 +429,7 @@ msgid "S"
 msgstr ""
 
 #: tfrmcolor.lblbackgroundalpha.caption
+msgctxt "tfrmcolor.lblbackgroundalpha.caption"
 msgid "Alpha channel"
 msgstr ""
 
@@ -1067,13 +1072,14 @@ msgctxt "TFRMSTACKPROP.BTNPROPERTIES.CAPTION"
 msgid "Back to properties"
 msgstr ""
 
+#: tfrmstackprop.btnselectbkcolor.caption
+msgctxt "TFRMSTACKPROP.BTNSELECTBKCOLOR.CAPTION"
+msgid "Select background color"
+msgstr ""
+
 #: tfrmstackprop.btnselectcolor.caption
 msgctxt "TFRMSTACKPROP.BTNSELECTCOLOR.CAPTION"
 msgid "Select color"
-msgstr ""
-
-#: tfrmstackprop.button1.caption
-msgid "Select background color"
 msgstr ""
 
 #: tfrmstackprop.caption
@@ -1132,6 +1138,11 @@ msgstr ""
 
 #: tfrmstackprop.lbldistort.caption
 msgid "Spacing/Distortion"
+msgstr ""
+
+#: tfrmstackprop.lbldistort1.caption
+msgctxt "TFRMSTACKPROP.LBLDISTORT1.CAPTION"
+msgid "Alpha channel"
 msgstr ""
 
 #: tfrmstackprop.lblimage.caption

@@ -311,6 +311,7 @@ resourcestring
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
   XDistort = 'Spacing/Distortion: %d';
+  XAlphaChannel = 'Alpha channel: %d';
   // frmstackpropu //
   XStackPreviewNone = 'none';
   XStackPreviewFour = 'four';

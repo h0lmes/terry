@@ -60,8 +60,8 @@
         <UnitName Value="declu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="149"/>
-        <CursorPos X="33" Y="179"/>
+        <TopLine Value="287"/>
+        <CursorPos X="46" Y="299"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -83,7 +83,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1804"/>
@@ -101,8 +100,8 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="605"/>
-        <CursorPos X="38" Y="233"/>
+        <TopLine Value="806"/>
+        <CursorPos X="32" Y="815"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
@@ -386,17 +385,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmstackpropu"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="299"/>
-        <CursorPos X="20" Y="312"/>
+        <TopLine Value="363"/>
+        <CursorPos X="45" Y="378"/>
         <UsageCount Value="202"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit30>
       <Unit31>
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="275"/>
         <CursorPos X="32" Y="290"/>
@@ -408,7 +410,8 @@
         <Filename Value="stackmodeu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackmodeu"/>
-        <EditorIndex Value="6"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="42"/>
         <CursorPos X="29" Y="56"/>
@@ -466,12 +469,10 @@
         <Filename Value="aeropeeku.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="aeropeeku"/>
-        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="66" Y="181"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit37>
       <Unit38>
@@ -1236,7 +1237,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="167"/>
         <CursorPos X="44" Y="177"/>
-        <UsageCount Value="116"/>
+        <UsageCount Value="117"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>
       <Unit130>
@@ -1279,7 +1280,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
       <Unit135>
@@ -1290,7 +1291,7 @@
         <UsageCount Value="9"/>
       </Unit135>
     </Units>
-    <JumpHistory Count="19" HistoryIndex="18">
+    <JumpHistory Count="25" HistoryIndex="24">
       <Position1>
         <Filename Value="stackitemu.pas"/>
         <Caret Line="1206" Column="1" TopLine="1194"/>
@@ -1367,6 +1368,30 @@
         <Filename Value="terry.lpr"/>
         <Caret Line="556" Column="32" TopLine="548"/>
       </Position19>
+      <Position20>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="313" Column="20" TopLine="300"/>
+      </Position20>
+      <Position21>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="377" Column="39" TopLine="348"/>
+      </Position21>
+      <Position22>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="378" Column="109" TopLine="351"/>
+      </Position22>
+      <Position23>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="380" Column="109" TopLine="353"/>
+      </Position23>
+      <Position24>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="379" Column="65" TopLine="376"/>
+      </Position24>
+      <Position25>
+        <Filename Value="frmstackpropu.pas"/>
+        <Caret Line="386" Column="49" TopLine="363"/>
+      </Position25>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
