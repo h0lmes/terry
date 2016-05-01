@@ -334,16 +334,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
-begin
-  result := false;
-  if hData <> 0 then
-  begin
-    AddLog('prop: ' + lpszString + ' = 0x' + inttohex(hData, 8));
-    result := true;
-  end;
-end;
-//------------------------------------------------------------------------------
 function TShortcutItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
@@ -377,16 +367,11 @@ begin
       gpSite: if FRunning then Redraw;
       tcThemeChanged: if FRunning then Redraw;
       tcDebugInfo:
-        if FAppList.Count > 0 then // debug window props info
+        if FAppList.Count > 0 then // log every window info
         begin
-          for idx := 0 to FAppList.Count - 1 do
-          begin
-            AddLog(FCaption + ' >>> hwnd: 0x' + inttohex(integer(FAppList.Items[idx]), 8));
-            try jwaWindows.EnumPropsEx(THandle(FAppList.Items[idx]), @EnumPropProc, 0);
-            except on e: Exception do AddLog(e.message);
-            end;
-            AddLog('-');
-          end;
+          AddLog('---------- ShortcutItem.WindowsInfo');
+          AddLog('Caption = ' + FCaption);
+          for idx := 0 to FAppList.Count - 1 do LogWindow(THandle(FAppList.Items[idx]));
         end;
 
       // commands //

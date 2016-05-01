@@ -103,6 +103,7 @@ type
     AHint: THint;
     Tray: TTrayController;
     StartMenu: TStartMenuController;
+    RunsOnWinVistaOrHigher: boolean;
     RunsOnWin10: boolean;
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
@@ -184,8 +185,8 @@ begin
     //FHook := 0;
     //if FileExists(theFile) then FHook := LoadLibrary(pchar(theFile));
 
-    // ProcessHelper (must be created before tray controller) //
-    ProcessHelper := TProcessHelper.Create(toolu.bIsWindowsVista);
+    // ProcessHelper (must be created before tray controller). Depends on DWM //
+    ProcessHelper := TProcessHelper.Create(RunsOnWinVistaOrHigher);
 
     sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
@@ -324,7 +325,7 @@ begin
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
     dwm.ExcludeFromPeek(FBlurWindow);
-    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
     on e: Exception do raise Exception.Create('Base.CreateBlurWindow'#10#13 + e.message);
   end;
@@ -1100,20 +1101,20 @@ end;
 procedure Tfrmmain.SetForeground;
   procedure setfore(h: THandle);
   begin
-    SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(h, HWND_TOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
+    SetWindowPos(h, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
   end;
 begin
   if assigned(ItemMgr) then
   begin
 	    // set all items topmost and place the dock window right underneath
-	    SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	    SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
       // place blur window underneath the dock
-      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
 	    // set blur window non topmost
-	    SetWindowPos(FBlurWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	    SetWindowPos(FBlurWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
 	    // set dock window non topmost
-	    SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	    SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
 	    // set all items non topmost
 	    ItemMgr.ZOrder(HWND_NOTOPMOST);
 	end;
@@ -1176,7 +1177,7 @@ var
 begin
   if FProgramIsClosing then exit;
   // keep blur window exactly behind the dock
-  SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+  SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   GetCursorPos(pt);
   wnd := WindowFromPoint(pt);
   if IsDockWnd(wnd) then exit;
@@ -1186,8 +1187,8 @@ begin
   if IsWindow(awnd) then wnd := awnd;
   if assigned(ItemMgr) and DockAboveWnd(wnd) then
   begin
-    SetWindowPos(FBlurWindow, wnd, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
-    SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+    SetWindowPos(FBlurWindow, wnd, 0, 0, 0, 0, SWP_NO_FLAGS);
+    SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NO_FLAGS);
     ItemMgr.ZOrder(wnd);
     ItemMgr.UnZoom();
   end;
@@ -1197,18 +1198,29 @@ end;
 procedure Tfrmmain.MaintainNotForeground;
 var
   h: THandle;
+  blurFound: boolean = false;
 begin
-  // keep blur window exactly behind the dock
-  SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
   // scan all windows up from Progman
   h := FindWindow('Progman', nil);
   h := GetWindow(h, GW_HWNDPREV);
 	while h <> 0 do
 	begin
-    if h = handle then exit; // main dock window found - ok and exit
+    if h = FBlurWindow then
+      blurFound := true
+    else
+    if h = Handle then
+    begin
+      // keep blur window exactly behind the dock
+      if not blurFound then
+        SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
+      // main dock window found - ok and exit
+      exit;
+    end
+    else
     if ItemMgr.IsItem(h) <> 0 then // one of the items found (but not the dock yet) - adjust dock position
     begin
-      SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+      SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NO_FLAGS);
+      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       exit;
     end;
     h := GetWindow(h, GW_HWNDPREV);
@@ -1227,17 +1239,17 @@ begin
     needRepaint := flags and 1 = 1;
 
     if (ItemMgr.FBaseImageRect.X <> FOldBaseImageRect.X) or
-      (ItemMgr.FBaseImageRect.Y <> FOldBaseImageRect.Y) or
-      (ItemMgr.FBaseImageRect.Width <> FOldBaseImageRect.Width) or
-      (ItemMgr.FBaseImageRect.Height <> FOldBaseImageRect.Height) then
+       (ItemMgr.FBaseImageRect.Y <> FOldBaseImageRect.Y) or
+       (ItemMgr.FBaseImageRect.Width <> FOldBaseImageRect.Width) or
+       (ItemMgr.FBaseImageRect.Height <> FOldBaseImageRect.Height) then
     begin
       needRepaint := True;
       FOldBaseImageRect := ItemMgr.FBaseImageRect;
     end;
     if (ItemMgr.FBaseWindowRect.X <> FOldBaseWindowRect.X) or
-      (ItemMgr.FBaseWindowRect.Y <> FOldBaseWindowRect.Y) or
-      (ItemMgr.FBaseWindowRect.Width <> FOldBaseWindowRect.Width) or
-      (ItemMgr.FBaseWindowRect.Height <> FOldBaseWindowRect.Height) then
+       (ItemMgr.FBaseWindowRect.Y <> FOldBaseWindowRect.Y) or
+       (ItemMgr.FBaseWindowRect.Width <> FOldBaseWindowRect.Width) or
+       (ItemMgr.FBaseWindowRect.Height <> FOldBaseWindowRect.Height) then
     begin
       needRepaint := True;
       FOldBaseWindowRect := ItemMgr.FBaseWindowRect;
@@ -1248,8 +1260,8 @@ begin
       // prepare a bitmap //
       bmp.topleft.x := ItemMgr.FBaseWindowRect.x;
       bmp.topleft.y := ItemMgr.FBaseWindowRect.y;
-      bmp.Width := ItemMgr.FBaseWindowRect.Width;
-      bmp.Height := ItemMgr.FBaseWindowRect.Height;
+      bmp.Width     := ItemMgr.FBaseWindowRect.Width;
+      bmp.Height    := ItemMgr.FBaseWindowRect.Height;
       if not CreateBitmap(bmp, Handle) then exit;
       dst := gfx.CreateGraphics(bmp.dc);
       if not assigned(dst) then
@@ -1267,21 +1279,8 @@ begin
       // draw dock background image //
       Theme.DrawBackground(dst, ItemMgr.FBaseImageRect, sets.container.BaseAlpha);
       // update dock window //
-      UpdateLWindow(handle, bmp, 255);
-
-      // deal with blur //
+      UpdateLWindow(Handle, bmp, 255);
       UpdateBlurWindow;
-      {if sets.container.Blur and Theme.BlurEnabled then
-      begin
-        FBlurActive := true;
-        DWM.EnableBlurBehindWindow(handle, Theme.GetBlurRgn(ItemMgr.FBaseImageRect));
-      end
-      else if FBlurActive then
-      begin
-        FBlurActive := false;
-        DWM.DisableBlurBehindWindow(handle);
-      end;}
-
     finally
       gfx.DeleteGraphics(dst);
       gfx.DeleteBitmap(bmp);
@@ -1300,12 +1299,12 @@ begin
   try
 	  if sets.container.Blur and Theme.BlurEnabled and IsWindow(FBlurWindow) then
 	  begin
-	    FBlurActive := true;
-	    rect := Theme.GetBlurRect(ItemMgr.FBaseImageRect);
+	    FBlurActive   := true;
+	    rect          := Theme.GetBlurRect(ItemMgr.FBaseImageRect);
 	    bmp.topleft.x := rect.X + ItemMgr.FBaseWindowRect.X;
 	    bmp.topleft.y := rect.Y + ItemMgr.FBaseWindowRect.Y;
-	    bmp.width := rect.Width;
-	    bmp.height := rect.Height;
+	    bmp.width     := rect.Width;
+	    bmp.height    := rect.Height;
 	    if not CreateBitmap(bmp, FBlurWindow) then exit; //raise Exception.Create('CreateBitmap failed');
 	    GdipCreateFromHDC(bmp.dc, dst);
 	    if not assigned(dst) then
@@ -1314,7 +1313,7 @@ begin
 	      exit; //raise Exception.Create('CreateGraphics failed');
 	    end;
 	    UpdateLWindow(FBlurWindow, bmp, 255);
-	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_NOZORDER + SWP_SHOWWINDOW);
+	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_SHOWWINDOW);
 	    DWM.EnableBlurBehindWindow(FBlurWindow, 0);
 	    DeleteGraphics(dst);
 	    DeleteBitmap(bmp);
@@ -1323,7 +1322,7 @@ begin
 	  begin
 	    FBlurActive := false;
 	    DWM.DisableBlurBehindWindow(FBlurWindow);
-	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_NOZORDER + SWP_HIDEWINDOW);
+	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_HIDEWINDOW);
 	  end;
   except
     on e: Exception do raise Exception.Create('Base.UpdateBlurWindow'#10#13 + e.message);
@@ -1881,6 +1880,7 @@ begin
       FillChar(cls, MAX_PATH, #0);
       GetWindowText(wnd, cls, MAX_PATH);
       result := result + 'Text = ' + strpas(@cls) + #13#10;
+      GetWindowRect(wnd, rc);
       result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + #13#10;
       FillChar(cls, MAX_PATH, #0);
       GetWindowModuleFileName(wnd, cls, MAX_PATH);

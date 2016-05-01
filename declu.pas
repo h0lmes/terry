@@ -179,7 +179,7 @@ const
   WINITEM_CLASS = 'TDockWClass';
   ITEM_BACKGROUND = $2808080;
   RollStep = 4;
-  NoAll = swp_nosize + swp_nomove + swp_nozorder + swp_noreposition;
+  SWP_NO_FLAGS = SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOOWNERZORDER + SWP_NOSENDCHANGING;
   NOT_AN_ITEM = $ffff; // result const in case when item (items[]) not found
   MONITOR_DEFAULTTONEAREST = 2;
 

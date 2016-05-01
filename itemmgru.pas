@@ -513,7 +513,8 @@ begin
   try
     for idx := 0 to FItemCount - 1 do
     begin
-      if FItemArray[idx].h <> 0 then TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
+      if FItemArray[idx].h <> 0 then
+        TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
     end;
   except
     on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + #10#13 + e.message);
@@ -665,7 +666,7 @@ begin
     idx := 0;
     while idx < FItemCount do
     begin
-      SetWindowPos(ItemHWnd(idx), InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
+      SetWindowPos(ItemHWnd(idx), InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
       inc(idx);
     end;
   except

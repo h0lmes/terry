@@ -1206,8 +1206,8 @@ begin
   try
     bmp.topleft.x := AX;
     bmp.topleft.y := AY;
-    bmp.width := AW;
-    bmp.height := AH;
+    bmp.width     := AW;
+    bmp.height    := AH;
     if not CreateBitmap(bmp, FBackgroundWindow) then exit; //raise Exception.Create('CreateBitmap failed');
     GdipCreateFromHDC(bmp.dc, dst);
     if not assigned(dst) then
@@ -1220,7 +1220,7 @@ begin
     GdipDeleteBrush(brush);
 
     UpdateLWindow(FBackgroundWindow, bmp, 255);
-    SetWindowPos(FBackgroundWindow, 0, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING + SWP_NOZORDER + SWP_SHOWWINDOW);
+    SetWindowPos(FBackgroundWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_SHOWWINDOW);
     if FBackgroundBlur then DWM.EnableBlurBehindWindow(FBackgroundWindow, 0)
     else DWM.DisableBlurBehindWindow(FBackgroundWindow);
     DeleteGraphics(dst);
@@ -1234,7 +1234,7 @@ procedure TStackItem.ZOrderTop;
 begin
   try
     // set all items topmost and place the dock window right underneath
-	  SetWindowPos(FHWnd, ZOrderItems(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	  SetWindowPos(FHWnd, ZOrderItems(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
   except
     on e: Exception do raise Exception.Create('StackItem.ZOrderTop'#10#13 + e.message);
   end;
@@ -1244,7 +1244,7 @@ procedure TStackItem.ZOrderNoTop;
 begin
   try
     // set dock window non topmost
-	  SetWindowPos(FHWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
+	  SetWindowPos(FHWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
 	  // set all items non topmost
 	  ZOrderItems(HWND_NOTOPMOST);
   except
@@ -1263,7 +1263,7 @@ begin
     idx := 0;
     while idx < FItemCount do
     begin
-      SetWindowPos(items[idx].hWnd, InsertAfter, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOREPOSITION);
+      SetWindowPos(items[idx].hWnd, InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
       inc(idx);
     end;
   end;

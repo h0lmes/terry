@@ -4,7 +4,7 @@ unit processhlp;
 
 interface
 
-uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu;
+uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu, dwm_unit;
 
 type
   {TProcessHelper}
@@ -16,7 +16,7 @@ type
     listProcess: TStrings; // process + PID
     listProcessFullName: TStrings; // process full module name + PID
     listAppWindows: TFPList; // app windows
-    FParentHWnd: THandle;
+    FParentHWnd: THandle; // if this handle <> 0, then every app window is being checked if it is on the same monitor
     FWindowsCount: integer;
     FWindowsCountChanged: boolean;
     hKernel32: HMODULE;
@@ -385,6 +385,7 @@ var
   exstyle: PtrUInt;
   ch: array [0..10] of char;
   pid: dword;
+  rc: windows.TRect;
 begin
   result := true;
   inc(helper.FWindowsCount);
@@ -396,8 +397,12 @@ begin
       begin
           if GetWindow(h, GW_OWNER) <> THandle(0) then exit;
           if exstyle and WS_EX_TOOLWINDOW = WS_EX_TOOLWINDOW then exit;
+          GetWindowRect(h, rc);
+          if (rc.Right - rc.Left < 1) or (rc.Bottom - rc.Top < 1) then exit;
           if windows.GetWindowText(h, ch, 10) < 1 then exit;
           if GetProp(h, 'ITaskList_Deleted') <> 0 then exit;
+          if assigned(DWM) then
+            if DWM.IsWindowCloaked(h) then exit;
       end;
 
       if not (helper.FParentHWnd = 0) then

@@ -178,6 +178,7 @@ function LaunchWinamp(sw: integer = sw_shownormal): boolean;
 function wacmd(cmd: cardinal): boolean;
 procedure AddLog(LogString: string);
 procedure TruncLog(fs: TFileStream);
+procedure LogWindow(handle: HWND);
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
 function IsIdenticalStreams(Source, Destination: TStream): boolean;
 
@@ -1220,6 +1221,41 @@ begin
     end;
   except
   end;
+end;
+//------------------------------------------------------------------------------
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+begin
+  result := false;
+  if hData <> 0 then
+  begin
+    AddLog(lpszString + ' = ' + inttohex(hData, 8));
+    result := true;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure LogWindow(handle: HWND);
+var
+  rc: windows.TRect;
+  cls: array [0..MAX_PATH - 1] of char;
+begin
+  AddLog('-');
+  AddLog('Handle = ' + inttohex(handle, 8));
+  FillChar(cls, MAX_PATH, #0);
+  GetClassName(handle, cls, MAX_PATH);
+  AddLog('Class = ' + strpas(@cls));
+  FillChar(cls, MAX_PATH, #0);
+  GetWindowText(handle, cls, MAX_PATH);
+  AddLog('Text = ' + strpas(@cls));
+  GetWindowRect(handle, rc);
+  AddLog('Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom));
+  FillChar(cls, MAX_PATH, #0);
+  GetWindowModuleFileName(handle, cls, MAX_PATH);
+  AddLog('Module = ' + strpas(@cls));
+  AddLog('Props:');
+  try jwaWindows.EnumPropsEx(handle, @EnumPropProc, 0);
+  except on e: Exception do AddLog(e.message);
+  end;
+  AddLog('-');
 end;
 //------------------------------------------------------------------------------
 procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);

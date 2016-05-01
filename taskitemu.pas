@@ -195,16 +195,6 @@ begin
     LoadAppImage(FExecutable, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
-begin
-  result := false;
-  if hData <> 0 then
-  begin
-    AddLog(lpszString + ' = 0x' + inttohex(hData, 8));
-    result := true;
-  end;
-end;
-//------------------------------------------------------------------------------
 function TTaskItem.cmd(id: TGParam; param: integer): integer;
 var
   temp: uint;
@@ -230,16 +220,12 @@ begin
       gpTaskThumbSize: FTaskThumbSize := param;
       gpTaskGrouping: FTaskGrouping := boolean(param);
       tcDebugInfo:
-        if FAppList.Count > 0 then // debug window props info
+        if FAppList.Count > 0 then // log every window info
         begin
-          for idx := 0 to FAppList.Count - 1 do
-          begin
-            AddLog(FCaption + ' >>> hwnd: 0x' + inttohex(integer(FAppList.Items[idx]), 8));
-            try jwaWindows.EnumPropsEx(THandle(FAppList.Items[idx]), @EnumPropProc, 0);
-            except on e: Exception do AddLog(e.message);
-            end;
-            AddLog('-');
-          end;
+          AddLog('---------- TaskItem.WindowsInfo');
+          AddLog('Caption = ' + FCaption);
+          AddLog('Process = ' + FExecutable);
+          for idx := 0 to FAppList.Count - 1 do LogWindow(THandle(FAppList.Items[idx]));
         end;
 
       // commands //

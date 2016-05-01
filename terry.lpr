@@ -566,6 +566,7 @@ begin
   Application.CreateForm(Tfrmmain, frmmain);
   SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
+  frmmain.RunsOnWinVistaOrHigher := VerInfo.dwMajorVersion >= 6;
   frmmain.RunsOnWin10 := VerInfo.dwMajorVersion >= 10;
 
   RegisterWindowItemClass;
