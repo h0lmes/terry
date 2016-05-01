@@ -1214,6 +1214,11 @@ msgstr "Контраст"
 msgid "Animation speed"
 msgstr "Скорость анимации"
 
+#: tfrmstackprop.lblbackgroundalpha.caption
+msgctxt "tfrmstackprop.lblbackgroundalpha.caption"
+msgid "Alpha channel"
+msgstr "Альфа-канал"
+
 #: tfrmstackprop.lblcaption.caption
 msgctxt "TFRMSTACKPROP.LBLCAPTION.CAPTION"
 msgid "Name"
@@ -1223,11 +1228,6 @@ msgstr "Имя"
 #| msgid "Distort"
 msgid "Spacing/Distortion"
 msgstr "Интервал/искажение"
-
-#: tfrmstackprop.lbldistort1.caption
-msgctxt "tfrmstackprop.lbldistort1.caption"
-msgid "Alpha channel"
-msgstr "Альфа-канал"
 
 #: tfrmstackprop.lblimage.caption
 msgctxt "tfrmstackprop.lblimage.caption"

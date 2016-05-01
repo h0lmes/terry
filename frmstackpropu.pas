@@ -41,7 +41,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
-    lblDistort1: TLabel;
+    lblBackgroundAlpha: TLabel;
     lblImage: TLabel;
     lblDistort: TLabel;
     lblCaption: TLabel;
@@ -220,8 +220,8 @@ begin
   try
     background_color := DEFAULT_STACK_BGCOLOR;
     background_color := toolu.StringToColor(FetchValue(AData, 'background_color="', '";'));
-    tbBackgroundAlpha.Position := background_color shr 24 and $ff;
   except end;
+  tbBackgroundAlpha.Position := (background_color and $ff000000 shr 24) * 100 div 255;
 
   SpecialFolder := FetchValue(AData, 'special_folder="', '";');
 
@@ -366,12 +366,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
 begin
-  TTrackBar(Sender).Caption := Format(XOffsetOfIcons, [TTrackBar(Sender).Position]);
+  lblOffset.Caption := Format(XOffsetOfIcons, [TTrackBar(Sender).Position]);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbDistortChange(Sender: TObject);
 begin
-  TTrackBar(Sender).Caption := Format(XDistort, [TTrackBar(Sender).Position]);
+  lblDistort.Caption := Format(XDistort, [TTrackBar(Sender).Position]);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);
@@ -386,8 +386,8 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbBackgroundAlphaChange(Sender: TObject);
 begin
-  TTrackBar(Sender).Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
-  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position and $ff shl 24;
+  lblBackgroundAlpha.Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
+  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position * 255 div 100 shl 24;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnClearImageClick(Sender: TObject);

@@ -1,7 +1,7 @@
 object frmStackProp: TfrmStackProp
-  Left = 534
+  Left = 440
   Height = 644
-  Top = 178
+  Top = 171
   Width = 735
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
@@ -20,7 +20,7 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
     Left = 10
     Height = 26
@@ -495,24 +495,24 @@ object frmStackProp: TfrmStackProp
         Caption = 'Show background'
         TabOrder = 6
       end
-      object lblDistort1: TLabel
+      object lblBackgroundAlpha: TLabel
         Tag = 10
-        Left = 288
+        Left = 275
         Height = 13
-        Top = 230
+        Top = 225
         Width = 67
         Caption = 'Alpha channel'
         ParentColor = False
       end
       object tbBackgroundAlpha: TTrackBar
-        Left = 275
+        Left = 265
         Height = 34
         Top = 250
         Width = 160
-        Frequency = 26
-        Max = 255
+        Frequency = 10
+        Max = 100
         OnChange = tbBackgroundAlphaChange
-        PageSize = 26
+        PageSize = 10
         Position = 0
         ScalePos = trLeft
         ShowSelRange = False

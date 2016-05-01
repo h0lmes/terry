@@ -1131,6 +1131,11 @@ msgstr ""
 msgid "Animation speed"
 msgstr ""
 
+#: tfrmstackprop.lblbackgroundalpha.caption
+msgctxt "TFRMSTACKPROP.LBLBACKGROUNDALPHA.CAPTION"
+msgid "Alpha channel"
+msgstr ""
+
 #: tfrmstackprop.lblcaption.caption
 msgctxt "TFRMSTACKPROP.LBLCAPTION.CAPTION"
 msgid "Name"
@@ -1138,11 +1143,6 @@ msgstr ""
 
 #: tfrmstackprop.lbldistort.caption
 msgid "Spacing/Distortion"
-msgstr ""
-
-#: tfrmstackprop.lbldistort1.caption
-msgctxt "TFRMSTACKPROP.LBLDISTORT1.CAPTION"
-msgid "Alpha channel"
 msgstr ""
 
 #: tfrmstackprop.lblimage.caption
