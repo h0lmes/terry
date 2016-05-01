@@ -41,9 +41,9 @@ type
     Area: Windows.TRect;
   end;
 
-  { _Theme }
+  { TDockTheme }
 
-  _Theme = class
+  TDockTheme = class
   private
     FSite: TBaseSite;
     FThemesFolder: string;
@@ -93,7 +93,8 @@ type
     procedure DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
     procedure DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
     function DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
-    function GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
+    function GetBlurRgn(r: GDIPAPI.TRect): HRGN;
+		function GetBlurRect(r: GDIPAPI.TRect): GDIPAPI.TRect;
     function BlurEnabled: boolean;
 
     procedure MakeDefaultTheme;
@@ -103,11 +104,11 @@ type
     procedure ThemesMenu(ThemeName: string; hMenu: THandle);
   end;
 
-var theme: _Theme;
+var theme: TDockTheme;
 
 implementation
 //------------------------------------------------------------------------------
-constructor _Theme.Create(aTheme: string; aSite: TBaseSite);
+constructor TDockTheme.Create(aTheme: string; aSite: TBaseSite);
 begin
   FThemeName := aTheme;
   FThemesFolder := toolu.UnzipPath('%pp%\Themes\');
@@ -118,7 +119,7 @@ begin
   CheckExtractFileFromResource('DEFAULT_INDICATOR', UnzipPath('%pp%\themes\indicator.png'));
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.Clear;
+procedure TDockTheme.Clear;
 begin
   Background.StretchStyle := ssStretch;
   Background.Margins := rect(0, 0, 0, 0);
@@ -131,7 +132,7 @@ begin
   Button.Area := rect(-2, -2, -2, -2);
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.ClearGraphics;
+procedure TDockTheme.ClearGraphics;
 begin
   if Indicator.image <> nil then
   begin
@@ -176,13 +177,13 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SetTheme(aTheme: string);
+procedure TDockTheme.SetTheme(aTheme: string);
 begin
   FThemeName := aTheme;
   Load;
 end;
 //------------------------------------------------------------------------------
-function _Theme.Load: boolean;
+function TDockTheme.Load: boolean;
 var
   ini: TIniFile;
   section: string;
@@ -294,7 +295,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.Save: boolean;
+function TDockTheme.Save: boolean;
 var
   ini: TIniFile;
 begin
@@ -338,7 +339,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SetBlurRegion(value: string);
+procedure TDockTheme.SetBlurRegion(value: string);
 var
   idx: integer;
   str: string;
@@ -374,20 +375,20 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SetSite(value: TBaseSite);
+procedure TDockTheme.SetSite(value: TBaseSite);
 begin
   FSite := value;
   ReloadGraphics;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SetItemsArea(value: windows.TRect);
+procedure TDockTheme.SetItemsArea(value: windows.TRect);
 begin
   FItemsArea := value;
   FMargin2 := 0;
   if FItemsArea.Top < 0 then FMargin2 := -FItemsArea.Top;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.ReloadGraphics;
+procedure TDockTheme.ReloadGraphics;
 var
   img: Pointer;
 begin
@@ -492,7 +493,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.ImageAdjustRotate(image: Pointer);
+procedure TDockTheme.ImageAdjustRotate(image: Pointer);
 begin
   if image <> nil then
   begin
@@ -502,7 +503,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.CorrectMargins(margins: Windows.TRect): Windows.TRect;
+function TDockTheme.CorrectMargins(margins: Windows.TRect): Windows.TRect;
 begin
   Result := margins;
   if Fsite = bsLeft then
@@ -526,7 +527,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.CorrectSize(size: Windows.TSize): Windows.TSize;
+function TDockTheme.CorrectSize(size: Windows.TSize): Windows.TSize;
 begin
   Result := size;
   if (Fsite = bsLeft) or (Fsite = bsRight) then
@@ -536,7 +537,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
+function TDockTheme.CorrectCoords(coord: Windows.TPoint; W, H: integer): Windows.TPoint;
 begin
   result.x := coord.x;
   result.y := coord.y;
@@ -556,7 +557,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
+procedure TDockTheme.DrawBackground(hGDIPGraphics: Pointer; r: GDIPAPI.TRect; alpha: integer);
 var
   marg, area: Windows.TRect;
 begin
@@ -570,7 +571,7 @@ begin
     rect(r.x, r.y, r.Width, r.Height), marg, Background.StretchStyle, alpha);
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
+procedure TDockTheme.DrawIndicator(dst: Pointer; Left, Top, Size, Site: integer);
 begin
   if assigned(Indicator.Image) then
   try
@@ -609,7 +610,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
+function TDockTheme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
 var
   img: pointer;
 begin
@@ -625,12 +626,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Theme.BlurEnabled: boolean;
+function TDockTheme.BlurEnabled: boolean;
 begin
   result := FBlurRegionPointsCount > 1;
 end;
 //------------------------------------------------------------------------------
-function _Theme.GetBackgroundRgn(r: GDIPAPI.TRect): HRGN;
+function TDockTheme.GetBlurRgn(r: GDIPAPI.TRect): HRGN;
 var
   bm: windows.TRect;
   ba: windows.TRect;
@@ -682,7 +683,22 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.MakeDefaultTheme;
+function TDockTheme.GetBlurRect(r: GDIPAPI.TRect): GDIPAPI.TRect;
+var
+  ba: windows.TRect;
+begin
+  result := r;
+  if BlurEnabled then
+  begin
+    ba := CorrectMargins(FBlurRect);
+    result.x := r.x + ba.Left;
+    result.y := r.y + ba.Top;
+    result.width := r.Width - ba.Left - ba.Right;
+    result.height := r.Height - ba.Top - ba.Bottom;
+	end;
+end;
+//------------------------------------------------------------------------------
+procedure TDockTheme.MakeDefaultTheme;
 begin
   is_default := True;
 
@@ -696,12 +712,12 @@ begin
   ReloadGraphics;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.CheckExtractFileFromResource(ResourceName: PChar; filename: string);
+procedure TDockTheme.CheckExtractFileFromResource(ResourceName: PChar; filename: string);
 begin
   if not FileExists(filename) then ExtractFileFromResource(ResourceName, filename);
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.ExtractFileFromResource(ResourceName: PChar; filename: string);
+procedure TDockTheme.ExtractFileFromResource(ResourceName: PChar; filename: string);
 var
   rs: TResourceStream;
   fs: TFileStream;
@@ -720,7 +736,7 @@ begin
   fs.Free;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.SearchThemes(ThemeName: string; lb: TListBox);
+procedure TDockTheme.SearchThemes(ThemeName: string; lb: TListBox);
 var
   fhandle: HANDLE;
   f: TWin32FindData;
@@ -748,7 +764,7 @@ begin
   lb.items.EndUpdate;
 end;
 //------------------------------------------------------------------------------
-procedure _Theme.ThemesMenu(ThemeName: string; hMenu: THandle);
+procedure TDockTheme.ThemesMenu(ThemeName: string; hMenu: THandle);
   procedure AppendMI(name: string; var idx: integer);
   var
     flags: cardinal;
@@ -777,7 +793,7 @@ begin
   if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------
-destructor _Theme.Destroy;
+destructor TDockTheme.Destroy;
 begin
   Clear;
   ClearGraphics;

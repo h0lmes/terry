@@ -1208,7 +1208,7 @@ begin
     bmp.topleft.y := AY;
     bmp.width := AW;
     bmp.height := AH;
-    if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('CreateBitmap failed');
+    if not CreateBitmap(bmp, FBackgroundWindow) then exit; //raise Exception.Create('CreateBitmap failed');
     GdipCreateFromHDC(bmp.dc, dst);
     if not assigned(dst) then
     begin
