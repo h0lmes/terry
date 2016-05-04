@@ -17,6 +17,7 @@ type
   protected
     FDropTarget: TDropTarget;
     procedure  DropTarget_Forget;  // used by DropTarget.Destroy;
+    function tymedToString(tymed: DWORD): string;
   public
     OnDragOver: TProc;
     OnDragLeave: TProc;
@@ -32,6 +33,7 @@ type
     procedure AddToListHDrop(h: HDROP; var List: TStrings);
     procedure AddToListHGlobalPIDL(h: HGLOBAL; var List: TStrings);
     procedure AddToListIStreamPIDL(h: Pointer; var List: TStrings);
+    procedure AddToListFileFile(lpsz: POLESTR; var List: TStrings);
     procedure AddToListIStreamFileName(h: Pointer; var List: TStrings);
     procedure MakeList(const dataObj: IDataObject; var List: TStrings);
     function DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
@@ -133,6 +135,9 @@ begin
     begin
       dragQueryFile(h, i, filename, sizeof(filename));
       List.Add(filename);
+      {$ifdef DEBUG_DROPTGT}
+      notifier.message(filename);
+      {$endif}
       inc(i);
     end;
     DragFinish(h);
@@ -161,6 +166,9 @@ begin
     if size > MAX_PATH then size := MAX_PATH;
     ist.Read(@data, size, @cbRead);
     List.Add(strpas(pchar(@data)));
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message(strpas(pchar(@data)));
+    {$endif}
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName'#10#13 + e.message);
   end;
@@ -276,6 +284,34 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TDropManager.AddToListFileFile(lpsz: POLESTR; var List: TStrings);
+begin
+  try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListFileFile');
+    {$endif}
+
+    List.Add(pchar(lpsz));
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message(pchar(lpsz));
+    {$endif}
+  except
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TDropManager.tymedToString(tymed: DWORD): string;
+begin
+  result := '';
+  if tymed and TYMED_HGLOBAL  = TYMED_HGLOBAL then  result += 'TYMED_HGLOBAL ';
+  if tymed and TYMED_FILE     = TYMED_FILE then     result += 'TYMED_FILE ';
+  if tymed and TYMED_ISTREAM  = TYMED_ISTREAM then  result += 'TYMED_ISTREAM ';
+  if tymed and TYMED_ISTORAGE = TYMED_ISTORAGE then result += 'TYMED_ISTORAGE ';
+  if tymed and TYMED_GDI      = TYMED_GDI then      result += 'TYMED_GDI ';
+  if tymed and TYMED_MFPICT   = TYMED_MFPICT then   result += 'TYMED_MFPICT ';
+  if tymed and TYMED_ENHMF    = TYMED_ENHMF then    result += 'TYMED_ENHMF ';
+end;
+//------------------------------------------------------------------------------
 procedure TDropManager.MakeList(const dataObj: IDataObject; var List: TStrings);
 var
   Rslt: HResult;
@@ -297,11 +333,7 @@ begin
   while Rslt = S_OK do
   begin
     GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
-    notifier.message('cfFormat = ' + strpas(pchar(@ch)));
-    if FormatEtc.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then notifier.message('TYMED_HGLOBAL');
-    if FormatEtc.tymed and TYMED_ISTREAM = TYMED_ISTREAM then notifier.message('TYMED_ISTREAM');
-    if FormatEtc.tymed and TYMED_FILE = TYMED_FILE then notifier.message('TYMED_FILE');
-    if FormatEtc.tymed and TYMED_ISTORAGE = TYMED_ISTORAGE then notifier.message('TYMED_ISTORAGE');
+    notifier.message('cfFormat = ' + strpas(pchar(@ch)) + '. tymed = ' + tymedToString(FormatEtc.tymed));
     Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
   end;
   {$endif}
@@ -353,7 +385,7 @@ begin
       if FormatEtc.tymed and (TYMED_FILE or TYMED_ISTREAM) <> 0 then
         if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
         begin
-          if StgMedium.tymed and TYMED_FILE = TYMED_FILE then List.Add(pchar(StgMedium.lpszFileName))
+          if StgMedium.tymed and TYMED_FILE = TYMED_FILE then AddToListFileFile(StgMedium.lpszFileName, List)
           else
           if StgMedium.tymed and TYMED_ISTREAM = TYMED_ISTREAM then AddToListIStreamFileName(StgMedium.pstm, List);
           try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);

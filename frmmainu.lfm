@@ -14,6 +14,7 @@ object frmmain: Tfrmmain
   KeyPreview = True
   OnClose = FormClose
   OnKeyDown = FormKeyDown
+  OnMouseDown = FormMouseDown
   OnMouseUp = FormMouseUp
   LCLVersion = '1.2.2.0'
   object trayicon: TTrayIcon

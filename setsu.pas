@@ -341,7 +341,7 @@ end;
 //------------------------------------------------------------------------------
 function _Sets.Backup: boolean;
 var
-  backupFile, lastBackupFile: string;
+  setsFilenameBase, backupFile, lastBackupFile: string;
   list: TStrings;
   lastBackupFS, setsFS: TFileStream;
   identical: boolean;
@@ -349,10 +349,11 @@ begin
   result := true;
   try
     if not FileExists(SetsPathFile) then exit;
+    setsFilenameBase := ChangeFileExt(ExtractFileName(SetsPathFile), '');
 
     // list all backup files
     list := TStringList.Create;
-    toolu.SearchFilesRecursive(BackupsPath, 'sets*.ini', list);
+    toolu.SearchFilesRecursive(BackupsPath, setsFilenameBase + '*.ini', list);
     toolu.qSortStrings(list);
 
     // compare the last one (if exists) with the settings file
@@ -372,7 +373,7 @@ begin
     if identical then exit;
 
     if not DirectoryExists(BackupsPath) then windows.CreateDirectory(pchar(BackupsPath), nil);
-    backupFile := BackupsPath + '\sets__' + FormatDateTime('yyyy-MM-dd__hh-nn-ss', Now) + '.ini';
+    backupFile := BackupsPath + '\' + setsFilenameBase + '__' + FormatDateTime('yyyy-MM-dd__hh-nn-ss', Now) + '.ini';
     if not windows.CopyFile(pchar(SetsPathFile), pchar(backupFile), false) then result := false;
   except
     on e: Exception do raise Exception.Create('Sets.Backup '#10#13 + e.message);

@@ -23,6 +23,7 @@ type
   Tfrmmain = class(TForm)
     trayicon: TTrayIcon;
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -523,7 +524,7 @@ begin
       begin
         if (param = 0) and assigned(ItemMgr) then ItemMgr.Visible := false;
         Visible := boolean(param);
-        //if boolean(param) then SetForeground;
+        UpdateBlurWindow;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
@@ -703,6 +704,12 @@ end;
 procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
 begin
   if assigned(ItemMgr) then ItemMgr.AllItemCmd(icFlashTaskWindow, hwnd);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  // put blur exactly behind the dock
+  SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
@@ -1210,10 +1217,10 @@ begin
     else
     if h = Handle then
     begin
-      // keep blur window exactly behind the dock
+      // if BlurWindow above the dock - put blur exactly behind the dock
       if not blurFound then
         SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
-      // main dock window found - ok and exit
+      // main dock window found - exit
       exit;
     end
     else
@@ -1222,7 +1229,11 @@ begin
       SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NO_FLAGS);
       SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       exit;
-    end;
+    end
+    else
+    if blurFound then // if blur found, but then found some other window before - put blur exactly behind the dock
+      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
+
     h := GetWindow(h, GW_HWNDPREV);
 	end;
 end;
@@ -1297,7 +1308,7 @@ var
   rect: GDIPAPI.TRect;
 begin
   try
-	  if sets.container.Blur and Theme.BlurEnabled and IsWindow(FBlurWindow) then
+	  if sets.container.Blur and Theme.BlurEnabled and IsWindow(FBlurWindow) and IsWindowVisible(Handle) then
 	  begin
 	    FBlurActive   := true;
 	    rect          := Theme.GetBlurRect(ItemMgr.FBaseImageRect);
