@@ -359,6 +359,15 @@ begin
   end;
   FBlurRegionPointsCount := idx;
 
+  if FBlurRegionPointsCount = 0 then
+  begin
+    FBlurRegionPointsCount := 2;
+    FBlurRegionPoints[0].x := 0;
+    FBlurRegionPoints[0].y := 0;
+    FBlurRegionPoints[1].x := 0;
+    FBlurRegionPoints[1].y := 0;
+  end;
+
   if (FBlurRegionPointsCount = 2) or (FBlurRegionPointsCount = 3) then
   begin
     FBlurRect.Left := FBlurRegionPoints[0].x;
