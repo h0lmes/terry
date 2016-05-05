@@ -76,7 +76,7 @@ type
     property ImageW: uint read FIW;
     property ImageH: uint read FIH;
 
-    function HitTest(Ax, Ay: integer): boolean;
+    function HitTest(Ax, Ay: integer): boolean; virtual;
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure SetFont(var Value: _FontData);
 
@@ -84,7 +84,7 @@ type
     destructor Destroy; override;
     procedure UpdateItem(AData: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
-    function Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual; abstract;
+    function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
     function ToString: string; virtual;
     function SaveToString: string; virtual; abstract;
@@ -126,10 +126,11 @@ type
     destructor Destroy; override;
     procedure UpdateItem(AData: string); overload; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
-    function Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
+    function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
     function ToString: string; override;
     function SaveToString: string; override;
+    function HitTest(Ax, Ay: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseHeld(button: TMouseButton); override;
@@ -449,24 +450,21 @@ begin
         yBitmap := FSize div 2 + 3;
       end;
       // hint background
-      if AHintBackground then
-      begin
-	        GdipCreatePath(FillModeWinding, path);
-	        points[0].x := xBitmap - FCaptionHeight div 10;
-	        points[0].y := yBitmap - 1;
-	        points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
-	        points[1].y := points[0].y;
-	        points[2].x := points[1].x;
-	        points[2].y := points[0].y + FCaptionHeight + 1;
-	        points[3].x := points[0].x;
-	        points[3].y := points[2].y;
-	        GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
-	        GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
-	        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-	        GdipFillPath(dst, brush, path);
-	        GdipDeleteBrush(brush);
-	        GdipDeletePath(path);
-			end;
+	    GdipCreatePath(FillModeWinding, path);
+	    points[0].x := xBitmap - FCaptionHeight div 10;
+	    points[0].y := yBitmap - 1;
+	    points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
+	    points[1].y := points[0].y;
+	    points[2].x := points[1].x;
+	    points[2].y := points[0].y + FCaptionHeight + 1;
+	    points[3].x := points[0].x;
+	    points[3].y := points[2].y;
+	    GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
+	    GdipCreateSolidFill(ifthen(AHintBackground, AHintAlpha shl 24, $1000000) + FFont.backcolor and $ffffff, brush);
+	    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+	    GdipFillPath(dst, brush, path);
+	    GdipDeleteBrush(brush);
+	    GdipDeletePath(path);
 			//
       rect.X := xBitmap;
       rect.Y := yBitmap;
@@ -496,15 +494,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// returns position of the item window //
-function TShortcutSubitem.Measure(Ax, Ay, ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
+// returns position of the item window in relative coordinates //
+function TShortcutSubitem.Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
 begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
 
-    result.Left := Ax - ASize div 2;
+    result.Left := -ASize div 2;
     result.Right := result.Left + ASize;
-    result.Top := Ay - ASize div 2;
+    result.Top := -ASize div 2;
     result.Bottom := result.Top + ASize;
 
     // correct item box using caption size //
@@ -512,11 +510,11 @@ begin
     begin
       if AHintAlign = HORIZONTAL_LEFT then
       begin
-        result.Left := Ax - FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+        result.Left := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
 			end else
       if AHintAlign = VERTICAL_TOP then
       begin
-        result.Top := Ay - FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+        result.Top := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
       end else
       if AHintAlign = HORIZONTAL_RIGHT then
       begin
@@ -530,12 +528,12 @@ begin
       begin
         if FCaptionWidth > ASize then
         begin
-          result.Left := Ax - FCaptionWidth div 2;
+          result.Left := -FCaptionWidth div 2;
           result.Right := result.Left + FCaptionWidth;
         end;
         result.Bottom += 3 + FCaptionHeight;
       end;
-      if AAngle > 0 then RotateRect(Ax, Ay, (360 - AAngle) / 3.14159286, result);
+      if AAngle > 0 then RotateRect(0, 0, (360 - AAngle) / 3.14159286, result);
     end;
 
   except
@@ -571,6 +569,11 @@ end;
 function TShortcutSubitem.SaveToString: string;
 begin
   result := SaveMake(FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+end;
+//------------------------------------------------------------------------------
+function TShortcutSubitem.HitTest(Ax, Ay: integer): boolean;
+begin
+  result := true;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -897,6 +900,21 @@ begin
 
   except
     on e: Exception do raise Exception.Create('TCustomSubitem.Cmd'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+// returns position of the item window in relative coordinates //
+function TCustomSubitem.Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
+begin
+  try
+    if FFreed or FUpdating or FQueryDelete then exit;
+
+    result.Left := -ASize div 2;
+    result.Right := result.Left + ASize;
+    result.Top := -ASize div 2;
+    result.Bottom := result.Top + ASize;
+  except
+    on e: Exception do raise Exception.Create('TCustomSubitem.Measure(' + caption + ')'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

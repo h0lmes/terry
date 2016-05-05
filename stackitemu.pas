@@ -1166,17 +1166,17 @@ begin
     begin
       for idx := 0 to FItemCount - 1 do
       begin
-        itemRect := items[idx].item.Measure(items[idx].x, items[idx].y, items[idx].s, items[idx].angle, items[idx].hint_align);
-        if itemRect.Left < Xmin then Xmin := itemRect.Left;
-        if itemRect.Top < Ymin then Ymin := itemRect.Top;
-        if itemRect.Right > Xmax then Xmax := itemRect.Right;
-        if itemRect.Bottom > Ymax then Ymax := itemRect.Bottom;
+        itemRect := items[idx].item.Measure(items[idx].s, items[idx].angle, items[idx].hint_align);
+        if items[idx].x + itemRect.Left   < Xmin then Xmin := items[idx].x + itemRect.Left;
+        if items[idx].y + itemRect.Top    < Ymin then Ymin := items[idx].y + itemRect.Top;
+        if items[idx].x + itemRect.Right  > Xmax then Xmax := items[idx].x + itemRect.Right;
+        if items[idx].y + itemRect.Bottom > Ymax then Ymax := items[idx].y + itemRect.Bottom;
       end;
       CreateBackgroundWindowIfNotExists;
       Xmin -= 20;
       Ymin -= 20;
       Xmax += 20;
-      Ymax += 18;
+      Ymax += 15;
       ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
       ZOrderTop;
     end else begin
