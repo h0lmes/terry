@@ -5,7 +5,10 @@ uses Windows, Controls, Forms, Classes, SysUtils, Dialogs,
       Menus, StdCtrls, IniFiles, gfx, declu, toolu, dockh;
 
 type
-  _SetsContainer = record
+
+  { TDSetsContainer }
+
+  TDSetsContainer = record
     Monitor: integer;
     Site: TBaseSite;
     CenterOffsetPercent: integer;
@@ -21,7 +24,7 @@ type
     BigItemSize: integer;
     ZoomWidth: integer;
     ItemSpacing: integer;
-    ZoomItems: boolean;
+    ZoomEnabled: boolean;
     ZoomTime: integer;
     GlobalHotkeyFlag_Hide: boolean;
     GlobalHotkeyValue_Hide: integer;
@@ -29,14 +32,14 @@ type
     GlobalHotkeyValue_Console: integer;
     DropDistance: integer;
     LaunchInterval: integer;
-    ActivateRunning: boolean;
+    ActivateRunningApps: boolean;
     ShowRunningIndicator: boolean;
-    ItemAnimation: integer;
+    ItemAnimationType: integer;
     LaunchInThread: boolean;
     ActivateOnMouse: boolean;
     ActivateOnMouseInterval: integer;
     CloseCmdWindow: boolean;
-    HideTaskBar: boolean;
+    HideSystemTaskbar: boolean;
     ReserveScreenEdge: boolean;
     ReserveScreenEdgePercent: integer;
     Taskbar: boolean;
@@ -50,42 +53,44 @@ type
     HintEffects: boolean;
     LockDragging: boolean;
     UseShellContextMenus: boolean;
-    StackOpenAnimation: boolean;
+    StackAnimationEnabled: boolean;
     AutoHideOnFullScreenApp: boolean;
     RunInThread: boolean;
     UseShell: boolean;
     Hello: boolean;
-    Reflection: boolean;
+    ReflectionEnabled: boolean;
     ReflectionSize: integer;
     BaseAlpha: integer;
     SeparatorAlpha: integer;
-    Blur: boolean;
+    BlurEnabled: boolean;
     Font: _FontData;
     Shell: array [0..MAX_PATH] of char;
     ThemeName: array [0..MAX_PATH] of char;
   end;
 
-  _Sets = class
+  { TDSets }
+
+  TDSets = class
   private
     FSetsPathFile: string;
     FPluginsPath: string;
     PluginsList: TStrings;
     PluginFilesList: TStrings;
-    FBackupsPath: string;
+    FBackupPath: string;
     BackupsList: TStrings;
     FThemesPath: string;
   public
-    container: _SetsContainer;
-    cancel_container: _SetsContainer;
+    container: TDSetsContainer;
+    cancel_container: TDSetsContainer;
     ParentHWnd: THandle;
     AutoRunList: TStrings;
 
     property SetsPathFile: string read FSetsPathFile;
-    property BackupsPath: string read FBackupsPath;
+    property BackupsPath: string read FBackupPath;
     property PluginsPath: string read FPluginsPath;
     property ThemesPath: string read FThemesPath;
 
-    constructor Create(ASetsFile, AProgPath: string; Handle: THandle);
+    constructor Create(ASetsPathFile, AProgramPath: string; Handle: THandle);
     destructor Destroy; override;
     procedure Load; overload;
     procedure Load(ASetsFile: string); overload;
@@ -97,7 +102,7 @@ type
     function GetParam(id: TGParam): integer;
     procedure StoreSetsContainer;
     procedure RestoreSetsContainer;
-    procedure CopySetsContainer(var dst: _SetsContainer; var src: _SetsContainer);
+    procedure CopySetsContainer(var dst: TDSetsContainer; var src: TDSetsContainer);
     function getBaseOrientation: TBaseOrientation;
     function GetMonitorCount: integer;
     function GetMonitorName(index: integer): string;
@@ -108,11 +113,11 @@ type
     procedure GetPluginInfo(index: integer; mem: TMemo);
   end;
 
-var sets: _Sets;
+var sets: TDSets;
 
 implementation
 //------------------------------------------------------------------------------
-constructor _Sets.Create(ASetsFile, AProgPath: string; Handle: THandle);
+constructor TDSets.Create(ASetsPathFile, AProgramPath: string; Handle: THandle);
 begin
   inherited Create;
   ParentHWnd := Handle;
@@ -131,13 +136,13 @@ begin
   container.BaseAlpha := 255;
   container.SeparatorAlpha := 255;
   container.Hello := true;
-  FSetsPathFile := ASetsFile;
-  FBackupsPath := IncludeTrailingPathDelimiter(AProgPath) + 'Backup';
-  FPluginsPath := IncludeTrailingPathDelimiter(AProgPath) + 'Docklets';
-  FThemesPath := IncludeTrailingPathDelimiter(AProgPath) + 'Themes\';
+  FSetsPathFile := ASetsPathFile;
+  FBackupPath := IncludeTrailingPathDelimiter(AProgramPath) + 'Backup';
+  FPluginsPath := IncludeTrailingPathDelimiter(AProgramPath) + 'Docklets';
+  FThemesPath := IncludeTrailingPathDelimiter(AProgramPath) + 'Themes\';
 end;
 //------------------------------------------------------------------------------
-destructor _Sets.Destroy;
+destructor TDSets.Destroy;
 begin
   if assigned(BackupsList) then BackupsList.free;
   if assigned(PluginsList) then PluginsList.free;
@@ -145,13 +150,13 @@ begin
   if assigned(AutoRunList) then AutoRunList.free;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Load(ASetsFile: string);
+procedure TDSets.Load(ASetsFile: string);
 begin
   FSetsPathFile := ASetsFile;
   Load;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Load;
+procedure TDSets.Load;
 var
   idx: integer;
   ini: TIniFile;
@@ -171,9 +176,9 @@ begin
   container.autohidetime := SetRange(ini.ReadInteger('base', 'AutoHideTime', 800), 0, 9999);
   container.autoshowtime := SetRange(ini.ReadInteger('base', 'AutoShowTime', 400), 0, 9999);
   container.LaunchInterval := SetRange(ini.ReadInteger('base', 'LaunchInterval', 500), 0, 9999);
-  container.ActivateRunning := ini.ReadBool('base', 'ActivateRunning', true);
+  container.ActivateRunningApps := ini.ReadBool('base', 'ActivateRunning', true);
   container.ShowRunningIndicator := ini.ReadBool('base', 'ShowRunningIndicator', true);
-  container.ItemAnimation := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
+  container.ItemAnimationType := SetRange(ini.ReadInteger('base', 'ItemAnimation', 4), 0, 8);
   container.ItemSize := SetRange(ini.ReadInteger('base', 'ItemSize', 48), 16, 128);
   container.BigItemSize := SetRange(ini.ReadInteger('base', 'BigItemSize', 96), container.ItemSize, 256);
   container.ItemSpacing := SetRange(ini.ReadInteger('base', 'ItemSpacing', 4), 0, 30);
@@ -187,11 +192,11 @@ begin
   container.GlobalHotkeyValue_Console := ini.ReadInteger('base', 'GlobalHotkeyValue_Console', 0);
   container.autohide := ini.ReadBool('base', 'AutoHide', false);
   container.LaunchInThread := ini.ReadBool('base', 'LaunchInThread', true);
-  container.ZoomItems := ini.ReadBool('base', 'ZoomItems', true);
+  container.ZoomEnabled := ini.ReadBool('base', 'ZoomItems', true);
   container.ActivateOnMouse := ini.ReadBool('base', 'ActivateOnMouse', true);
   container.ActivateOnMouseInterval := SetRange(ini.ReadInteger('base', 'ActivateOnMouseInterval', 400), 0, 2000);
   container.CloseCmdWindow := ini.ReadBool('base', 'CloseCmdWindow', true);
-  container.HideTaskBar := ini.ReadBool('base', 'HideTaskBar', false);
+  container.HideSystemTaskbar := ini.ReadBool('base', 'HideTaskBar', false);
   container.ReserveScreenEdge := ini.ReadBool('base', 'ReserveScreenEdge', false);
   container.ReserveScreenEdgePercent := SetRange(ini.ReadInteger('base', 'ReserveScreenEdgePercent', 100), 0, 200);
   container.Taskbar := ini.ReadBool('base', 'Taskbar', false);
@@ -206,7 +211,7 @@ begin
   container.HintEffects := ini.ReadBool('base', 'HintEffects', false);
   container.AutoHideOnFullScreenApp := ini.ReadBool('base', 'AutoHideOnFullScreenApp', true);
   container.UseShellContextMenus := ini.ReadBool('base', 'UseShellContextMenus', true);
-  container.StackOpenAnimation := ini.ReadBool('base', 'StackOpenAnimation', true);
+  container.StackAnimationEnabled := ini.ReadBool('base', 'StackOpenAnimation', true);
   container.Hello := ini.ReadBool('base', 'Hello', true);
   container.useShell := ini.ReadBool('base', 'UseShell', false);
   StrCopy(container.Shell, pchar(ini.ReadString('base', 'Shell', '')));
@@ -222,9 +227,9 @@ begin
   // gfx //
   container.BaseAlpha := SetRange(ini.ReadInteger('gfx', 'BaseAlpha', 255), 13, 255);
   container.SeparatorAlpha := SetRange(ini.ReadInteger('gfx', 'SeparatorAlpha', 255), 0, 255);
-  container.Reflection := ini.ReadBool('gfx', 'Reflection', true);
+  container.ReflectionEnabled := ini.ReadBool('gfx', 'Reflection', true);
   container.ReflectionSize := ini.ReadInteger('gfx', 'ReflectionSize', 10);
-  container.Blur := ini.ReadBool('gfx', 'Blur', true);
+  container.BlurEnabled := ini.ReadBool('gfx', 'Blur', true);
 
   // autoruns //
   tmpList := TStringList.Create;
@@ -243,13 +248,13 @@ begin
   ini.free;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Save(ASetsFile: string);
+procedure TDSets.Save(ASetsFile: string);
 begin
   FSetsPathFile := ASetsFile;
   Save;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.Save;
+procedure TDSets.Save;
 var
   idx: integer;
   ini: TIniFile;
@@ -273,9 +278,9 @@ begin
   ini.WriteInteger('base', 'AutoShowTime', container.autoshowtime);
   ini.WriteInteger('base', 'AutoHidePixels', container.AutoHidePixels);
   ini.WriteInteger('base', 'LaunchInterval', container.LaunchInterval);
-  ini.WriteInteger('base', 'ActivateRunning', integer(container.ActivateRunning));
+  ini.WriteInteger('base', 'ActivateRunning', integer(container.ActivateRunningApps));
   ini.WriteInteger('base', 'ShowRunningIndicator', integer(container.ShowRunningIndicator));
-  ini.WriteInteger('base', 'ItemAnimation', container.ItemAnimation);
+  ini.WriteInteger('base', 'ItemAnimation', container.ItemAnimationType);
   ini.WriteInteger('base', 'ItemSize', container.itemsize);
   ini.WriteInteger('base', 'BigItemSize', container.BigItemSize);
   ini.WriteInteger('base', 'ItemSpacing', container.ItemSpacing);
@@ -288,12 +293,12 @@ begin
   ini.WriteBool   ('base', 'AutoHideOnFullScreenApp', container.AutoHideOnFullScreenApp);
   ini.WriteBool   ('base', 'UseShell', container.useShell);
   ini.WriteBool   ('base', 'RunInThread', container.RunInThread);
-  ini.WriteBool   ('base', 'ZoomItems', container.ZoomItems);
+  ini.WriteBool   ('base', 'ZoomItems', container.ZoomEnabled);
   ini.WriteBool   ('base', 'LaunchInThread', container.launchInThread);
   ini.WriteBool   ('base', 'ActivateOnMouse', container.ActivateOnMouse);
   ini.WriteInteger('base', 'ActivateOnMouseInterval', container.ActivateOnMouseInterval);
   ini.WriteBool   ('base', 'CloseCmdWindow', container.CloseCmdWindow);
-  ini.WriteBool   ('base', 'HideTaskBar', container.HideTaskBar);
+  ini.WriteBool   ('base', 'HideTaskBar', container.HideSystemTaskbar);
   ini.WriteBool   ('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
   ini.WriteInteger('base', 'ReserveScreenEdgePercent', container.ReserveScreenEdgePercent);
   ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
@@ -307,14 +312,14 @@ begin
   ini.WriteBool   ('base', 'ShowHint', container.ShowHint);
   ini.WriteBool   ('base', 'HintEffects', container.HintEffects);
   ini.WriteBool   ('base', 'UseShellContextMenus', container.UseShellContextMenus);
-  ini.WriteBool   ('base', 'StackOpenAnimation', container.StackOpenAnimation);
+  ini.WriteBool   ('base', 'StackOpenAnimation', container.StackAnimationEnabled);
   ini.WriteBool   ('base', 'Hello', false);
   // gfx //
   ini.WriteInteger('gfx', 'BaseAlpha', container.BaseAlpha);
   ini.WriteInteger('gfx', 'SeparatorAlpha', container.SeparatorAlpha);
-  ini.WriteBool   ('gfx', 'Reflection', container.Reflection);
+  ini.WriteBool   ('gfx', 'Reflection', container.ReflectionEnabled);
   ini.WriteInteger('gfx', 'ReflectionSize', container.ReflectionSize);
-  ini.WriteBool   ('gfx', 'Blur', container.Blur);
+  ini.WriteBool   ('gfx', 'Blur', container.BlurEnabled);
   // font //
   ini.WriteString ('Font', 'name', pchar(@container.Font.name[0]));
   ini.WriteInteger('Font', 'size', container.Font.size);
@@ -339,7 +344,7 @@ begin
   ini.free;
 end;
 //------------------------------------------------------------------------------
-function _Sets.Backup: boolean;
+function TDSets.Backup: boolean;
 var
   setsFilenameBase, backupFile, lastBackupFile: string;
   list: TStrings;
@@ -380,7 +385,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Sets.Restore(backupFilename: string): boolean;
+function TDSets.Restore(backupFilename: string): boolean;
 begin
   result := false;
   try
@@ -399,7 +404,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function _Sets.StoreParam(id: TGParam; value: integer): integer;
+function TDSets.StoreParam(id: TGParam; value: integer): integer;
 begin
   case id of
   gpItemSize: container.ItemSize := SetRange(value, 16, 128);
@@ -407,7 +412,7 @@ begin
   gpItemSpacing: container.ItemSpacing := SetRange(value, 0, 30);
   gpZoomWidth: container.ZoomWidth := SetRange((value div 2) * 2, 4, 10);
   gpZoomTime: container.ZoomTime := SetRange(value, 0, 600);
-  gpZoomItems: container.ZoomItems := boolean(value);
+  gpZoomEnabled: container.ZoomEnabled := boolean(value);
   gpMonitor: container.Monitor := SetRange(value, -1, screen.MonitorCount - 1);
   gpSite: container.Site := TBaseSite(SetRange(value, 0, 3));
   gpCenterOffsetPercent: container.CenterOffsetPercent := SetRange(value, 0, 100);
@@ -424,9 +429,9 @@ begin
   gpGlobalHotkeyValue_Console: container.GlobalHotkeyValue_Console:= value;
   gpDropDistance: container.DropDistance := SetRange(value, 50, 500);
   gpLaunchInterval: container.LaunchInterval := SetRange(value, 0, 9999);
-  gpActivateRunning: container.ActivateRunning := boolean(value);
+  gpActivateRunning: container.ActivateRunningApps := boolean(value);
   gpShowRunningIndicator: container.ShowRunningIndicator := boolean(value);
-  gpItemAnimation: container.ItemAnimation := value;
+  gpItemAnimationType: container.ItemAnimationType := value;
   gpUseShell: container.UseShell := boolean(value);
   gpRunInThread: container.RunInThread := boolean(value);
   gpAutoHide: container.AutoHide := boolean(value);
@@ -434,7 +439,7 @@ begin
   gpActivateOnMouse: container.ActivateOnMouse := boolean(value);
   gpActivateOnMouseInterval: container.ActivateOnMouseInterval := SetRange(value, 0, 2000);
   gpCloseCmdWindow: container.CloseCmdWindow := boolean(value);
-  gpHideTaskbar: container.HideTaskbar := boolean(value);
+  gpHideSystemTaskbar: container.HideSystemTaskbar := boolean(value);
   gpReserveScreenEdge: container.ReserveScreenEdge := boolean(value);
   gpReserveScreenEdgePercent: container.ReserveScreenEdgePercent := SetRange(value, 0, 200);
   gpTaskbar: container.Taskbar := boolean(value);
@@ -446,21 +451,21 @@ begin
   gpShowHint: container.ShowHint := boolean(value);
   gpHintEffects: container.HintEffects := boolean(value);
   gpLockDragging: container.LockDragging := boolean(value);
-  gpReflection: container.Reflection := boolean(value);
+  gpReflectionEnabled: container.ReflectionEnabled := boolean(value);
   gpReflectionSize: container.ReflectionSize := value;
   gpAutoHideOnFullScreenApp: container.AutoHideOnFullScreenApp := boolean(value);
   gpUseShellContextMenus: container.UseShellContextMenus := boolean(value);
-  gpStackOpenAnimation: container.StackOpenAnimation := boolean(value);
+  gpStackAnimationEnabled: container.StackAnimationEnabled := boolean(value);
   gpBaseAlpha: container.BaseAlpha := SetRange(value, 13, 255);
   gpSeparatorAlpha: container.SeparatorAlpha := SetRange(value, 0, 255);
-  gpBlur: container.Blur := boolean(value);
+  gpBlurEnabled: container.BlurEnabled := boolean(value);
   gpTaskSpot: container.TaskSpot := value;
   end;
 
   result := value;
 end;
 //------------------------------------------------------------------------------
-function _Sets.GetParam(id: TGParam): integer;
+function TDSets.GetParam(id: TGParam): integer;
 begin
   result:= 0;
   case id of
@@ -469,7 +474,7 @@ begin
   gpZoomWidth: result := container.ZoomWidth;
   gpZoomTime: result := container.ZoomTime;
   gpItemSpacing: result := container.ItemSpacing;
-  gpZoomItems: result := integer(container.ZoomItems);
+  gpZoomEnabled: result := integer(container.ZoomEnabled);
   gpMonitor: result := container.Monitor;
   gpSite: result := integer(container.Site);
   gpCenterOffsetPercent: result := container.CenterOffsetPercent;
@@ -486,9 +491,9 @@ begin
   gpGlobalHotkeyValue_Console: result := container.GlobalHotkeyValue_Console;
   gpDropDistance: result := container.DropDistance;
   gpLaunchInterval: result := container.LaunchInterval;
-  gpActivateRunning: result := integer(container.ActivateRunning);
+  gpActivateRunning: result := integer(container.ActivateRunningApps);
   gpShowRunningIndicator: result := integer(container.ShowRunningIndicator);
-  gpItemAnimation: result := container.ItemAnimation;
+  gpItemAnimationType: result := container.ItemAnimationType;
   gpUseShell: result := integer(container.UseShell);
   gpRunInThread: result := integer(container.RunInThread);
   gpAutoHide: result := integer(container.AutoHide);
@@ -496,7 +501,7 @@ begin
   gpActivateOnMouse: result := integer(container.ActivateOnMouse);
   gpActivateOnMouseInterval: result := container.ActivateOnMouseInterval;
   gpCloseCmdWindow: result := integer(container.CloseCmdWindow);
-  gpHideTaskbar: result := integer(container.HideTaskbar);
+  gpHideSystemTaskbar: result := integer(container.HideSystemTaskbar);
   gpReserveScreenEdge: result := integer(container.ReserveScreenEdge);
   gpReserveScreenEdgePercent: result := container.ReserveScreenEdgePercent;
   gpTaskbar: result := integer(container.Taskbar);
@@ -508,29 +513,29 @@ begin
   gpShowHint: result := integer(container.ShowHint);
   gpHintEffects: result := integer(container.HintEffects);
   gpLockDragging: result := integer(container.LockDragging);
-  gpReflection: result := integer(container.Reflection);
+  gpReflectionEnabled: result := integer(container.ReflectionEnabled);
   gpReflectionSize: result := container.ReflectionSize;
   gpAutoHideOnFullScreenApp: result := integer(container.AutoHideOnFullScreenApp);
   gpUseShellContextMenus: result := integer(container.UseShellContextMenus);
-  gpStackOpenAnimation: result := integer(container.StackOpenAnimation);
+  gpStackAnimationEnabled: result := integer(container.StackAnimationEnabled);
   gpBaseAlpha: result := container.BaseAlpha;
   gpSeparatorAlpha: result := container.SeparatorAlpha;
-  gpBlur: result := integer(container.Blur);
+  gpBlurEnabled: result := integer(container.BlurEnabled);
   gpTaskSpot: result := container.TaskSpot;
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.StoreSetsContainer;
+procedure TDSets.StoreSetsContainer;
 begin
   CopySetsContainer(cancel_container, container);
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.RestoreSetsContainer;
+procedure TDSets.RestoreSetsContainer;
 begin
   CopySetsContainer(container, cancel_container);
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.CopySetsContainer(var dst: _SetsContainer; var src: _SetsContainer);
+procedure TDSets.CopySetsContainer(var dst: TDSetsContainer; var src: TDSetsContainer);
 begin
   dst.Monitor := src.Monitor;
   dst.site := src.site;
@@ -547,21 +552,21 @@ begin
   dst.ZoomWidth := src.ZoomWidth;
   dst.ZoomTime := src.ZoomTime;
   dst.ItemSpacing := src.ItemSpacing;
-  dst.ZoomItems := src.ZoomItems;
+  dst.ZoomEnabled := src.ZoomEnabled;
   dst.GlobalHotkeyFlag_Hide := src.GlobalHotkeyFlag_Hide;
   dst.GlobalHotkeyValue_Hide := src.GlobalHotkeyValue_Hide;
   dst.GlobalHotkeyFlag_Console := src.GlobalHotkeyFlag_Console;
   dst.GlobalHotkeyValue_Console := src.GlobalHotkeyValue_Console;
   dst.DropDistance := src.DropDistance;
   dst.LaunchInterval := src.LaunchInterval;
-  dst.ActivateRunning := src.ActivateRunning;
+  dst.ActivateRunningApps := src.ActivateRunningApps;
   dst.ShowRunningIndicator := src.ShowRunningIndicator;
-  dst.ItemAnimation := src.ItemAnimation;
+  dst.ItemAnimationType := src.ItemAnimationType;
   dst.launchInThread := src.launchInThread;
   dst.ActivateOnMouse := src.ActivateOnMouse;
   dst.ActivateOnMouseInterval := src.ActivateOnMouseInterval;
   dst.CloseCmdWindow := src.CloseCmdWindow;
-  dst.HideTaskbar := src.HideTaskbar;
+  dst.HideSystemTaskbar := src.HideSystemTaskbar;
   dst.ReserveScreenEdge := src.ReserveScreenEdge;
   dst.ReserveScreenEdgePercent := src.ReserveScreenEdgePercent;
   dst.Taskbar := src.Taskbar;
@@ -574,13 +579,13 @@ begin
   dst.HintEffects := src.HintEffects;
   dst.LockDragging := src.LockDragging;
   dst.UseShellContextMenus := src.UseShellContextMenus;
-  dst.StackOpenAnimation := src.StackOpenAnimation;
+  dst.StackAnimationEnabled := src.StackAnimationEnabled;
   dst.AutoHideOnFullScreenApp := src.AutoHideOnFullScreenApp;
-  dst.Reflection := src.Reflection;
+  dst.ReflectionEnabled := src.ReflectionEnabled;
   dst.ReflectionSize := src.ReflectionSize;
   dst.BaseAlpha := src.BaseAlpha;
   dst.SeparatorAlpha := src.SeparatorAlpha;
-  dst.Blur := src.Blur;
+  dst.BlurEnabled := src.BlurEnabled;
   dst.OccupyFullMonitor := src.OccupyFullMonitor;
   dst.useShell := src.useShell;
   dst.RunInThread := src.RunInThread;
@@ -591,7 +596,7 @@ begin
   StrCopy(dst.ThemeName, pchar(@src.ThemeName));
 end;
 //------------------------------------------------------------------------------
-function _Sets.getBaseOrientation: TBaseOrientation;
+function TDSets.getBaseOrientation: TBaseOrientation;
 begin
   result := boHorizontal;
   if (container.site = bsLeft) or (container.site = bsRight) then result := boVertical;
@@ -601,12 +606,12 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-function _Sets.GetMonitorCount: integer;
+function TDSets.GetMonitorCount: integer;
 begin
   result := screen.MonitorCount;
 end;
 //------------------------------------------------------------------------------
-function _Sets.GetMonitorName(index: integer): string;
+function TDSets.GetMonitorName(index: integer): string;
 begin
   if index < 0 then result := XAll
   else result := XMonitor + ' ' + inttostr(screen.Monitors[index].MonitorNum + 1);
@@ -616,25 +621,25 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-function _Sets.GetPluginCount: integer;
+function TDSets.GetPluginCount: integer;
 begin
   result := -1;
   if assigned(PluginsList) then result := PluginsList.Count;
 end;
 //------------------------------------------------------------------------------
-function _Sets.GetPluginName(index: integer): string;
+function TDSets.GetPluginName(index: integer): string;
 begin
   result := '';
   if assigned(PluginsList) then result := PluginsList.Strings[index];
 end;
 //------------------------------------------------------------------------------
-function _Sets.GetPluginFileName(index: integer): string;
+function TDSets.GetPluginFileName(index: integer): string;
 begin
   result := '';
   if assigned(PluginFilesList) then result := PluginFilesList.Strings[index];
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.ScanPlugins;
+procedure TDSets.ScanPlugins;
 var
   idx: integer;
   hLib: uint;
@@ -675,7 +680,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure _Sets.GetPluginInfo(index: integer; mem: TMemo);
+procedure TDSets.GetPluginInfo(index: integer; mem: TMemo);
 var
   hLib: uint;
   OnGetInformation: _OnGetInformation;

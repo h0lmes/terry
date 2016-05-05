@@ -22,13 +22,13 @@ type
     OnDrawOverlay: TOnDrawOverlay;
   public
     property Running: boolean read FRunning;
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TCustomDrawItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TCustomDrawItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FRunning := false;
@@ -72,7 +72,7 @@ begin
 
       // bounce animation //
       if FAnimationProgress > 0 then
-        if (FAnimationType >= 2) and (FAnimationType <= 4) then
+        if (FItemAnimationType >= 2) and (FItemAnimationType <= 4) then
         begin
           animX := FAnimationProgress mod 30;
           if animX > 15 then animX := 30 - animX;
@@ -130,7 +130,7 @@ begin
       if FAnimationProgress > 0 then
       begin
         // rotate //
-        if FAnimationType = 1 then
+        if FItemAnimationType = 1 then
         begin
           dec(bitmapX, ItemRect.Left);
           dec(bitmapY, ItemRect.Top);
@@ -140,7 +140,7 @@ begin
           GdipRotateWorldTransform(dst, FAnimationProgress * 6, MatrixOrderPrepend);
         end;
         // bounce //
-        if (FAnimationType >= 2) and (FAnimationType <= 4) then
+        if (FItemAnimationType >= 2) and (FItemAnimationType <= 4) then
         begin
           animX := FAnimationProgress mod 30;
           if animX > 15 then animX := 30 - animX;
@@ -149,7 +149,7 @@ begin
           else if FSite = 3 then dec(bitmapY, animX);
         end;
         // quake //
-        if FAnimationType = 5 then
+        if FItemAnimationType = 5 then
         begin
           if FAnimationProgress mod 2 = 1 then exit;
           animX := random(FItemSize div 3) - FItemSize div 6;
@@ -158,7 +158,7 @@ begin
           inc(bitmapY, animY);
         end;
         // swing //
-        if FAnimationType = 6 then
+        if FItemAnimationType = 6 then
         begin
           dec(bitmapX, ItemRect.Left);
           dec(bitmapY, ItemRect.Top);
@@ -168,14 +168,14 @@ begin
           GdipRotateWorldTransform(dst, sin(FAnimationProgress * 6) * 30, MatrixOrderPrepend);
         end;
         // vibrate //
-        if FAnimationType = 7 then
+        if FItemAnimationType = 7 then
         begin
           animSize := round(sin(FAnimationProgress * 3) * 6);
           dec(bitmapX, animSize div 2);
           dec(bitmapY, animSize div 2);
         end;
         // zoom //
-        if FAnimationType = 8 then
+        if FItemAnimationType = 8 then
         begin
           animSize := round(sin(FAnimationProgress * 6) * 10);
           dec(bitmapX, animSize div 2);

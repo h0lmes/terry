@@ -71,7 +71,7 @@ type
     FIW: uint; // image width
     FIH: uint; // image height
     FShowItem: uint;
-    FAnimationType: integer; // animation type
+    FItemAnimationType: integer; // animation type
     FAnimationEnd: integer;
     FAnimationProgress: integer; // animation progress 0..FAnimationEnd
 
@@ -101,7 +101,7 @@ type
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure SetFont(var Value: _FontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
@@ -124,14 +124,14 @@ type
 
     function HitTest(Ax, Ay: integer): boolean;
     function ScreenHitTest(Ax, Ay: integer): boolean;
-    procedure Animate(AAnimationType: integer);
+    procedure Animate;
     procedure LME(lock: boolean);
     procedure Delete;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
@@ -155,6 +155,7 @@ begin
   FSize := FItemSize;
   FBigItemSize := AParams.BigItemSize;
   FItemSpacing := AParams.ItemSpacing;
+  FItemAnimationType := AParams.AnimationType;
   FLaunchInterval := AParams.LaunchInterval;
   FActivateRunning := AParams.ActivateRunning;
   FReflection := AParams.Reflection;
@@ -235,7 +236,7 @@ begin
           FItemSpacing := word(param);
           Redraw;
         end;
-      gpReflection:
+      gpReflectionEnabled:
         begin
           FReflection := boolean(param);
           Redraw;
@@ -266,6 +267,7 @@ begin
       gpLockDragging: FLockDragging := param <> 0;
       gpLaunchInterval: FLaunchInterval := param;
       gpActivateRunning: FActivateRunning := boolean(param);
+      gpItemAnimationType: FItemAnimationType := param;
 
       // commands //
 
@@ -541,10 +543,9 @@ begin
   result := ptinrect(GetScreenRect, classes.Point(Ax, Ay));
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.Animate(AAnimationType: integer);
+procedure TCustomItem.Animate;
 begin
-  FAnimationType := AAnimationType;
-  case FAnimationType of
+  case FItemAnimationType of
     1: FAnimationEnd := 60; // rotate
     2: FAnimationEnd := 30; // bounce 1
     3: FAnimationEnd := 60; // bounce 2

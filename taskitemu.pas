@@ -40,7 +40,7 @@ type
     procedure RemoveNonExisting;
     procedure UpdateItem;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function cmd(id: TGParam; param: integer): integer; override;
     procedure Timer; override;
@@ -56,7 +56,7 @@ type
 implementation
 uses frmmainu;
 //------------------------------------------------------------------------------
-constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FTaskGrouping := AParams.TaskGrouping;
@@ -230,7 +230,7 @@ begin
 
       // commands //
 
-      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate(2);
+      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate;
 
       icIsItem: result := 0;
     end;

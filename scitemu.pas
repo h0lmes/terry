@@ -55,7 +55,7 @@ type
   public
     procedure UpdateItem(AData: string);
     //
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -79,7 +79,7 @@ type
 implementation
 uses frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -388,7 +388,7 @@ begin
           Redraw;
         end;
 
-      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate(2);
+      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate;
     end;
 
   except

@@ -38,7 +38,7 @@ type
     FActivateRunning: boolean;
     FUseShellContextMenus: boolean;
     FShowHint: boolean;
-    FStackOpenAnimation: boolean;
+    FStackAnimationEnabled: boolean;
     FSeparatorAlpha: integer;
     FOccupyFullMonitor: boolean;
     FFont: _FontData;
@@ -126,7 +126,7 @@ type
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
-      ActivateRunning, UseShellContextMenus, LockDragging, StackOpenAnimation: boolean;
+      ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
       TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: _FontData);
     destructor Destroy; override;
@@ -202,7 +202,7 @@ constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; AB
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
-      ActivateRunning, UseShellContextMenus, LockDragging, StackOpenAnimation: boolean;
+      ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
       TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: _FontData);
 begin
@@ -228,7 +228,7 @@ begin
   FActivateRunning := ActivateRunning;
   FUseShellContextMenus := UseShellContextMenus;
   FLockDragging := LockDragging;
-  FStackOpenAnimation := StackOpenAnimation;
+  FStackAnimationEnabled := StackAnimationEnabled;
   FTaskLivePreviews := TaskLivePreviews;
   FTaskGrouping := TaskGrouping;
   FTaskThumbSize := TaskThumbSize;
@@ -312,7 +312,7 @@ begin
           FItemSpacing := value;
           ItemsChanged(true);
         end;
-      gpZoomItems:
+      gpZoomEnabled:
         begin
           FZoomItems := boolean(value);
           ItemsChanged(true);
@@ -342,7 +342,7 @@ begin
         end;
       gpDropDistance:           FDropDistance := value;
       gpLockDragging:           FLockDragging := boolean(value);
-      gpReflection:
+      gpReflectionEnabled:
         begin
           FReflection := boolean(value);
           ItemsChanged(true);
@@ -361,12 +361,12 @@ begin
           ClearTaskbar;
           FTaskGrouping := value <> 0;
         end;
-      gpItemAnimation:          FItemAnimation := value;
+      gpItemAnimationType:          FItemAnimation := value;
       gpLaunchInterval:         FLaunchInterval := value;
       gpActivateRunning:        FActivateRunning := value <> 0;
       gpUseShellContextMenus:   FUseShellContextMenus := value <> 0;
       gpShowHint:               FShowHint := value <> 0;
-      gpStackOpenAnimation:     FStackOpenAnimation := value <> 0;
+      gpStackAnimationEnabled:     FStackAnimationEnabled := value <> 0;
       gpZoomTime:
         begin
           FZoomTime := value;
@@ -1132,7 +1132,7 @@ function TItemManager.CreateItem(data: string): THandle;
 var
   class_name, str: string;
   Inst: TCustomItem;
-  icp: _ItemCreateParams;
+  icp: TDItemCreateParams;
 begin
   result := 0;
   Inst := nil;
@@ -1149,9 +1149,9 @@ begin
     icp.Reflection := FReflection;
     icp.ReflectionSize := FReflectionSize;
     icp.ShowHint := FShowHint;
-    icp.Animation := FItemAnimation;
+    icp.AnimationType := FItemAnimation;
     icp.LockDragging := FLockDragging;
-    icp.StackOpenAnimation := FStackOpenAnimation;
+    icp.StackAnimationEnabled := FStackAnimationEnabled;
     icp.SeparatorAlpha := FSeparatorAlpha;
     icp.TaskLivePreviews := FTaskLivePreviews;
     icp.TaskThumbSize := FTaskThumbSize;
@@ -2001,7 +2001,7 @@ var
 begin
   try
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    if (Inst is TCustomItem) and (FItemAnimation > 0) then Inst.Animate(FItemAnimation);
+    if (Inst is TCustomItem) and (FItemAnimation > 0) then Inst.Animate;
   except
     on e: Exception do err('ItemManager.PluginAnimate', e);
   end;

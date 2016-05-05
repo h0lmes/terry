@@ -16,7 +16,7 @@ type
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
     function ToString: string; override;
@@ -30,7 +30,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;

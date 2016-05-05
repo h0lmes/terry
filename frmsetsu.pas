@@ -346,7 +346,7 @@ begin
   cbShowHint.Checked := sets.container.ShowHint;
   chbHintEffects.Checked := sets.container.HintEffects;
 
-  cbHideTaskBar.Checked := sets.container.HideTaskBar;
+  cbHideTaskBar.Checked := sets.container.HideSystemTaskbar;
   chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
   tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
   chbTaskbar.Checked := sets.container.Taskbar;
@@ -412,7 +412,7 @@ begin
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
   chbBlur.Enabled := dwm.IsCompositionEnabled;
   chbBlur.OnClick := nil;
-  chbBlur.checked := sets.container.Blur;
+  chbBlur.checked := sets.container.BlurEnabled;
   chbBlur.OnClick := chbBlurClick;
   tbBaseAlpha.OnChange := nil;
   tbBaseAlpha.Position := sets.container.BaseAlpha;
@@ -463,21 +463,21 @@ begin
   UpdateItemSizeLabels;
 
   cbZoomItems.OnClick := nil;
-  cbZoomItems.checked := sets.container.ZoomItems;
+  cbZoomItems.checked := sets.container.ZoomEnabled;
   cbZoomItems.OnClick := cbZoomItemsClick;
   chb_reflection.OnClick := nil;
-  chb_reflection.checked := sets.container.Reflection;
+  chb_reflection.checked := sets.container.ReflectionEnabled;
   chb_reflection.OnClick := chb_reflectionClick;
 
   cboItemAnimationType.OnChange := nil;
-  cboItemAnimationType.ItemIndex := sets.container.ItemAnimation;
+  cboItemAnimationType.ItemIndex := sets.container.ItemAnimationType;
   cboItemAnimationType.OnChange := cboItemAnimationTypeChange;
 
   chb_use_shell_context_menus.checked := sets.container.UseShellContextMenus;
-  chb_activate_running.checked := sets.container.ActivateRunning;
+  chb_activate_running.checked := sets.container.ActivateRunningApps;
   chb_show_running_indicator.checked := sets.container.ShowRunningIndicator;
   chbStackOpenAnimation.OnChange := nil;
-  chbStackOpenAnimation.Checked := sets.container.StackOpenAnimation;
+  chbStackOpenAnimation.Checked := sets.container.StackAnimationEnabled;
   chbStackOpenAnimation.OnChange := chbStackOpenAnimationChange;
 
   //
@@ -687,7 +687,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbHideTaskBarClick(Sender: TObject);
 begin
-  frmmain.SetParam(gpHideTaskBar, integer(cbHideTaskBar.Checked));
+  frmmain.SetParam(gpHideSystemTaskbar, integer(cbHideTaskBar.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbReserveScreenEdgeClick(Sender: TObject);
@@ -767,7 +767,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbBlurClick(Sender: TObject);
 begin
-  frmmain.SetParam(gpBlur, integer(chbBlur.checked));
+  frmmain.SetParam(gpBlurEnabled, integer(chbBlur.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbBaseAlphaChange(Sender: TObject);
@@ -932,22 +932,22 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbZoomItemsClick(Sender: TObject);
 begin
-  frmmain.SetParam(gpZoomItems, integer(cbZoomItems.checked));
+  frmmain.SetParam(gpZoomEnabled, integer(cbZoomItems.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_reflectionClick(Sender: TObject);
 begin
-  frmmain.SetParam(gpReflection, integer(chb_reflection.checked));
+  frmmain.SetParam(gpReflectionEnabled, integer(chb_reflection.checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboItemAnimationTypeChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpItemAnimation, cboItemAnimationType.ItemIndex);
+  frmmain.SetParam(gpItemAnimationType, cboItemAnimationType.ItemIndex);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbStackOpenAnimationChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpStackOpenAnimation, integer(chbStackOpenAnimation.Checked));
+  frmmain.SetParam(gpStackAnimationEnabled, integer(chbStackOpenAnimation.Checked));
 end;
 //------------------------------------------------------------------------------
 //

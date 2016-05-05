@@ -80,7 +80,7 @@ type
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure SetFont(var Value: _FontData);
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); virtual;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
@@ -122,7 +122,7 @@ type
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); overload; override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); overload; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
@@ -150,7 +150,7 @@ type
 implementation
 uses themeu, frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutSubitem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TShortcutSubitem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -807,7 +807,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-constructor TCustomSubitem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TCustomSubitem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;

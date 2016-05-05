@@ -189,11 +189,11 @@ begin
     // ProcessHelper (must be created before tray controller). Depends on DWM //
     ProcessHelper := TProcessHelper.Create(RunsOnWinVistaOrHigher);
 
-    sets := _Sets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
+    sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
     FRevertMonitor := sets.container.Monitor;
 
-    theme := TDockTheme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
+    theme := TDTheme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
     if not theme.Load then
     begin
       notify(UTF8ToAnsi(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
@@ -205,11 +205,11 @@ begin
     AddLog('Init.ItemManager');
     ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
       sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
-      sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomItems,
-      sets.container.Reflection, sets.container.ReflectionSize, sets.container.LaunchInterval,
-      sets.container.ItemAnimation, sets.container.SeparatorAlpha,
-      sets.container.ActivateRunning, sets.container.UseShellContextMenus, sets.container.LockDragging,
-      sets.container.StackOpenAnimation,
+      sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomEnabled,
+      sets.container.ReflectionEnabled, sets.container.ReflectionSize, sets.container.LaunchInterval,
+      sets.container.ItemAnimationType, sets.container.SeparatorAlpha,
+      sets.container.ActivateRunningApps, sets.container.UseShellContextMenus, sets.container.LockDragging,
+      sets.container.StackAnimationEnabled,
       sets.container.TaskLivePreviews, sets.container.TaskGrouping,
       sets.container.TaskThumbSize, sets.container.TaskSpot,
       sets.container.ShowHint, sets.container.Font);
@@ -219,11 +219,11 @@ begin
     SetParam(gpEdgeOffset, sets.container.EdgeOffset);
     SetParam(gpAutoHide, integer(sets.container.AutoHide));
     SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
-    SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
+    SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
-    SetParam(gpBlur, sets.GetParam(gpBlur));
+    SetParam(gpBlurEnabled, sets.GetParam(gpBlurEnabled));
     BaseCmd(tcThemeChanged, 0);
 
     // load items //
@@ -276,7 +276,7 @@ begin
     SetParam(gpEdgeOffset, sets.container.EdgeOffset);
     SetParam(gpAutoHide, integer(sets.container.AutoHide));
     SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
-    SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
+    SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
@@ -406,26 +406,26 @@ begin
     SetParam(gpEdgeOffset, sets.container.EdgeOffset);
     SetParam(gpAutoHide, integer(sets.container.AutoHide));
     SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
-    SetParam(gpHideTaskBar, integer(sets.container.HideTaskBar));
+    SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
 
     ItemMgr.SetParam(gpItemSize, sets.container.itemsize);
     ItemMgr.SetParam(gpBigItemSize, sets.container.BigItemSize);
-    ItemMgr.SetParam(gpZoomItems, integer(sets.container.ZoomItems));
+    ItemMgr.SetParam(gpZoomEnabled, integer(sets.container.ZoomEnabled));
     ItemMgr.SetParam(gpZoomWidth, sets.container.ZoomWidth);
     ItemMgr.SetParam(gpZoomTime, sets.container.ZoomTime);
     ItemMgr.SetParam(gpItemSpacing, sets.container.ItemSpacing);
-    ItemMgr.SetParam(gpReflection, integer(sets.container.Reflection));
+    ItemMgr.SetParam(gpReflectionEnabled, integer(sets.container.ReflectionEnabled));
     ItemMgr.SetParam(gpReflectionSize, sets.container.ReflectionSize);
     ItemMgr.SetParam(gpLaunchInterval, sets.container.LaunchInterval);
-    ItemMgr.SetParam(gpActivateRunning, integer(sets.container.ActivateRunning));
+    ItemMgr.SetParam(gpActivateRunning, integer(sets.container.ActivateRunningApps));
     ItemMgr.SetParam(gpUseShellContextMenus, integer(sets.container.UseShellContextMenus));
-    ItemMgr.SetParam(gpItemAnimation, sets.container.ItemAnimation);
+    ItemMgr.SetParam(gpItemAnimationType, sets.container.ItemAnimationType);
     ItemMgr.SetParam(gpLockDragging, integer(sets.container.LockDragging));
     ItemMgr.SetParam(gpShowRunningIndicator, integer(sets.container.ShowRunningIndicator));
-    ItemMgr.SetParam(gpStackOpenAnimation, integer(sets.container.StackOpenAnimation));
+    ItemMgr.SetParam(gpStackAnimationEnabled, integer(sets.container.StackAnimationEnabled));
     ItemMgr.SetParam(gpTaskSameMonitor, integer(sets.container.TaskSameMonitor));
     ItemMgr.SetParam(gpTaskLivePreviews, integer(sets.container.TaskLivePreviews));
     ItemMgr.SetParam(gpTaskThumbSize, sets.container.TaskThumbSize);
@@ -528,7 +528,7 @@ begin
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
-    tcToggleTaskbar: frmmain.SetParam(gpHideTaskBar, ifthen(sets.GetParam(gpHideTaskBar) = 0, 1, 0));
+    tcToggleTaskbar: frmmain.SetParam(gpHideSystemTaskbar, ifthen(sets.GetParam(gpHideSystemTaskbar) = 0, 1, 0));
     tcGetVisible: Result := integer(ItemMgr.Visible);
     tcDebugInfo: if assigned(ItemMgr) then ItemMgr.AllItemCmd(tcDebugInfo, 0);
   end;
@@ -558,7 +558,7 @@ begin
         BaseCmd(tcThemeChanged, 0);
       end;
     gpAutoHide:               if value = 0 then DoRollUp;
-    gpHideTaskBar:            HideTaskbar(value <> 0);
+    gpHideSystemTaskbar:            HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
         if value = 0 then UnreserveScreenEdge(sets.container.Site)
@@ -566,7 +566,7 @@ begin
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
-    gpBlur:                   BasePaint(1);
+    gpBlurEnabled:                   BasePaint(1);
 		gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
   end;
 
@@ -946,7 +946,7 @@ begin
     // maintain visibility
     if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
     // maintain taskbar visibility
-    if sets.container.HideTaskBar then HideTaskbar(true);
+    if sets.container.HideSystemTaskbar then HideTaskbar(true);
   except
     on e: Exception do raise Exception.Create('Base.OnTimerSlow'#10#13 + e.message);
   end;
@@ -1308,7 +1308,7 @@ var
   rect: GDIPAPI.TRect;
 begin
   try
-	  if sets.container.Blur and Theme.BlurEnabled and IsWindow(FBlurWindow) and IsWindowVisible(Handle) then
+	  if sets.container.BlurEnabled and Theme.BlurEnabled and IsWindow(FBlurWindow) and IsWindowVisible(Handle) then
 	  begin
 	    FBlurActive   := true;
 	    rect          := Theme.GetBlurRect(ItemMgr.FBaseImageRect);
@@ -1324,7 +1324,7 @@ begin
 	      exit; //raise Exception.Create('CreateGraphics failed');
 	    end;
 	    UpdateLWindow(FBlurWindow, bmp, 255);
-	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_SHOWWINDOW);
+	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_SHOWWINDOW);
 	    DWM.EnableBlurBehindWindow(FBlurWindow, 0);
 	    DeleteGraphics(dst);
 	    DeleteBitmap(bmp);
@@ -1333,7 +1333,7 @@ begin
 	  begin
 	    FBlurActive := false;
 	    DWM.DisableBlurBehindWindow(FBlurWindow);
-	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_HIDEWINDOW);
+	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_HIDEWINDOW);
 	  end;
   except
     on e: Exception do raise Exception.Create('Base.UpdateBlurWindow'#10#13 + e.message);

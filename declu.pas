@@ -22,11 +22,11 @@ type
     gpBigItemSize,
     gpZoomWidth,
     gpItemSpacing,
-    gpZoomItems,
+    gpZoomEnabled,
     gpZoomTime,
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
-    gpTaskbar,
+    gpTaskbar, // show taskbar items on the dock
     gpTaskLivePreviews,
     gpTaskThumbSize,
     gpTaskGrouping,
@@ -34,6 +34,7 @@ type
     gpAutoHide,
     gpAutoHideTime,
     gpAutoHidePixels,
+    gpAutoShowTime,
     gpGlobalHotkeyFlag_Hide,
     gpGlobalHotkeyValue_Hide,
     gpGlobalHotkeyFlag_Console,
@@ -46,7 +47,7 @@ type
     gpActivateOnMouse,
     gpActivateOnMouseInterval,
     gpCloseCmdWindow,
-    gpHideTaskBar,
+    gpHideSystemTaskbar,
     gpStayOnTop,
     gpShowHint,
     gpHintEffects,
@@ -55,17 +56,16 @@ type
     gpUseShellContextMenus,
     gpBaseAlpha,
     gpSeparatorAlpha,
-    gpActivateInvokedApps,
-    gpAutoShowTime,
+    gpActivateRunningApps,
     gpActivateRunning,
     gpShowRunningIndicator,
-    gpItemAnimation,
-    gpStackOpenAnimation,
+    gpItemAnimationType,
+    gpStackAnimationEnabled,
     gpLockMouseEffect,
-    gpReflection,
+    gpReflectionEnabled,
     gpReflectionSize,
-    gpBlur,
-    gpTaskSpot,
+    gpBlurEnabled,
+    gpTaskSpot, // index where to place task items
     gpMax,
     // terry commands //
     tcMin = $1000,
@@ -106,7 +106,7 @@ type
     italic: boolean;
   end;
 
-  _ItemCreateParams = packed record
+  TDItemCreateParams = packed record
     ItemSize: integer;
     BigItemSize: integer;
     ItemSpacing: integer;
@@ -117,9 +117,9 @@ type
     Reflection: boolean;
     ReflectionSize: integer;
     ShowHint: boolean;
-    Animation: integer;
+    AnimationType: integer;
     LockDragging: boolean;
-    StackOpenAnimation: boolean;
+    StackAnimationEnabled: boolean;
     SeparatorAlpha: integer;
     TaskLivePreviews: boolean;
     TaskThumbSize: integer;

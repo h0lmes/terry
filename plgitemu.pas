@@ -40,7 +40,7 @@ type
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -56,7 +56,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TPluginItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   FFreed := true;
   inherited;

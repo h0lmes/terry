@@ -71,7 +71,7 @@ type
     procedure UpdateSpecialFolder;
     procedure AddSpecialFolder(csidl: integer);
     procedure UpdatePreview;
-    function MakeICP: _ItemCreateParams;
+    function MakeICP: TDItemCreateParams;
     procedure CheckDeleteSubitems;
     procedure DeleteSubitems;
     procedure CopyCSIBucket(pFrom, pTo: PCSIBucket);
@@ -92,7 +92,7 @@ type
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure SetFont(var Value: _FontData); override;
@@ -126,11 +126,11 @@ type
 implementation
 uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: _ItemCreateParams);
+constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
-  FOpenAnimation := AParams.StackOpenAnimation;
+  FOpenAnimation := AParams.StackAnimationEnabled;
   OnBeforeDraw := BeforeDraw;
   OnDrawOverlay := DrawOverlay;
   UpdateItem(AData);
@@ -337,7 +337,7 @@ begin
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpStackOpenAnimation: FOpenAnimation := param <> 0;
+      gpStackAnimationEnabled: FOpenAnimation := param <> 0;
       gpSite:
         begin
           if FRunning then Redraw;
@@ -805,7 +805,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.MakeICP: _ItemCreateParams;
+function TStackItem.MakeICP: TDItemCreateParams;
 begin
   result.ItemSize := FItemSize;
   result.BigItemSize := FItemSize;
@@ -816,7 +816,7 @@ begin
   result.Reflection := false;
   result.ReflectionSize := 0;
   result.ShowHint := FShowHint;
-  result.Animation := 0;
+  result.AnimationType := 0;
   result.LockDragging := FLockDragging;
   CopyFontData(FFont, result.Font);
 end;
