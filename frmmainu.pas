@@ -1116,12 +1116,10 @@ begin
   begin
 	    // set all items topmost and place the dock window right underneath
 	    SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
-      // place blur window underneath the dock
-      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
-	    // set blur window non topmost
-	    SetWindowPos(FBlurWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
-	    // set dock window non topmost
+      // set dock window non topmost
 	    SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
+	    // set blur window non topmost
+	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
 	    // set all items non topmost
 	    ItemMgr.ZOrder(HWND_NOTOPMOST);
 	end;
@@ -1183,8 +1181,6 @@ var
   wnd, awnd: THandle;
 begin
   if FProgramIsClosing then exit;
-  // keep blur window exactly behind the dock
-  SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   GetCursorPos(pt);
   wnd := WindowFromPoint(pt);
   if IsDockWnd(wnd) then exit;
@@ -1226,8 +1222,8 @@ begin
     else
     if ItemMgr.IsItem(h) <> 0 then // one of the items found (but not the dock yet) - adjust dock position
     begin
+      SetWindowPos(FBlurWindow, h, 0, 0, 0, 0, SWP_NO_FLAGS);
       SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NO_FLAGS);
-      SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       exit;
     end
     else
