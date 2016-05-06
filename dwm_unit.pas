@@ -109,6 +109,7 @@ type
       IsWin7: boolean;
       IsWin10: boolean;
       hDwmLib: uint;
+      DwmDefWindowProc: function(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; Result: PInteger): BOOL; stdcall;
       SetWindowCompositionAttribute: function(Wnd: HWND; const AttrData: TWindowCompositionAttributeData): BOOL; stdcall;
       DwmIsCompositionEnabled: function(pfEnabled: PBoolean): HRESULT; stdcall;
       DwmEnableBlurBehindWindow: function(Wnd: HWND; bb: P_DWM_BLURBEHIND): HRESULT; stdcall;
@@ -127,6 +128,7 @@ type
     public
       constructor Create;
       destructor Destroy; override;
+      function DefWindowProc(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): integer;
       function IsCompositionEnabled: boolean;
       procedure EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
       procedure DisableBlurBehindWindow(const AHandle: THandle);
@@ -164,6 +166,7 @@ begin
   hDwmLib:= LoadLibrary('dwmapi.dll');
   if hDwmLib <> 0 then
   begin
+    @DwmDefWindowProc := GetProcAddress(hDwmLib, 'DwmDefWindowProc');
     @DwmIsCompositionEnabled := GetProcAddress(hDwmLib, 'DwmIsCompositionEnabled');
     @DwmEnableBlurBehindWindow := GetProcAddress(hDwmLib, 'DwmEnableBlurBehindWindow');
     @DwmSetWindowAttribute := GetProcAddress(hDwmLib, 'DwmSetWindowAttribute');
@@ -184,6 +187,16 @@ destructor TDWMHelper.Destroy;
 begin
   FreeLibrary(hDwmLib);
   inherited;
+end;
+//------------------------------------------------------------------------------
+function TDWMHelper.DefWindowProc(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): integer;
+var
+  ret: integer;
+  done: boolean = false;
+begin
+  if @DwmDefWindowProc <> nil then done := DwmDefWindowProc(hWnd, Msg, wParam, lParam, @ret);
+  if not done then ret := SendMessage(hWnd, Msg, wParam, lParam);
+  result := ret;
 end;
 //------------------------------------------------------------------------------
 function TDWMHelper.IsCompositionEnabled: boolean;

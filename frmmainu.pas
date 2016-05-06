@@ -1178,13 +1178,20 @@ end;
 
 var
   pt: windows.TPoint;
+  spt: windows.TSmallPoint;
   wnd, awnd: THandle;
+  //result: uint;
 begin
   if FProgramIsClosing then exit;
   GetCursorPos(pt);
   wnd := WindowFromPoint(pt);
   if IsDockWnd(wnd) then exit;
   if wnd = FindWindow('Progman', nil) then exit;
+  //spt.x := pt.x;
+  //spt.y := pt.y;
+  //result := DWM.DefWindowProc(wnd, WM_NCHITTEST, 0, lparam(@spt));
+  //notify(inttostr(result));
+  //if (result = HTCAPTION) or (result = HTCLOSE) or (result = HTMAXBUTTON) or (result = HTMINBUTTON) then exit;
 
   awnd := GetAncestor(wnd, GA_ROOTOWNER);
   if IsWindow(awnd) then wnd := awnd;
