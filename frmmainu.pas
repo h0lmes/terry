@@ -325,6 +325,7 @@ begin
   try
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
+    SetWindowLong(FBlurWindow, GWL_HWNDPARENT, Handle);
     dwm.ExcludeFromPeek(FBlurWindow);
     SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
@@ -1180,19 +1181,11 @@ var
   pt: windows.TPoint;
   spt: windows.TSmallPoint;
   wnd, awnd: THandle;
-  //result: uint;
 begin
   if FProgramIsClosing then exit;
   GetCursorPos(pt);
   wnd := WindowFromPoint(pt);
   if IsDockWnd(wnd) then exit;
-  if wnd = FindWindow('Progman', nil) then exit;
-  //spt.x := pt.x;
-  //spt.y := pt.y;
-  //result := DWM.DefWindowProc(wnd, WM_NCHITTEST, 0, lparam(@spt));
-  //notify(inttostr(result));
-  //if (result = HTCAPTION) or (result = HTCLOSE) or (result = HTMAXBUTTON) or (result = HTMINBUTTON) then exit;
-
   awnd := GetAncestor(wnd, GA_ROOTOWNER);
   if IsWindow(awnd) then wnd := awnd;
   if assigned(ItemMgr) and DockAboveWnd(wnd) then
@@ -1221,8 +1214,7 @@ begin
     if h = Handle then
     begin
       // if BlurWindow above the dock - put blur exactly behind the dock
-      if not blurFound then
-        SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
+      if not blurFound then SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       // main dock window found - exit
       exit;
     end
@@ -1327,7 +1319,7 @@ begin
 	      exit; //raise Exception.Create('CreateGraphics failed');
 	    end;
 	    UpdateLWindow(FBlurWindow, bmp, 255);
-	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_SHOWWINDOW);
+	    SetWindowPos(FBlurWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_SHOWWINDOW);
 	    DWM.EnableBlurBehindWindow(FBlurWindow, 0);
 	    DeleteGraphics(dst);
 	    DeleteBitmap(bmp);
