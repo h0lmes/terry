@@ -86,8 +86,8 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1298"/>
-        <CursorPos X="27" Y="1185"/>
+        <TopLine Value="1835"/>
+        <CursorPos X="41" Y="1848"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -1293,7 +1293,7 @@
         <UsageCount Value="9"/>
       </Unit135>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="29" HistoryIndex="28">
       <Position1>
         <Filename Value="frmsetsu.pas"/>
         <Caret Line="690" Column="56" TopLine="671"/>
@@ -1404,16 +1404,12 @@
       </Position27>
       <Position28>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="330" Column="50" TopLine="402"/>
+        <Caret Line="1185" Column="27" TopLine="1297"/>
       </Position28>
       <Position29>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1137" Column="25" TopLine="1192"/>
+        <Caret Line="956" Column="1" TopLine="945"/>
       </Position29>
-      <Position30>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="644" Column="47" TopLine="1015"/>
-      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

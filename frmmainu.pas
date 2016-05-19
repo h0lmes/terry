@@ -1845,7 +1845,7 @@ begin
     if wnd = Handle then exit; // exit if we reached main dock window
     if IsWindow(wnd) then
     begin
-	      if IsWindowVisible(wnd) then
+	      if IsWindowVisible(wnd) and not DWM.IsWindowCloaked(wnd) then
 	      begin
 	          if GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0 then
             begin
