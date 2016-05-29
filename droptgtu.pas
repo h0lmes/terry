@@ -35,6 +35,7 @@ type
     procedure AddToListIStreamPIDL(h: Pointer; var List: TStrings);
     procedure AddToListFileFile(lpsz: POLESTR; var List: TStrings);
     procedure AddToListIStreamFileName(h: Pointer; var List: TStrings);
+    procedure AddToListHGlobalFileGroupDescriptorW(h: HGLOBAL; var List: TStrings);
     procedure MakeList(const dataObj: IDataObject; var List: TStrings);
     function DragEnter(const dataObj: IDataObject; grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
     function DragOver(grfKeyState: DWORD; pt: TPoint; var dwEffect: DWORD): HResult; virtual;
@@ -300,6 +301,34 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TDropManager.AddToListHGlobalFileGroupDescriptorW(h: HGLOBAL; var List: TStrings);
+var
+  gsize, i: longint;
+  pgroup: PFILEGROUPDESCRIPTORW;
+  pfgd: PFILEDESCRIPTORW;
+begin
+  try
+    {$ifdef DEBUG_DROPTGT}
+    notifier.message('DropManager.AddToListHGlobalFileGroupDescriptorW');
+    {$endif}
+
+    pgroup := GlobalLock(h);
+    i := 0;
+    while i < pgroup.cItems do
+    begin
+      pfgd := PFILEDESCRIPTORW(longint(@pgroup.fgd) + i * sizeof(PFILEDESCRIPTORW));
+      List.Add(pfgd.cFileName);
+      {$ifdef DEBUG_DROPTGT}
+      notifier.message(pfgd.cFileName);
+      {$endif}
+      inc(i);
+    end;
+    GlobalUnlock(h);
+  except
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
 function TDropManager.tymedToString(tymed: DWORD): string;
 begin
   result := '';
@@ -337,6 +366,24 @@ begin
     Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
   end;
   {$endif}
+
+  // handle FileGroupDescriptorW //
+  {EnumFormatEtc.Reset;
+  Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
+  while Rslt = S_OK do
+  begin
+    GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
+    if stricomp(pchar(@ch), 'FILEGROUPDESCRIPTORW') = 0 then
+      if FormatEtc.tymed and TYMED_HGLOBAL <> 0 then
+        if dataObj.GetData(FormatEtc, StgMedium) = S_OK then
+        begin
+          if StgMedium.tymed and TYMED_HGLOBAL = TYMED_HGLOBAL then AddToListHGlobalFileGroupDescriptorW(StgMedium.hGlobal, List);
+          try if StgMedium.tymed <> TYMED_NULL then ReleaseStgMedium(StgMedium);
+          except end;
+        end;
+    Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
+  end;
+  if List.Count > 0 then exit;}
 
   // handle HDROP //
   EnumFormatEtc.Reset;

@@ -195,7 +195,7 @@ var
 begin
   result := '';
   if PIDL_GetDisplayName(nil, pidl, SHGDN_FORPARSING, pszName, MAX_PATH) then result := strpas(pszName);
-  if IsGUID(result) or IsUniApp(result) then
+  if not FileExists(result) then //if IsGUID(result) or IsUniApp(result) then
   begin
     apidl := PIDL_GetFromPath(pchar(result));
     if assigned(apidl) then

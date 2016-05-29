@@ -200,8 +200,10 @@ begin
 
       // create PIDL from GUID //
       PIDL_Free(FPIDL);
-      if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
       if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
+      if not assigned(FPIDL) then
+        if not FileExists(toolu.UnzipPath(FCommand)) then
+          FPIDL := PIDL_GetFromPath(pchar(FCommand));
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
