@@ -21,7 +21,7 @@ object frmcmd: Tfrmcmd
   OnShortCut = FormShortCut
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.0.10.0'
+  LCLVersion = '1.2.4.0'
   object btn_browse: TButton
     Left = 500
     Height = 21
@@ -38,6 +38,7 @@ object frmcmd: Tfrmcmd
     Height = 21
     Top = 10
     Width = 486
+    OnKeyDown = FormKeyDown
     TabOrder = 1
   end
 end

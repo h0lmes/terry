@@ -21,11 +21,13 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     recent: TStrings;
-    procedure exec;
+    FOpenWithNoActivate: boolean;
     procedure ShowRecent(step: integer);
     procedure WMNCHitTest(var msg: TWMNCHitTest); message WM_NCHITTEST;
   public
-    class procedure Open;
+    property OpenWithNoActivate: boolean read FOpenWithNoActivate;
+    class procedure Open(noActivate: boolean = false);
+    procedure exec;
   end;
 
 var
@@ -35,10 +37,16 @@ implementation
 uses frmmainu, toolu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure Tfrmcmd.Open;
+class procedure Tfrmcmd.Open(noActivate: boolean = false);
 begin
   if not assigned(frmcmd) then application.CreateForm(self, frmcmd);
   frmcmd.Show;
+  if noActivate then
+  begin
+    frmcmd.FOpenWithNoActivate := true;
+    showWindow(frmcmd.handle, SW_HIDE);
+    showWindow(frmcmd.handle, SW_SHOWNOACTIVATE);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmcmd.FormCreate(Sender: TObject);

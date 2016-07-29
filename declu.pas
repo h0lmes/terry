@@ -139,6 +139,21 @@ type
     ulExtraInformation: ULONG;
   end;
 
+  RAWKEYBOARD = record
+    MakeCode: USHORT;
+    Flags: USHORT;
+    Reserved: USHORT;
+    VKey: USHORT;
+    Message: UINT;
+    ExtraInformation: ULONG;
+  end;
+
+  RAWHID = record
+    dwSizeHid: DWORD;
+    dwCount: DWORD;
+    bRawData: array [0..0] of BYTE;
+  end;
+
   RAWINPUTHEADER = packed record
     dwType: DWORD;
     dwSize: DWORD;
@@ -148,7 +163,10 @@ type
 
   RAWINPUT = packed record
     header: RAWINPUTHEADER;
-    mouse: RAWMOUSE;
+    case Integer of
+      0: (mouse: RAWMOUSE);
+      1: (keyboard: RAWKEYBOARD);
+      2: (hid: RAWHID);
   end;
   PRAWINPUT = ^RAWINPUT;
 

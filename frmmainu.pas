@@ -74,8 +74,10 @@ type
     procedure WMSettingChange(var Message: TMessage);
     procedure WMCompositionChanged(var Message: TMessage);
     procedure WMDPIChanged(var Message: TMessage);
-    procedure WHMouseMove(LParam: LParam);
+    procedure WHRawMouse(mouse: RAWMOUSE);
+    procedure WHRawKB(kb: RAWKEYBOARD);
     procedure WHButtonDown(button: integer);
+    procedure WHMouseMove(LParam: LParam);
     procedure OnMouseEnter;
     procedure OnMouseLeave;
     procedure DoMenu;
@@ -382,11 +384,7 @@ begin
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       FreeObjectInstance(FWndInstance);
       // close other instances
-      if not docks.RemoveDock then
-      begin
-        docks.Enum;
-        docks.Close;
-      end;
+      if not docks.ThisDockRemovalScheduled then docks.CloseOtherDocks;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Base.Close.Free', mb_iconexclamation);
     end;
@@ -582,13 +580,17 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RegisterRawInput;
 var
-  rid: RAWINPUTDEVICE;
+  rid: array [0..1] of RAWINPUTDEVICE;
 begin
-  Rid.usUsagePage := 1;
-  Rid.usUsage := 2;
-  Rid.dwFlags := RIDEV_INPUTSINK;
-  Rid.hwndTarget := Handle;
-  if not RegisterRawInputDevices(@Rid, 1, sizeof(Rid)) then notify('RegisterRawInput failed!');
+  rid[0].usUsagePage := 1;
+  rid[0].usUsage := 2; // mouse
+  rid[0].dwFlags := RIDEV_INPUTSINK;
+  rid[0].hwndTarget := Handle;
+  rid[1].usUsagePage := 1;
+  rid[1].usUsage := 6; // kb
+  rid[1].dwFlags := RIDEV_INPUTSINK;
+  rid[1].hwndTarget := Handle;
+  if not RegisterRawInputDevices(@rid, 2, sizeof(RAWINPUTDEVICE)) then notify('RegisterRawInput failed!');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NativeWndProc(var message: TMessage);
@@ -605,21 +607,18 @@ begin
   end;
 
   case message.msg of
-    WM_INPUT:
+
+    WM_INPUT :
       if not FProgramIsClosing then
       begin
         dwSize := 0;
         GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
         if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
-          raise Exception.Create('Base.NativeWndProc. Invalid size of RawInputData');
-        if ri.header.dwType = RIM_TYPEMOUSE then
-        begin
-          if ri.mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
-          if ri.mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
-          WHMouseMove(0);
-        end;
-        exit;
+          raise Exception.Create('Base.NativeWndProc. Invalid RawInputData size');
+        if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse)
+        else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
       end;
+
     WM_TIMER : WMTimer(message);
     WM_USER : WMUser(message);
     WM_COMMAND : WMCommand(message);
@@ -628,14 +627,101 @@ begin
         FAllowCloseProgram := true;
         message.Result := CloseQuery;
       end;
+
     WM_COPYDATA : WMCopyData(message);
     WM_DISPLAYCHANGE : WMDisplayChange(message);
     WM_SETTINGCHANGE : WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
     WM_DPICHANGED: WMDPIChanged(message);
     WM_APP_RUN_THREAD_END: CloseHandle(message.lParam);
-    else message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
+    else
+      message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure SendShift(hwnd: HWnd; Down: Boolean);
+var
+  vKey, ScanCode, wParam: Word;
+  lParam: longint;
+begin
+  vKey := $10;
+  ScanCode := MapVirtualKey(vKey, 0);
+  wParam := vKey or ScanCode shl 8;
+  lParam := longint(ScanCode) shl 16 or 1;
+  if not (Down) then lParam := lParam or $C0000000;
+  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
+end;
+//------------------------------------------------------------------------------
+procedure SendCtrl(hwnd: HWnd; Down: Boolean);
+var
+  vKey, ScanCode, wParam: Word;
+  lParam: longint;
+begin
+  vKey := $11;
+  ScanCode := MapVirtualKey(vKey, 0);
+  wParam := vKey or ScanCode shl 8;
+  lParam := longint(ScanCode) shl 16 or 1;
+  if not (Down) then lParam := lParam or $C0000000;
+  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
+end;
+//------------------------------------------------------------------------------
+procedure SendKey(hwnd: HWnd; Key: char; noChar: boolean);
+const MAPVK_VK_TO_CHAR = 2;
+var
+  kbLayout: HKL;
+  vKey, ScanCode, wParam: Word;
+  lParam, ExKey: longint;
+  Shift, Ctrl: boolean;
+begin
+  kbLayout := GetKeyboardLayout(0);
+  ExKey := VkKeyScanEx(Key, kbLayout);
+  Shift := GetKeyState(VK_SHIFT) and $80 = 0; //(ExKey and $00020000) <> 0;
+  Ctrl := (ExKey and $00040000) <> 0;
+  ScanCode := ExKey and $000000FF or $FF00;
+  if ord(key) < 128 then vKey := ord(Key)
+  else vKey := MapVirtualKeyEx(ord(key), MAPVK_VK_TO_CHAR, kbLayout);
+  wParam := vKey;
+  lParam := longint(ScanCode) shl 16 or 1;
+  if Shift then SendShift(hwnd, true);
+  if Ctrl then SendCtrl(hwnd, true);
+  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
+  if not noChar then SendMessage(hwnd, WM_CHAR, vKey, lParam);
+  lParam := lParam or $C0000000;
+  SendMessage(hwnd, WM_KEYUP, vKey, lParam);
+  if Shift then SendShift(hwnd, false);
+  if Ctrl then SendCtrl(hwnd, false);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
+var
+  key: char;
+  fw: uint;
+begin
+  if assigned(frmcmd) then
+  begin
+    fw := GetForegroundWindow;
+    if (fw <> handle) and (fw <> frmcmd.handle) and IsWindowVisible(frmcmd.Handle) then
+      if kb.Message = WM_KEYDOWN then
+      begin
+        //notify('VKey = ' + inttostr(kb.VKey) + #10#13 + 'Message = ' + inttostr(kb.Message) + #10#13 + 'Flags = ' + inttostr(kb.Flags) + #10#13 + 'Ext = ' + inttostr(kb.ExtraInformation) + #10#13 + 'MakeCode = ' + inttostr(kb.MakeCode));
+        if kb.vkey = vk_return then frmcmd.exec
+        else
+        if kb.vkey = vk_escape then frmcmd.close
+        else
+        begin
+          key := chr(kb.vkey);
+          if GetKeyState(VK_SHIFT) and $80 = 0 then key := LowerCase(key);
+          SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
+        end;
+      end;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.WHRawMouse(mouse: RAWMOUSE);
+begin
+  if mouse.usButtonData and RI_MOUSE_LEFT_BUTTON_DOWN <> 0 then WHButtonDown(1);
+  if mouse.usButtonData and RI_MOUSE_RIGHT_BUTTON_DOWN <> 0 then WHButtonDown(2);
+  WHMouseMove(0);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WHButtonDown(button: integer);
@@ -1099,7 +1185,7 @@ begin
 	    KeyPressed := IsHotkeyPressed(sets.container.GlobalHotkeyValue_Console);
 	    if not KeyPressed then FConsoleKeysPressed := false
 	    else begin
-	      if not FConsoleKeysPressed then execute_cmdline('/cmd');
+	      if not FConsoleKeysPressed then execute_cmdline('/cmdna');
 	      FConsoleKeysPressed := true;
 	    end;
 	end;
@@ -1775,11 +1861,7 @@ end;
 procedure Tfrmmain.NewDock;
 begin
   if assigned(docks) then
-  begin
-    docks.Enum;
-    if docks.Count < 8 then
-      if docks.HaveFreeSite then docks.NewDock;
-  end;
+    if docks.HaveFreeSite then docks.NewDock;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RemoveDock;
@@ -1989,6 +2071,7 @@ begin
     Tfrmsets.Open(i);
   end
   else if cmd = 'cmd' then          Tfrmcmd.Open
+	else if cmd = 'cmdna' then        Tfrmcmd.Open(true)
 	else if cmd = 'collection' then   Run('%pp%\images')
   else if cmd = 'apps' then         Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then      Run('%sysdir%\taskmgr.exe')

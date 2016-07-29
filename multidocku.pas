@@ -15,26 +15,26 @@ type
     FCount: integer;
     FFreeMonitor: integer;
     FFreeSite: TBaseSite;
-    FRemoveDock: boolean;
+    FRemoveThisDock: boolean;
     FSetsFilename: string;
     ProgramPath: string;
     ProgramExe: string;
     function GetWindowText(h: THandle): string;
+    procedure Enum;
     procedure ReadSites;
     function GetNewSetsFilename: string;
   public
     property Count: integer read FCount;
     property FreeMonitor: integer read FFreeMonitor;
     property FreeSite: TBaseSite read FFreeSite;
-    property RemoveDock: boolean read FRemoveDock;
+    property ThisDockRemovalScheduled: boolean read FRemoveThisDock;
 
     class procedure Create_;
     class procedure Destroy_;
 
     constructor Create;
     destructor Destroy; override;
-    procedure Enum;
-    procedure Close;
+    procedure CloseOtherDocks;
     function HaveFreeSite: boolean;
     procedure NewDock;
     procedure RunDock(ASetsFilename: string);
@@ -73,14 +73,7 @@ destructor TMultiDock.Destroy;
 begin
   listWindows.free;
   listSites.free;
-
-  if FRemoveDock then
-  begin
-    windows.DeleteFile(pchar(FSetsFilename));
-    FSetsFilename := ChangeFileExt(FSetsFilename, '.bak');
-    windows.DeleteFile(pchar(FSetsFilename));
-  end;
-
+  if FRemoveThisDock then windows.DeleteFile(pchar(FSetsFilename));
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -139,10 +132,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TMultiDock.Close;
+procedure TMultiDock.CloseOtherDocks;
 var
   idx: integer;
 begin
+  Enum;
+
   idx := 0;
   while idx < listWindows.Count do
   begin
@@ -156,6 +151,9 @@ var
   m, s: integer;
 begin
   result := false;
+  Enum;
+  if docks.Count > 7 then exit;
+
   ReadSites;
 
   for m := 0 to screen.MonitorCount - 1 do
@@ -200,7 +198,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TMultiDock.RequestRemoveDock(ASetsFilename: string);
 begin
-  FRemoveDock := true;
+  FRemoveThisDock := true;
   FSetsFilename := ASetsFilename;
 end;
 //------------------------------------------------------------------------------
