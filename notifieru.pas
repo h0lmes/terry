@@ -4,6 +4,10 @@ interface
 
 uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gfx, dwm_unit;
 
+const
+  NOTIFIER_FONT_NAME = 'Lucida Console';
+  NOTIFIER_FONT_NAME_ALT = 'Courier New';
+
 type
   TNotifier = class
   private
@@ -33,7 +37,7 @@ type
     function GetMonitorRect(monitor: integer): Windows.TRect;
     procedure Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
     procedure MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
-    procedure Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
+    procedure Message_Internal(Text: string; monitor: integer; animate: boolean = True);
     procedure Close;
     procedure Timer;
     procedure WindowProc(var msg: TMessage);
@@ -105,9 +109,11 @@ begin
       FTimeout := 8000;
       if length(Text) > 50 then FTimeout := 15000
       else if length(Text) > 30 then FTimeout := 11000;
+
+      Text := Text + #10#13#10#13 + '~ ' + declu.PROGRAM_NAME + '#';
       if FText = '' then FText := Text
       else FText := FText + #13#10#13#10 + Text;
-      Message_Internal(declu.PROGRAM_NAME, FText, monitor, false);
+      Message_Internal(FText, monitor, false);
     end;
   except
     on e: Exception do err('Notifier.Message', e);
@@ -120,22 +126,23 @@ begin
     FTimeout := 8000;
     if length(Text) > 50 then FTimeout := 15000
     else if length(Text) > 30 then FTimeout := 11000;
+
+    Text := Text + #10#13#10#13 + '~ ' + declu.PROGRAM_NAME + '#';
     if replace or (FText = '') then FText := Text
     else FText := FText + #13#10#13#10 + Text;
-    Message_Internal(declu.PROGRAM_NAME, FText, monitor, false);
+    Message_Internal(FText, monitor, false);
   except
     on e: Exception do err('Notifier.MessageNoLog', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.Message_Internal(Caption, Text: string; monitor: integer; animate: boolean = True);
+procedure TNotifier.Message_Internal(Text: string; monitor: integer; animate: boolean = True);
 var
   hgdip, path, hbrush, hpen: Pointer;
-  caption_font, message_font, font_family: Pointer;
-  caption_rect, text_rect: TRectF;
+  message_font, font_family: Pointer;
+  text_rect: TRectF;
   message_margin, wa: Windows.TRect;
   bmp: _SimpleBitmap;
-  h_split, radius: integer;
   rgn: HRGN;
   alpha: uint;
   acoeff: integer;
@@ -144,13 +151,11 @@ begin
   self.FMonitor := monitor;
 
   FActivating := True;
-  radius := 3;
-  h_split := 3;
-  FW := 240;
-  message_margin.left := radius * 2 div 3 + 3;
-  message_margin.right := radius * 2 div 3 + 3;
-  message_margin.top := radius * 2 div 3 + 3;
-  message_margin.bottom := radius * 2 div 3 + 3;
+  FW := 320;
+  message_margin.left := 16;
+  message_margin.right := 16;
+  message_margin.top := 16;
+  message_margin.bottom := 16;
 
   // context //
   try
@@ -169,9 +174,12 @@ begin
 
   // context //
   try
-    GdipCreateFontFamilyFromName(PWideChar(WideString(GetFont)), nil, font_family);
-    GdipCreateFont(font_family, 16, 1, 2, caption_font);
-    GdipCreateFont(font_family, 14, 0, 2, message_font);
+    try
+      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME)), nil, font_family);
+    except
+      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME_ALT)), nil, font_family);
+    end;
+    GdipCreateFont(font_family, 12, 0, 2, message_font);
   except
     on e: Exception do
     begin
@@ -183,13 +191,6 @@ begin
 
   // measure //
   try
-    caption_rect.x := 0;
-    caption_rect.y := 0;
-    caption_rect.Width := FW - message_margin.left - message_margin.right;
-    caption_rect.Height := 0;
-    GdipMeasureString(hgdip, PWideChar(WideString(Caption)), -1, caption_font, @caption_rect, nil, @caption_rect, nil, nil);
-    caption_rect.Height := caption_rect.Height + 1;
-
     text_rect.x := 0;
     text_rect.y := 0;
     text_rect.Width := FW - message_margin.left - message_margin.right;
@@ -197,23 +198,19 @@ begin
     GdipMeasureString(hgdip, PWideChar(WideString(Text)), -1, message_font, @text_rect, nil, @text_rect, nil, nil);
     text_rect.Height := text_rect.Height + 1;
 
-    caption_rect.x := message_margin.left;
-    caption_rect.y := message_margin.top;
-
     text_rect.x := message_margin.left;
-    text_rect.y := caption_rect.y + caption_rect.Height + h_split;
+    text_rect.y := message_margin.top;
 
     if assigned(hgdip) then GdipDeleteGraphics(hgdip);
     if bmp.dc > 0 then DeleteDC(bmp.dc);
 
-    FH := message_margin.top + trunc(caption_rect.Height) + h_split +
-      trunc(text_rect.Height) + message_margin.bottom;
+    FH := message_margin.top + trunc(text_rect.Height) + message_margin.bottom;
 
     // calc position //
     wa := GetMonitorRect(monitor);
-    FXTarget := wa.right - FW - 2;
-    FX := wa.right - FW div 2 - 2;
-    FYTarget := wa.bottom - FH - 2;
+    FXTarget := wa.right - FW;
+    FX := wa.right - FW div 2;
+    FYTarget := wa.bottom - FH;
     FY := FYTarget;
     if not animate then
     begin
@@ -252,16 +249,16 @@ begin
   // background //
   try
     GdipCreatePath(FillModeAlternate, path);
-    AddPathRoundRect(path, 0, 0, FW, FH, radius);
+    AddPathRoundRect(path, 0, 0, FW, FH, 0);
     if dwm.IsCompositionEnabled then alpha := $80000000 else alpha := $ff101010;
     // fill
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
     GdipDeleteBrush(hbrush);
     // outline
-    GdipCreatePen1($60ffffff, 1, UnitPixel, hpen);
-    GdipDrawPath(hgdip, hpen, path);
-    GdipDeletePen(hpen);
+    //GdipCreatePen1($60ffffff, 1, UnitPixel, hpen);
+    //GdipDrawPath(hgdip, hpen, path);
+    //GdipDeletePen(hpen);
     // cleanup
     GdipDeletePath(path);
   except
@@ -276,7 +273,6 @@ begin
   // message caption and text //
   try
     if FAlert then GdipCreateSolidFill($ffff5000, hbrush) else GdipCreateSolidFill($ffffffff, hbrush);
-    GdipDrawString(hgdip, PWideChar(WideString(Caption)), -1, caption_font, @caption_rect, nil, hbrush);
     GdipDrawString(hgdip, PWideChar(WideString(Text)), -1, message_font, @text_rect, nil, hbrush);
     GdipDeleteBrush(hbrush);
   except
@@ -301,7 +297,7 @@ begin
     SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
     if dwm.IsCompositionEnabled then
     begin
-      rgn := CreateRoundRectRgn(0, 0, FW, FH, radius * 2, radius * 2);
+      rgn := CreateRectRgn(0, 0, FW, FH);
       DWM.EnableBlurBehindWindow(FHWnd, rgn);
       DeleteObject(rgn);
     end
@@ -318,7 +314,6 @@ begin
 
   // cleanup //
   try
-    GdipDeleteFont(caption_font);
     GdipDeleteFont(message_font);
     GdipDeleteFontFamily(font_family);
     GdipDeleteGraphics(hgdip);

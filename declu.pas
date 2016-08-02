@@ -69,6 +69,7 @@ type
     gpMax,
     // terry commands //
     tcMin = $1000,
+    tcActivate,
     tcRepaintBase,
     tcMenu,
     tcSaveSets,

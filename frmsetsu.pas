@@ -128,7 +128,7 @@ type
     chbBlur: TCheckBox;
     chb_show_running_indicator: TCheckBox;
     chb_activate_running: TCheckBox;
-    chb_use_shell_context_menus: TCheckBox;
+    cbUseShellContextMenus: TCheckBox;
     btn_cancel: TBitBtn;
     lv: TListView;
     images: TImageList;
@@ -328,37 +328,53 @@ begin
   cbAutoRun.checked := toolu.CheckAutoRun;
 
   cbAutoHide.Checked := sets.container.autohide;
+
   cbActivateOnMouse.Checked := sets.container.ActivateOnMouse;
+
   edActivateOnMouseInterval.OnChange := nil;
   edActivateOnMouseInterval.Text := inttostr(sets.container.ActivateOnMouseInterval);
   edActivateOnMouseInterval.OnChange := edActivateOnMouseIntervalChange;
+
   edAutoHideTime.Text := inttostr(sets.container.autohidetime);
+
   edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
+
   edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
 
   hkHide.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
+
   hkConsole.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
+
   chbGlobalHide.Checked := sets.container.GlobalHotkeyFlag_Hide;
+
   chbGlobalConsole.Checked := sets.container.GlobalHotkeyFlag_Console;
 
   chbAutoHideOnFullScreenApp.checked := sets.container.AutoHideOnFullScreenApp;
 
   cbShowHint.Checked := sets.container.ShowHint;
+
   chbHintEffects.Checked := sets.container.HintEffects;
 
   cbHideTaskBar.Checked := sets.container.HideSystemTaskbar;
+
   chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
+
   tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
+
   chbTaskbar.Checked := sets.container.Taskbar;
+
   chbTaskbarLivePreviews.OnChange := nil;
   chbTaskbarLivePreviews.Checked := sets.container.TaskLivePreviews;
   chbTaskbarLivePreviews.OnChange := chbTaskbarLivePreviewsChange;
+
   chbTaskbarGrouping.OnChange := nil;
   chbTaskbarGrouping.Checked := sets.container.TaskGrouping;
   chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
+
   chbTaskbarSameMonitor.OnChange := nil;
   chbTaskbarSameMonitor.Checked := sets.container.TaskSameMonitor;
   chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
+
   tbAeroPeekThumbSize.OnChange := nil;
   tbAeroPeekThumbSize.Position := sets.container.TaskThumbSize;
   tbAeroPeekThumbSize.OnChange := tbAeroPeekThumbSizeChange;
@@ -388,6 +404,7 @@ begin
   tbCenterOffsetPercent.OnChange := nil;
   tbCenterOffsetPercent.Position := sets.container.CenterOffsetPercent;
   tbCenterOffsetPercent.OnChange := tbCenterOffsetPercentChange;
+
   tbEdgeOffset.OnChange := nil;
   tbEdgeOffset.Position := sets.container.EdgeOffset;
   tbEdgeOffset.OnChange := tbEdgeOffsetChange;
@@ -396,9 +413,11 @@ begin
   chbOccupyFullMonitor.OnChange := nil;
   chbOccupyFullMonitor.Checked := sets.container.OccupyFullMonitor;
   chbOccupyFullMonitor.OnChange := chbOccupyFullMonitorChange;
+
   edStartOffset.OnChange := nil;
   edStartOffset.Text := inttostr(sets.container.StartOffset);
   edStartOffset.OnChange := edStartOffsetChange;
+
   edEndOffset.OnChange := nil;
   edEndOffset.Text := inttostr(sets.container.EndOffset);
   edEndOffset.OnChange := edEndOffsetChange;
@@ -410,33 +429,41 @@ begin
   lbTheme.OnSelectionChange := nil;
   theme.SearchThemes(sets.container.ThemeName, lbTheme);
   lbTheme.OnSelectionChange := lbThemeSelectionChange;
-  chbBlur.Enabled := dwm.IsCompositionEnabled;
+
   chbBlur.OnClick := nil;
+  chbBlur.Enabled := dwm.IsCompositionEnabled;
   chbBlur.checked := sets.container.BlurEnabled;
   chbBlur.OnClick := chbBlurClick;
+
   tbBaseAlpha.OnChange := nil;
   tbBaseAlpha.Position := sets.container.BaseAlpha;
   tbBaseAlpha.OnChange := tbBaseAlphaChange;
+
   tbSeparatorAlpha.OnChange := nil;
   tbSeparatorAlpha.Position := sets.container.SeparatorAlpha;
   tbSeparatorAlpha.OnChange := tbSeparatorAlphaChange;
+
   tbReflectionSize.OnChange := nil;
   tbReflectionSize.Position := sets.container.ReflectionSize;
   tbReflectionSize.OnChange := tbReflectionSizeChange;
 
   CopyFontData(sets.container.Font, FFont);
-  listFont.Items := screen.Fonts;
   listFont.OnClick := nil;
+  listFont.Items := screen.Fonts;
   listFont.ItemIndex := listFont.items.IndexOf(PChar(@FFont.Name));
   listFont.OnClick := ApplyFont;
+
   edFontSize.OnChange := nil;
   udFontSize.Position := FFont.size;
   edFontSize.OnChange := ApplyFont;
+
   edFontSize2.OnChange := nil;
   udFontSize2.Position := FFont.size2;
   edFontSize2.OnChange := ApplyFont;
+
   btnFontBold.down := FFont.bold;
   btnFontBold.OnClick := ApplyFont;
+
   btnFontItalic.down := FFont.Italic;
   btnFontItalic.OnClick := ApplyFont;
 
@@ -447,15 +474,19 @@ begin
   tbIconSize.OnChange := nil;
   tbIconSize.Position := sets.container.itemsize;
   tbIconSize.OnChange := tbIconSizeChange;
+
   tbBigIconSize.OnChange := nil;
   tbBigIconSize.Position := sets.container.BigItemSize;
   tbBigIconSize.OnChange := tbBigIconSizeChange;
+
   tbIconSpacing.OnChange := nil;
   tbIconSpacing.Position := sets.container.ItemSpacing;
   tbIconSpacing.OnChange := tbIconSpacingChange;
+
   tbZoomWidth.OnChange := nil;
   tbZoomWidth.Position := sets.container.ZoomWidth div 2;
   tbZoomWidth.OnChange := tbZoomWidthChange;
+
   tbZoomTime.OnChange := nil;
   tbZoomTime.Position := sets.container.ZoomTime;
   tbZoomTime.OnChange := tbZoomTimeChange;
@@ -465,6 +496,7 @@ begin
   cbZoomItems.OnClick := nil;
   cbZoomItems.checked := sets.container.ZoomEnabled;
   cbZoomItems.OnClick := cbZoomItemsClick;
+
   chb_reflection.OnClick := nil;
   chb_reflection.checked := sets.container.ReflectionEnabled;
   chb_reflection.OnClick := chb_reflectionClick;
@@ -473,9 +505,12 @@ begin
   cboItemAnimationType.ItemIndex := sets.container.ItemAnimationType;
   cboItemAnimationType.OnChange := cboItemAnimationTypeChange;
 
-  chb_use_shell_context_menus.checked := sets.container.UseShellContextMenus;
+  cbUseShellContextMenus.checked := sets.container.UseShellContextMenus;
+
   chb_activate_running.checked := sets.container.ActivateRunningApps;
+
   chb_show_running_indicator.checked := sets.container.ShowRunningIndicator;
+
   chbStackOpenAnimation.OnChange := nil;
   chbStackOpenAnimation.Checked := sets.container.StackAnimationEnabled;
   chbStackOpenAnimation.OnChange := chbStackOpenAnimationChange;
@@ -487,8 +522,11 @@ begin
   chbRunInThread.OnChange := nil;
   chbRunInThread.Checked := sets.container.RunInThread;
   chbRunInThread.OnChange := chbRunInThreadChange;
+
   cbUseShell.checked := sets.container.useshell;
+
   edShell.text := AnsiToUTF8(sets.container.shell);
+
   edLaunchInterval.OnChange := nil;
   edLaunchInterval.Text := inttostr(sets.container.LaunchInterval);
   edLaunchInterval.OnChange := edLaunchIntervalChange;
@@ -1012,7 +1050,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chb_use_shell_context_menusClick(Sender: TObject);
 begin
-  frmmain.SetParam(gpUseShellContextMenus, integer(chb_use_shell_context_menus.checked));
+  frmmain.SetParam(gpUseShellContextMenus, integer(cbUseShellContextMenus.checked));
 end;
 //------------------------------------------------------------------------------
 //

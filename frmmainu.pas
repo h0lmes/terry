@@ -59,6 +59,8 @@ type
 		procedure CreateBlurWindow;
 		procedure DoGlobalHotkeys;
     procedure FlashTaskWindow(hwnd: HWND);
+		procedure TaskWindowCreated(hwnd: HWND);
+		procedure TaskWindowDestroyed(hwnd: HWND);
 		function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
     procedure RegisterRawInput;
@@ -291,6 +293,8 @@ begin
 
     if sets.container.Hello then TfrmHello.Open;
     FInitDone := True;
+
+    UpdateRunning;
   except
     on e: Exception do err('Base.Init', e);
   end;
@@ -492,6 +496,12 @@ begin
   Result := 0;
 
   case id of
+    tcActivate:
+      begin
+        SetForegroundWindow(Handle);
+        SetActiveWindow(Handle);
+        if sets.container.StayOnTop then SetForeground;
+      end;
     tcRepaintBase: BasePaint(param);
     tcMenu: DoMenu;
     tcSaveSets: SaveSets;
@@ -586,11 +596,11 @@ begin
   rid[0].usUsage := 2; // mouse
   rid[0].dwFlags := RIDEV_INPUTSINK;
   rid[0].hwndTarget := Handle;
-  rid[1].usUsagePage := 1;
-  rid[1].usUsage := 6; // kb
-  rid[1].dwFlags := RIDEV_INPUTSINK;
-  rid[1].hwndTarget := Handle;
-  if not RegisterRawInputDevices(@rid, 2, sizeof(RAWINPUTDEVICE)) then notify('RegisterRawInput failed!');
+  //rid[1].usUsagePage := 1;
+  //rid[1].usUsage := 6; // kb
+  //rid[1].dwFlags := RIDEV_INPUTSINK;
+  //rid[1].hwndTarget := Handle;
+  if not RegisterRawInputDevices(@rid, 1, sizeof(RAWINPUTDEVICE)) then notify('RegisterRawInput failed!');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NativeWndProc(var message: TMessage);
@@ -603,6 +613,9 @@ begin
   if message.msg = WM_SHELLHOOK then
   begin
     if message.wParam = HSHELL_FLASH then FlashTaskWindow(message.lParam);
+    if message.wParam = HSHELL_ACTIVATESHELLWINDOW then BaseCmd(tcActivate, 0);
+    if message.wParam = HSHELL_WINDOWCREATED then TaskWindowCreated(message.lParam);
+    if message.wParam = HSHELL_WINDOWDESTROYED then TaskWindowDestroyed(message.lParam);
     exit;
   end;
 
@@ -615,8 +628,8 @@ begin
         GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
         if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
           raise Exception.Create('Base.NativeWndProc. Invalid RawInputData size');
-        if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse)
-        else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
+        if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse);
+        //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
       end;
 
     WM_TIMER : WMTimer(message);
@@ -648,7 +661,7 @@ begin
   ScanCode := MapVirtualKey(vKey, 0);
   wParam := vKey or ScanCode shl 8;
   lParam := longint(ScanCode) shl 16 or 1;
-  if not (Down) then lParam := lParam or $C0000000;
+  if not Down then lParam := lParam or $C0000000;
   SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
 end;
 //------------------------------------------------------------------------------
@@ -661,7 +674,7 @@ begin
   ScanCode := MapVirtualKey(vKey, 0);
   wParam := vKey or ScanCode shl 8;
   lParam := longint(ScanCode) shl 16 or 1;
-  if not (Down) then lParam := lParam or $C0000000;
+  if not Down then lParam := lParam or $C0000000;
   SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
 end;
 //------------------------------------------------------------------------------
@@ -791,6 +804,16 @@ end;
 procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
 begin
   if assigned(ItemMgr) then ItemMgr.AllItemCmd(icFlashTaskWindow, hwnd);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.TaskWindowCreated(hwnd: HWND);
+begin
+  UpdateRunning;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.TaskWindowDestroyed(hwnd: HWND);
+begin
+  UpdateRunning;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1025,7 +1048,6 @@ begin
     if IsWindowVisible(Handle) then
     begin
       WHMouseMove($fffffff);
-      UpdateRunning;
       MaintainNotForeground;
       ItemMgr.CheckDeleted;
     end;
@@ -2023,8 +2045,7 @@ var
 begin
   if cmd[1] = '/' then
   begin
-    split(cmd, '(', cmd, params);
-    params := cuttolast(params, ')');
+    split(cmd, ' ', cmd, params);
   end
   else
   begin
@@ -2062,8 +2083,8 @@ begin
   else if cmd = 'hide' then         frmmain.BaseCmd(tcSetVisible, 0)
   else if cmd = 'say' then          frmmain.notify(toolu.UnzipPath(params))
   else if cmd = 'alert' then        frmmain.alert(toolu.UnzipPath(params))
-  else if cmd = 'togglevisible' then frmmain.BaseCmd(tcToggleVisible, 0)
-  else if cmd = 'togglesystaskbar' then frmmain.BaseCmd(tcToggleTaskbar, 0)
+  else if cmd = 'visible' then      frmmain.BaseCmd(tcToggleVisible, 0)
+  else if cmd = 'systaskbar' then   frmmain.BaseCmd(tcToggleTaskbar, 0)
   else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
   else if cmd = 'sets' then
   begin
@@ -2283,7 +2304,11 @@ begin
 	    strcopy(pchar(@Data.params), pchar(params));
 	    strcopy(pchar(@Data.dir), pchar(dir));
 	    Data.showcmd := showcmd;
-	    if BeginThread(RunThread, Data) = 0 then notify('Run.BeginThread failed');
+	    if BeginThread(RunThread, Data) = 0 then
+        notify('Run.BeginThread failed'#10#13 +
+          'cmd=' + exename + #10#13 +
+          'params=' + params + #10#13 +
+          'dir=' + dir);
     end else begin
       pparams := nil;
       pdir := nil;
