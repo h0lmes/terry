@@ -829,6 +829,11 @@ msgstr "Использовать этот шелл для открытия ло�
 msgid "Zoom icons when mouse is over"
 msgstr "Увеличивать значки при наведении мыши"
 
+#: tfrmsets.chbactivaterunning.caption
+msgctxt "tfrmsets.chbactivaterunning.caption"
+msgid "Activate program if already running"
+msgstr "Активировать программу если уже запущена"
+
 #: tfrmsets.chbautohideonfullscreenapp.caption
 #| msgid "Hide while fullscreen application active (game, etc) "
 msgid "Hide dock completely while fullscreen application active (game, etc) "
@@ -863,6 +868,11 @@ msgstr "Резервировать край экрана"
 msgid "Run applications in separate threads"
 msgstr "Запускать программы в отдельных потоках"
 
+#: tfrmsets.chbshowrunningindicator.caption
+msgctxt "tfrmsets.chbshowrunningindicator.caption"
+msgid "Show indicator for running programs"
+msgstr "Показывать индикатор для запущенных программ"
+
 #: tfrmsets.chbstackopenanimation.caption
 msgid "Stack open/close animation"
 msgstr "Анимация открытия/закрытия стека"
@@ -886,22 +896,14 @@ msgstr "Показывать миниатюры (когда доступно)"
 msgid "Show only tasks from the same monitor"
 msgstr "Показывать только программы с этого монитора"
 
-#: tfrmsets.chb_activate_running.caption
-msgctxt "TFRMSETS.CHB_ACTIVATE_RUNNING.CAPTION"
-msgid "Activate program if already running"
-msgstr "Активировать программу если уже запущена"
+#: tfrmsets.chbuseshellcontextmenus.caption
+msgctxt "tfrmsets.chbuseshellcontextmenus.caption"
+msgid "Show Windows Explorer context menus for programs"
+msgstr "Показывать контекстные меню Проводника Windows для программ"
 
 #: tfrmsets.chb_reflection.caption
 msgid "Show icon reflections"
 msgstr "Показывать отражения значков"
-
-#: tfrmsets.chb_show_running_indicator.caption
-msgid "Show indicator for running programs"
-msgstr "Показывать индикатор для запущенных программ"
-
-#: tfrmsets.chb_use_shell_context_menus.caption
-msgid "Show Windows Explorer context menus for programs"
-msgstr "Показывать контекстные меню Проводника Windows для программ"
 
 #: tfrmsets.dividerbevel1.caption
 msgctxt "tfrmsets.dividerbevel1.caption"

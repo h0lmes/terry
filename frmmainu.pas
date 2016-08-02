@@ -685,6 +685,9 @@ var
   vKey, ScanCode, wParam: Word;
   lParam, ExKey: longint;
   Shift, Ctrl: boolean;
+  keyboardState: TKeyboardState;
+  chars: string;
+  asciiResult: longint;
 begin
   kbLayout := GetKeyboardLayout(0);
   ExKey := VkKeyScanEx(Key, kbLayout);
@@ -699,6 +702,20 @@ begin
   if Ctrl then SendCtrl(hwnd, true);
   SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
   if not noChar then SendMessage(hwnd, WM_CHAR, vKey, lParam);
+  if not noChar then
+  begin
+    GetKeyboardState(keyboardState);
+    SetLength(chars, 2);
+    asciiResult := ToAsciiEx(vkey, ScanCode and $8FFF, keyboardState, @chars[1], 0, kbLayout);
+    if asciiResult = 1 then SetLength(chars, 1)
+    else if asciiResult <> 2 then chars := '';
+    if length(chars) = 1 then SendMessage(hwnd, WM_CHAR, ord(chars[1]), lParam);
+    if length(chars) = 2 then
+    begin
+      SendMessage(hwnd, WM_CHAR, ord(chars[1]), lParam);
+      SendMessage(hwnd, WM_CHAR, ord(chars[2]), lParam);
+    end;
+  end;
   lParam := lParam or $C0000000;
   SendMessage(hwnd, WM_KEYUP, vKey, lParam);
   if Shift then SendShift(hwnd, false);

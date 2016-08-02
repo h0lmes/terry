@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
   Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc,
-  declu, toolu, gfx, GDIPAPI, dwm_unit, DividerBevel, types;
+  declu, toolu, gfx, GDIPAPI, dwm_unit, DividerBevel;
 
 type
 
@@ -36,6 +36,7 @@ type
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
     chbOccupyFullMonitor: TCheckBox;
+    chbUseShellContextMenus: TCheckBox;
     chb_reflection: TCheckBox;
 		chbGlobalHide: TCheckBox;
     DividerBevel1: TDividerBevel;
@@ -105,7 +106,7 @@ type
     lblEdge: TLabel;
     lblTitle: TLabel;
     tsStyle: TTabSheet;
-    cbautorun: TCheckBox;
+    cbAutorun: TCheckBox;
     tbCenterOffsetPercent: TTrackBar;
     btn_ok: TBitBtn;
     gbHide: TGroupBox;
@@ -126,9 +127,8 @@ type
     lblMouseOverTip: TLabel;
     cbHideTaskBar: TCheckBox;
     chbBlur: TCheckBox;
-    chb_show_running_indicator: TCheckBox;
-    chb_activate_running: TCheckBox;
-    cbUseShellContextMenus: TCheckBox;
+    chbShowRunningIndicator: TCheckBox;
+    chbActivateRunning: TCheckBox;
     btn_cancel: TBitBtn;
     lv: TListView;
     images: TImageList;
@@ -140,18 +140,22 @@ type
     procedure btnDebugClick(Sender: TObject);
     procedure btnRemoveDockClick(Sender: TObject);
 		procedure btnRestoreClick(Sender: TObject);
+    procedure cbAutorunChange(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
+    procedure chbActivateRunningChange(Sender: TObject);
 		procedure chbGlobalConsoleClick(Sender: TObject);
 		procedure chbGlobalHideClick(Sender: TObject);
     procedure chbHintEffectsClick(Sender: TObject);
-    procedure chbReserveScreenEdgeClick(Sender: TObject);
+    procedure chbReserveScreenEdgeChange(Sender: TObject);
     procedure chbRunInThreadChange(Sender: TObject);
+    procedure chbShowRunningIndicatorChange(Sender: TObject);
     procedure chbStackOpenAnimationChange(Sender: TObject);
-    procedure chbTaskbarClick(Sender: TObject);
+    procedure chbTaskbarChange(Sender: TObject);
     procedure chbTaskbarGroupingChange(Sender: TObject);
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure chbTaskbarSameMonitorChange(Sender: TObject);
     procedure chbOccupyFullMonitorChange(Sender: TObject);
+    procedure chbUseShellContextMenusChange(Sender: TObject);
 		procedure edActivateOnMouseIntervalChange(Sender: TObject);
     procedure edEndOffsetChange(Sender: TObject);
     procedure edStartOffsetChange(Sender: TObject);
@@ -159,8 +163,7 @@ type
     procedure btn_cancelClick(Sender: TObject);
     procedure chbBlurClick(Sender: TObject);
     procedure chb_reflectionClick(Sender: TObject);
-    procedure chb_show_running_indicatorClick(Sender: TObject);
-    procedure chb_activate_runningClick(Sender: TObject);
+    procedure chbShowRunningIndicatorClick(Sender: TObject);
 		procedure hkConsoleKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 		procedure hkHideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lbThemeDblClick(Sender: TObject);
@@ -201,7 +204,7 @@ type
     procedure tbZoomWidthChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
     procedure btn_okClick(Sender: TObject);
-    procedure chb_use_shell_context_menusClick(Sender: TObject);
+    procedure chbUseShellContextMenusClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
@@ -309,231 +312,261 @@ procedure Tfrmsets.FormShow(Sender: TObject);
 var
   maj, min, rel, build, i, mCount: integer;
 begin
-  font.name := GetFont;
-  font.size := GetFontSize;
+  try
+    font.name := GetFont;
+    font.size := GetFontSize;
 
-  constraints.MinHeight := Height;
-  constraints.MaxHeight := Height;
-  constraints.MinWidth := Width;
-  constraints.MaxWidth := Width;
-  lv.ItemIndex := PageIndex;
+    constraints.MinHeight := Height;
+    constraints.MaxHeight := Height;
+    constraints.MinWidth := Width;
+    constraints.MaxWidth := Width;
+    lv.ItemIndex := PageIndex;
 
-  toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
-  lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
-
+    toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
+    lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
+  except
+    on e: Exception do frmmain.err('frmSets.Show.1', e);
+  end;
   //
   // поведение //
   //
+  try
+    cbAutorun.OnChange := nil;
+    cbAutorun.Checked := toolu.CheckAutoRun;
+    cbAutorun.OnChange := cbAutorunChange;
 
-  cbAutoRun.checked := toolu.CheckAutoRun;
+    cbAutoHide.Checked := sets.container.autohide;
 
-  cbAutoHide.Checked := sets.container.autohide;
+    cbActivateOnMouse.Checked := sets.container.ActivateOnMouse;
 
-  cbActivateOnMouse.Checked := sets.container.ActivateOnMouse;
+    edActivateOnMouseInterval.OnChange := nil;
+    edActivateOnMouseInterval.Text := inttostr(sets.container.ActivateOnMouseInterval);
+    edActivateOnMouseInterval.OnChange := edActivateOnMouseIntervalChange;
 
-  edActivateOnMouseInterval.OnChange := nil;
-  edActivateOnMouseInterval.Text := inttostr(sets.container.ActivateOnMouseInterval);
-  edActivateOnMouseInterval.OnChange := edActivateOnMouseIntervalChange;
+    edAutoHideTime.Text := inttostr(sets.container.autohidetime);
 
-  edAutoHideTime.Text := inttostr(sets.container.autohidetime);
+    edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
 
-  edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
+    edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
 
-  edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
+    hkHide.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
 
-  hkHide.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
+    hkConsole.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
 
-  hkConsole.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
+    chbGlobalHide.Checked := sets.container.GlobalHotkeyFlag_Hide;
 
-  chbGlobalHide.Checked := sets.container.GlobalHotkeyFlag_Hide;
+    chbGlobalConsole.Checked := sets.container.GlobalHotkeyFlag_Console;
 
-  chbGlobalConsole.Checked := sets.container.GlobalHotkeyFlag_Console;
+    chbAutoHideOnFullScreenApp.checked := sets.container.AutoHideOnFullScreenApp;
 
-  chbAutoHideOnFullScreenApp.checked := sets.container.AutoHideOnFullScreenApp;
+    cbShowHint.Checked := sets.container.ShowHint;
 
-  cbShowHint.Checked := sets.container.ShowHint;
+    chbHintEffects.Checked := sets.container.HintEffects;
 
-  chbHintEffects.Checked := sets.container.HintEffects;
+    cbHideTaskBar.Checked := sets.container.HideSystemTaskbar;
 
-  cbHideTaskBar.Checked := sets.container.HideSystemTaskbar;
+    chbReserveScreenEdge.OnChange := nil;
+    chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
+    chbReserveScreenEdge.OnChange := chbReserveScreenEdgeChange;
 
-  chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
+    tbReserveScreenEdgePercent.OnChange := nil;
+    tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
+    tbReserveScreenEdgePercent.OnChange := tbReserveScreenEdgePercentChange;
 
-  tbReserveScreenEdgePercent.Position := sets.container.ReserveScreenEdgePercent;
+    chbTaskbar.OnChange := nil;
+    chbTaskbar.Checked := sets.container.Taskbar;
+    chbTaskbar.OnChange := chbTaskbarChange;
 
-  chbTaskbar.Checked := sets.container.Taskbar;
+    chbTaskbarLivePreviews.OnChange := nil;
+    chbTaskbarLivePreviews.Checked := sets.container.TaskLivePreviews;
+    chbTaskbarLivePreviews.OnChange := chbTaskbarLivePreviewsChange;
 
-  chbTaskbarLivePreviews.OnChange := nil;
-  chbTaskbarLivePreviews.Checked := sets.container.TaskLivePreviews;
-  chbTaskbarLivePreviews.OnChange := chbTaskbarLivePreviewsChange;
+    chbTaskbarGrouping.OnChange := nil;
+    chbTaskbarGrouping.Checked := sets.container.TaskGrouping;
+    chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
 
-  chbTaskbarGrouping.OnChange := nil;
-  chbTaskbarGrouping.Checked := sets.container.TaskGrouping;
-  chbTaskbarGrouping.OnChange := chbTaskbarGroupingChange;
+    chbTaskbarSameMonitor.OnChange := nil;
+    chbTaskbarSameMonitor.Checked := sets.container.TaskSameMonitor;
+    chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
 
-  chbTaskbarSameMonitor.OnChange := nil;
-  chbTaskbarSameMonitor.Checked := sets.container.TaskSameMonitor;
-  chbTaskbarSameMonitor.OnChange := chbTaskbarSameMonitorChange;
-
-  tbAeroPeekThumbSize.OnChange := nil;
-  tbAeroPeekThumbSize.Position := sets.container.TaskThumbSize;
-  tbAeroPeekThumbSize.OnChange := tbAeroPeekThumbSizeChange;
-
+    tbAeroPeekThumbSize.OnChange := nil;
+    tbAeroPeekThumbSize.Position := sets.container.TaskThumbSize;
+    tbAeroPeekThumbSize.OnChange := tbAeroPeekThumbSizeChange;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.2', e);
+  end;
   //
   // расположение //
   //
+  try
+    cbo_monitor.OnChange := nil;
+    cbo_monitor.clear;
+    cbo_monitor.Items.AddObject(sets.GetMonitorName(-1), TObject(-1));
+    i := 0;
+    mCount := sets.GetMonitorCount;
+    while i < mCount do
+    begin
+      cbo_monitor.Items.AddObject(sets.GetMonitorName(i), TObject(i));
+      inc(i);
+    end;
+    cbo_monitor.ItemIndex := cbo_monitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
+    cbo_monitor.OnChange := cbo_monitorChange;
 
-  cbo_monitor.OnChange := nil;
-  cbo_monitor.clear;
-  cbo_monitor.Items.AddObject(sets.GetMonitorName(-1), TObject(-1));
-  i := 0;
-  mCount := sets.GetMonitorCount;
-  while i < mCount do
-  begin
-    cbo_monitor.Items.AddObject(sets.GetMonitorName(i), TObject(i));
-    inc(i);
+
+    cboBaseSite.OnChange := nil;
+    cboBaseSite.ItemIndex := integer(sets.container.site);
+    cboBaseSite.OnChange := cboBaseSiteChange;
+
+    tbCenterOffsetPercent.OnChange := nil;
+    tbCenterOffsetPercent.Position := sets.container.CenterOffsetPercent;
+    tbCenterOffsetPercent.OnChange := tbCenterOffsetPercentChange;
+
+    tbEdgeOffset.OnChange := nil;
+    tbEdgeOffset.Position := sets.container.EdgeOffset;
+    tbEdgeOffset.OnChange := tbEdgeOffsetChange;
+    UpdateLblCenterOffsetPercent;
+
+    chbOccupyFullMonitor.OnChange := nil;
+    chbOccupyFullMonitor.Checked := sets.container.OccupyFullMonitor;
+    chbOccupyFullMonitor.OnChange := chbOccupyFullMonitorChange;
+
+    edStartOffset.OnChange := nil;
+    edStartOffset.Text := inttostr(sets.container.StartOffset);
+    edStartOffset.OnChange := edStartOffsetChange;
+
+    edEndOffset.OnChange := nil;
+    edEndOffset.Text := inttostr(sets.container.EndOffset);
+    edEndOffset.OnChange := edEndOffsetChange;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.3', e);
   end;
-  cbo_monitor.ItemIndex := cbo_monitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
-  cbo_monitor.OnChange := cbo_monitorChange;
-
-
-  cboBaseSite.OnChange := nil;
-  cboBaseSite.ItemIndex := integer(sets.container.site);
-  cboBaseSite.OnChange := cboBaseSiteChange;
-
-  tbCenterOffsetPercent.OnChange := nil;
-  tbCenterOffsetPercent.Position := sets.container.CenterOffsetPercent;
-  tbCenterOffsetPercent.OnChange := tbCenterOffsetPercentChange;
-
-  tbEdgeOffset.OnChange := nil;
-  tbEdgeOffset.Position := sets.container.EdgeOffset;
-  tbEdgeOffset.OnChange := tbEdgeOffsetChange;
-  UpdateLblCenterOffsetPercent;
-
-  chbOccupyFullMonitor.OnChange := nil;
-  chbOccupyFullMonitor.Checked := sets.container.OccupyFullMonitor;
-  chbOccupyFullMonitor.OnChange := chbOccupyFullMonitorChange;
-
-  edStartOffset.OnChange := nil;
-  edStartOffset.Text := inttostr(sets.container.StartOffset);
-  edStartOffset.OnChange := edStartOffsetChange;
-
-  edEndOffset.OnChange := nil;
-  edEndOffset.Text := inttostr(sets.container.EndOffset);
-  edEndOffset.OnChange := edEndOffsetChange;
-
   //
   // тема
   //
+  try
+    lbTheme.OnSelectionChange := nil;
+    theme.SearchThemes(sets.container.ThemeName, lbTheme);
+    lbTheme.OnSelectionChange := lbThemeSelectionChange;
 
-  lbTheme.OnSelectionChange := nil;
-  theme.SearchThemes(sets.container.ThemeName, lbTheme);
-  lbTheme.OnSelectionChange := lbThemeSelectionChange;
+    chbBlur.OnClick := nil;
+    chbBlur.Enabled := dwm.IsCompositionEnabled;
+    chbBlur.checked := sets.container.BlurEnabled;
+    chbBlur.OnClick := chbBlurClick;
 
-  chbBlur.OnClick := nil;
-  chbBlur.Enabled := dwm.IsCompositionEnabled;
-  chbBlur.checked := sets.container.BlurEnabled;
-  chbBlur.OnClick := chbBlurClick;
+    tbBaseAlpha.OnChange := nil;
+    tbBaseAlpha.Position := sets.container.BaseAlpha;
+    tbBaseAlpha.OnChange := tbBaseAlphaChange;
 
-  tbBaseAlpha.OnChange := nil;
-  tbBaseAlpha.Position := sets.container.BaseAlpha;
-  tbBaseAlpha.OnChange := tbBaseAlphaChange;
+    tbSeparatorAlpha.OnChange := nil;
+    tbSeparatorAlpha.Position := sets.container.SeparatorAlpha;
+    tbSeparatorAlpha.OnChange := tbSeparatorAlphaChange;
 
-  tbSeparatorAlpha.OnChange := nil;
-  tbSeparatorAlpha.Position := sets.container.SeparatorAlpha;
-  tbSeparatorAlpha.OnChange := tbSeparatorAlphaChange;
+    tbReflectionSize.OnChange := nil;
+    tbReflectionSize.Position := sets.container.ReflectionSize;
+    tbReflectionSize.OnChange := tbReflectionSizeChange;
 
-  tbReflectionSize.OnChange := nil;
-  tbReflectionSize.Position := sets.container.ReflectionSize;
-  tbReflectionSize.OnChange := tbReflectionSizeChange;
+    CopyFontData(sets.container.Font, FFont);
+    listFont.OnClick := nil;
+    listFont.Items := screen.Fonts;
+    listFont.ItemIndex := listFont.items.IndexOf(PChar(@FFont.Name));
+    listFont.OnClick := ApplyFont;
 
-  CopyFontData(sets.container.Font, FFont);
-  listFont.OnClick := nil;
-  listFont.Items := screen.Fonts;
-  listFont.ItemIndex := listFont.items.IndexOf(PChar(@FFont.Name));
-  listFont.OnClick := ApplyFont;
+    edFontSize.OnChange := nil;
+    udFontSize.Position := FFont.size;
+    edFontSize.OnChange := ApplyFont;
 
-  edFontSize.OnChange := nil;
-  udFontSize.Position := FFont.size;
-  edFontSize.OnChange := ApplyFont;
+    edFontSize2.OnChange := nil;
+    udFontSize2.Position := FFont.size2;
+    edFontSize2.OnChange := ApplyFont;
 
-  edFontSize2.OnChange := nil;
-  udFontSize2.Position := FFont.size2;
-  edFontSize2.OnChange := ApplyFont;
+    btnFontBold.down := FFont.bold;
+    btnFontBold.OnClick := ApplyFont;
 
-  btnFontBold.down := FFont.bold;
-  btnFontBold.OnClick := ApplyFont;
-
-  btnFontItalic.down := FFont.Italic;
-  btnFontItalic.OnClick := ApplyFont;
-
+    btnFontItalic.down := FFont.Italic;
+    btnFontItalic.OnClick := ApplyFont;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.4', e);
+  end;
   //
   // icons //
   //
+  try
+    tbIconSize.OnChange := nil;
+    tbIconSize.Position := sets.container.itemsize;
+    tbIconSize.OnChange := tbIconSizeChange;
 
-  tbIconSize.OnChange := nil;
-  tbIconSize.Position := sets.container.itemsize;
-  tbIconSize.OnChange := tbIconSizeChange;
+    tbBigIconSize.OnChange := nil;
+    tbBigIconSize.Position := sets.container.BigItemSize;
+    tbBigIconSize.OnChange := tbBigIconSizeChange;
 
-  tbBigIconSize.OnChange := nil;
-  tbBigIconSize.Position := sets.container.BigItemSize;
-  tbBigIconSize.OnChange := tbBigIconSizeChange;
+    tbIconSpacing.OnChange := nil;
+    tbIconSpacing.Position := sets.container.ItemSpacing;
+    tbIconSpacing.OnChange := tbIconSpacingChange;
 
-  tbIconSpacing.OnChange := nil;
-  tbIconSpacing.Position := sets.container.ItemSpacing;
-  tbIconSpacing.OnChange := tbIconSpacingChange;
+    tbZoomWidth.OnChange := nil;
+    tbZoomWidth.Position := sets.container.ZoomWidth div 2;
+    tbZoomWidth.OnChange := tbZoomWidthChange;
 
-  tbZoomWidth.OnChange := nil;
-  tbZoomWidth.Position := sets.container.ZoomWidth div 2;
-  tbZoomWidth.OnChange := tbZoomWidthChange;
+    tbZoomTime.OnChange := nil;
+    tbZoomTime.Position := sets.container.ZoomTime;
+    tbZoomTime.OnChange := tbZoomTimeChange;
 
-  tbZoomTime.OnChange := nil;
-  tbZoomTime.Position := sets.container.ZoomTime;
-  tbZoomTime.OnChange := tbZoomTimeChange;
+    UpdateItemSizeLabels;
 
-  UpdateItemSizeLabels;
+    cbZoomItems.OnClick := nil;
+    cbZoomItems.checked := sets.container.ZoomEnabled;
+    cbZoomItems.OnClick := cbZoomItemsClick;
 
-  cbZoomItems.OnClick := nil;
-  cbZoomItems.checked := sets.container.ZoomEnabled;
-  cbZoomItems.OnClick := cbZoomItemsClick;
+    chb_reflection.OnClick := nil;
+    chb_reflection.checked := sets.container.ReflectionEnabled;
+    chb_reflection.OnClick := chb_reflectionClick;
 
-  chb_reflection.OnClick := nil;
-  chb_reflection.checked := sets.container.ReflectionEnabled;
-  chb_reflection.OnClick := chb_reflectionClick;
+    cboItemAnimationType.OnChange := nil;
+    cboItemAnimationType.ItemIndex := sets.container.ItemAnimationType;
+    cboItemAnimationType.OnChange := cboItemAnimationTypeChange;
 
-  cboItemAnimationType.OnChange := nil;
-  cboItemAnimationType.ItemIndex := sets.container.ItemAnimationType;
-  cboItemAnimationType.OnChange := cboItemAnimationTypeChange;
+    chbUseShellContextMenus.OnChange := nil;
+    chbUseShellContextMenus.Checked := sets.container.UseShellContextMenus;
+    chbUseShellContextMenus.OnChange := chbUseShellContextMenusChange;
 
-  cbUseShellContextMenus.checked := sets.container.UseShellContextMenus;
+    chbActivateRunning.OnChange := nil;
+    chbActivateRunning.Checked := sets.container.ActivateRunningApps;
+    chbActivateRunning.OnChange := chbActivateRunningChange;
 
-  chb_activate_running.checked := sets.container.ActivateRunningApps;
+    chbShowRunningIndicator.OnChange := nil;
+    chbShowRunningIndicator.Checked := sets.container.ShowRunningIndicator;
+    chbShowRunningIndicator.OnChange := chbShowRunningIndicatorChange;
 
-  chb_show_running_indicator.checked := sets.container.ShowRunningIndicator;
-
-  chbStackOpenAnimation.OnChange := nil;
-  chbStackOpenAnimation.Checked := sets.container.StackAnimationEnabled;
-  chbStackOpenAnimation.OnChange := chbStackOpenAnimationChange;
-
+    chbStackOpenAnimation.OnChange := nil;
+    chbStackOpenAnimation.Checked := sets.container.StackAnimationEnabled;
+    chbStackOpenAnimation.OnChange := chbStackOpenAnimationChange;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.5', e);
+  end;
   //
   // system //
   //
+  try
+    chbRunInThread.OnChange := nil;
+    chbRunInThread.Checked := sets.container.RunInThread;
+    chbRunInThread.OnChange := chbRunInThreadChange;
 
-  chbRunInThread.OnChange := nil;
-  chbRunInThread.Checked := sets.container.RunInThread;
-  chbRunInThread.OnChange := chbRunInThreadChange;
+    cbUseShell.checked := sets.container.useshell;
 
-  cbUseShell.checked := sets.container.useshell;
+    edShell.text := AnsiToUTF8(sets.container.shell);
 
-  edShell.text := AnsiToUTF8(sets.container.shell);
-
-  edLaunchInterval.OnChange := nil;
-  edLaunchInterval.Text := inttostr(sets.container.LaunchInterval);
-  edLaunchInterval.OnChange := edLaunchIntervalChange;
-
+    edLaunchInterval.OnChange := nil;
+    edLaunchInterval.Text := inttostr(sets.container.LaunchInterval);
+    edLaunchInterval.OnChange := edLaunchIntervalChange;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.6', e);
+  end;
   // autorun //
-
-  ReadAutorun;
+  try
+    ReadAutorun;
+  except
+    on e: Exception do frmmain.err('frmSets.Show.7', e);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -554,6 +587,12 @@ begin
   if AutorunListChanged then SaveAutorun;
   close;
 end;
+
+procedure Tfrmsets.chbUseShellContextMenusClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btn_cancelClick(Sender: TObject);
 begin
@@ -615,9 +654,9 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbautorunClick(Sender: TObject);
+procedure Tfrmsets.cbAutorunChange(Sender: TObject);
 begin
-  toolu.setautorun(cbautorun.checked);
+  toolu.setautorun(cbAutorun.checked);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbShowHintClick(Sender: TObject);
@@ -728,7 +767,7 @@ begin
   frmmain.SetParam(gpHideSystemTaskbar, integer(cbHideTaskBar.Checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbReserveScreenEdgeClick(Sender: TObject);
+procedure Tfrmsets.chbReserveScreenEdgeChange(Sender: TObject);
 begin
   frmmain.SetParam(gpReserveScreenEdge, integer(chbReserveScreenEdge.Checked));
 end;
@@ -739,7 +778,7 @@ begin
   chbReserveScreenEdge.Caption := format(XLabelReserveScreenEdgePercent, [sets.container.ReserveScreenEdgePercent]);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbTaskbarClick(Sender: TObject);
+procedure Tfrmsets.chbTaskbarChange(Sender: TObject);
 begin
   frmmain.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
 end;
@@ -778,7 +817,7 @@ begin
     if lbTheme.ItemIndex > -1 then
        frmmain.setTheme(UTF8ToAnsi(lbTheme.Items[lbTheme.ItemIndex]));
   except
-    on e: Exception do frmmain.err('Sets.ThemeSelectionChange', e);
+    on e: Exception do frmmain.err('frmSets.ThemeSelectionChange', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -871,43 +910,62 @@ var
   isTTF: boolean;
 begin
   result := false;
-  // check if font is TrueType
-  lf.lfCharSet := DEFAULT_CHARSET;
-  strlcopy(pchar(@lf.lfFaceName), pchar(@FFont.Name), LF_FACESIZE - 1);
-  newfont := CreateFontIndirect(@lf);
-  oldfont := SelectObject(canvas.handle, newfont);
-  GetTextMetrics(canvas.handle, @tm);
-  isTTF := tm.tmPitchAndFamily and TMPF_TRUETYPE <> 0;
-  SelectObject(canvas.handle, oldfont);
-  DeleteObject(newfont);
-  if not isTTF then exit;
-  // create graphics object
-  GdipCreateFromHDC(pbox.Canvas.Handle, dst);
-  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-  GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-  // draw background
-  rect.X := 0;
-  rect.Y := 0;
-  rect.Width := pbox.Width;
-  rect.Height := pbox.Height;
-  GdipCreateSolidFill(FFont.backcolor, brush);
-  GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
-  GdipDeleteBrush(brush);
-  // draw font name
-  if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, ffamily) then exit;
-  if Ok <> GdipCreateFont(ffamily, FFont.size, ifthen(FFont.bold, 1, 0) + ifthen(FFont.italic, 2, 0), 2, font) then exit;
-  GdipCreateSolidFill(FFont.color, brush);
-  GdipCreateStringFormat(0, 0, format);
-  GdipSetStringFormatAlign(format, StringAlignmentCenter);
-  GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
-  GdipDrawString(dst, PWideChar(WideString(PChar(@FFont.Name))), -1, font, @rect, format, brush);
-  GdipDeleteStringFormat(format);
-  GdipDeleteBrush(brush);
-  GdipDeleteFont(font);
-  GdipDeleteFontFamily(ffamily);
-  // finalize
-  GdipDeleteGraphics(dst);
-  result := true;
+  try
+    // check if font is TrueType
+    isTTF := false;
+    try
+      lf.lfCharSet := DEFAULT_CHARSET;
+      strlcopy(pchar(@lf.lfFaceName), pchar(@FFont.Name), LF_FACESIZE - 1);
+      newfont := CreateFontIndirect(@lf);
+      oldfont := SelectObject(canvas.handle, newfont);
+      GetTextMetrics(canvas.handle, @tm);
+      isTTF := tm.tmPitchAndFamily and TMPF_TRUETYPE <> 0;
+      SelectObject(canvas.handle, oldfont);
+      DeleteObject(newfont);
+    except end;
+    if not isTTF then exit;
+
+    // create graphics object
+    if Ok = GdipCreateFromHDC(pbox.Canvas.Handle, dst) then
+    try
+      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+      GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+      rect.X := 0;
+      rect.Y := 0;
+      rect.Width := pbox.Width;
+      rect.Height := pbox.Height;
+      // draw background
+      if Ok = GdipCreateSolidFill(FFont.backcolor, brush) then
+      try
+        GdipFillRectangle(dst, brush, rect.X, rect.Y, rect.Width, rect.Height);
+      finally
+        GdipDeleteBrush(brush);
+      end;
+      // draw font name
+      if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, ffamily) then exit;
+      try
+        if Ok <> GdipCreateFont(ffamily, FFont.size, ifthen(FFont.bold, 1, 0) + ifthen(FFont.italic, 2, 0), 2, font) then exit;
+        try
+          GdipCreateSolidFill(FFont.color, brush);
+          GdipCreateStringFormat(0, 0, format);
+          GdipSetStringFormatAlign(format, StringAlignmentCenter);
+          GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+          GdipDrawString(dst, PWideChar(WideString(PChar(@FFont.Name))), -1, font, @rect, format, brush);
+          GdipDeleteStringFormat(format);
+          GdipDeleteBrush(brush);
+        finally
+          GdipDeleteFont(font);
+        end;
+      finally
+        GdipDeleteFontFamily(ffamily);
+      end;
+    finally
+      GdipDeleteGraphics(dst);
+    end;
+    result := true;
+  except
+    on e: Exception do frmmain.err('frmSets.FontPreview', e);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.ApplyFont(Sender: TObject);
@@ -977,6 +1035,12 @@ procedure Tfrmsets.chb_reflectionClick(Sender: TObject);
 begin
   frmmain.SetParam(gpReflectionEnabled, integer(chb_reflection.checked));
 end;
+
+procedure Tfrmsets.chbShowRunningIndicatorClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboItemAnimationTypeChange(Sender: TObject);
 begin
@@ -1022,6 +1086,12 @@ begin
     Free;
   end;
 end;
+
+procedure Tfrmsets.cbautorunClick(Sender: TObject);
+begin
+
+end;
+
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edLaunchIntervalChange(Sender: TObject);
 var
@@ -1038,19 +1108,19 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chb_activate_runningClick(Sender: TObject);
+procedure Tfrmsets.chbActivateRunningChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpActivateRunning, integer(chb_activate_running.Checked));
+  frmmain.SetParam(gpActivateRunning, integer(chbActivateRunning.Checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chb_show_running_indicatorClick(Sender: TObject);
+procedure Tfrmsets.chbShowRunningIndicatorChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpShowRunningIndicator, integer(chb_show_running_indicator.Checked));
+  frmmain.SetParam(gpShowRunningIndicator, integer(chbShowRunningIndicator.Checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chb_use_shell_context_menusClick(Sender: TObject);
+procedure Tfrmsets.chbUseShellContextMenusChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpUseShellContextMenus, integer(cbUseShellContextMenus.checked));
+  frmmain.SetParam(gpUseShellContextMenus, integer(chbUseShellContextMenus.checked));
 end;
 //------------------------------------------------------------------------------
 //
@@ -1128,7 +1198,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lblMailToClick(Sender: TObject);
 begin
-  frmmain.Run('mailto:roman.holmes@gmail.com?subject=terry');
+  frmmain.Run('mailto:mr_holmes@list.ru?subject=tdock');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.lbl_linkClick(Sender: TObject);

@@ -772,6 +772,11 @@ msgstr ""
 msgid "Zoom icons when mouse is over"
 msgstr ""
 
+#: tfrmsets.chbactivaterunning.caption
+msgctxt "TFRMSETS.CHBACTIVATERUNNING.CAPTION"
+msgid "Activate program if already running"
+msgstr ""
+
 #: tfrmsets.chbautohideonfullscreenapp.caption
 msgid "Hide dock completely while fullscreen application active (game, etc) "
 msgstr ""
@@ -805,6 +810,11 @@ msgstr ""
 msgid "Run applications in separate threads"
 msgstr ""
 
+#: tfrmsets.chbshowrunningindicator.caption
+msgctxt "TFRMSETS.CHBSHOWRUNNINGINDICATOR.CAPTION"
+msgid "Show indicator for running programs"
+msgstr ""
+
 #: tfrmsets.chbstackopenanimation.caption
 msgid "Stack open/close animation"
 msgstr ""
@@ -827,20 +837,13 @@ msgstr ""
 msgid "Show only tasks from the same monitor"
 msgstr ""
 
-#: tfrmsets.chb_activate_running.caption
-msgid "Activate program if already running"
+#: tfrmsets.chbuseshellcontextmenus.caption
+msgctxt "TFRMSETS.CHBUSESHELLCONTEXTMENUS.CAPTION"
+msgid "Show Windows Explorer context menus for programs"
 msgstr ""
 
 #: tfrmsets.chb_reflection.caption
 msgid "Show icon reflections"
-msgstr ""
-
-#: tfrmsets.chb_show_running_indicator.caption
-msgid "Show indicator for running programs"
-msgstr ""
-
-#: tfrmsets.chb_use_shell_context_menus.caption
-msgid "Show Windows Explorer context menus for programs"
 msgstr ""
 
 #: tfrmsets.dividerbevel1.caption
