@@ -389,7 +389,12 @@ begin
           Redraw;
         end;
 
-      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate;
+      icFlashTaskWindow:
+        if FAppList.IndexOf(pointer(param)) >= 0 then
+        begin
+          Animate;
+          Attention(true);
+        end;
     end;
 
   except
@@ -410,7 +415,6 @@ begin
     if (aRunning <> FRunning) or (appCount <> FAppList.Count) then
     begin
       FRunning := aRunning;
-      if appCount < FAppList.Count then Attention(FRunning);
       Redraw;
     end;
   end;
@@ -690,8 +694,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseHover(AHover: boolean);
 begin
-  if FAttention then Attention(false);
-
   if FAppList.Count > 0 then
     if AHover then
     begin

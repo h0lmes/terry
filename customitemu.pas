@@ -348,12 +348,7 @@ end;
 procedure TCustomItem.Attention(value: boolean);
 begin
   FAttention := value;
-  if FAttention then SetTimer(FHWnd, ID_TIMER_ATTENTION, 5000, nil)
-  else
-  begin
-    KillTimer(FHWnd, ID_TIMER_ATTENTION);
-    Redraw;
-  end;
+  if not FAttention then Redraw;
 end;
 //------------------------------------------------------------------------------
 procedure TCustomItem.Configure;
@@ -407,6 +402,7 @@ begin
   begin
     if assigned(OnBeforeMouseHover) then OnBeforeMouseHover(AHover);
     FHover := AHover;
+    if FAttention then Attention(false);
     if not FHover then KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
     UpdateHint;
     if assigned(OnMouseHover) then OnMouseHover(FHover);
@@ -680,11 +676,7 @@ begin
                 KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
                 GetCursorPos(wpt);
                 if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
-              end
-              else
-              // cancel Attention timer
-              if wParam = ID_TIMER_ATTENTION then
-                Attention(false);
+              end;
         end
         else if msg = wm_dropfiles then
         begin

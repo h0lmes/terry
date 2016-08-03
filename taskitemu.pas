@@ -106,7 +106,6 @@ begin
   if FIsNew then
   begin
     FAppList.Add(pointer(hwnd));
-    Attention(true);
     FExecutable := ProcessHelper.GetWindowProcessName(hwnd);
     FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
     UpdateItemInternal;
@@ -130,7 +129,6 @@ begin
     if ProcName = FExecutable then
     begin
       FAppList.Add(pointer(hwnd));
-      Attention(true);
       UpdateItemInternal;
     end;
 end;
@@ -230,7 +228,12 @@ begin
 
       // commands //
 
-      icFlashTaskWindow: if FAppList.IndexOf(pointer(param)) >= 0 then Animate;
+      icFlashTaskWindow:
+        if FAppList.IndexOf(pointer(param)) >= 0 then
+        begin
+          Animate;
+          Attention(true);
+        end;
 
       icIsItem: result := 0;
     end;
@@ -434,8 +437,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.MouseHover(AHover: boolean);
 begin
-  if FAttention then Attention(false);
-
   if AHover then
   begin
     if TAeroPeekWindow.IsActive then
