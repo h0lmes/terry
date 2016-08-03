@@ -191,9 +191,8 @@ begin
       if csidl > -1 then
       begin
         OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
-        PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
+        if PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255) then FCommand := strpas(pszName);
         PIDL_Free(pidFolder);
-        FCommand := strpas(pszName);
         if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
         else FCaption := '::::'; // assuming this is a PIDL
       end;
@@ -207,7 +206,7 @@ begin
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
-        SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+        OleCheck(SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
         FCaption := sfi.szDisplayName;
       end;
 

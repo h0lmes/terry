@@ -802,6 +802,11 @@ msgstr ""
 msgid "Occupy full monitor width or height"
 msgstr ""
 
+#: tfrmsets.chbreflection.caption
+msgctxt "TFRMSETS.CHBREFLECTION.CAPTION"
+msgid "Show icon reflections"
+msgstr ""
+
 #: tfrmsets.chbreservescreenedge.caption
 msgid "Reserve screen edge"
 msgstr ""
@@ -840,10 +845,6 @@ msgstr ""
 #: tfrmsets.chbuseshellcontextmenus.caption
 msgctxt "TFRMSETS.CHBUSESHELLCONTEXTMENUS.CAPTION"
 msgid "Show Windows Explorer context menus for programs"
-msgstr ""
-
-#: tfrmsets.chb_reflection.caption
-msgid "Show icon reflections"
 msgstr ""
 
 #: tfrmsets.dividerbevel1.caption

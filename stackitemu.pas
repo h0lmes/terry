@@ -1105,6 +1105,7 @@ begin
 
       if FState = stsClosed then
       begin
+        if FShowBackground then ShowWindow(FBackgroundWindow, SW_HIDE);
         wpi := BeginDeferWindowPos(FItemCount);
         for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
         EndDeferWindowPos(wpi);

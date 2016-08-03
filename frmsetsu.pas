@@ -37,7 +37,7 @@ type
     chbTaskbarSameMonitor: TCheckBox;
     chbOccupyFullMonitor: TCheckBox;
     chbUseShellContextMenus: TCheckBox;
-    chb_reflection: TCheckBox;
+    chbReflection: TCheckBox;
 		chbGlobalHide: TCheckBox;
     DividerBevel1: TDividerBevel;
     edFontSize: TEdit;
@@ -112,7 +112,7 @@ type
     gbHide: TGroupBox;
     hkHide: TEdit;
     lblMonitor: TLabel;
-    cbo_monitor: TComboBox;
+    cboMonitor: TComboBox;
     lblZoomedIconSize: TLabel;
     lblEdgeOffset: TLabel;
     tbEdgeOffset: TTrackBar;
@@ -141,11 +141,12 @@ type
     procedure btnRemoveDockClick(Sender: TObject);
 		procedure btnRestoreClick(Sender: TObject);
     procedure cbAutorunChange(Sender: TObject);
+    procedure cbHideTaskBarChange(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbActivateRunningChange(Sender: TObject);
 		procedure chbGlobalConsoleClick(Sender: TObject);
 		procedure chbGlobalHideClick(Sender: TObject);
-    procedure chbHintEffectsClick(Sender: TObject);
+    procedure chbHintEffectsChange(Sender: TObject);
     procedure chbReserveScreenEdgeChange(Sender: TObject);
     procedure chbRunInThreadChange(Sender: TObject);
     procedure chbShowRunningIndicatorChange(Sender: TObject);
@@ -161,9 +162,8 @@ type
     procedure edStartOffsetChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btn_cancelClick(Sender: TObject);
-    procedure chbBlurClick(Sender: TObject);
-    procedure chb_reflectionClick(Sender: TObject);
-    procedure chbShowRunningIndicatorClick(Sender: TObject);
+    procedure chbBlurChange(Sender: TObject);
+    procedure chbReflectionChange(Sender: TObject);
 		procedure hkConsoleKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 		procedure hkHideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lbThemeDblClick(Sender: TObject);
@@ -175,7 +175,7 @@ type
     procedure tbBaseAlphaChange(Sender: TObject);
     procedure tbEdgeOffsetChange(Sender: TObject);
     procedure edAutoShowTimeChange(Sender: TObject);
-    procedure cbo_monitorChange(Sender: TObject);
+    procedure cboMonitorChange(Sender: TObject);
     procedure lbl_linkClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -185,13 +185,12 @@ type
     procedure edShellChange(Sender: TObject);
     procedure btnBrowseShellClick(Sender: TObject);
     procedure cbautorunClick(Sender: TObject);
-    procedure cbZoomItemsClick(Sender: TObject);
+    procedure cbZoomItemsChange(Sender: TObject);
     procedure edRolledVisiblePixelsChange(Sender: TObject);
     procedure cbActivateOnMouseClick(Sender: TObject);
     procedure lblMailToClick(Sender: TObject);
-    procedure cbHideTaskBarClick(Sender: TObject);
     procedure tbCenterOffsetPercentChange(Sender: TObject);
-    procedure cbShowHintClick(Sender: TObject);
+    procedure cbShowHintChange(Sender: TObject);
     procedure edLaunchIntervalChange(Sender: TObject);
     procedure cboBaseSiteChange(Sender: TObject);
     procedure tbIconSizeChange(Sender: TObject);
@@ -204,7 +203,6 @@ type
     procedure tbZoomWidthChange(Sender: TObject);
     procedure chbAutoHideOnFullScreenAppClick(Sender: TObject);
     procedure btn_okClick(Sender: TObject);
-    procedure chbUseShellContextMenusClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
@@ -359,11 +357,17 @@ begin
 
     chbAutoHideOnFullScreenApp.checked := sets.container.AutoHideOnFullScreenApp;
 
+    cbShowHint.OnChange := nil;
     cbShowHint.Checked := sets.container.ShowHint;
+    cbShowHint.OnChange := cbShowHintChange;
 
+    chbHintEffects.OnChange := nil;
     chbHintEffects.Checked := sets.container.HintEffects;
+    chbHintEffects.OnChange := chbHintEffectsChange;
 
+    cbHideTaskBar.OnChange := nil;
     cbHideTaskBar.Checked := sets.container.HideSystemTaskbar;
+    cbHideTaskBar.OnChange := cbHideTaskBarChange;
 
     chbReserveScreenEdge.OnChange := nil;
     chbReserveScreenEdge.Checked := sets.container.ReserveScreenEdge;
@@ -399,18 +403,18 @@ begin
   // расположение //
   //
   try
-    cbo_monitor.OnChange := nil;
-    cbo_monitor.clear;
-    cbo_monitor.Items.AddObject(sets.GetMonitorName(-1), TObject(-1));
+    cboMonitor.OnChange := nil;
+    cboMonitor.clear;
+    cboMonitor.Items.AddObject(sets.GetMonitorName(-1), TObject(-1));
     i := 0;
     mCount := sets.GetMonitorCount;
     while i < mCount do
     begin
-      cbo_monitor.Items.AddObject(sets.GetMonitorName(i), TObject(i));
+      cboMonitor.Items.AddObject(sets.GetMonitorName(i), TObject(i));
       inc(i);
     end;
-    cbo_monitor.ItemIndex := cbo_monitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
-    cbo_monitor.OnChange := cbo_monitorChange;
+    cboMonitor.ItemIndex := cboMonitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
+    cboMonitor.OnChange := cboMonitorChange;
 
 
     cboBaseSite.OnChange := nil;
@@ -448,10 +452,10 @@ begin
     theme.SearchThemes(sets.container.ThemeName, lbTheme);
     lbTheme.OnSelectionChange := lbThemeSelectionChange;
 
-    chbBlur.OnClick := nil;
+    chbBlur.OnChange := nil;
     chbBlur.Enabled := dwm.IsCompositionEnabled;
-    chbBlur.checked := sets.container.BlurEnabled;
-    chbBlur.OnClick := chbBlurClick;
+    chbBlur.Checked := sets.container.BlurEnabled;
+    chbBlur.OnChange := chbBlurChange;
 
     tbBaseAlpha.OnChange := nil;
     tbBaseAlpha.Position := sets.container.BaseAlpha;
@@ -479,10 +483,10 @@ begin
     udFontSize2.Position := FFont.size2;
     edFontSize2.OnChange := ApplyFont;
 
-    btnFontBold.down := FFont.bold;
+    btnFontBold.Down := FFont.bold;
     btnFontBold.OnClick := ApplyFont;
 
-    btnFontItalic.down := FFont.Italic;
+    btnFontItalic.Down := FFont.Italic;
     btnFontItalic.OnClick := ApplyFont;
   except
     on e: Exception do frmmain.err('frmSets.Show.4', e);
@@ -513,13 +517,13 @@ begin
 
     UpdateItemSizeLabels;
 
-    cbZoomItems.OnClick := nil;
-    cbZoomItems.checked := sets.container.ZoomEnabled;
-    cbZoomItems.OnClick := cbZoomItemsClick;
+    cbZoomItems.OnChange := nil;
+    cbZoomItems.Checked := sets.container.ZoomEnabled;
+    cbZoomItems.OnChange := cbZoomItemsChange;
 
-    chb_reflection.OnClick := nil;
-    chb_reflection.checked := sets.container.ReflectionEnabled;
-    chb_reflection.OnClick := chb_reflectionClick;
+    chbReflection.OnChange := nil;
+    chbReflection.Checked := sets.container.ReflectionEnabled;
+    chbReflection.OnChange := chbReflectionChange;
 
     cboItemAnimationType.OnChange := nil;
     cboItemAnimationType.ItemIndex := sets.container.ItemAnimationType;
@@ -551,9 +555,9 @@ begin
     chbRunInThread.Checked := sets.container.RunInThread;
     chbRunInThread.OnChange := chbRunInThreadChange;
 
-    cbUseShell.checked := sets.container.useshell;
+    cbUseShell.Checked := sets.container.useshell;
 
-    edShell.text := AnsiToUTF8(sets.container.shell);
+    edShell.Text := AnsiToUTF8(sets.container.shell);
 
     edLaunchInterval.OnChange := nil;
     edLaunchInterval.Text := inttostr(sets.container.LaunchInterval);
@@ -587,12 +591,6 @@ begin
   if AutorunListChanged then SaveAutorun;
   close;
 end;
-
-procedure Tfrmsets.chbUseShellContextMenusClick(Sender: TObject);
-begin
-
-end;
-
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btn_cancelClick(Sender: TObject);
 begin
@@ -659,12 +657,12 @@ begin
   toolu.setautorun(cbAutorun.checked);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbShowHintClick(Sender: TObject);
+procedure Tfrmsets.cbShowHintChange(Sender: TObject);
 begin
   frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbHintEffectsClick(Sender: TObject);
+procedure Tfrmsets.chbHintEffectsChange(Sender: TObject);
 begin
   frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
 end;
@@ -757,12 +755,12 @@ begin
   frmmain.SetParam(gpAutoHideOnFullScreenApp, integer(chbAutoHideOnFullScreenApp.checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbo_monitorChange(Sender: TObject);
+procedure Tfrmsets.cboMonitorChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpMonitor, integer(cbo_monitor.items.Objects[cbo_monitor.ItemIndex]));
+  frmmain.SetParam(gpMonitor, integer(cboMonitor.items.Objects[cboMonitor.ItemIndex]));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbHideTaskBarClick(Sender: TObject);
+procedure Tfrmsets.cbHideTaskBarChange(Sender: TObject);
 begin
   frmmain.SetParam(gpHideSystemTaskbar, integer(cbHideTaskBar.Checked));
 end;
@@ -842,7 +840,7 @@ begin
   frmmain.SetParam(gpStartOffset, offset);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbBlurClick(Sender: TObject);
+procedure Tfrmsets.chbBlurChange(Sender: TObject);
 begin
   frmmain.SetParam(gpBlurEnabled, integer(chbBlur.checked));
 end;
@@ -1026,21 +1024,15 @@ begin
   lblZoomTime.caption := format(XLabelZoomTime, [sets.container.ZoomTime]);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbZoomItemsClick(Sender: TObject);
+procedure Tfrmsets.cbZoomItemsChange(Sender: TObject);
 begin
   frmmain.SetParam(gpZoomEnabled, integer(cbZoomItems.checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chb_reflectionClick(Sender: TObject);
+procedure Tfrmsets.chbReflectionChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpReflectionEnabled, integer(chb_reflection.checked));
+  frmmain.SetParam(gpReflectionEnabled, integer(chbReflection.checked));
 end;
-
-procedure Tfrmsets.chbShowRunningIndicatorClick(Sender: TObject);
-begin
-
-end;
-
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboItemAnimationTypeChange(Sender: TObject);
 begin

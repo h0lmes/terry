@@ -58,12 +58,10 @@
         <Filename Value="declu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="declu"/>
-        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="48"/>
         <CursorPos X="16" Y="72"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
@@ -85,8 +83,8 @@
         <UnitName Value="frmmainu"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="688"/>
-        <CursorPos X="23" Y="690"/>
+        <TopLine Value="544"/>
+        <CursorPos X="3" Y="550"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -99,11 +97,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="308"/>
-        <CursorPos X="3" Y="847"/>
+        <TopLine Value="646"/>
+        <CursorPos X="3" Y="662"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -129,13 +126,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmcmdu"/>
-        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="75"/>
+        <TopLine Value="74"/>
         <CursorPos X="1" Y="31"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
@@ -198,34 +192,32 @@
         <Filename Value="toolu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="toolu"/>
-        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="874"/>
         <CursorPos X="28" Y="878"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
       <Unit13>
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="2071"/>
-        <CursorPos X="1" Y="2079"/>
+        <TopLine Value="281"/>
+        <CursorPos X="33" Y="343"/>
         <UsageCount Value="200"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
         <Filename Value="scitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="scitemu"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="288"/>
-        <CursorPos X="52" Y="187"/>
+        <TopLine Value="179"/>
+        <CursorPos X="23" Y="206"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit14>
       <Unit15>
@@ -294,8 +286,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="PIDL"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="178"/>
-        <CursorPos X="34" Y="198"/>
+        <TopLine Value="165"/>
+        <CursorPos X="3" Y="172"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
@@ -334,8 +326,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="customitemu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="50"/>
-        <CursorPos X="23" Y="74"/>
+        <TopLine Value="264"/>
+        <CursorPos X="19" Y="451"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit25>
@@ -380,8 +372,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackitemu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="674"/>
-        <CursorPos X="46" Y="664"/>
+        <TopLine Value="1084"/>
+        <CursorPos X="39" Y="1114"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit29>
@@ -402,10 +394,13 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="245"/>
-        <CursorPos X="11" Y="279"/>
+        <TopLine Value="1025"/>
+        <CursorPos X="29" Y="1054"/>
         <UsageCount Value="201"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit31>
       <Unit32>
@@ -1189,9 +1184,9 @@
         <Filename Value="C:\lazarus\fpc\2.6.4\source\packages\winunits-base\src\comobj.pp"/>
         <UnitName Value="comobj"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="529"/>
+        <TopLine Value="538"/>
         <CursorPos X="8" Y="555"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="10"/>
       </Unit124>
       <Unit125>
         <Filename Value="C:\lazarus\fpc\2.6.4\source\packages\winunits-base\src\shellapi.pp"/>
@@ -1236,7 +1231,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="121"/>
         <CursorPos X="44" Y="177"/>
-        <UsageCount Value="144"/>
+        <UsageCount Value="146"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>
       <Unit130>
@@ -1279,7 +1274,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="104"/>
+        <UsageCount Value="106"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
       <Unit135>
@@ -1293,123 +1288,123 @@
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="1101" Column="3" TopLine="1080"/>
+        <Caret Line="523" Column="18" TopLine="498"/>
       </Position1>
       <Position2>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="1050" Column="1" TopLine="1050"/>
+        <Caret Line="1031" Column="31" TopLine="1029"/>
       </Position2>
       <Position3>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="333" Column="14" TopLine="326"/>
+        <Caret Line="517" Column="47" TopLine="499"/>
       </Position3>
       <Position4>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="657" Column="3" TopLine="639"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
       </Position4>
       <Position5>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="372" Column="15" TopLine="349"/>
+        <Caret Line="514" Column="31" TopLine="493"/>
       </Position5>
       <Position6>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="778" Column="3" TopLine="774"/>
+        <Caret Line="1025" Column="31" TopLine="1014"/>
       </Position6>
       <Position7>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="1048" Column="5" TopLine="1048"/>
+        <Caret Line="453" Column="12" TopLine="433"/>
       </Position7>
       <Position8>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="369" Column="25" TopLine="356"/>
+        <Caret Line="841" Column="28" TopLine="839"/>
       </Position8>
       <Position9>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="778" Column="3" TopLine="774"/>
+        <Caret Line="415" Column="35" TopLine="390"/>
       </Position9>
       <Position10>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="670" Column="5" TopLine="670"/>
+        <Caret Line="360" Column="15" TopLine="336"/>
       </Position10>
       <Position11>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="370" Column="41" TopLine="342"/>
+        <Caret Line="658" Column="29" TopLine="647"/>
       </Position11>
       <Position12>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="76" Column="18" TopLine="68"/>
+        <Caret Line="341" Column="13" TopLine="337"/>
       </Position12>
       <Position13>
         <Filename Value="frmsetsu.pas"/>
-        <Caret Line="34" Column="12" TopLine="17"/>
+        <Caret Line="662" Column="3" TopLine="646"/>
       </Position13>
       <Position14>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="35" Column="12" TopLine="17"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="550" Column="3" TopLine="544"/>
       </Position14>
       <Position15>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="36" Column="12" TopLine="17"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="380" Column="13" TopLine="341"/>
       </Position15>
       <Position16>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="37" Column="12" TopLine="17"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="235" Column="30" TopLine="227"/>
       </Position16>
       <Position17>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="153" Column="22" TopLine="124"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="40" Column="15" TopLine="14"/>
       </Position17>
       <Position18>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="135" Column="28" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="220" Column="5" TopLine="159"/>
       </Position18>
       <Position19>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="137" Column="42" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="244" Column="25" TopLine="218"/>
       </Position19>
       <Position20>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="138" Column="32" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="334" Column="5" TopLine="308"/>
       </Position20>
       <Position21>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="139" Column="28" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="244" Column="25" TopLine="218"/>
       </Position21>
       <Position22>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="140" Column="28" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="177" Column="37" TopLine="164"/>
       </Position22>
       <Position23>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="141" Column="33" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="38" Column="15" TopLine="12"/>
       </Position23>
       <Position24>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="142" Column="28" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="171" Column="3" TopLine="125"/>
       </Position24>
       <Position25>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="146" Column="34" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="174" Column="25" TopLine="130"/>
       </Position25>
       <Position26>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="147" Column="31" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="240" Column="61" TopLine="215"/>
       </Position26>
       <Position27>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="148" Column="34" TopLine="125"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="357" Column="31" TopLine="331"/>
       </Position27>
       <Position28>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="163" Column="30" TopLine="134"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="776" Column="29" TopLine="172"/>
       </Position28>
       <Position29>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="164" Column="27" TopLine="135"/>
+        <Filename Value="scitemu.pas"/>
+        <Caret Line="210" Column="102" TopLine="179"/>
       </Position29>
       <Position30>
-        <Filename Value="frmsetsu.pas"/>
-        <Caret Line="165" Column="34" TopLine="136"/>
+        <Filename Value="stacksubitemu.pas"/>
+        <Caret Line="188" Column="3" TopLine="183"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

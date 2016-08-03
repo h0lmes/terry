@@ -258,9 +258,8 @@ begin
       if csidl > -1 then
       begin
         OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
-        PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255);
+        if PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255) then FCommand := strpas(pszName);
         PIDL_Free(pidFolder);
-        FCommand := strpas(pszName);
         if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
         else FCaption := '::::';  // assuming it is a PIDL
       end;
@@ -274,7 +273,7 @@ begin
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
-        SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+        OleCheck(SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
         FCaption := sfi.szDisplayName;
       end;
 
@@ -1048,17 +1047,32 @@ begin
   begin
     dc := CreateCompatibleDC(0);
     if dc = 0 then raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateCompatibleDC failed');
-    GdipCreateFromHDC(dc, hgdip);
-    if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
-      raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
-    GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont);
-    rect.x := 0;
-    rect.y := 0;
-    rect.Width := 0;
-    rect.Height := 0;
-    GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
-    GdipDeleteGraphics(hgdip);
-    DeleteDC(dc);
+    try
+      GdipCreateFromHDC(dc, hgdip);
+      try
+        if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
+          raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
+        try
+          if Ok <> GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont) then
+            raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFont failed');
+          try
+            rect.x := 0;
+            rect.y := 0;
+            rect.Width := 0;
+            rect.Height := 0;
+            GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
+          finally
+            GdipDeleteFont(hfont);
+          end;
+        finally
+          GdipDeleteFontFamily(hfontfamily);
+        end;
+      finally
+        GdipDeleteGraphics(hgdip);
+      end;
+    finally
+      DeleteDC(dc);
+    end;
     FCaptionWidth := min(ceil(rect.Width), MAX_CAPTION_WIDTH);
     FCaptionHeight := ceil(rect.Height);
     FBorder := FCaptionWidth + FCaptionHeight + 8;

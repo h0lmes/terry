@@ -453,11 +453,8 @@ begin
     do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
-      if FHintVisible then
-      begin
-        FHintVisible := false;
-        dockh.DeactivateHint(FHWnd);
-      end;
+      if FHintVisible then dockh.DeactivateHint(FHWnd);
+      FHintVisible := false;
       exit;
     end;
 
@@ -474,13 +471,13 @@ begin
 
     hint_offset := 10;
     baserect := dockh.DockGetRect;
-    if FSite = 0 then hx := max(baserect.right, hx + FSize div 2 + hint_offset)
+    if FSite = 0 then hx := max(baserect.right,  hx + FSize div 2 + hint_offset)
     else
     if FSite = 1 then hy := max(baserect.bottom, hy + FSize div 2 + hint_offset)
     else
-    if FSite = 2 then hx := min(baserect.left, hx - FSize div 2 - hint_offset)
+    if FSite = 2 then hx := min(baserect.left,   hx - FSize div 2 - hint_offset)
     else
-      hy := min(baserect.top, hy - FSize div 2 - hint_offset);
+                      hy := min(baserect.top,    hy - FSize div 2 - hint_offset);
 
     FHintVisible := true;
     dockh.ActivateHint(FHWnd, PWideChar(WideString(FCaption)), hx, hy);

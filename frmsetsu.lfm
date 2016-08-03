@@ -17,7 +17,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
@@ -112,7 +112,7 @@ object frmsets: Tfrmsets
         Top = 40
         Width = 126
         Caption = 'Hide Windows taskbar'
-        OnClick = cbHideTaskBarClick
+        OnChange = cbHideTaskBarChange
         TabOrder = 1
       end
       object chbReserveScreenEdge: TCheckBox
@@ -306,13 +306,13 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 2
       end
-      object cbo_monitor: TComboBox
+      object cboMonitor: TComboBox
         Left = 15
         Height = 21
         Top = 40
         Width = 200
         ItemHeight = 13
-        OnChange = cbo_monitorChange
+        OnChange = cboMonitorChange
         Style = csDropDownList
         TabOrder = 0
       end
@@ -450,7 +450,7 @@ object frmsets: Tfrmsets
         Top = 15
         Width = 106
         Caption = 'Enable Aero Glass'
-        OnClick = chbBlurClick
+        OnChange = chbBlurChange
         TabOrder = 0
       end
       object lblBackgroundTransparency: TLabel
@@ -626,13 +626,13 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 10
       end
-      object chb_reflection: TCheckBox
+      object chbReflection: TCheckBox
         Left = 240
         Height = 19
         Top = 160
         Width = 121
         Caption = 'Show icon reflections'
-        OnClick = chb_reflectionClick
+        OnChange = chbReflectionChange
         TabOrder = 11
       end
       object lblBackgroundTransparency2: TLabel
@@ -691,7 +691,7 @@ object frmsets: Tfrmsets
         Top = 205
         Width = 171
         Caption = 'Zoom icons when mouse is over'
-        OnClick = cbZoomItemsClick
+        OnChange = cbZoomItemsChange
         TabOrder = 0
       end
       object chbShowRunningIndicator: TCheckBox
@@ -838,7 +838,7 @@ object frmsets: Tfrmsets
         Top = 40
         Width = 110
         Caption = 'Enable hint effects'
-        OnClick = chbHintEffectsClick
+        OnChange = chbHintEffectsChange
         TabOrder = 11
       end
       object cbShowHint: TCheckBox
@@ -847,7 +847,7 @@ object frmsets: Tfrmsets
         Top = 15
         Width = 126
         Caption = 'Show hint (icon name)'
-        OnClick = cbShowHintClick
+        OnChange = cbShowHintChange
         TabOrder = 12
       end
     end

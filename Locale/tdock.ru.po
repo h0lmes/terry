@@ -860,6 +860,11 @@ msgstr "Включить эффекты для подсказок"
 msgid "Occupy full monitor width or height"
 msgstr "Занимать всю ширину или высоту монитора"
 
+#: tfrmsets.chbreflection.caption
+msgctxt "tfrmsets.chbreflection.caption"
+msgid "Show icon reflections"
+msgstr "Показывать отражения значков"
+
 #: tfrmsets.chbreservescreenedge.caption
 msgid "Reserve screen edge"
 msgstr "Резервировать край экрана"
@@ -900,10 +905,6 @@ msgstr "Показывать только программы с этого мо�
 msgctxt "tfrmsets.chbuseshellcontextmenus.caption"
 msgid "Show Windows Explorer context menus for programs"
 msgstr "Показывать контекстные меню Проводника Windows для программ"
-
-#: tfrmsets.chb_reflection.caption
-msgid "Show icon reflections"
-msgstr "Показывать отражения значков"
 
 #: tfrmsets.dividerbevel1.caption
 msgctxt "tfrmsets.dividerbevel1.caption"

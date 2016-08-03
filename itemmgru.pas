@@ -361,12 +361,12 @@ begin
           ClearTaskbar;
           FTaskGrouping := value <> 0;
         end;
-      gpItemAnimationType:          FItemAnimation := value;
+      gpItemAnimationType:      FItemAnimation := value;
       gpLaunchInterval:         FLaunchInterval := value;
       gpActivateRunning:        FActivateRunning := value <> 0;
       gpUseShellContextMenus:   FUseShellContextMenus := value <> 0;
       gpShowHint:               FShowHint := value <> 0;
-      gpStackAnimationEnabled:     FStackAnimationEnabled := value <> 0;
+      gpStackAnimationEnabled:  FStackAnimationEnabled := value <> 0;
       gpZoomTime:
         begin
           FZoomTime := value;
