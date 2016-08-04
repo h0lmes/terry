@@ -10,16 +10,14 @@ Distribution package
 
 Folders
 ```
-Help
+Docklets
 Images
 Locale
-Plugins
 Themes
 ```
 
 Files
 ```
-apps.exe
-collection.exe
-terry.exe.
+tdock.exe
+tips.txt
 ```
