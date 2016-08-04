@@ -101,8 +101,8 @@ procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: i
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
-procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
+function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 function GetIconFromFileSH(aFile: string): HICON;
 procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure CreateDefaultImage(var image: pointer);
@@ -1040,12 +1040,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+// returns a code to indicate an icon acquision method
+function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 var
   icon: HICON;
   appImage: Pointer;
   imageWidth: cardinal;
 begin
+  result := 0; // no icon
   try
     image := nil;
     appImage := nil;
@@ -1059,6 +1061,7 @@ begin
         if imageWidth > 32 then
         begin
           DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+          result := 1; // from executable file
           exit;
         end;
       end;
@@ -1066,13 +1069,14 @@ begin
 
     appImage := image;
     image := nil;
-    LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);
+    result := LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);  // from window handle
 
     if (srcwidth < imageWidth) and assigned(appImage) then
     begin
       if assigned(image) then GdipDisposeImage(image);
       image := appImage;
       DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+      result := 1; // from executable file
     end else begin
       if assigned(appImage) then GdipDisposeImage(appImage);
     end;
@@ -1081,7 +1085,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint);
+function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 const
   ICON_SMALL2 = PtrUInt(2);
   SMTO_NOTIMEOUTIFNOTHUNG = 8;
@@ -1091,19 +1095,42 @@ begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
   image := nil;
+  result := 0; // no icon
 
   try
     if not IsWindow(h) then exit;
     icon := 0;
-    if MaxSize > 16 then SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
-    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
-    if icon = 0 then SendMessageTimeout(h, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
-    if icon = THandle(0) then icon := GetClassLongPtr(h, GCL_HICON);
-    if (icon = THandle(0)) and default then icon := LoadIcon(0, IDI_APPLICATION);
+    if MaxSize > 16 then
+    begin
+      SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      result := 2; // ICON_BIG
+    end;
+    if icon = 0 then
+    begin
+      SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      result := 3; // ICON_SMALL2
+    end;
+    if icon = 0 then
+    begin
+      SendMessageTimeout(h, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      result := 4; // ICON_SMALL
+    end;
+    if icon = THandle(0) then
+    begin
+      icon := GetClassLongPtr(h, GCL_HICON);
+      result := 5; // from window class
+    end;
+    if (icon = THandle(0)) and default then
+    begin
+      icon := LoadIcon(0, IDI_APPLICATION);
+      result := 6; // default app icon
+    end;
     if icon <> THandle(0) then
     begin
       image := IconToGdipBitmap(icon);
       DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
+    end else begin
+      result := 0; // no icon
     end;
   except
     on e: Exception do raise Exception.Create('LoadImageFromHWnd'#10#13 + e.message);
