@@ -54,7 +54,6 @@ type
   end;
 
 implementation
-uses frmmainu;
 //------------------------------------------------------------------------------
 constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
 begin
@@ -210,7 +209,7 @@ begin
           else if FBigItemSize <= 160 then temp := 160
           else if FBigItemSize <= 192 then temp := 192
           else if FBigItemSize <= 256 then temp := 256;
-          if temp <> FIW then UpdateItemInternal;
+          if temp <> FIW then UpdateImage;
         end;
       gpMonitor: ClosePeekWindow(0);
       gpSite: ClosePeekWindow(0);
@@ -499,7 +498,6 @@ begin
       2: dec(pt.x, 5);
       3: dec(pt.y, 5);
     end;
-    //LME(true);
     FHideHint := true;
     UpdateHint;
     TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
@@ -520,7 +518,6 @@ begin
   if FIsOpen then
   begin
     FIsOpen := false;
-    //LME(false);
     TAeroPeekWindow.Close(Timeout);
   end;
 end;

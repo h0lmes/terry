@@ -68,7 +68,7 @@ type
 
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
-    procedure DoBaseDraw(flags: integer);
+    procedure DoBaseDraw(forceDraw: boolean);
     procedure SetVisible(value: boolean);
 
     // load/save //
@@ -77,7 +77,7 @@ type
 
     procedure SetItems1;
     procedure RecalcDock;
-    procedure SetItems2(force_draw: boolean);
+    procedure SetItems2(forceDraw: boolean);
 
     function  IASize: integer;
     function  ItemFromPoint(Ax, Ay, distance: integer): extended;
@@ -92,7 +92,7 @@ type
     FHoverItemHWnd: THandle; // handle of the item over which the mouse is //
     FSelectedItemHWnd: THandle;
     _itemsDeleted: TFPList;
-    _registeredPrograms: TStrings;
+    _registeredPrograms: TStrings; // intended for use in taskbar routines
     // pos/size of ItemManager //
     x: integer;
     y: integer;
@@ -160,6 +160,8 @@ type
     procedure InsertItem(AData: string);
     function  CreateItem(data: string): THandle;
     procedure DeleteItem(HWnd: THandle);
+    procedure AddToRegisteredPrograms(HWnd: THandle);
+    procedure DeleteFromRegisteredPrograms(HWnd: THandle);
 
     // mouse effects //
     procedure SetDropPlaceFromPoint(pt: windows.TPoint);
@@ -389,15 +391,13 @@ begin
   try
     if cmd = 'clear' then Clear;
     if cmd = 'load' then
-    begin
       if params <> '' then Load(params);
-    end;
     if cmd = 'shortcut' then AddItem('class="shortcut";', true);
     if cmd = 'separator' then AddItem('class="separator";', true);
     if cmd = 'plugin' then AddItem('class="plugin";file="' + params + '";', true);
     if cmd = 'stack' then
     begin
-      if length(params) = 0 then data := 'class="stack";'
+      if params = '' then data := 'class="stack";'
       else data := 'class="stack";caption="::::";special_folder="' + params + '";';
       AddItem(data, true);
     end;
@@ -406,9 +406,9 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.DoBaseDraw(flags: integer);
+procedure TItemManager.DoBaseDraw(forceDraw: boolean);
 begin
-  if assigned(FBaseCmd) then FBaseCmd(tcRepaintBase, flags);
+  if assigned(FBaseCmd) then FBaseCmd(tcRepaintBase, ifthen(forceDraw, 1, 0));
 end;
 //------------------------------------------------------------------------------
 //
@@ -734,7 +734,7 @@ begin
     SetItems1;
     RecalcDock;
     SetItems2(FullUpdate);
-    DoBaseDraw(ifthen(FullUpdate, 1, 0));
+    DoBaseDraw(FullUpdate);
   except
     on e: Exception do err('ItemManager.ItemsChanged', e);
   end;
@@ -1036,7 +1036,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetItems2(force_draw: boolean);
+procedure TItemManager.SetItems2(forceDraw: boolean);
 var
   idx: integer;
   wpi, show_items: uint;
@@ -1054,7 +1054,7 @@ begin
     begin
       if FItemArray[idx].h <> 0 then
         TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Draw(
-          FItemArray[idx].x, FItemArray[idx].y, FItemArray[idx].s, force_draw, wpi, show_items);
+          FItemArray[idx].x, FItemArray[idx].y, FItemArray[idx].s, forceDraw, wpi, show_items);
       inc(idx);
     end;
 
@@ -1064,7 +1064,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// insert the list of the items at DropPlace position
+// insert the list of items at DropPlace position
 // if DropPlace not exists, then insert at the end of the items array
 procedure TItemManager.InsertItems(list: TStrings);
 var
@@ -1087,7 +1087,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // insert item at current DropPlace
-// or at the end if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
+// or at the end of array if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
 procedure TItemManager.InsertItem(AData: string);
 begin
   if FEnabled then AddItem(AData, true);
@@ -1130,7 +1130,7 @@ end;
 // in this case each one starting from the 2nd should be of shortcut class
 function TItemManager.CreateItem(data: string): THandle;
 var
-  class_name, str: string;
+  class_name: string;
   Inst: TCustomItem;
   icp: TDItemCreateParams;
 begin
@@ -1179,9 +1179,7 @@ begin
       end else // if everything is okay
       begin
         result := Inst.HWnd;
-        // add to registered programs list
-        str := Inst.RegisterProgram;
-        if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
+        AddToRegisteredPrograms(result);
       end;
   except
     on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin'#10#13 + e.message);
@@ -1193,22 +1191,17 @@ end;
 // use TCustomItem.Delete instead
 procedure TItemManager.DeleteItem(HWnd: THandle);
 var
-  index, rpIndex: integer;
-  Inst: TCustomItem;
+  index: integer;
 begin
   if FEnabled then
   try
     index := ItemIndex(HWnd);
-    // add to "deleted" list //
-    _itemsDeleted.Add(Pointer(HWnd));
-    // remove from registered programs list
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
-    rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
-    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
+    _itemsDeleted.Add(Pointer(HWnd)); // add to "deleted" list
+    DeleteFromRegisteredPrograms(HWnd);
 
+    // erase it from "FItemArray" list //
     if index <> NOT_AN_ITEM then
     begin
-      // erase it from "FItemArray" list //
       while index < FItemCount - 1 do
       begin
         FItemArray[index].h := FItemArray[index + 1].h;
@@ -1217,7 +1210,6 @@ begin
         FItemArray[index].s := FItemArray[index + 1].s;
         inc(index);
       end;
-      // decrement item count
       dec(FItemCount);
     end;
 
@@ -1225,6 +1217,34 @@ begin
     ItemsChanged;
   except
     on e: Exception do raise Exception.Create('ItemManager.DeleteItem'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.AddToRegisteredPrograms(HWnd: THandle);
+var
+  Inst: TCustomItem;
+  str: string;
+begin
+  try
+    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    str := Inst.RegisterProgram;
+    if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
+  except
+    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.DeleteFromRegisteredPrograms(HWnd: THandle);
+var
+  Inst: TCustomItem;
+  rpIndex: integer;
+begin
+  try
+    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
+    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms'#10#13 + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

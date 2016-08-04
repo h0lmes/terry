@@ -145,7 +145,7 @@ type
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbActivateRunningChange(Sender: TObject);
 		procedure chbGlobalConsoleChange(Sender: TObject);
-		procedure chbGlobalHideClick(Sender: TObject);
+		procedure chbGlobalHideChange(Sender: TObject);
     procedure chbHintEffectsChange(Sender: TObject);
     procedure chbReserveScreenEdgeChange(Sender: TObject);
     procedure chbRunInThreadChange(Sender: TObject);
@@ -181,7 +181,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure cbAutoHideChange(Sender: TObject);
     procedure edAutoHideTimeChange(Sender: TObject);
-    procedure cbUseShellClick(Sender: TObject);
+    procedure cbUseShellChange(Sender: TObject);
     procedure edShellChange(Sender: TObject);
     procedure btnBrowseShellClick(Sender: TObject);
     procedure cbZoomItemsChange(Sender: TObject);
@@ -305,7 +305,8 @@ begin
   cboItemAnimationType.Items.Add(XAnimationZoom);
 end;
 //------------------------------------------------------------------------------
-procedure SetCheckBox(control: TCheckBox; value: boolean);
+// preserves OnChange event
+procedure SetInitValue(control: TCheckBox; value: boolean); overload;
 var
   event: TNotifyEvent;
 begin
@@ -315,7 +316,8 @@ begin
   control.OnChange := event;
 end;
 //------------------------------------------------------------------------------
-procedure SetEdit(control: TEdit; value: string);
+// preserves OnChange event
+procedure SetInitValue(control: TEdit; value: string); overload;
 var
   event: TNotifyEvent;
 begin
@@ -325,7 +327,19 @@ begin
   control.OnChange := event;
 end;
 //------------------------------------------------------------------------------
-procedure SetTrackBar(control: TTrackBar; value: integer);
+// preserves OnKeyDown event
+procedure SetInitValue(control: TEdit; value: TShortCut); overload;
+var
+  event: TKeyEvent;
+begin
+  event := control.OnKeyDown;
+  control.OnKeyDown := nil;
+  control.Text := ShortCutToText(value);
+  control.OnKeyDown := event;
+end;
+//------------------------------------------------------------------------------
+// preserves OnChange event
+procedure SetInitValue(control: TTrackBar; value: integer); overload;
 var
   event: TNotifyEvent;
 begin
@@ -335,7 +349,8 @@ begin
   control.OnChange := event;
 end;
 //------------------------------------------------------------------------------
-procedure SetComboBox(control: TComboBox; value: integer);
+// preserves OnChange event
+procedure SetInitValue(control: TComboBox; value: integer); overload;
 var
   event: TNotifyEvent;
 begin
@@ -348,61 +363,57 @@ end;
 procedure Tfrmsets.FormShow(Sender: TObject);
 var
   maj, min, rel, build, i, mCount: integer;
+  selChange: TSelectionChangeEvent;
 begin
   try
     font.name := GetFont;
     font.size := GetFontSize;
-
     constraints.MinHeight := Height;
     constraints.MaxHeight := Height;
     constraints.MinWidth := Width;
     constraints.MaxWidth := Width;
     lv.ItemIndex := PageIndex;
-
     toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
     lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
   except
     on e: Exception do frmmain.err('frmSets.Show.1', e);
   end;
+
   //
   // поведение //
   //
+
   try
-    SetCheckBox(cbAutorun, toolu.CheckAutoRun);
-    SetCheckBox(cbAutoHide, sets.container.autohide);
-    SetCheckBox(cbActivateOnMouse, sets.container.ActivateOnMouse);
-    SetEdit(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
-
-    edAutoHideTime.Text := inttostr(sets.container.autohidetime);
-
-    edAutoShowTime.Text := inttostr(sets.container.autoshowtime);
-
-    edRolledVisiblePixels.Text := inttostr(sets.container.AutoHidePixels);
-
-    hkHide.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Hide);
-
-    hkConsole.Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
-
-    chbGlobalHide.Checked := sets.container.GlobalHotkeyFlag_Hide;
-
-    SetCheckBox(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
-    SetCheckBox(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
-    SetCheckBox(cbShowHint, sets.container.ShowHint);
-    SetCheckBox(chbHintEffects, sets.container.HintEffects);
-    SetCheckBox(cbHideTaskBar, sets.container.HideSystemTaskbar);
-    SetCheckBox(chbReserveScreenEdge, sets.container.ReserveScreenEdge);
-    SetCheckBox(chbTaskbar, sets.container.Taskbar);
-    SetCheckBox(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
-    SetCheckBox(chbTaskbarGrouping, sets.container.TaskGrouping);
-    SetCheckBox(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
-    SetTrackBar(tbReserveScreenEdgePercent, sets.container.ReserveScreenEdgePercent);
-    SetTrackBar(tbAeroPeekThumbSize, sets.container.TaskThumbSize);
+    SetInitValue(cbAutorun, toolu.CheckAutoRun);
+    SetInitValue(cbAutoHide, sets.container.autohide);
+    SetInitValue(cbActivateOnMouse, sets.container.ActivateOnMouse);
+    SetInitValue(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
+    SetInitValue(edAutoHideTime, inttostr(sets.container.autohidetime));
+    SetInitValue(edAutoShowTime, inttostr(sets.container.autoshowtime));
+    SetInitValue(edRolledVisiblePixels, inttostr(sets.container.AutoHidePixels));
+    SetInitValue(hkHide, TShortCut(sets.container.GlobalHotkeyValue_Hide));
+    SetInitValue(hkConsole, TShortCut(sets.container.GlobalHotkeyValue_Console));
+    SetInitValue(chbGlobalHide, sets.container.GlobalHotkeyFlag_Hide);
+    SetInitValue(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
+    SetInitValue(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
+    SetInitValue(cbShowHint, sets.container.ShowHint);
+    SetInitValue(chbHintEffects, sets.container.HintEffects);
+    SetInitValue(cbHideTaskBar, sets.container.HideSystemTaskbar);
+    SetInitValue(chbReserveScreenEdge, sets.container.ReserveScreenEdge);
+    SetInitValue(chbTaskbar, sets.container.Taskbar);
+    SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
+    SetInitValue(chbTaskbarGrouping, sets.container.TaskGrouping);
+    SetInitValue(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
+    SetInitValue(tbReserveScreenEdgePercent, sets.container.ReserveScreenEdgePercent);
+    SetInitValue(tbAeroPeekThumbSize, sets.container.TaskThumbSize);
   except
     on e: Exception do frmmain.err('frmSets.Show.2', e);
   end;
+
   //
   // расположение //
   //
+
   try
     cboMonitor.OnChange := nil;
     cboMonitor.clear;
@@ -417,29 +428,32 @@ begin
     cboMonitor.ItemIndex := cboMonitor.Items.IndexOfObject(TObject(sets.GetParam(gpMonitor)));
     cboMonitor.OnChange := cboMonitorChange;
 
-    SetComboBox(cboBaseSite, integer(sets.container.site));
-    SetTrackBar(tbCenterOffsetPercent, sets.container.CenterOffsetPercent);
-    SetTrackBar(tbEdgeOffset, sets.container.EdgeOffset);
+    SetInitValue(cboBaseSite, integer(sets.container.site));
+    SetInitValue(tbCenterOffsetPercent, sets.container.CenterOffsetPercent);
+    SetInitValue(tbEdgeOffset, sets.container.EdgeOffset);
     UpdateLblCenterOffsetPercent;
-    SetCheckBox(chbOccupyFullMonitor, sets.container.OccupyFullMonitor);
-    SetEdit(edStartOffset, inttostr(sets.container.StartOffset));
-    SetEdit(edEndOffset, inttostr(sets.container.EndOffset));
+    SetInitValue(chbOccupyFullMonitor, sets.container.OccupyFullMonitor);
+    SetInitValue(edStartOffset, inttostr(sets.container.StartOffset));
+    SetInitValue(edEndOffset, inttostr(sets.container.EndOffset));
   except
     on e: Exception do frmmain.err('frmSets.Show.3', e);
   end;
+
   //
   // тема
   //
+
   try
+    selChange := lbTheme.OnSelectionChange;
     lbTheme.OnSelectionChange := nil;
     theme.SearchThemes(sets.container.ThemeName, lbTheme);
-    lbTheme.OnSelectionChange := lbThemeSelectionChange;
+    lbTheme.OnSelectionChange := selChange;
 
-    SetCheckBox(chbBlur, sets.container.BlurEnabled);
     chbBlur.Enabled := dwm.IsCompositionEnabled;
-    SetTrackBar(tbBaseAlpha, sets.container.BaseAlpha);
-    SetTrackBar(tbSeparatorAlpha, sets.container.SeparatorAlpha);
-    SetTrackBar(tbReflectionSize, sets.container.ReflectionSize);
+    SetInitValue(chbBlur, sets.container.BlurEnabled);
+    SetInitValue(tbBaseAlpha, sets.container.BaseAlpha);
+    SetInitValue(tbSeparatorAlpha, sets.container.SeparatorAlpha);
+    SetInitValue(tbReflectionSize, sets.container.ReflectionSize);
 
     CopyFontData(sets.container.Font, FFont);
     listFont.OnClick := nil;
@@ -463,40 +477,47 @@ begin
   except
     on e: Exception do frmmain.err('frmSets.Show.4', e);
   end;
+
   //
   // icons //
   //
+
   try
-    SetTrackBar(tbIconSize, sets.container.itemsize);
-    SetTrackBar(tbBigIconSize, sets.container.BigItemSize);
-    SetTrackBar(tbIconSpacing, sets.container.ItemSpacing);
-    SetTrackBar(tbZoomWidth, sets.container.ZoomWidth div 2);
-    SetTrackBar(tbZoomTime, sets.container.ZoomTime);
+    SetInitValue(tbIconSize, sets.container.itemsize);
+    SetInitValue(tbBigIconSize, sets.container.BigItemSize);
+    SetInitValue(tbIconSpacing, sets.container.ItemSpacing);
+    SetInitValue(tbZoomWidth, sets.container.ZoomWidth div 2);
+    SetInitValue(tbZoomTime, sets.container.ZoomTime);
     UpdateItemSizeLabels;
-    SetCheckBox(cbZoomItems, sets.container.ZoomEnabled);
-    SetCheckBox(chbReflection, sets.container.ReflectionEnabled);
-    SetComboBox(cboItemAnimationType, sets.container.ItemAnimationType);
-    SetCheckBox(chbUseShellContextMenus, sets.container.UseShellContextMenus);
-    SetCheckBox(chbActivateRunning, sets.container.ActivateRunningApps);
-    SetCheckBox(chbShowRunningIndicator, sets.container.ShowRunningIndicator);
-    SetCheckBox(chbStackOpenAnimation, sets.container.StackAnimationEnabled);
+    SetInitValue(cbZoomItems, sets.container.ZoomEnabled);
+    SetInitValue(chbReflection, sets.container.ReflectionEnabled);
+    SetInitValue(cboItemAnimationType, sets.container.ItemAnimationType);
+    SetInitValue(chbUseShellContextMenus, sets.container.UseShellContextMenus);
+    SetInitValue(chbActivateRunning, sets.container.ActivateRunningApps);
+    SetInitValue(chbShowRunningIndicator, sets.container.ShowRunningIndicator);
+    SetInitValue(chbStackOpenAnimation, sets.container.StackAnimationEnabled);
   except
     on e: Exception do frmmain.err('frmSets.Show.5', e);
   end;
+
   //
   // system //
   //
+
   try
-    SetCheckBox(chbRunInThread, sets.container.RunInThread);
-    cbUseShell.Checked := sets.container.useshell;
-    edShell.Text := AnsiToUTF8(sets.container.shell);
-    SetEdit(edLaunchInterval, inttostr(sets.container.LaunchInterval));
+    SetInitValue(chbRunInThread, sets.container.RunInThread);
+    SetInitValue(cbUseShell, sets.container.useshell);
+    SetInitValue(edShell, AnsiToUTF8(sets.container.shell));
+    SetInitValue(edLaunchInterval, inttostr(sets.container.LaunchInterval));
   except
     on e: Exception do frmmain.err('frmSets.Show.6', e);
   end;
+
+  //
   // autorun //
-  try
-    ReadAutorun;
+  //
+
+  try ReadAutorun;
   except
     on e: Exception do frmmain.err('frmSets.Show.7', e);
   end;
@@ -669,7 +690,7 @@ begin
   TEdit(Sender).Text := ShortCutToText(sets.container.GlobalHotkeyValue_Console);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.chbGlobalHideClick(Sender: TObject);
+procedure Tfrmsets.chbGlobalHideChange(Sender: TObject);
 begin
   frmmain.SetParam(gpGlobalHotkeyFlag_Hide, integer(chbGlobalHide.checked));
 end;
@@ -986,7 +1007,7 @@ begin
   frmmain.SetParam(gpRunInThread, integer(chbRunInThread.Checked));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmsets.cbUseShellClick(Sender: TObject);
+procedure Tfrmsets.cbUseShellChange(Sender: TObject);
 begin
   sets.container.UseShell := cbUseShell.Checked;
 end;

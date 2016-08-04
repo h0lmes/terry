@@ -200,7 +200,7 @@ begin
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpShowHint: UpdateItemI;
+      gpShowHint: UpdateItemMeasureCaption; //UpdateItemI;
       gpSite: if FRunning then Redraw;
       tcThemeChanged: if FRunning then Redraw;
 
@@ -1144,7 +1144,7 @@ begin
       else if (message.msg = wm_close) or (message.msg = wm_quit) then exit;
 
   except
-    on e: Exception do raise Exception.Create('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
   end;
 
   with message do result := DefWindowProc(hWnd, Msg, wParam, lParam);

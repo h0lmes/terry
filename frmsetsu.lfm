@@ -17,7 +17,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
@@ -94,7 +94,7 @@ object frmsets: Tfrmsets
           Top = 10
           Width = 120
           Caption = 'Hide dock completely'
-          OnClick = chbGlobalHideClick
+          OnChange = chbGlobalHideChange
           TabOrder = 2
         end
         object hkConsole: TEdit
@@ -896,7 +896,7 @@ object frmsets: Tfrmsets
         Top = 125
         Width = 249
         Caption = 'Use this shell to open local and network folders:'
-        OnClick = cbUseShellClick
+        OnChange = cbUseShellChange
         TabOrder = 1
       end
       object edShell: TEdit

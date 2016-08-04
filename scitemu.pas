@@ -353,7 +353,7 @@ begin
           else if FBigItemSize <= 160 then temp := 160
           else if FBigItemSize <= 192 then temp := 192
           else if FBigItemSize <= 256 then temp := 256;
-          if temp <> FIW then UpdateItemI;
+          if temp <> FIW then LoadImageI;
         end;
       gpShowRunningIndicator:
         if FRunning and not boolean(param) then

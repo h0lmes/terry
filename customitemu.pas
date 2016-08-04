@@ -89,6 +89,7 @@ type
     function ExpandRect(r: windows.TRect; value: integer): windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
+    procedure notify(message: string);
     procedure WindowProc(var message: TMessage);
   public
     property Freed: boolean read FFreed write FFreed;
@@ -563,6 +564,11 @@ begin
   dockh.DockDeleteItem(FHWnd);
 end;
 //------------------------------------------------------------------------------
+procedure TCustomItem.notify(message: string);
+begin
+  dockh.notify(FHWnd, pchar(message));
+end;
+//------------------------------------------------------------------------------
 procedure TCustomItem.WindowProc(var message: TMessage);
 const
   MK_ALT = $1000;
@@ -698,8 +704,8 @@ begin
   except
     on e: Exception do
     begin
-      AddLog('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message);
-      messagebox(0, pchar('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ]'#10#13 + e.message), nil, 0);
+      AddLog('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
+      notify('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
     end;
   end;
 end;
