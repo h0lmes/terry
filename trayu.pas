@@ -2,7 +2,7 @@
 //
 //
 //
-// This unit incorporates functionality to interact with
+// This unit implements functionality to interact with
 // shell tray and tray icons
 //
 //
@@ -13,6 +13,9 @@ unit trayu;
 
 interface
 uses Windows, Classes, SysUtils, Registry, declu, processhlp;
+
+const
+  CTLW_OFFSET = 10;
 
 type
 
@@ -248,25 +251,25 @@ begin
       GetWindowRect(FControlWindow, @wRect);
       if FSite = bsLeft then
       begin
-        Fx := FBaseRect.Right + 20;
+        Fx := FBaseRect.Right + CTLW_OFFSET;
         Fy := FPoint.y - (wRect.Bottom - wRect.Top) div 2;
       end
       else
       if FSite = bsTop then
       begin
         Fx := FPoint.x - (wRect.Right - wRect.Left) div 2;
-        Fy := FBaseRect.Bottom + 20;
+        Fy := FBaseRect.Bottom + CTLW_OFFSET;
       end
       else
       if FSite = bsRight then
       begin
-        Fx := FBaseRect.Left - 20 - (wRect.Right - wRect.Left);
+        Fx := FBaseRect.Left - CTLW_OFFSET - (wRect.Right - wRect.Left);
         Fy := FPoint.y - (wRect.Bottom - wRect.Top) div 2;
       end
       else
       begin
         Fx := FPoint.x - (wRect.Right - wRect.Left) div 2;
-        Fy := FBaseRect.Top - 20 - (wRect.Bottom - wRect.Top);
+        Fy := FBaseRect.Top - CTLW_OFFSET - (wRect.Bottom - wRect.Top);
       end;
       if Fx < FMonitorRect.Left then Fx := FMonitorRect.Left;
       if Fx > FMonitorRect.Right - wRect.Right + wRect.Left then Fx := FMonitorRect.Right - wRect.Right + wRect.Left;

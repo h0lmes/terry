@@ -127,7 +127,7 @@ type
     function  ContextMenu(pt: Windows.TPoint): boolean;
     procedure SetFont(var Value: _FontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
-    function  IsLockedMouseEffect: boolean;
+    function  IsMouseEffectLocked: boolean;
     function  GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
     function  GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
     procedure MoveDock(iDirection: integer);
@@ -756,7 +756,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WHButtonDown(button: integer);
 begin
-  if not IsLockedMouseEffect and not FMouseOver and not sets.container.StayOnTop then SetNotForeground;
+  if not IsMouseEffectLocked and not FMouseOver and not sets.container.StayOnTop then SetNotForeground;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WHMouseMove(LParam: LParam);
@@ -765,7 +765,7 @@ var
   monitorRect: Windows.TRect;
   OldMouseOver: boolean;
 begin
-  if not IsLockedMouseEffect and assigned(ItemMgr) and IsWindowVisible(Handle) and not FProgramIsClosing then
+  if not IsMouseEffectLocked and assigned(ItemMgr) and IsWindowVisible(Handle) and not FProgramIsClosing then
   begin
     Windows.GetCursorPos(pt);
     if (pt.x <> FLastMouseHookPoint.x) or (pt.y <> FLastMouseHookPoint.y) or (LParam = $fffffff) then
@@ -1134,11 +1134,10 @@ procedure Tfrmmain.UpdateRunning;
 var
   parent: THandle;
 begin
-  if not IsLockedMouseEffect then
   try
-    if sets.container.TaskSameMonitor then parent := Handle else parent := 0;
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then
     begin
+      if sets.container.TaskSameMonitor then parent := Handle else parent := 0;
       ProcessHelper.EnumAppWindows(parent);
       if ProcessHelper.WindowsCountChanged then ProcessHelper.EnumProc;
       if sets.container.ShowRunningIndicator then ItemMgr.SetParam(icUpdateRunning, 0);
@@ -1519,14 +1518,14 @@ begin
       index := LockList.IndexOf(pointer(hWnd));
       if index >= 0 then LockList.Delete(index);
     end;
-    if IsLockedMouseEffect and assigned(AHint) then AHint.DeactivateImmediate;
-    SetParam(gpLockMouseEffect, integer(IsLockedMouseEffect));
+    if IsMouseEffectLocked and assigned(AHint) then AHint.DeactivateImmediate;
+    SetParam(gpLockMouseEffect, integer(IsMouseEffectLocked));
   finally
     crsection.Leave;
   end;
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.IsLockedMouseEffect: boolean;
+function Tfrmmain.IsMouseEffectLocked: boolean;
 begin
   result := LockList.Count > 0;
 end;

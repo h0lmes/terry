@@ -42,6 +42,7 @@ type
     procedure Kill(Name: string);
     function ProcessExists(Name: string): boolean;
     function GetWindowProcessName(h: THandle): string;
+    function GetProcessWindowsCount(Name: string): integer;
     procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
     // windows //
@@ -238,13 +239,47 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// get main window handles belonging to a specified process.
+// returns main window handles count belonging to a specified process.
+// 'Name' could be either a fully qualified path + filename or just a filename.exe
+function TProcessHelper.GetProcessWindowsCount(Name: string): integer;
+var
+  index: integer;
+  wnd: THandle;
+  wpid: DWORD;
+  pids, newAppList: TFPList;
+begin
+  result := 0;
+  if not FReady then exit;
+  newAppList := TFPList.Create;
+  pids := TFPList.Create;
+
+  try
+    GetProcessPIDs(Name, pids);
+    if pids.Count > 0 then
+    begin
+      index := 0;
+      while index < listAppWindows.count do
+      begin
+        wnd := THandle(listAppWindows.items[index]);
+        GetWindowThreadProcessId(wnd, @wpid);
+        if pids.IndexOf(Pointer(wpid)) >= 0 then newAppList.Add(pointer(wnd));
+        inc(index);
+      end;
+    end;
+  finally
+    pids.free;
+  end;
+  result := newAppList.Count;
+  newAppList.free;
+end;
+//------------------------------------------------------------------------------
+// returns main window handles belonging to a specified process.
 // 'Name' could be either a fully qualified path + filename or just a filename.exe
 procedure TProcessHelper.GetProcessWindows(Name: string; var AppList: TFPList);
 var
   index: integer;
   wnd: THandle;
-  pid, wpid: DWORD;
+  wpid: DWORD;
   pids, newAppList: TFPList;
 begin
   if not FReady then exit;

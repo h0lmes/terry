@@ -116,11 +116,13 @@ type
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
     FLastMouseUp: cardinal;
+    FProcessWindowsCount: integer;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
+    procedure DrawWindowsCount(dst: pointer; x, y, Size: integer);
   public
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
@@ -156,14 +158,15 @@ begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
 
-  FLastMouseUp:= 0;
-  FCommand:= '';
-  FParams:= '';
-  FDir:= '';
-  FImageFile:= '';
-  FColorData:= DEFAULT_COLOR_DATA;
-  FShowCmd:= 0;
-  FHide:= false;
+  FLastMouseUp := 0;
+  FCommand := '';
+  FParams := '';
+  FDir := '';
+  FImageFile := '';
+  FColorData := DEFAULT_COLOR_DATA;
+  FShowCmd := 0;
+  FHide := false;
+  FProcessWindowsCount := 0;
 
   UpdateItem(AData);
 end;
@@ -317,17 +320,12 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.UpdateItemRunningState;
-var
-  b: boolean;
 begin
-  if length(FExecutable) > 0 then
+  if FExecutable <> '' then FProcessWindowsCount := ProcessHelper.GetProcessWindowsCount(FExecutable);
+  if (FProcessWindowsCount > 0) <> FRunning then
   begin
-    b := ProcessHelper.ProcessExists(FExecutable);
-    if b <> FRunning then
-    begin
-      FRunning := b;
-      Redraw;
-    end;
+    FRunning := FProcessWindowsCount > 0;
+    Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -409,7 +407,7 @@ begin
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    if FRunning and (AAlpha > 127) then theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
+    if FRunning and (AAlpha > 24) then DrawWindowsCount(dst, xBitmap, yBitmap, FSize); //theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
     GdipResetWorldTransform(dst);
 
     // hint (caption) //
@@ -492,6 +490,45 @@ begin
 
   except
     on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ')'#10#13 + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.DrawWindowsCount(dst: pointer; x, y, Size: integer);
+var
+  brush, family, hfont, format, path: Pointer;
+  tmpItemSize: integer;
+  rect: GDIPAPI.TRectF;
+begin
+  if FProcessWindowsCount > 0 then
+  begin
+    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+    GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+    // background
+    tmpItemSize := max(FItemSize, 40);
+    if FProcessWindowsCount > 99 then rect.Width := round(tmpItemSize * 9 / 12)
+    else if FProcessWindowsCount > 9 then rect.Width := round(tmpItemSize * 7 / 12)
+    else rect.Width := round(tmpItemSize * 5 / 12);
+    rect.Height := round(tmpItemSize * 5 / 12);
+    rect.X := x + Size - rect.Width + 5;
+    rect.Y := y - 5;
+    GdipCreatePath(FillModeWinding, path);
+    AddPathRoundRect(path, rect, rect.Height / 2);
+    GdipCreateSolidFill($ffff0000, brush); // red indicator background
+    GdipFillPath(dst, brush, path);
+    GdipDeleteBrush(brush);
+    GdipDeletePath(path);
+    // number
+    GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+    GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
+    GdipCreateSolidFill($ffffffff, brush);
+    GdipCreateStringFormat(0, 0, format);
+    GdipSetStringFormatAlign(format, StringAlignmentCenter);
+    GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+    GdipDrawString(dst, PWideChar(WideString(inttostr(FProcessWindowsCount))), -1, hfont, @rect, format, brush);
+    GdipDeleteStringFormat(format);
+    GdipDeleteBrush(brush);
+    GdipDeleteFont(hfont);
+    GdipDeleteFontFamily(family);
   end;
 end;
 //------------------------------------------------------------------------------
