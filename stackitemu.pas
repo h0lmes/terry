@@ -58,6 +58,7 @@ type
     FBackgroundWindow: uint;
     FBackgroundBlur: boolean;
     FBackgroundColor: uint;
+    FWindowCount: integer;
     procedure UpdateItemInternal;
     procedure BeforeDraw;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
@@ -157,6 +158,7 @@ begin
   FShowBackground := false;
   FBackgroundBlur := true;
   FBackgroundColor := DEFAULT_STACK_BGCOLOR;
+  FWindowCount := 0;
 end;
 //------------------------------------------------------------------------------
 destructor TStackItem.Destroy;
@@ -312,7 +314,7 @@ function TStackItem.cmd(id: TGParam; param: integer): integer;
 var
   b: boolean;
   temp: uint;
-  idx: integer;
+  idx, windowCount: integer;
 begin
   try
     result := inherited cmd(id, param);
@@ -353,17 +355,18 @@ begin
 
       icUpdateRunning:
         begin
-          b := false;
+          windowCount := 0;
           idx := 0;
           while idx < FItemCount do
           begin
             items[idx].item.cmd(icUpdateRunning, 0);
-            if items[idx].item.Running then b := true;
+            inc(windowCount, items[idx].item.WindowCount);
             inc(idx);
           end;
-          if b <> FRunning then
+          if windowCount <> FWindowCount then
           begin
-            FRunning := b;
+            FWindowCount := windowCount;
+            FRunning := windowCount > 0;
             Redraw;
           end;
         end;
@@ -421,6 +424,7 @@ procedure TStackItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
   if assigned(FPreviewImage) and (FState = stsClosed) then
     GdipDrawImageRectRectI(dst, FPreviewImage, x, y, size, size, 0, 0, FPreviewImageW, FPreviewImageH, UnitPixel, nil, nil, nil);
+  if FWindowCount > 0 then DrawNumberOverlay(dst, x, y, size, FWindowCount);
   DrawItemIndicator(dst, FDropIndicator, x, y, size, size);
 end;
 // Draw routines ---------------------------------------------------------------

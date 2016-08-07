@@ -37,6 +37,7 @@ type
     FUpdating: boolean;
     FSelected: boolean; // when mouse button is down - icon becomes darken //
     FRunning: boolean;
+    FProcessWindowsCount: integer;
     FShowHint: boolean;
     FSite: integer;
     FItemSize: integer;
@@ -71,6 +72,7 @@ type
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
     property Running: boolean read FRunning;
+    property WindowCount: integer read FProcessWindowsCount;
     property QueryDelete: boolean read FQueryDelete;
     property Image: pointer read FImage;
     property ImageW: uint read FIW;
@@ -116,13 +118,12 @@ type
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
     FLastMouseUp: cardinal;
-    FProcessWindowsCount: integer;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure DrawWindowsCount(dst: pointer; x, y, Size: integer);
+    procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
@@ -166,7 +167,6 @@ begin
   FColorData := DEFAULT_COLOR_DATA;
   FShowCmd := 0;
   FHide := false;
-  FProcessWindowsCount := 0;
 
   UpdateItem(AData);
 end;
@@ -407,7 +407,8 @@ begin
     if hattr <> nil then GdipDisposeImageAttributes(hattr);
 
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    if FRunning and (AAlpha > 24) then DrawWindowsCount(dst, xBitmap, yBitmap, FSize); //theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
+    if FRunning and (AAlpha > 24) then
+      if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, xBitmap, yBitmap, FSize, FProcessWindowsCount); //theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
     GdipResetWorldTransform(dst);
 
     // hint (caption) //
@@ -493,43 +494,40 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.DrawWindowsCount(dst: pointer; x, y, Size: integer);
+procedure TShortcutSubitem.DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
 var
   brush, family, hfont, format, path: Pointer;
   tmpItemSize: integer;
   rect: GDIPAPI.TRectF;
 begin
-  if FProcessWindowsCount > 0 then
-  begin
-    GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-    GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-    // background
-    tmpItemSize := max(FItemSize, 40);
-    if FProcessWindowsCount > 99 then rect.Width := round(tmpItemSize * 9 / 12)
-    else if FProcessWindowsCount > 9 then rect.Width := round(tmpItemSize * 7 / 12)
-    else rect.Width := round(tmpItemSize * 5 / 12);
-    rect.Height := round(tmpItemSize * 5 / 12);
-    rect.X := x + Size - rect.Width + 5;
-    rect.Y := y - 5;
-    GdipCreatePath(FillModeWinding, path);
-    AddPathRoundRect(path, rect, rect.Height / 2);
-    GdipCreateSolidFill($ffff0000, brush); // red indicator background
-    GdipFillPath(dst, brush, path);
-    GdipDeleteBrush(brush);
-    GdipDeletePath(path);
-    // number
-    GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-    GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
-    GdipCreateSolidFill($ffffffff, brush);
-    GdipCreateStringFormat(0, 0, format);
-    GdipSetStringFormatAlign(format, StringAlignmentCenter);
-    GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
-    GdipDrawString(dst, PWideChar(WideString(inttostr(FProcessWindowsCount))), -1, hfont, @rect, format, brush);
-    GdipDeleteStringFormat(format);
-    GdipDeleteBrush(brush);
-    GdipDeleteFont(hfont);
-    GdipDeleteFontFamily(family);
-  end;
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+  GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+  // background
+  tmpItemSize := max(FItemSize, 40);
+  if number > 99 then rect.Width := round(tmpItemSize * 9 / 12)
+  else if number > 9 then rect.Width := round(tmpItemSize * 7 / 12)
+  else rect.Width := round(tmpItemSize * 5 / 12);
+  rect.Height := round(tmpItemSize * 5 / 12);
+  rect.X := x + Size - rect.Width + 5;
+  rect.Y := y - 5;
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, rect, rect.Height / 2);
+  GdipCreateSolidFill($ffff0000, brush); // red indicator background
+  GdipFillPath(dst, brush, path);
+  GdipDeleteBrush(brush);
+  GdipDeletePath(path);
+  // number
+  GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+  GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
+  GdipCreateSolidFill($ffffffff, brush);
+  GdipCreateStringFormat(0, 0, format);
+  GdipSetStringFormatAlign(format, StringAlignmentCenter);
+  GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+  GdipDrawString(dst, PWideChar(WideString(inttostr(number))), -1, hfont, @rect, format, brush);
+  GdipDeleteStringFormat(format);
+  GdipDeleteBrush(brush);
+  GdipDeleteFont(hfont);
+  GdipDeleteFontFamily(family);
 end;
 //------------------------------------------------------------------------------
 // returns position of the item window in relative coordinates //
@@ -892,6 +890,7 @@ begin
   FUpdating:= false;
   FSelected:= false;
   FRunning:= false;
+  FProcessWindowsCount := 0;
   FShowHint:= true;
   FSite:= 3;
   FItemSize := 32;

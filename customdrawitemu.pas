@@ -20,6 +20,7 @@ type
     OnBeforeDraw: TOnBeforeDraw;
     OnAfterDraw: TOnAfterDraw;
     OnDrawOverlay: TOnDrawOverlay;
+    procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
     property Running: boolean read FRunning;
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
@@ -212,6 +213,42 @@ begin
   except
     on e: Exception do raise Exception.Create('CustomDrawItem.Draw(' + FCaption + ')'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomDrawItem.DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
+var
+  brush, family, hfont, format, path: Pointer;
+  tmpItemSize: integer;
+  rect: GDIPAPI.TRectF;
+begin
+  GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+  GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+  // background
+  tmpItemSize := max(FItemSize, 40);
+  if number > 99 then rect.Width := round(tmpItemSize * 9 / 12)
+  else if number > 9 then rect.Width := round(tmpItemSize * 7 / 12)
+  else rect.Width := round(tmpItemSize * 5 / 12);
+  rect.Height := round(tmpItemSize * 5 / 12);
+  rect.X := x + Size - rect.Width + 5;
+  rect.Y := y - 5;
+  GdipCreatePath(FillModeWinding, path);
+  AddPathRoundRect(path, rect, rect.Height / 2);
+  GdipCreateSolidFill($ffff0000, brush); // red indicator background
+  GdipFillPath(dst, brush, path);
+  GdipDeleteBrush(brush);
+  GdipDeletePath(path);
+  // number
+  GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
+  GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
+  GdipCreateSolidFill($ffffffff, brush);
+  GdipCreateStringFormat(0, 0, format);
+  GdipSetStringFormatAlign(format, StringAlignmentCenter);
+  GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
+  GdipDrawString(dst, PWideChar(WideString(inttostr(number))), -1, hfont, @rect, format, brush);
+  GdipDeleteStringFormat(format);
+  GdipDeleteBrush(brush);
+  GdipDeleteFont(hfont);
+  GdipDeleteFontFamily(family);
 end;
 //------------------------------------------------------------------------------
 end.

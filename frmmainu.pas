@@ -762,8 +762,8 @@ end;
 procedure Tfrmmain.WHMouseMove(LParam: LParam);
 var
   pt: Windows.Tpoint;
-  monitorRect: Windows.TRect;
-  OldMouseOver: boolean;
+  monitorRect, itemMgrRect: Windows.TRect;
+  oldMouseOver: boolean;
 begin
   if not IsMouseEffectLocked and assigned(ItemMgr) and IsWindowVisible(Handle) and not FProgramIsClosing then
   begin
@@ -775,24 +775,20 @@ begin
       ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not IsHiddenDown);
 
       // detect mouse enter/leave //
-      OldMouseOver := FMouseOver;
+      oldMouseOver := FMouseOver;
       monitorRect := ItemMgr.FMonitorRect;
+      itemMgrRect := ItemMgr.GetRect;
       if sets.container.site = bsBottom then
-        FMouseOver := (pt.y >= monitorRect.Bottom - 1) and
-          (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
+        FMouseOver := (pt.y >= monitorRect.Bottom - 1) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
       else if sets.container.site = bsTop then
-        FMouseOver := (pt.y <= monitorRect.Top) and
-          (pt.x >= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X) and (pt.x <= ItemMgr.FBaseWindowRect.X + ItemMgr.FBaseImageRect.X + ItemMgr.FBaseImageRect.Width)
+        FMouseOver := (pt.y <= monitorRect.Top) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
       else if sets.container.site = bsLeft then
-        FMouseOver := (pt.x <= monitorRect.Left) and
-          (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height)
+        FMouseOver := (pt.x <= monitorRect.Left) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom)
       else if sets.container.site = bsRight then
-        FMouseOver := (pt.x >= monitorRect.Right - 1) and
-          (pt.y >= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y) and (pt.y <= ItemMgr.FBaseWindowRect.Y + ItemMgr.FBaseImageRect.Y + ItemMgr.FBaseImageRect.Height);
+        FMouseOver := (pt.x >= monitorRect.Right - 1) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom);
       FMouseOver := FMouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
-
-      if FMouseOver and not OldMouseOver then OnMouseEnter;
-      if not FMouseOver and OldMouseOver then OnMouseLeave;
+      if FMouseOver and not oldMouseOver then OnMouseEnter;
+      if not FMouseOver and oldMouseOver then OnMouseLeave;
     end;
   end;
 end;

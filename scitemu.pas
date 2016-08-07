@@ -43,7 +43,6 @@ type
     procedure DynObjectUpdate;
     procedure AfterDraw;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
-    procedure DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
     procedure BeforeMouseHover(AHover: boolean);
     procedure MouseHover(AHover: boolean);
     procedure Exec(action: TExecuteAction);
@@ -428,50 +427,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DrawOverlay(dst: pointer; x, y, size: integer);
 begin
-  DrawWindowsCount(dst, FAppList, x, y, size);
+  if assigned(FAppList) then
+    if FAppList.Count > 1 then DrawNumberOverlay(dst, x, y, size, FAppList.Count);
   DrawItemIndicator(dst, FDropIndicator, x, y, size, size);
 end;
 // Draw routines ---------------------------------------------------------------
-//------------------------------------------------------------------------------
-procedure TShortcutItem.DrawWindowsCount(dst: pointer; winList: TFPList; x, y, Size: integer);
-var
-  brush, family, hfont, format, path: Pointer;
-  tmpItemSize: integer;
-  rect: GDIPAPI.TRectF;
-begin
-  if assigned(winList) then
-      if winList.Count > 1 then
-      begin
-        GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-        GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-        // background
-        tmpItemSize := max(FItemSize, 40);
-        if winList.Count > 99 then rect.Width := round(tmpItemSize * 9 / 12)
-        else if winList.Count > 9 then rect.Width := round(tmpItemSize * 7 / 12)
-        else rect.Width := round(tmpItemSize * 5 / 12);
-        rect.Height := round(tmpItemSize * 5 / 12);
-        rect.X := x + Size - rect.Width + 5;
-        rect.Y := y - 5;
-        GdipCreatePath(FillModeWinding, path);
-        AddPathRoundRect(path, rect, rect.Height / 2);
-        GdipCreateSolidFill($ffff0000, brush); // red indicator background
-        GdipFillPath(dst, brush, path);
-        GdipDeleteBrush(brush);
-        GdipDeletePath(path);
-        // number
-        GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
-        GdipCreateFont(family, tmpItemSize * 5 div 16, 1, 2, hfont);
-        GdipCreateSolidFill($ffffffff, brush);
-        GdipCreateStringFormat(0, 0, format);
-        GdipSetStringFormatAlign(format, StringAlignmentCenter);
-        GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
-        GdipDrawString(dst, PWideChar(WideString(inttostr(winList.Count))), -1, hfont, @rect, format, brush);
-        GdipDeleteStringFormat(format);
-        GdipDeleteBrush(brush);
-        GdipDeleteFont(hfont);
-        GdipDeleteFontFamily(family);
-      end;
-end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Timer;
 begin

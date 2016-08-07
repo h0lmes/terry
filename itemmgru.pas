@@ -103,7 +103,7 @@ type
     FMonitorRect: Windows.TRect;
     FBaseWindowRect: GDIPAPI.TRect; // rect of the dock main window. updated on every RecalcDock //
     FBaseImageRect: GDIPAPI.TRect; // rect of the dock image. updated on every RecalcDock //
-    _ZoomInOutItem: extended; // relative mouse position on last WHMouseMove //
+    FZoomInOutItem: extended; // relative mouse position on last WHMouseMove //
     FZooming: boolean; // true if mouse is over the panel and any items are zoomed //
     FDropDistance: integer;
     FLockDragging: boolean;
@@ -795,10 +795,10 @@ begin
       sizeInc := 0;
       if ZoomItemSizeDiff > 0 then
       begin
-        if (i < trunc(_ZoomInOutItem) - FZoomWidth / 2) or (i > trunc(_ZoomInOutItem) + FZoomWidth / 2) then sizeInc := 0
-        else if i = trunc(_ZoomInOutItem) then sizeInc := ZoomItemSizeDiff
-        else if i < trunc(_ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - _ZoomInOutItem + 1) / FZoomWidth) + 1) / 2
-        else if i > trunc(_ZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - _ZoomInOutItem) / FZoomWidth) + 1) / 2;
+        if (i < trunc(FZoomInOutItem) - FZoomWidth / 2) or (i > trunc(FZoomInOutItem) + FZoomWidth / 2) then sizeInc := 0
+        else if i = trunc(FZoomInOutItem) then sizeInc := ZoomItemSizeDiff
+        else if i < trunc(FZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - FZoomInOutItem + 1) / FZoomWidth) + 1) / 2
+        else if i > trunc(FZoomInOutItem) then sizeInc := (ZoomItemSizeDiff - 1) * (cos(PI * 2 * (i - FZoomInOutItem) / FZoomWidth) + 1) / 2;
       end;
       FItemArray[i].se := FItemSize + sizeInc;
       FItemArray[i].s := round(FItemArray[i].se);
@@ -838,16 +838,16 @@ begin
       begin
         if FSiteVertical then
         begin
-          if i < trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - offset
-          else if i > trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y + offset
-          else if i = trunc(_ZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - ZoomItemSizeDiff * frac(_ZoomInOutItem);
+          if i < trunc(FZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - offset
+          else if i > trunc(FZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y + offset
+          else if i = trunc(FZoomInOutItem) then FItemArray[i].ye := FItemArray[i].y - ZoomItemSizeDiff * frac(FZoomInOutItem);
           FItemArray[i].y := round(FItemArray[i].ye);
         end
         else
         begin
-          if i < trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - offset
-          else if i > trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x + offset
-          else if i = trunc(_ZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - ZoomItemSizeDiff * frac(_ZoomInOutItem);
+          if i < trunc(FZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - offset
+          else if i > trunc(FZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x + offset
+          else if i = trunc(FZoomInOutItem) then FItemArray[i].xe := FItemArray[i].x - ZoomItemSizeDiff * frac(FZoomInOutItem);
           FItemArray[i].x := round(FItemArray[i].xe);
         end;
       end;
@@ -858,8 +858,8 @@ begin
     // icons positions while FZooming (within bubble, excluding center bubble icon) //
     if ZoomItemSizeDiff > 0 then
     begin
-      i := trunc(_ZoomInOutItem) - 1;
-      while (i > trunc(_ZoomInOutItem) - FZoomWidth / 2) and (i >= 0)  do
+      i := trunc(FZoomInOutItem) - 1;
+      while (i > trunc(FZoomInOutItem) - FZoomWidth / 2) and (i >= 0)  do
       begin
         if FSiteVertical then
         begin
@@ -873,19 +873,19 @@ begin
         end;
         dec(i);
       end;
-      i := trunc(_ZoomInOutItem) + 1;
-      while (i <= trunc(_ZoomInOutItem) + FZoomWidth / 2) and (i < FItemCount)  do
+      i := trunc(FZoomInOutItem) + 1;
+      while (i <= trunc(FZoomInOutItem) + FZoomWidth / 2) and (i < FItemCount)  do
       begin
         if FSiteVertical then
         begin
           FItemArray[i].ye := FItemArray[i - 1].ye + FItemArray[i - 1].se + FItemSpacing;
-          if i = trunc(_ZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].y := FItemArray[i].y + FItemSize - FItemArray[i].s
+          if i = trunc(FZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].y := FItemArray[i].y + FItemSize - FItemArray[i].s
           else FItemArray[i].y := round(FItemArray[i].ye);
         end
         else
         begin
           FItemArray[i].xe := FItemArray[i - 1].xe + FItemArray[i - 1].se + FItemSpacing;
-          if i = trunc(_ZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].x := FItemArray[i].x + FItemSize - FItemArray[i].s
+          if i = trunc(FZoomInOutItem) + FZoomWidth / 2 then FItemArray[i].x := FItemArray[i].x + FItemSize - FItemArray[i].s
           else FItemArray[i].x := round(FItemArray[i].xe);
         end;
         inc(i);
@@ -1556,7 +1556,7 @@ begin
     if not FZooming and (item <> NOT_AN_ITEM) then
     begin
       ZoomStartTime := GetTickCount;
-      _ZoomInOutItem := item;
+      FZoomInOutItem := item;
       FZooming := true;
     end;
 
@@ -1566,13 +1566,13 @@ begin
       else begin
           if ZoomItemSizeDiff = FBigItemSize - FItemSize then
           begin
-              if _ZoomInOutItem <> item then
+              if FZoomInOutItem <> item then
               begin
-                _ZoomInOutItem := item;
+                FZoomInOutItem := item;
                 ItemsChanged;
               end;
           end
-          else _ZoomInOutItem := item;
+          else FZoomInOutItem := item;
       end;
     end;
   except
@@ -1620,11 +1620,10 @@ end;
 // entry point for MouseMove events
 procedure TItemManager.WHMouseMove(pt: windows.Tpoint; allow_zoom: boolean = true);
 var
-  wnd: cardinal;
+  wnd: THandle;
 begin
+  if FEnabled and FVisible then
   try
-    if not FEnabled or not FVisible then exit;
-
     if FItemCount > 0 then
     begin
       // hint //
@@ -1636,16 +1635,11 @@ begin
         if wnd <> 0 then ItemCmd(wnd, icHover, 1);
       end;
       FHoverItemHWnd := wnd;
-      // zoom //
-      if allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
     end;
 
-    // drop place //
-    if FDraggingItem or FDraggingFile then
-    begin
-      SetDropPlaceFromPoint(pt);
-      if allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
-    end;
+    if FDraggingItem or FDraggingFile then SetDropPlaceFromPoint(pt);
+
+    if (FItemCount > 0) and allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
   except
     on e: Exception do raise Exception.Create('ItemManager.WHMouseMove'#10#13 + e.message);
   end;
@@ -1660,15 +1654,18 @@ end;
 //------------------------------------------------------------------------------
 procedure TItemManager.DragLeave;
 begin
-  FDraggingItem := false;
-  FDraggingFile := false;
-  SetDropPlaceEx(NOT_AN_ITEM);
-  SetDropPlace(NOT_AN_ITEM);
-  ItemsChanged;
-  ItemCmd(FSelectedItemHWnd, icDragLeave, 0);
-  ItemCmd(FSelectedItemHWnd, icSelect, 0);
-  FSelectedItemHWnd := 0;
-  AllItemCmd(icHover, 0);
+  if FDraggingItem or FDraggingFile then
+  begin
+    FDraggingItem := false;
+    FDraggingFile := false;
+    SetDropPlaceEx(NOT_AN_ITEM);
+    SetDropPlace(NOT_AN_ITEM);
+    ItemsChanged;
+    ItemCmd(FSelectedItemHWnd, icDragLeave, 0);
+    ItemCmd(FSelectedItemHWnd, icSelect, 0);
+    FSelectedItemHWnd := 0;
+    AllItemCmd(icHover, 0);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TItemManager.DragOver;
