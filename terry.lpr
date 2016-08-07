@@ -322,7 +322,7 @@ begin
   result.Bottom := 0;
   if assigned(frmmain) then
     if assigned(frmmain.ItemMgr) then
-      result := frmmain.ItemMgr.GetRect;
+      result := frmmain.ItemMgr.Rect;
 end;
 //------------------------------------------------------------------------------
 procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer); stdcall;

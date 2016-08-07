@@ -57,6 +57,7 @@ type
     FBlurWindow: THandle;
     function  CloseQuery: integer;
 		procedure CreateBlurWindow;
+		procedure DestroyBlurWindow;
 		procedure DoGlobalHotkeys;
     procedure FlashTaskWindow(hwnd: HWND);
 		procedure TaskWindowCreated(hwnd: HWND);
@@ -143,9 +144,9 @@ type
     procedure OpenWith(filename: string);
     function  FullScreenAppActive(HWnd: HWND): boolean;
     function  ListFullScreenApps: string;
-    procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
-    procedure execute_cmdline(cmd: string; showcmd: integer = 1);
-    procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
+    procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
+    procedure execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
+    procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
     procedure Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
   end;
 
@@ -183,8 +184,6 @@ begin
     WM_SHELLHOOK := RegisterWindowMessage('SHELLHOOK');
     RegisterShellHookWindow(Handle);
 
-    CreateBlurWindow;
-
     // hook //
     //theFile := UnzipPath('%pp%\hook.dll');
     //FHook := 0;
@@ -196,6 +195,8 @@ begin
     sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
     FRevertMonitor := sets.container.Monitor;
+
+    if sets.container.BlurEnabled then CreateBlurWindow;
 
     theme := TDTheme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
     if not theme.Load then
@@ -331,12 +332,17 @@ begin
   try
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
-    SetWindowLong(FBlurWindow, GWL_HWNDPARENT, Handle);
     dwm.ExcludeFromPeek(FBlurWindow);
     SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
     on e: Exception do raise Exception.Create('Base.CreateBlurWindow'#10#13 + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.DestroyBlurWindow;
+begin
+  if IsWindow(FBlurWindow) then DestroyWindow(FBlurWindow);
+  FBlurWindow := 0;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.CloseProgram;
@@ -382,7 +388,7 @@ begin
       TNotifier.Cleanup;
       LockList.free;
 
-      DestroyWindow(FBlurWindow);
+      DestroyBlurWindow;
       DeregisterShellHookWindow(Handle);
       // reset window proc
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
@@ -575,8 +581,12 @@ begin
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
-    gpBlurEnabled:                   BasePaint(1);
-		gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
+    gpBlurEnabled:
+      begin
+        if value = 0 then DestroyBlurWindow else CreateBlurWindow;
+        BasePaint(1);
+      end;
+    gpShowRunningIndicator:   if value <> 0 then UpdateRunning;
   end;
 
   if assigned(ItemMgr) then ItemMgr.SetParam(id, value);
@@ -613,7 +623,7 @@ begin
   if message.msg = WM_SHELLHOOK then
   begin
     if message.wParam = HSHELL_FLASH then FlashTaskWindow(message.lParam);
-    if message.wParam = HSHELL_ACTIVATESHELLWINDOW then BaseCmd(tcActivate, 0);
+    //if message.wParam = HSHELL_ACTIVATESHELLWINDOW then BaseCmd(tcActivate, 0);
     if message.wParam = HSHELL_WINDOWCREATED then TaskWindowCreated(message.lParam);
     if message.wParam = HSHELL_WINDOWDESTROYED then TaskWindowDestroyed(message.lParam);
     exit;
@@ -777,7 +787,7 @@ begin
       // detect mouse enter/leave //
       oldMouseOver := FMouseOver;
       monitorRect := ItemMgr.FMonitorRect;
-      itemMgrRect := ItemMgr.GetRect;
+      itemMgrRect := ItemMgr.Rect;
       if sets.container.site = bsBottom then
         FMouseOver := (pt.y >= monitorRect.Bottom - 1) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
       else if sets.container.site = bsTop then
@@ -838,124 +848,6 @@ end;
 procedure Tfrmmain.FormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: integer);
 begin
   if button = mbRight then DoMenu;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.DoMenu;
-var
-  pt: Windows.TPoint;
-begin
-  Windows.GetCursorPos(pt);
-  ContextMenu(pt);
-end;
-//------------------------------------------------------------------------------
-function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
-  function IsValidItemString(str: string): boolean;
-  var
-    classname: string;
-  begin
-    classname := FetchValue(str, 'class="', '";');
-    result := (classname = 'shortcut') or (classname = 'stack');
-  end;
-
-var
-  idx: integer;
-begin
-  if IsMenu(FMenu) then DestroyMenu(FMenu);
-  if ParentMenu = 0 then FMenu := CreatePopupMenu else FMenu := ParentMenu;
-
-  if ParentMenu = 0 then
-    if IsValidItemString(GetClipboard) then
-      AppendMenu(FMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
-
-  // create submenu 'Add...' //
-
-  FMenuCreate := CreatePopupMenu;
-  AppendMenu(FMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pchar(UTF8ToAnsi(XUndeleteIcon)));
-  AppendMenu(FMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
-  AppendMenu(FMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
-  AppendMenu(FMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XFile)));
-  //AppendMenu(FMenuCreate, MF_STRING, $f026, pchar(UTF8ToAnsi(XInstalledApplication)));
-  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
-  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenuCreate, MF_STRING, $f025, pchar(UTF8ToAnsi(XDock)));
-  if sets.GetPluginCount = -1 then sets.ScanPlugins;
-  if sets.GetPluginCount > 0 then
-  begin
-    AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
-    idx := 0;
-    while idx < sets.GetPluginCount do
-    begin
-      AppendMenu(FMenuCreate, MF_STRING, $f041 + idx, pchar(sets.GetPluginName(idx)));
-      inc(idx);
-    end;
-  end;
-
-  // insert all menu items //
-  if ParentMenu <> 0 then AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING + MF_POPUP, FMenuCreate, pchar(UTF8ToAnsi(XAddIcon)));
-  AppendMenu(FMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), IDM_LOCKICONS, pchar(UTF8ToAnsi(XLockIcons)));
-  AppendMenu(FMenu, MF_STRING, IDM_COLLECTION, pchar(UTF8ToAnsi(XIconCollection)));
-  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING, IDM_TASKMGR, pchar(UTF8ToAnsi(XTaskManager)));
-  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING, IDM_SETS, pchar(UTF8ToAnsi(XProgramSettings)));
-  AppendMenu(FMenu, MF_STRING, IDM_QUIT, pchar(UTF8ToAnsi(XExit)));
-
-  Result := FMenu;
-end;
-//------------------------------------------------------------------------------
-function Tfrmmain.ContextMenu(pt: Windows.TPoint): boolean;
-var
-  msg: TMessage;
-begin
-  Result := False;
-  GetHMenu(0);
-  LockMouseEffect(Handle, true);
-  SetForegroundWindow(handle);
-  SetForeground;
-  msg.WParam := uint(TrackPopupMenuEx(FMenu, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
-  WMCommand(msg);
-  Result := True;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.WMCommand(var msg: TMessage);
-var
-  cmd: string;
-begin
-  try
-    LockMouseEffect(Handle, false);
-    msg.Result := 0;
-    if IsMenu(FMenu) then DestroyMenu(FMenu);
-
-    if (msg.wparam >= $f021) and (msg.wparam < $f040) then
-    begin
-      case msg.wparam of
-        $f021: cmd := '/itemmgr.shortcut';
-        $f022: cmd := '/program';
-        $f023: cmd := '/command';
-        $f024: cmd := '/itemmgr.separator';
-        $f025: cmd := '/newdock';
-        $f026: cmd := '/undelete';
-
-        IDM_PASTE: cmd := '/paste';
-        IDM_LOCKICONS: cmd := '/lockdragging';
-        IDM_COLLECTION: cmd := '/collection';
-        IDM_TASKMGR: cmd := '/taskmgr';
-        IDM_SETS: cmd := '/sets';
-        IDM_QUIT: cmd := '/quit';
-      end;
-      execute_cmdline(cmd);
-    end
-    else
-    if (msg.wparam >= $f041) and (msg.wparam <= $f0ff) then
-    begin
-      ItemMgr.command('plugin', sets.GetPluginFileName(msg.wparam - $f041));
-    end;
-
-  except
-    on e: Exception do err('Base.WMCommand', e);
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
@@ -1175,11 +1067,7 @@ begin
         if FWndOffsetTarget > FWndOffset then inc(FWndOffset, RollStep) else dec(FWndOffset, RollStep);
       end
       else FWndOffset := FWndOffsetTarget;
-      if assigned(ItemMgr) then
-      begin
-        ItemMgr.WndOffset := FWndOffset;
-        ItemMgr.ItemsChanged;
-      end;
+      if assigned(ItemMgr) then ItemMgr.WndOffset := FWndOffset;
     end;
 end;
 //------------------------------------------------------------------------------
@@ -1239,10 +1127,10 @@ begin
 	    SetWindowPos(handle, ItemMgr.ZOrder(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
       // set dock window non topmost
 	    SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
-	    // set blur window non topmost
+	    // set blur window underneath the dock
 	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
 	    // set all items non topmost
-	    ItemMgr.ZOrder(HWND_NOTOPMOST);
+      SetWindowPos(handle, ItemMgr.ZOrder(HWND_NOTOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
 	end;
 
   // bring to the foreground other program windows if any visible
@@ -1285,7 +1173,7 @@ begin
   if IsWindowVisible(wnd) and not IsIconic(wnd) then
   begin
     GetWindowRect(wnd, @rect);
-    dockrect := dockh.DockGetRect;
+    if assigned(ItemMgr) then dockrect := ItemMgr.Rect;
     if IntersectRect(rect, dockrect, rect) then
     begin
       GetClassName(wnd, buf, MAX_PATH);
@@ -1312,8 +1200,7 @@ begin
   begin
     SetWindowPos(FBlurWindow, wnd, 0, 0, 0, 0, SWP_NO_FLAGS);
     SetWindowPos(handle, wnd, 0, 0, 0, 0, SWP_NO_FLAGS);
-    ItemMgr.ZOrder(wnd);
-    ItemMgr.UnZoom();
+    SetWindowPos(handle, ItemMgr.ZOrder(wnd), 0, 0, 0, 0, SWP_NO_FLAGS);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1334,15 +1221,16 @@ begin
     if h = Handle then
     begin
       // if BlurWindow above the dock - put blur exactly behind the dock
-      if not blurFound then SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
+      if not blurFound and IsWindow(FBlurWindow) then SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       // main dock window found - exit
       exit;
     end
     else
     if ItemMgr.IsItem(h) <> 0 then // one of the items found (but not the dock yet) - adjust dock position
     begin
-      SetWindowPos(FBlurWindow, h, 0, 0, 0, 0, SWP_NO_FLAGS);
+      if IsWindow(FBlurWindow) then SetWindowPos(FBlurWindow, h, 0, 0, 0, 0, SWP_NO_FLAGS);
       SetWindowPos(handle, h, 0, 0, 0, 0, SWP_NO_FLAGS);
+      if IsWindow(FBlurWindow) then SetWindowPos(FBlurWindow, handle, 0, 0, 0, 0, SWP_NO_FLAGS);
       exit;
     end
     else
@@ -1351,6 +1239,123 @@ begin
 
     h := GetWindow(h, GW_HWNDPREV);
 	end;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.DoMenu;
+var
+  pt: Windows.TPoint;
+begin
+  Windows.GetCursorPos(pt);
+  ContextMenu(pt);
+end;
+//------------------------------------------------------------------------------
+function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
+  function IsValidItemString(str: string): boolean;
+  var
+    classname: string;
+  begin
+    classname := FetchValue(str, 'class="', '";');
+    result := (classname = 'shortcut') or (classname = 'stack');
+  end;
+
+var
+  idx: integer;
+begin
+  if IsMenu(FMenu) then DestroyMenu(FMenu);
+  if ParentMenu = 0 then FMenu := CreatePopupMenu else FMenu := ParentMenu;
+
+  if ParentMenu = 0 then
+    if IsValidItemString(GetClipboard) then
+      AppendMenu(FMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
+
+  // create submenu 'Add...' //
+
+  FMenuCreate := CreatePopupMenu;
+  AppendMenu(FMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pchar(UTF8ToAnsi(XUndeleteIcon)));
+  AppendMenu(FMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
+  AppendMenu(FMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
+  AppendMenu(FMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XFile)));
+  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
+  AppendMenu(FMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
+  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
+  AppendMenu(FMenuCreate, MF_STRING, $f025, pchar(UTF8ToAnsi(XDock)));
+  if sets.GetPluginCount = -1 then sets.ScanPlugins;
+  if sets.GetPluginCount > 0 then
+  begin
+    AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
+    idx := 0;
+    while idx < sets.GetPluginCount do
+    begin
+      AppendMenu(FMenuCreate, MF_STRING, $f041 + idx, pchar(sets.GetPluginName(idx)));
+      inc(idx);
+    end;
+  end;
+
+  // insert all menu items //
+  if ParentMenu <> 0 then AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenu(FMenu, MF_STRING + MF_POPUP, FMenuCreate, pchar(UTF8ToAnsi(XAddIcon)));
+  AppendMenu(FMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), IDM_LOCKICONS, pchar(UTF8ToAnsi(XLockIcons)));
+  AppendMenu(FMenu, MF_STRING, IDM_COLLECTION, pchar(UTF8ToAnsi(XIconCollection)));
+  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenu(FMenu, MF_STRING, IDM_TASKMGR, pchar(UTF8ToAnsi(XTaskManager)));
+  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenu(FMenu, MF_STRING, IDM_SETS, pchar(UTF8ToAnsi(XProgramSettings)));
+  AppendMenu(FMenu, MF_STRING, IDM_QUIT, pchar(UTF8ToAnsi(XExit)));
+
+  Result := FMenu;
+end;
+//------------------------------------------------------------------------------
+function Tfrmmain.ContextMenu(pt: Windows.TPoint): boolean;
+var
+  msg: TMessage;
+begin
+  Result := False;
+  GetHMenu(0);
+  LockMouseEffect(Handle, true);
+  SetForegroundWindow(handle);
+  SetForeground;
+  msg.WParam := uint(TrackPopupMenuEx(FMenu, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
+  WMCommand(msg);
+  Result := True;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.WMCommand(var msg: TMessage);
+var
+  cmd: string;
+begin
+  try
+    LockMouseEffect(Handle, false);
+    msg.Result := 0;
+    if IsMenu(FMenu) then DestroyMenu(FMenu);
+
+    if (msg.wparam >= $f021) and (msg.wparam < $f040) then
+    begin
+      case msg.wparam of
+        $f021: cmd := '/itemmgr.shortcut';
+        $f022: cmd := '/program';
+        $f023: cmd := '/command';
+        $f024: cmd := '/itemmgr.separator';
+        $f025: cmd := '/newdock';
+        $f026: cmd := '/undelete';
+
+        IDM_PASTE: cmd := '/paste';
+        IDM_LOCKICONS: cmd := '/lockdragging';
+        IDM_COLLECTION: cmd := '/collection';
+        IDM_TASKMGR: cmd := '/taskmgr';
+        IDM_SETS: cmd := '/sets';
+        IDM_QUIT: cmd := '/quit';
+      end;
+      execute_cmdline(cmd);
+    end
+    else
+    if (msg.wparam >= $f041) and (msg.wparam <= $f0ff) then
+    begin
+      ItemMgr.command('plugin', sets.GetPluginFileName(msg.wparam - $f041));
+    end;
+
+  except
+    on e: Exception do err('Base.WMCommand', e);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.BasePaint(flags: integer);
@@ -1646,38 +1651,47 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.SetWorkarea(rect: windows.TRect);
+  procedure GetMaximizedWindows(monitorBounds: windows.TRect; list: TFPList);
+  var
+    h: HANDLE;
+    wp: WINDOWPLACEMENT;
+  begin
+    wp.length := sizeof(wp);
+    h := FindWindow('Progman', nil);
+    h := GetWindow(h, GW_HWNDPREV);
+	  while h <> 0 do
+	  begin
+      // exclude hidden and tool windows
+      if IsWindowVisible(h) and (GetWindowLong(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
+      begin
+          // only maximized windows
+          GetWindowPlacement(h, wp);
+          if wp.showCmd = SW_SHOWMAXIMIZED then
+            if PtInRect(monitorBounds, wp.ptMaxPosition) then list.Add(pointer(h));
+      end;
+      h := GetWindow(h, GW_HWNDPREV);
+	  end;
+  end;
 var
-  h: HANDLE;
-  wp: WINDOWPLACEMENT;
   monitor: integer; // a monitor of given workarea
   bounds: windows.TRect;
+  maxList: TFPList;
+  i: integer;
 begin
-  SystemParametersInfo(SPI_SETWORKAREA, 0, @rect, SPIF_SENDCHANGE);
+  SystemParametersInfo(SPI_SETWORKAREA, 0, @rect, SPIF_UPDATEINIFILE);
   monitor := screen.MonitorFromPoint(rect.TopLeft).MonitorNum;
   bounds := GetMonitorBoundsRect(@monitor);
-
+  maxList := TFPList.Create;
+  GetMaximizedWindows(bounds, maxList);
   // re-maximize maximized windows to make them match new workarea
-  wp.length := sizeof(wp);
-  h := FindWindow('Progman', nil);
-  h := GetWindow(h, GW_HWNDPREV);
-	while h <> 0 do
-	begin
-    // exclude hidden and tool windows
-    if IsWindowVisible(h) and (GetWindowLong(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
-    begin
-        // update only maximized windows
-        GetWindowPlacement(h, wp);
-        if wp.showCmd = SW_SHOWMAXIMIZED then
-        begin
-          if PtInRect(bounds, wp.ptMaxPosition) then
-          begin
-            ShowWindow(h, SW_SHOWNORMAL);
-            ShowWindow(h, SW_SHOWMAXIMIZED);
-          end;
-        end;
-    end;
-    h := GetWindow(h, GW_HWNDPREV);
-	end;
+  i := 0;
+  while i < maxList.Count do
+  begin
+    ShowWindow(THandle(maxList.Items[i]), SW_SHOWNORMAL);
+    ShowWindow(THandle(maxList.Items[i]), SW_SHOWMAXIMIZED);
+    inc(i);
+  end;
+  maxList.free;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
@@ -1821,7 +1835,7 @@ var
   pt: windows.TPoint;
 begin
   GetCursorPos(pt);
-  if not PtInRect(ItemMgr.GetRect, pt) then
+  if not PtInRect(ItemMgr.Rect, pt) then
   begin
     KillTimer(Handle, ID_TIMER_DRAGLEAVE);
     ItemMgr.DragLeave;
@@ -2032,7 +2046,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
+procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
 var
   acmd, aparams, adir: string;
 begin
@@ -2051,7 +2065,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.execute_cmdline(cmd: string; showcmd: integer = 1);
+procedure Tfrmmain.execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
 var
   params: string;
 begin
@@ -2066,7 +2080,7 @@ begin
   execute(cmd, params, '', showcmd);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = 1; hwnd: cardinal = 0);
+procedure Tfrmmain.execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
 var
   cmd2: string;
   i, i1, i2, i3, i4: integer;
@@ -2121,13 +2135,13 @@ begin
   else if cmd = 'backup' then       sets.Backup
   else if cmd = 'restore' then      TfrmRestore.Open
   else if cmd = 'paste' then        ItemMgr.InsertItem(GetClipboard)
-  else if cmd = 'tray' then         Tray.ShowTrayOverflow(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
   else if cmd = 'autotray' then     Tray.SwitchAutoTray
-  else if cmd = 'volume' then       Tray.ShowVolumeControl(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'networks' then     Tray.ShowNetworks(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'battery' then      Tray.ShowBattery(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'actioncenter' then Tray.ShowActionCenter(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
-  else if cmd = 'startmenu' then    StartMenu.Show(sets.container.Site, hwnd, ItemMgr.GetRect, GetMonitorWorkareaRect)
+  else if cmd = 'tray' then         Tray.ShowTrayOverflow(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'volume' then       Tray.ShowVolumeControl(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'networks' then     Tray.ShowNetworks(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'battery' then      Tray.ShowBattery(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'actioncenter' then Tray.ShowActionCenter(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'startmenu' then    StartMenu.Show(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'theme' then // themes popup menu
   begin
     GetCursorPos(pt);
@@ -2158,7 +2172,7 @@ begin
   begin
     if assigned(ItemMgr) then
     begin
-      i := ItemMgr.ItemIndex(hwnd);
+      i := ItemMgr.ItemIndex(hwndCaller);
       if i = ItemMgr.FItemCount - 1 then i := -1;
       SetParam(gpTaskSpot, i);
     end;
@@ -2246,7 +2260,7 @@ begin
   else if cmd = 'guid' then SetClipboard(CreateClassId);
 end;
 //------------------------------------------------------------------------------
-// runner thread function
+// thread function
 function RunThread(p: pointer): PtrInt;
 var
   Data: PRunData absolute p;
@@ -2264,7 +2278,7 @@ begin
   postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
 end;
 //------------------------------------------------------------------------------
-// creates a new thread to run a program
+// create new thread, if needed, and run a program
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   Data: PRunData;

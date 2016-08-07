@@ -377,8 +377,7 @@ begin
         end;
       icDragOver: OnDragOver;
       icDragLeave: OnDragLeave;
-      icVisible:
-        if not boolean(param) then CloseStack(true);
+      icVisible: if not boolean(param) then CloseStack(true);
       icIsItem:
         begin
           result := 0;

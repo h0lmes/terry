@@ -66,26 +66,45 @@ type
     FMargin: integer; // dock icons offset from a monitor edge
     FMargin2: integer; // dock icons additional offset from a monitor edge
 
+    procedure Clear;
+    procedure ClearDeleted;
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
     procedure DoBaseDraw(forceDraw: boolean);
     procedure SetVisible(value: boolean);
+    procedure ItemsChanged(FullUpdate: boolean = false);
+    function  GetRect: windows.TRect;
+    procedure SetWndOffset(value: integer);
 
     // load/save //
-    procedure AllItemsSave;
-    procedure ItemSave(HWnd: uint);
+    procedure SaveItems;
+    procedure SaveItem(HWnd: uint);
 
     procedure SetItems1;
     procedure RecalcDock;
     procedure SetItems2(forceDraw: boolean);
-
     function  IASize: integer;
     function  ItemFromPoint(Ax, Ay, distance: integer): extended;
     function  ItemRectFromPoint(Ax, Ay: integer): integer;
 
     // items //
+    function  ItemHWnd(index: integer): THandle;
     function  AddItem(data: string; Update: boolean = false): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
+    procedure AddToRegisteredPrograms(HWnd: THandle);
+    procedure DeleteFromRegisteredPrograms(HWnd: THandle);
+
+    procedure Zoom(x, y: integer);
+    procedure UnZoom(do_now: boolean = false);
+    procedure ZoomInOut;
+    procedure SetDropPlaceFromPoint(pt: windows.TPoint);
+    procedure SetDropPlace(index: integer);
+    procedure SetDropPlaceEx(index: integer);
+
+    procedure DockAdd(HWnd: THandle);
+    procedure  AllItemTimer;
+    procedure PluginCallCreate(HWnd: HANDLE);
+    function  IsSeparator(HWnd: HANDLE): boolean;
   public
     FItemArray: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     FItemCount: integer;
@@ -116,11 +135,13 @@ type
     FBaseCmd: TBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;
+    property Rect: windows.TRect read GetRect;
     property ItemsArea: windows.TRect read FItemsArea write FItemsArea;
     property ItemsArea2: windows.TRect read FItemsArea2 write FItemsArea2;
     property Margin: integer read FMargin write FMargin;
     property Margin2: integer read FMargin2 write FMargin2;
-    property WndOffset: integer read FWndOffset write FWndOffset;
+    property WndOffset: integer read FWndOffset write SetWndOffset;
+    property ItemCount: integer read FItemCount;
 
     constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
@@ -133,12 +154,10 @@ type
     procedure Enable(value: boolean);
     procedure SetParam(id: TGParam; value: integer);
     procedure command(cmd, params: string);
-    function  GetRect: windows.TRect;
     function  GetZoomEdge: integer;
 
     procedure Timer;
     procedure SetTheme;
-    procedure ItemsChanged(FullUpdate: boolean = false);
 
     // load & save //
     procedure Load(fsets: string);
@@ -149,26 +168,16 @@ type
     procedure ClearTaskbar;
 
     // items //
-    function  ItemIndex(HWnd: HANDLE): integer;
-    function  ItemHWnd(index: integer): HANDLE;
-    procedure Clear;
-    procedure ClearDeleted;
     procedure UnDelete;
     procedure CheckDeleted;
     function  ZOrder(InsertAfter: uint): uint;
+    function  ItemIndex(HWnd: THandle): integer;
     procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
     function  CreateItem(data: string): THandle;
     procedure DeleteItem(HWnd: THandle);
-    procedure AddToRegisteredPrograms(HWnd: THandle);
-    procedure DeleteFromRegisteredPrograms(HWnd: THandle);
 
     // mouse effects //
-    procedure SetDropPlaceFromPoint(pt: windows.TPoint);
-    procedure SetDropPlace(index: integer);
-    procedure SetDropPlaceEx(index: integer);
-    procedure Zoom(x, y: integer);
-    procedure UnZoom(do_now: boolean = false);
     function  CheckMouseOn: boolean;
     procedure WHMouseMove(pt: windows.TPoint; allow_zoom: boolean = true);
     procedure DragEnter;
@@ -178,7 +187,6 @@ type
 
     // Win Item Procs //
     procedure Undock(HWnd: HANDLE);
-    procedure DockAdd(HWnd: THandle);
     procedure Dock(HWnd: HANDLE);
     function  IsItem(HWnd: HANDLE): HANDLE;
     function  ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
@@ -186,7 +194,6 @@ type
     function  ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
     function  AllItemCmd(id: TGParam; param: integer): integer;
     procedure SetFont(var Value: _FontData);
-    procedure PluginCallCreate(HWnd: HANDLE);
     function  GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
     procedure SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
@@ -195,7 +202,6 @@ type
     function  GetPluginCaption(HWnd: HANDLE): string;
     function  GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
     function  IsPluginUndocked(HWnd: HANDLE): boolean;
-    function  IsSeparator(HWnd: HANDLE): boolean;
 end;
 
 implementation
@@ -499,13 +505,13 @@ procedure TItemManager.Save(fsets: string);
 begin
   try
     if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
-    AllItemsSave;
+    SaveItems;
   except
     on e: Exception do err('ItemManager.Save', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.AllItemsSave;
+procedure TItemManager.SaveItems;
 var
   idx: integer;
 begin
@@ -521,7 +527,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.ItemSave(HWnd: uint);
+procedure TItemManager.SaveItem(HWnd: uint);
 var
   index: integer;
   Inst: TCustomItem;
@@ -628,7 +634,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemIndex(HWnd: HANDLE): integer;
+function TItemManager.ItemIndex(HWnd: THandle): integer;
 var
   idx: integer;
 begin
@@ -649,7 +655,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemHWnd(index: integer): HANDLE;
+function TItemManager.ItemHWnd(index: integer): THandle;
 begin
   result := 0;
   if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
@@ -666,7 +672,7 @@ begin
     idx := 0;
     while idx < FItemCount do
     begin
-      SetWindowPos(ItemHWnd(idx), InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
+      SetWindowPos(FItemArray[idx].h, InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
       inc(idx);
     end;
   except
@@ -674,51 +680,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// entry point for a timer event
+// preferrably > 10 times per second
 procedure TItemManager.Timer;
-var
-  elapsed: integer;
-  doUpdate: boolean;
-  item: integer;
-  Inst: TCustomItem;
 begin
-  if not FEnabled then exit;
-  doUpdate := false;
-
-  // zoom in/out smoothly //
-  if FZoomItems or (ZoomItemSizeDiff > 0) then
-  try
-      if FZooming and (ZoomItemSizeDiff < FBigItemSize - FItemSize) then
-      begin
-        doUpdate := true;
-        elapsed := abs(GetTickCount - ZoomStartTime);
-        if elapsed > FZoomTime then elapsed := FZoomTime;
-        ZoomItemSizeDiff := (FBigItemSize - FItemSize) * elapsed div FZoomTime;
-      end;
-
-      if not FZooming and (ZoomItemSizeDiff > 0) then
-      begin
-        doUpdate := true;
-        elapsed := abs(GetTickCount - ZoomStartTime);
-        if elapsed > FZoomTime then elapsed := FZoomTime;
-        ZoomItemSizeDiff := FBigItemSize - FItemSize - (FBigItemSize - FItemSize) * elapsed div FZoomTime;
-      end;
-  except
-    on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
+  if FEnabled then
+  begin
+    ZoomInOut;
+    AllItemTimer;
   end;
-
-  try
-    item := 0;
-    while item < FItemCount do
-    begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
-      if Inst is TCustomItem then Inst.Timer;
-      inc(item);
-    end;
-  except
-    on e: Exception do err('ItemManager.Timer.ItemTimer', e);
-  end;
-
-  if doUpdate then ItemsChanged;
 end;
 //------------------------------------------------------------------------------
 procedure TItemManager.SetTheme;
@@ -1033,6 +1003,15 @@ begin
     bsTop: result := FBaseWindowRect.Y + y + heightZoomed;
     bsRight: result := FBaseWindowRect.X + x + width - widthZoomed;
     bsBottom: result := FBaseWindowRect.Y + y + height - heightZoomed;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.SetWndOffset(value: integer);
+begin
+  if FWndOffset <> value then
+  begin
+    FWndOffset := value;
+    ItemsChanged;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1595,6 +1574,38 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+// meant to be called from a timer event handler
+procedure TItemManager.ZoomInOut;
+var
+  elapsed: integer;
+  doUpdate: boolean;
+begin
+  doUpdate := false;
+
+  if FZoomItems or (ZoomItemSizeDiff > 0) then
+  try
+      if FZooming and (ZoomItemSizeDiff < FBigItemSize - FItemSize) then
+      begin
+        doUpdate := true;
+        elapsed := abs(GetTickCount - ZoomStartTime);
+        if elapsed > FZoomTime then elapsed := FZoomTime;
+        ZoomItemSizeDiff := (FBigItemSize - FItemSize) * elapsed div FZoomTime;
+      end;
+
+      if not FZooming and (ZoomItemSizeDiff > 0) then
+      begin
+        doUpdate := true;
+        elapsed := abs(GetTickCount - ZoomStartTime);
+        if elapsed > FZoomTime then elapsed := FZoomTime;
+        ZoomItemSizeDiff := FBigItemSize - FItemSize - (FBigItemSize - FItemSize) * elapsed div FZoomTime;
+      end;
+  except
+    on e: Exception do err('ItemManager.Timer.SmoothZoom', e);
+  end;
+
+  if doUpdate then ItemsChanged;
+end;
+//------------------------------------------------------------------------------
 // check mouse is over the dock
 function TItemManager.CheckMouseOn: boolean;
 var
@@ -1953,6 +1964,24 @@ begin
     end;
   except
     on e: Exception do err('ItemManager.AllItemCmd', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.AllItemTimer;
+var
+  item: integer;
+  Inst: TCustomItem;
+begin
+  try
+    item := 0;
+    while item < FItemCount do
+    begin
+      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
+      if Inst is TCustomItem then Inst.Timer;
+      inc(item);
+    end;
+  except
+    on e: Exception do err('ItemManager.AllItemTimer', e);
   end;
 end;
 //------------------------------------------------------------------------------
