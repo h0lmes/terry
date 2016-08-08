@@ -23,7 +23,7 @@ type
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TGParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: integer): integer; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     class function Make: string;
 end;
@@ -65,7 +65,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TSeparatorItem.cmd(id: TGParam; param: integer): integer;
+function TSeparatorItem.cmd(id: TDParam; param: integer): integer;
 begin
   try
     result := inherited cmd(id, param);

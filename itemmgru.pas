@@ -41,7 +41,7 @@ type
     FStackAnimationEnabled: boolean;
     FSeparatorAlpha: integer;
     FOccupyFullMonitor: boolean;
-    FFont: _FontData;
+    FFont: TDFontData;
     FLockMouseEffect: boolean;
     FSetsFilename: string;
     FVisible: boolean;
@@ -132,7 +132,7 @@ type
     FDropPlace: integer; // index of free space //
     FDropPlaceEx: integer; // index of a place to drop to //
     FParentHWnd: cardinal;
-    FBaseCmd: TBaseCmd;
+    FBaseCmd: TDBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;
     property Rect: windows.TRect read GetRect;
@@ -143,16 +143,16 @@ type
     property WndOffset: integer read FWndOffset write SetWndOffset;
     property ItemCount: integer read FItemCount;
 
-    constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
+    constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TDBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
       TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
-      ShowHint: boolean; Font: _FontData);
+      ShowHint: boolean; Font: TDFontData);
     destructor Destroy; override;
     procedure Enable(value: boolean);
-    procedure SetParam(id: TGParam; value: integer);
+    procedure SetParam(id: TDParam; value: integer);
     procedure command(cmd, params: string);
     function  GetZoomEdge: integer;
 
@@ -191,9 +191,9 @@ type
     function  IsItem(HWnd: HANDLE): HANDLE;
     function  ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
     function  ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
-    function  ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
-    function  AllItemCmd(id: TGParam; param: integer): integer;
-    procedure SetFont(var Value: _FontData);
+    function  ItemCmd(HWnd: HANDLE; id: TDParam; param: integer): integer;
+    function  AllItemCmd(id: TDParam; param: integer): integer;
+    procedure SetFont(var Value: TDFontData);
     function  GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
     procedure SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
@@ -206,13 +206,13 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TBaseCmd;
+constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TDBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
       TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
-      ShowHint: boolean; Font: _FontData);
+      ShowHint: boolean; Font: TDFontData);
 begin
   inherited Create;
 
@@ -298,7 +298,7 @@ begin
   dockh.notify(0, pchar(message));
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetParam(id: TGParam; value: integer);
+procedure TItemManager.SetParam(id: TDParam; value: integer);
 begin
   try
     AllItemCmd(id, value);
@@ -1934,7 +1934,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemCmd(HWnd: HANDLE; id: TGParam; param: integer): integer;
+function TItemManager.ItemCmd(HWnd: HANDLE; id: TDParam; param: integer): integer;
 var
   Inst: TCustomItem;
 begin
@@ -1947,7 +1947,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.AllItemCmd(id: TGParam; param: integer): integer;
+function TItemManager.AllItemCmd(id: TDParam; param: integer): integer;
 var
   item: integer;
   Inst: TCustomItem;
@@ -1985,7 +1985,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetFont(var Value: _FontData);
+procedure TItemManager.SetFont(var Value: TDFontData);
 var
   item: integer;
   Inst: TCustomItem;

@@ -61,7 +61,7 @@ type
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TGParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: integer): integer; override;
     procedure Timer; override;
     procedure Configure; override;
     function CanOpenFolder: boolean; override;
@@ -334,7 +334,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TShortcutItem.cmd(id: TGParam; param: integer): integer;
+function TShortcutItem.cmd(id: TDParam; param: integer): integer;
 var
   b: boolean;
   temp: uint;

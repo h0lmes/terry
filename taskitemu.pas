@@ -41,7 +41,7 @@ type
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
-    function cmd(id: TGParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: integer): integer; override;
     procedure Timer; override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -191,7 +191,7 @@ begin
     LoadAppImage(FExecutable, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
-function TTaskItem.cmd(id: TGParam; param: integer): integer;
+function TTaskItem.cmd(id: TDParam; param: integer): integer;
 var
   temp: uint;
   idx: integer;

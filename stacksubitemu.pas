@@ -29,7 +29,7 @@ type
     FHintAlpha: integer;
     FHintBackground: boolean;
     FQueryDelete: boolean;
-    FFont: _FontData;
+    FFont: TDFontData;
     FIsExecutable: boolean;
     FExecutable: string;
 
@@ -80,7 +80,7 @@ type
 
     function HitTest(Ax, Ay: integer): boolean; virtual;
     function ScreenHitTest(Ax, Ay: integer): boolean;
-    procedure SetFont(var Value: _FontData);
+    procedure SetFont(var Value: TDFontData);
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
@@ -95,7 +95,7 @@ type
     procedure MouseHeld(button: TMouseButton); virtual;
     procedure WMCommand(var msg: TMessage); virtual; abstract;
     procedure Configure; virtual; abstract;
-    function cmd(id: TGParam; param: integer): integer; virtual;
+    function cmd(id: TDParam; param: integer): integer; virtual;
     function CanOpenFolder: boolean; virtual; abstract;
     procedure OpenFolder; virtual; abstract;
     function DropFile(pt: windows.TPoint; filename: string): boolean; virtual; abstract;
@@ -139,7 +139,7 @@ type
     procedure MouseHeld(button: TMouseButton); override;
     procedure WMCommand(var msg: TMessage); override;
     procedure Configure; override;
-    function cmd(id: TGParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: integer): integer; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
@@ -184,7 +184,7 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-function TShortcutSubitem.cmd(id: TGParam; param: integer): integer;
+function TShortcutSubitem.cmd(id: TDParam; param: integer): integer;
 var
   b: boolean;
 begin
@@ -414,35 +414,35 @@ begin
     // hint (caption) //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
     begin
-      if AHintAlign = HORIZONTAL_LEFT then
+      if AHintAlign = HA_HORIZONTAL_LEFT then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
         xBitmap := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = VERTICAL_TOP then
+      if AHintAlign = HA_VERTICAL_TOP then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle - 90, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = HORIZONTAL_RIGHT then
+      if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = VERTICAL_BOTTOM then
+      if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle + 90, MatrixOrderPrepend);
         xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
-      if AHintAlign = HORIZONTAL_BOTTOM then
+      if AHintAlign = HA_HORIZONTAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
@@ -544,23 +544,23 @@ begin
     // correct item box using caption size //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) then
     begin
-      if AHintAlign = HORIZONTAL_LEFT then
+      if AHintAlign = HA_HORIZONTAL_LEFT then
       begin
         result.Left := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
 			end else
-      if AHintAlign = VERTICAL_TOP then
+      if AHintAlign = HA_VERTICAL_TOP then
       begin
         result.Top := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
       end else
-      if AHintAlign = HORIZONTAL_RIGHT then
+      if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
         result.Right := result.Left + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
       end else
-      if AHintAlign = VERTICAL_BOTTOM then
+      if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
         result.Bottom := result.Top + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
       end else
-      if AHintAlign = HORIZONTAL_BOTTOM then
+      if AHintAlign = HA_HORIZONTAL_BOTTOM then
       begin
         if FCaptionWidth > ASize then
         begin
@@ -912,7 +912,7 @@ begin
   if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, FHintBackground, true);
 end;
 //------------------------------------------------------------------------------
-function TCustomSubitem.cmd(id: TGParam; param: integer): integer;
+function TCustomSubitem.cmd(id: TDParam; param: integer): integer;
 begin
   result:= 0;
   try
@@ -1064,7 +1064,7 @@ begin
   dockh.Undock(wnd);
 end;
 //------------------------------------------------------------------------------
-procedure TCustomSubitem.SetFont(var Value: _FontData);
+procedure TCustomSubitem.SetFont(var Value: TDFontData);
 begin
   CopyFontData(Value, FFont);
   UpdateItemMeasureCaption;

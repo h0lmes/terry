@@ -19,30 +19,30 @@ object frmItemProp: TfrmItemProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
     Top = 325
-    Width = 91
+    Width = 101
     Caption = 'OK'
     OnClick = btnOKClick
     TabOrder = 1
   end
   object btnApply: TButton
-    Left = 105
+    Left = 115
     Height = 26
     Top = 325
-    Width = 91
+    Width = 101
     Caption = 'Apply'
     OnClick = btnApplyClick
     TabOrder = 2
   end
   object btnCancel: TButton
-    Left = 200
+    Left = 220
     Height = 26
     Top = 325
-    Width = 91
+    Width = 101
     Caption = 'Cancel'
     OnClick = btnCancelClick
     TabOrder = 3
@@ -148,16 +148,16 @@ object frmItemProp: TfrmItemProp
       end
       object chbHide: TCheckBox
         Left = 115
-        Height = 19
+        Height = 29
         Top = 228
-        Width = 177
+        Width = 187
         Caption = 'Hide Terry when application runs'
         TabOrder = 9
       end
       object lblTip: TLabel
-        Left = 115
+        Left = 10
         Height = 13
-        Top = 263
+        Top = 270
         Width = 297
         Caption = 'Use semicolon to separate multiple commands and parameters'
         ParentColor = False
@@ -350,40 +350,40 @@ object frmItemProp: TfrmItemProp
     OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
-    Left = 575
+    Left = 564
     Height = 25
     Top = 175
-    Width = 128
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Browse image'
     OnClick = btnBrowseImage1Click
     TabOrder = 5
   end
   object btnClearImage: TButton
-    Left = 575
+    Left = 564
     Height = 25
-    Top = 205
-    Width = 128
+    Top = 210
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Clear image'
     OnClick = btnClearImageClick
     TabOrder = 6
   end
   object btnSelectColor: TButton
-    Left = 575
+    Left = 564
     Height = 25
-    Top = 235
-    Width = 128
+    Top = 245
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Select color'
     OnClick = btnSelectColorClick
     TabOrder = 7
   end
   object btnConvertLink: TButton
-    Left = 350
+    Left = 345
     Height = 26
     Top = 325
-    Width = 194
+    Width = 199
     Caption = 'Convert .LNK'
     OnClick = btnConvertLinkClick
     TabOrder = 4

@@ -8,7 +8,7 @@ type
   TBaseOrientation = (boHorizontal, boVertical);
   TExecuteAction = (eaDefault, eaRun, eaGroup);
 
-  TGParam = (
+  TDParam = (
     // general parameters //
     gpMin = 0,
     gpMonitor,
@@ -82,11 +82,11 @@ type
     tcMax,
     // item commands //
     icMin = $2000,
-    icSelect, // informs item that user pressed mouse button on it //
-    icUndock, // informs item that user draging this item //
-    icFree, // marks item as freed //
+    icSelect, // notify item that user pressed mouse button on it //
+    icUndock, // notify item that user draging this item //
+    icFree, // mark item as freed //
     icHover, // mouse over //
-    icUpdateRunning, // forces item to update it's running indicator //
+    icUpdateRunning, // force item to update it's running indicator //
     icDragEnter,
     icDragOver,
     icDragLeave,
@@ -96,8 +96,8 @@ type
     icFlashTaskWindow,
     icMax);
 
-  PFontData = ^_FontData;
-  _FontData = packed record
+  PTDFontData = ^TDFontData;
+  TDFontData = packed record
     name: array [0..255] of char;
     size: integer;
     size2: integer;
@@ -125,10 +125,17 @@ type
     TaskLivePreviews: boolean;
     TaskThumbSize: integer;
     TaskGrouping: boolean;
-    Font: _FontData;
+    Font: TDFontData;
   end;
 
-  TBaseCmd = function(id: TGParam; param: integer): integer of object;
+  // for copying data from AppSearch //
+  PTDProgramData = ^TDProgramData;
+  TDProgramData = record
+    Name: array [0..1023] of char;
+    Filename: array [0..1023] of char;
+  end;
+
+  TDBaseCmd = function(id: TDParam; param: integer): integer of object;
 
   RAWMOUSE = packed record
     usFlags: USHORT;
@@ -171,13 +178,6 @@ type
   end;
   PRAWINPUT = ^RAWINPUT;
 
-  // for copying data from AppSearch //
-  PProgramData = ^TProgramData;
-  TProgramData = record
-    Name: array [0..1023] of char;
-    Filename: array [0..1023] of char;
-  end;
-
   MONITORINFO = record
     cbSize: dword;
     rcMonitor: TRect;
@@ -196,21 +196,21 @@ const
   PROGRAM_REGKEY = 'tdock';
   PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
   WINITEM_CLASS = 'TDockWClass';
+  HINT_CLASS = 'TDockHintClass';
   ITEM_BACKGROUND = $2808080;
   RollStep = 4;
   SWP_NO_FLAGS = SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOOWNERZORDER + SWP_NOSENDCHANGING + SWP_ASYNCWINDOWPOS;
   NOT_AN_ITEM = $ffff; // result const in case when item (items[]) not found
   MONITOR_DEFAULTTONEAREST = 2;
-
-  // icon Hint align
-  HORIZONTAL_BOTTOM = 0;
-  HORIZONTAL_LEFT = 4;
-  VERTICAL_TOP = 5;
-  HORIZONTAL_RIGHT = 6;
-  VERTICAL_BOTTOM = 7;
-
-  // common window messages
+  DATA_PROGRAM = $f001; // on WM_COPYDATA CDS.dwType for TDProgramData struct
   WM_DPICHANGED = $02E0;
+
+  // icon hint align
+  HA_HORIZONTAL_BOTTOM = 0;
+  HA_HORIZONTAL_LEFT = 4;
+  HA_VERTICAL_TOP = 5;
+  HA_HORIZONTAL_RIGHT = 6;
+  HA_VERTICAL_BOTTOM = 7;
 
   // private WM_APP messages //
   WM_APP_UPDATE_PREVIEW = WM_APP + 1;
@@ -223,9 +223,6 @@ const
   IDM_TASKMGR = $f033;
   IDM_SETS = $f034;
   IDM_QUIT = $f035;
-
-  // WM_COPYDATA CDS.dwType
-  DATA_PROGRAM = $f001; // TProgramData struct
 
   // private timer event IDs //
   ID_TIMER                  = 1;
@@ -342,7 +339,7 @@ resourcestring
 
   function SiteToString(site: TBaseSite): string;
   function StringToSite(str: string): TBaseSite;
-  procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
+  procedure CopyFontData(var fFrom: TDFontData; var fTo: TDFontData);
 
 implementation
 //------------------------------------------------------------------------------
@@ -362,7 +359,7 @@ begin
   else if str = 'bottom' then result := bsBottom;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure CopyFontData(var fFrom: _FontData; var fTo: _FontData);
+procedure CopyFontData(var fFrom: TDFontData; var fTo: TDFontData);
 begin
   strcopy(@fTo.name, @fFrom.name);
   fTo.size      := fFrom.size;

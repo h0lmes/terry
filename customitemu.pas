@@ -66,7 +66,7 @@ type
     FNeedMouseWheel: boolean;
     FAttention: boolean;
 
-    FFont: _FontData;
+    FFont: TDFontData;
     FImage: Pointer;
     FIW: uint; // image width
     FIH: uint; // image height
@@ -104,7 +104,7 @@ type
 
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
-    procedure SetFont(var Value: _FontData); virtual;
+    procedure SetFont(var Value: TDFontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
     function ToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
@@ -114,7 +114,7 @@ type
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure WndMessage(var msg: TMessage); virtual; abstract;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
-    function cmd(id: TGParam; param: integer): integer; virtual;
+    function cmd(id: TDParam; param: integer): integer; virtual;
     procedure Timer; virtual;
     procedure Configure; virtual;
     function CanOpenFolder: boolean; virtual;
@@ -218,7 +218,7 @@ begin
   FNeedMouseWheel := false;
 end;
 //------------------------------------------------------------------------------
-function TCustomItem.cmd(id: TGParam; param: integer): integer;
+function TCustomItem.cmd(id: TDParam; param: integer): integer;
 var
   wRect: windows.TRect;
 begin
@@ -322,7 +322,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.SetFont(var Value: _FontData);
+procedure TCustomItem.SetFont(var Value: TDFontData);
 begin
   CopyFontData(Value, FFont);
 end;

@@ -20,30 +20,30 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 10
     Height = 26
     Top = 610
-    Width = 91
+    Width = 101
     Caption = 'OK'
     OnClick = btnOKClick
     TabOrder = 1
   end
   object btnApply: TButton
-    Left = 105
+    Left = 115
     Height = 26
     Top = 610
-    Width = 91
+    Width = 101
     Caption = 'Apply'
     OnClick = btnApplyClick
     TabOrder = 2
   end
   object btnCancel: TButton
-    Left = 200
+    Left = 220
     Height = 26
     Top = 610
-    Width = 91
+    Width = 101
     Caption = 'Cancel'
     OnClick = btnCancelClick
     TabOrder = 3
@@ -435,7 +435,7 @@ object frmStackProp: TfrmStackProp
       end
       object DividerBevel1: TDividerBevel
         Left = 10
-        Height = 15
+        Height = 25
         Top = 295
         Width = 513
         Caption = 'Items in this stack'
@@ -462,7 +462,7 @@ object frmStackProp: TfrmStackProp
       end
       object DividerBevel2: TDividerBevel
         Left = 10
-        Height = 15
+        Height = 25
         Top = 190
         Width = 513
         Caption = 'Stack background'
@@ -472,9 +472,9 @@ object frmStackProp: TfrmStackProp
       end
       object chbBackgroundBlur: TCheckBox
         Left = 185
-        Height = 19
+        Height = 29
         Top = 220
-        Width = 38
+        Width = 48
         Caption = 'Blur'
         TabOrder = 7
       end
@@ -489,15 +489,15 @@ object frmStackProp: TfrmStackProp
       end
       object chbBackground: TCheckBox
         Left = 15
-        Height = 19
+        Height = 29
         Top = 220
-        Width = 105
+        Width = 115
         Caption = 'Show background'
         TabOrder = 6
       end
       object lblBackgroundAlpha: TLabel
         Tag = 10
-        Left = 275
+        Left = 285
         Height = 13
         Top = 225
         Width = 67
@@ -505,7 +505,7 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object tbBackgroundAlpha: TTrackBar
-        Left = 265
+        Left = 275
         Height = 34
         Top = 250
         Width = 160
@@ -642,30 +642,30 @@ object frmStackProp: TfrmStackProp
     OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
-    Left = 580
+    Left = 569
     Height = 25
     Top = 164
-    Width = 128
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Browse image'
     OnClick = btnBrowseImage1Click
     TabOrder = 4
   end
   object btnClearImage: TButton
-    Left = 580
+    Left = 569
     Height = 25
     Top = 194
-    Width = 128
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Clear image'
     OnClick = btnClearImageClick
     TabOrder = 5
   end
   object btnSelectColor: TButton
-    Left = 580
+    Left = 569
     Height = 25
     Top = 224
-    Width = 128
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Select color'
     OnClick = btnSelectColorClick

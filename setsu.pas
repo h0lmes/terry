@@ -63,7 +63,7 @@ type
     BaseAlpha: integer;
     SeparatorAlpha: integer;
     BlurEnabled: boolean;
-    Font: _FontData;
+    Font: TDFontData;
     Shell: array [0..MAX_PATH] of char;
     ThemeName: array [0..MAX_PATH] of char;
   end;
@@ -98,8 +98,8 @@ type
     procedure Save(ASetsFile: string); overload;
     function Backup: boolean;
     function Restore(backupFilename: string): boolean;
-    function StoreParam(id: TGParam; value: integer): integer;
-    function GetParam(id: TGParam): integer;
+    function StoreParam(id: TDParam; value: integer): integer;
+    function GetParam(id: TDParam): integer;
     procedure StoreSetsContainer;
     procedure RestoreSetsContainer;
     procedure CopySetsContainer(var dst: TDSetsContainer; var src: TDSetsContainer);
@@ -404,7 +404,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TDSets.StoreParam(id: TGParam; value: integer): integer;
+function TDSets.StoreParam(id: TDParam; value: integer): integer;
 begin
   case id of
   gpItemSize: container.ItemSize := SetRange(value, 16, 128);
@@ -465,7 +465,7 @@ begin
   result := value;
 end;
 //------------------------------------------------------------------------------
-function TDSets.GetParam(id: TGParam): integer;
+function TDSets.GetParam(id: TDParam): integer;
 begin
   result:= 0;
   case id of

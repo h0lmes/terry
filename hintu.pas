@@ -16,7 +16,7 @@ type
     FActivating: boolean;
     FVisible: boolean;
     FCaption: WideString;
-    FFont: _FontData;
+    FFont: TDFontData;
     FAlpha: integer;
     FAlphaTarget: integer;
     FX: integer;
@@ -87,7 +87,7 @@ begin
     wndClass.hCursor        := LoadCursor(0, IDC_ARROW);
     wndClass.hbrBackground  := 0;
     wndClass.lpszMenuName   := nil;
-    wndClass.lpszClassName  := 'TDock::Hint';
+    wndClass.lpszClassName  := HINT_CLASS;
     WindowClassInstance := Windows.RegisterClass(wndClass);
     if WindowClassInstance < 33 then err('Can not register hint window class', nil);
   except
@@ -99,7 +99,7 @@ begin
   end;
 
   try
-    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, 'TDock::Hint', '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, HINT_CLASS, '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self))
     else err('Hint.Create.CreateWindowEx failed', nil);
   except

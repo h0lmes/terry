@@ -18,7 +18,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="83"/>
-      <RevisionNr Value="5"/>
+      <RevisionNr Value="6"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1" Active="Default">
@@ -60,8 +60,8 @@
         <UnitName Value="declu"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="184"/>
-        <CursorPos X="89" Y="200"/>
+        <TopLine Value="166"/>
+        <CursorPos X="20" Y="194"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -83,11 +83,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1190"/>
-        <CursorPos X="38" Y="1196"/>
+        <TopLine Value="1860"/>
+        <CursorPos X="81" Y="1869"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -100,10 +99,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmsetsu"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="791"/>
         <CursorPos X="3" Y="795"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
@@ -174,7 +177,7 @@
         <UnitName Value="setsu"/>
         <WindowIndex Value="0"/>
         <TopLine Value="296"/>
-        <CursorPos X="63" Y="309"/>
+        <CursorPos X="50" Y="300"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit10>
@@ -227,8 +230,8 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="hintu"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="367"/>
-        <CursorPos X="33" Y="385"/>
+        <TopLine Value="118"/>
+        <CursorPos X="58" Y="80"/>
         <UsageCount Value="200"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
@@ -373,7 +376,7 @@
         <Filename Value="stackitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stackitemu"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="357"/>
         <CursorPos X="18" Y="380"/>
@@ -390,7 +393,7 @@
         <UnitName Value="frmstackpropu"/>
         <WindowIndex Value="0"/>
         <TopLine Value="373"/>
-        <CursorPos X="29" Y="397"/>
+        <CursorPos X="77" Y="378"/>
         <UsageCount Value="202"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit30>
@@ -398,7 +401,7 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="869"/>
         <CursorPos X="20" Y="892"/>
@@ -1234,7 +1237,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="176"/>
         <CursorPos X="35" Y="233"/>
-        <UsageCount Value="163"/>
+        <UsageCount Value="164"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit129>
       <Unit130>
@@ -1277,7 +1280,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="3" Y="49"/>
-        <UsageCount Value="123"/>
+        <UsageCount Value="124"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit134>
       <Unit135>
@@ -1290,124 +1293,124 @@
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="688" Column="1" TopLine="656"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1655" Column="38" TopLine="1640"/>
       </Position1>
       <Position2>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="420" Column="19" TopLine="412"/>
+        <Caret Line="1699" Column="42" TopLine="1671"/>
       </Position2>
       <Position3>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1237" Column="7" TopLine="1213"/>
+        <Caret Line="1198" Column="49" TopLine="1179"/>
       </Position3>
       <Position4>
-        <Filename Value="terry.lpr"/>
-        <Caret Line="552" Column="13" TopLine="542"/>
+        <Filename Value="frmmainu.pas"/>
+        <Caret Line="1209" Column="1" TopLine="1176"/>
       </Position4>
       <Position5>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1219" Column="47" TopLine="1184"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="144" Column="49" TopLine="126"/>
       </Position5>
       <Position6>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2080" Column="104" TopLine="2065"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="683" Column="68" TopLine="655"/>
       </Position6>
       <Position7>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="2259" Column="24" TopLine="2170"/>
+        <Caret Line="1193" Column="54" TopLine="1179"/>
       </Position7>
       <Position8>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2124" Column="37" TopLine="2107"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="201" Column="58" TopLine="184"/>
       </Position8>
       <Position9>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="790" Column="30" TopLine="772"/>
+        <Filename Value="itemmgru.pas"/>
+        <Caret Line="683" Column="1" TopLine="651"/>
       </Position9>
       <Position10>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1073" Column="17" TopLine="1055"/>
+        <Caret Line="335" Column="51" TopLine="314"/>
       </Position10>
       <Position11>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1060" Column="21" TopLine="1055"/>
+        <Caret Line="336" Column="78" TopLine="327"/>
       </Position11>
       <Position12>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1205" Column="21" TopLine="1175"/>
+        <Caret Line="936" Column="1" TopLine="910"/>
       </Position12>
       <Position13>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1831" Column="27" TopLine="1813"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="206" Column="10" TopLine="184"/>
       </Position13>
       <Position14>
-        <Filename Value="terry.lpr"/>
-        <Caret Line="336" Column="10" TopLine="327"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="207" Column="8" TopLine="180"/>
       </Position14>
       <Position15>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="2127" Column="22" TopLine="2113"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="208" Column="8" TopLine="181"/>
       </Position15>
       <Position16>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1205" Column="1" TopLine="1176"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="209" Column="10" TopLine="182"/>
       </Position16>
       <Position17>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="173" Column="23" TopLine="145"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="210" Column="8" TopLine="183"/>
       </Position17>
       <Position18>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="657" Column="56" TopLine="633"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="206" Column="14" TopLine="184"/>
       </Position18>
       <Position19>
-        <Filename Value="stackitemu.pas"/>
-        <Caret Line="357" Column="44" TopLine="345"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="207" Column="8" TopLine="180"/>
       </Position19>
       <Position20>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1661" Column="88" TopLine="1643"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="208" Column="11" TopLine="181"/>
       </Position20>
       <Position21>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1687" Column="1" TopLine="1659"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="209" Column="10" TopLine="182"/>
       </Position21>
       <Position22>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1655" Column="38" TopLine="1640"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="210" Column="10" TopLine="183"/>
       </Position22>
       <Position23>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1699" Column="42" TopLine="1671"/>
+        <Caret Line="330" Column="48" TopLine="310"/>
       </Position23>
       <Position24>
         <Filename Value="frmmainu.pas"/>
-        <Caret Line="1198" Column="49" TopLine="1179"/>
+        <Caret Line="1886" Column="21" TopLine="1860"/>
       </Position24>
       <Position25>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1209" Column="1" TopLine="1176"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="100" Column="5" TopLine="87"/>
       </Position25>
       <Position26>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="144" Column="49" TopLine="126"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="99" Column="9" TopLine="74"/>
       </Position26>
       <Position27>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="683" Column="68" TopLine="655"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="11" Column="6" TopLine="1"/>
       </Position27>
       <Position28>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="1193" Column="54" TopLine="1179"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="138" Column="5" TopLine="103"/>
       </Position28>
       <Position29>
         <Filename Value="declu.pas"/>
-        <Caret Line="201" Column="58" TopLine="184"/>
+        <Caret Line="133" Column="9" TopLine="112"/>
       </Position29>
       <Position30>
-        <Filename Value="itemmgru.pas"/>
-        <Caret Line="683" Column="1" TopLine="651"/>
+        <Filename Value="declu.pas"/>
+        <Caret Line="132" Column="8" TopLine="107"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>

@@ -77,7 +77,7 @@ type
     procedure DeleteSubitems;
     procedure CopyCSIBucket(pFrom, pTo: PCSIBucket);
     function ItemIndex(HWnd: HANDLE): integer;
-    procedure AllSubitemsCmd(id: TGParam; param: integer);
+    procedure AllSubitemsCmd(id: TDParam; param: integer);
     procedure OpenStack;
     procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
@@ -96,13 +96,13 @@ type
     constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
-    procedure SetFont(var Value: _FontData); override;
+    procedure SetFont(var Value: TDFontData); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TGParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: integer): integer; override;
     procedure Timer; override;
     procedure Configure; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
@@ -310,7 +310,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.cmd(id: TGParam; param: integer): integer;
+function TStackItem.cmd(id: TDParam; param: integer): integer;
 var
   b: boolean;
   temp: uint;
@@ -401,7 +401,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.SetFont(var Value: _FontData);
+procedure TStackItem.SetFont(var Value: TDFontData);
 var
   idx: integer;
 begin
@@ -1005,7 +1005,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.AllSubitemsCmd(id: TGParam; param: integer);
+procedure TStackItem.AllSubitemsCmd(id: TDParam; param: integer);
 var
   idx: integer;
 begin

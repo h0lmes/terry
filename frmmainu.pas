@@ -122,11 +122,11 @@ type
     procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     procedure SetTheme(ATheme: string);
-    function  BaseCmd(id: TGParam; param: integer): integer;
-    procedure SetParam(id: TGParam; Value: integer);
+    function  BaseCmd(id: TDParam; param: integer): integer;
+    procedure SetParam(id: TDParam; Value: integer);
     function  GetHMenu(ParentMenu: uint): uint;
     function  ContextMenu(pt: Windows.TPoint): boolean;
-    procedure SetFont(var Value: _FontData);
+    procedure SetFont(var Value: TDFontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
     function  IsMouseEffectLocked: boolean;
     function  GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
@@ -333,6 +333,7 @@ begin
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
     dwm.ExcludeFromPeek(FBlurWindow);
+    SetWindowLong(Handle, GWL_HWNDPARENT, FBlurWindow); // attach main window
     SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
     on e: Exception do raise Exception.Create('Base.CreateBlurWindow'#10#13 + e.message);
@@ -341,8 +342,13 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.DestroyBlurWindow;
 begin
-  if IsWindow(FBlurWindow) then DestroyWindow(FBlurWindow);
-  FBlurWindow := 0;
+  try
+    SetWindowLong(Handle, GWL_HWNDPARENT, 0); // detach main window
+    if IsWindow(FBlurWindow) then DestroyWindow(FBlurWindow);
+    FBlurWindow := 0;
+  except
+    on e: Exception do raise Exception.Create('Base.DestroyBlurWindow'#10#13 + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.CloseProgram;
@@ -497,7 +503,7 @@ begin
   BaseCmd(tcThemeChanged, 0);
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.BaseCmd(id: TGParam; param: integer): integer;
+function Tfrmmain.BaseCmd(id: TDParam; param: integer): integer;
 begin
   Result := 0;
 
@@ -551,7 +557,7 @@ end;
 //------------------------------------------------------------------------------
 // stores given parameter value and propagates it to subsequent objects       //
 // e.g. ItemManager and all items                                             //
-procedure Tfrmmain.SetParam(id: TGParam; value: integer);
+procedure Tfrmmain.SetParam(id: TDParam; value: integer);
 begin
   // take some actions prior to changing anything //
   case id of
@@ -1531,7 +1537,7 @@ begin
   result := LockList.Count > 0;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.SetFont(var Value: _FontData);
+procedure Tfrmmain.SetFont(var Value: TDFontData);
 begin
   CopyFontData(Value, sets.container.Font);
   if assigned(ItemMgr) then ItemMgr.SetFont(Value);
@@ -1872,20 +1878,20 @@ end;
 procedure Tfrmmain.WMCopyData(var Message: TMessage);
 var
   pcds: PCOPYDATASTRUCT;
-  ppd: PProgramData;
+  ppd: PTDProgramData;
 begin
   message.Result := 1;
   pcds := PCOPYDATASTRUCT(message.lParam);
 
   if pcds^.dwData = DATA_PROGRAM then
   begin
-    if pcds^.cbData <> sizeof(TProgramData) then
+    if pcds^.cbData <> sizeof(TDProgramData) then
     begin
       message.Result := 0;
       notify(UTF8ToAnsi(XErrorInvalidProgramDataStructureSize));
       exit;
     end;
-    ppd := PProgramData(pcds^.lpData);
+    ppd := PTDProgramData(pcds^.lpData);
     ItemMgr.InsertItem(TShortcutItem.Make(0, pchar(ppd^.Name), ZipPath(pchar(ppd^.Filename)), '', '', '', SW_SHOWNORMAL));
   end;
 end;

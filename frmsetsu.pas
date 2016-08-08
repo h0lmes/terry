@@ -207,7 +207,7 @@ type
     procedure btnAutoRunAddClick(Sender: TObject);
   private
     AutorunListChanged: boolean;
-    FFont: _FontData;
+    FFont: TDFontData;
     function FontPreview: boolean;
   public
     PageIndex: integer;
