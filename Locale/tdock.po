@@ -255,6 +255,7 @@ msgid "About"
 msgstr ""
 
 #: declu.xpageautorun
+msgctxt "declu.xpageautorun"
 msgid "Autorun"
 msgstr ""
 
@@ -852,12 +853,13 @@ msgctxt "TFRMSETS.DIVIDERBEVEL1.CAPTION"
 msgid "Font"
 msgstr ""
 
-#: tfrmsets.edactivateonmouseinterval.text
-msgid "400"
+#: tfrmsets.dividerbevel2.caption
+msgctxt "TFRMSETS.DIVIDERBEVEL2.CAPTION"
+msgid "Autorun"
 msgstr ""
 
-#: tfrmsets.gbautostart.caption
-msgid "  Autostart  "
+#: tfrmsets.edactivateonmouseinterval.text
+msgid "400"
 msgstr ""
 
 #: tfrmsets.gbhide.caption

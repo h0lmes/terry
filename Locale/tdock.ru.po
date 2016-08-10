@@ -911,13 +911,14 @@ msgctxt "tfrmsets.dividerbevel1.caption"
 msgid "Font"
 msgstr "Шрифт"
 
+#: tfrmsets.dividerbevel2.caption
+msgctxt "tfrmsets.dividerbevel2.caption"
+msgid "Autorun"
+msgstr "Автозапуск"
+
 #: tfrmsets.edactivateonmouseinterval.text
 msgid "400"
 msgstr "400"
-
-#: tfrmsets.gbautostart.caption
-msgid "  Autostart  "
-msgstr "  Автозапуск  "
 
 #: tfrmsets.gbhide.caption
 msgid "Global hotkeys"

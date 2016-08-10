@@ -17,15 +17,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 515
-    ActivePage = tsPosition
+    ActivePage = tsIcons
     ShowTabs = False
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -34,7 +34,7 @@ object frmsets: Tfrmsets
       object lblMouseOverTip: TLabel
         Left = 15
         Height = 13
-        Top = 150
+        Top = 155
         Width = 369
         Caption = 'Move mouse pointer to the edge of the screen to put the dock to foreground'
         Font.CharSet = RUSSIAN_CHARSET
@@ -68,11 +68,11 @@ object frmsets: Tfrmsets
         Top = 355
         Width = 476
         Caption = 'Global hotkeys'
-        ClientHeight = 63
+        ClientHeight = 67
         ClientWidth = 472
         TabOrder = 6
         object hkHide: TEdit
-          Left = 290
+          Left = 335
           Height = 21
           Top = 8
           Width = 125
@@ -98,7 +98,7 @@ object frmsets: Tfrmsets
           TabOrder = 2
         end
         object hkConsole: TEdit
-          Left = 290
+          Left = 335
           Height = 21
           Top = 33
           Width = 125
@@ -142,7 +142,7 @@ object frmsets: Tfrmsets
         Height = 150
         Top = 195
         Width = 476
-        ClientHeight = 128
+        ClientHeight = 132
         ClientWidth = 472
         TabOrder = 7
         object chbTaskbar: TCheckBox
@@ -197,10 +197,10 @@ object frmsets: Tfrmsets
         end
       end
       object edActivateOnMouseInterval: TEdit
-        Left = 366
+        Left = 365
         Height = 21
         Top = 128
-        Width = 80
+        Width = 125
         OnChange = edActivateOnMouseIntervalChange
         TabOrder = 5
         Text = '400'
@@ -218,10 +218,10 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 35
         Top = 450
-        Width = 430
+        Width = 475
         BevelOuter = bvNone
         ClientHeight = 35
-        ClientWidth = 430
+        ClientWidth = 475
         Color = 176
         ParentColor = False
         TabOrder = 9
@@ -229,13 +229,13 @@ object frmsets: Tfrmsets
           Left = 5
           Height = 25
           Top = 5
-          Width = 169
+          Width = 214
           Caption = 'Remove this dock'
           OnClick = btnRemoveDockClick
           TabOrder = 0
         end
         object btnRestore: TButton
-          Left = 180
+          Left = 225
           Height = 25
           Top = 5
           Width = 245
@@ -259,7 +259,7 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object lblEdge: TLabel
-        Left = 245
+        Left = 260
         Height = 13
         Top = 15
         Width = 72
@@ -275,7 +275,7 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object lblEdgeOffset: TLabel
-        Left = 245
+        Left = 260
         Height = 13
         Top = 145
         Width = 83
@@ -284,7 +284,7 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object cboBaseSite: TComboBox
-        Left = 245
+        Left = 260
         Height = 21
         Top = 40
         Width = 200
@@ -297,7 +297,7 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 31
         Top = 165
-        Width = 202
+        Width = 230
         Frequency = 5
         Max = 100
         OnChange = tbCenterOffsetPercentChange
@@ -317,10 +317,10 @@ object frmsets: Tfrmsets
         TabOrder = 0
       end
       object tbEdgeOffset: TTrackBar
-        Left = 245
+        Left = 260
         Height = 31
         Top = 165
-        Width = 202
+        Width = 230
         Frequency = 10
         Max = 50
         Min = -50
@@ -335,7 +335,7 @@ object frmsets: Tfrmsets
         Height = 136
         Top = 285
         Width = 475
-        ClientHeight = 114
+        ClientHeight = 118
         ClientWidth = 471
         TabOrder = 4
         object lblHideDelay: TLabel
@@ -372,7 +372,7 @@ object frmsets: Tfrmsets
           TabOrder = 0
         end
         object edRolledVisiblePixels: TEdit
-          Left = 320
+          Left = 365
           Height = 21
           Top = 29
           Width = 91
@@ -380,7 +380,7 @@ object frmsets: Tfrmsets
           TabOrder = 1
         end
         object edAutoHideTime: TEdit
-          Left = 320
+          Left = 365
           Height = 21
           Top = 79
           Width = 91
@@ -388,7 +388,7 @@ object frmsets: Tfrmsets
           TabOrder = 3
         end
         object edAutoShowTime: TEdit
-          Left = 320
+          Left = 365
           Height = 21
           Top = 54
           Width = 91
@@ -400,7 +400,7 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 65
         Top = 75
-        Width = 430
+        Width = 480
         Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
         Color = clDefault
         ParentColor = False
@@ -424,7 +424,7 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object edStartOffset: TEdit
-        Left = 305
+        Left = 350
         Height = 21
         Top = 240
         Width = 65
@@ -432,7 +432,7 @@ object frmsets: Tfrmsets
         TabOrder = 7
       end
       object edEndOffset: TEdit
-        Left = 380
+        Left = 425
         Height = 21
         Top = 240
         Width = 65
@@ -465,7 +465,7 @@ object frmsets: Tfrmsets
         Left = 235
         Height = 30
         Top = 70
-        Width = 215
+        Width = 260
         Frequency = 20
         Max = 255
         OnChange = tbBaseAlphaChange
@@ -535,14 +535,12 @@ object frmsets: Tfrmsets
       end
       object DividerBevel1: TDividerBevel
         Left = 15
-        Height = 20
+        Height = 13
         Top = 295
         Width = 475
         Caption = 'Font'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
-        Font.Style = [fsBold]
-        ParentFont = False
       end
       object listFont: TListBox
         Left = 15
@@ -616,7 +614,7 @@ object frmsets: Tfrmsets
         Left = 235
         Height = 30
         Top = 130
-        Width = 215
+        Width = 260
         Frequency = 20
         Max = 255
         OnChange = tbSeparatorAlphaChange
@@ -647,7 +645,7 @@ object frmsets: Tfrmsets
         Left = 235
         Height = 30
         Top = 235
-        Width = 215
+        Width = 260
         Max = 20
         OnChange = tbReflectionSizeChange
         PageSize = 1
@@ -662,7 +660,7 @@ object frmsets: Tfrmsets
       ClientHeight = 492
       ClientWidth = 507
       object lblZoomWideness: TLabel
-        Left = 295
+        Left = 315
         Height = 13
         Top = 355
         Width = 55
@@ -687,45 +685,45 @@ object frmsets: Tfrmsets
       end
       object cbZoomItems: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 205
-        Width = 175
+        Width = 171
         Caption = 'Zoom icons when mouse is over'
         OnChange = cbZoomItemsChange
         TabOrder = 0
       end
       object chbShowRunningIndicator: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 65
-        Width = 198
+        Width = 194
         Caption = 'Show indicator for running programs'
         OnChange = chbShowRunningIndicatorChange
         TabOrder = 1
       end
       object chbActivateRunning: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 90
-        Width = 194
+        Width = 190
         Caption = 'Activate program if already running'
         OnChange = chbActivateRunningChange
         TabOrder = 2
       end
       object chbUseShellContextMenus: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 155
-        Width = 278
+        Width = 274
         Caption = 'Show Windows Explorer context menus for programs'
         OnChange = chbUseShellContextMenusChange
         TabOrder = 3
       end
       object cboItemAnimationType: TComboBox
-        Left = 185
+        Left = 215
         Height = 21
         Top = 120
-        Width = 255
+        Width = 275
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
@@ -744,7 +742,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 260
-        Width = 410
+        Width = 460
         Frequency = 8
         Max = 128
         Min = 16
@@ -758,7 +756,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 315
-        Width = 410
+        Width = 460
         Frequency = 16
         Max = 256
         Min = 16
@@ -769,10 +767,10 @@ object frmsets: Tfrmsets
         TabOrder = 5
       end
       object tbZoomWidth: TTrackBar
-        Left = 310
+        Left = 330
         Height = 30
         Top = 375
-        Width = 130
+        Width = 160
         Max = 5
         Min = 2
         OnChange = tbZoomWidthChange
@@ -793,7 +791,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 375
-        Width = 250
+        Width = 270
         Frequency = 2
         Max = 30
         OnChange = tbIconSpacingChange
@@ -803,9 +801,9 @@ object frmsets: Tfrmsets
       end
       object chbStackOpenAnimation: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 180
-        Width = 154
+        Width = 150
         Caption = 'Stack open/close animation'
         OnChange = chbStackOpenAnimationChange
         TabOrder = 9
@@ -822,7 +820,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 440
-        Width = 410
+        Width = 460
         Frequency = 40
         Max = 400
         Min = 1
@@ -834,18 +832,18 @@ object frmsets: Tfrmsets
       end
       object chbHintEffects: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 40
-        Width = 114
+        Width = 110
         Caption = 'Enable hint effects'
         OnChange = chbHintEffectsChange
         TabOrder = 11
       end
       object cbShowHint: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 15
-        Width = 130
+        Width = 126
         Caption = 'Show hint (icon name)'
         OnChange = cbShowHintChange
         TabOrder = 12
@@ -855,11 +853,6 @@ object frmsets: Tfrmsets
       Caption = 'Misc'
       ClientHeight = 492
       ClientWidth = 507
-      Font.CharSet = RUSSIAN_CHARSET
-      Font.Color = clBlack
-      Font.Height = -11
-      Font.Name = 'Tahoma'
-      ParentFont = False
       object lblLaunchInterval: TLabel
         Left = 15
         Height = 13
@@ -920,118 +913,10 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 25
         Top = 455
-        Width = 145
+        Width = 215
         Caption = 'Debug info'
         OnClick = btnDebugClick
         TabOrder = 4
-      end
-      object gbAutostart: TGroupBox
-        Left = 15
-        Height = 245
-        Top = 195
-        Width = 476
-        Caption = '  Autostart  '
-        ClientHeight = 223
-        ClientWidth = 472
-        TabOrder = 5
-        object btnAutoRunAdd: TSpeedButton
-          Left = 15
-          Height = 26
-          Hint = 'Add'
-          Top = 15
-          Width = 170
-          Caption = 'Add program'
-          Glyph.Data = {
-            36040000424D3604000000000000360000002800000010000000100000000100
-            2000000000000004000064000000640000000000000000000000FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7B604BFF7D624DFF806D
-            5EFFFFFFF700FFFFFC00FDFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFECCEB5FFECCEB5FF7C61
-            4CFFFFFFF200FFFFFB00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFC00FFFFFB00FFFFF500FFFFED00856346FFEFCFB2FFCBAB8EFF8563
-            46FFFFFFEB00FFFFF500FFFFFB00FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFF800FFFFF200FFFFED00FFFFE6008E6342FFF6D0AEFFD2AC8AFF8E63
-            42FFFFFFE600FFFFED00FFFFF200FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00806D5EFF7C614DFF836248FF8A6343FF8E6342FFD2AC8AFFD4AB8AFF9063
-            41FF8E6342FF876246FF7E624AFF826D5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF007C614CFFE6CCB4FFD3B59CFFD4B497FFD5B395FFD4B294FFCFAC8BFFCFA9
-            89FFCCA688FFC6A487FFDCBEA3FF7E614CFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF007C614CFFEED4BCFFEFD2B7FFF2D2B5FFF1CFB2FFEDCFB2FFEFCFB2FFF5CF
-            B1FFF4CEB0FFEFCDB0FFEBCDB2FF7F634BFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00806D5EFF7A624CFF836248FF8A6343FF8A6343FFEDCFB4FFEDCFB4FF8C63
-            43FF8C6342FF856346FF7F634BFF816F5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFF700FFFFF200FFFFEB00FFFFE6008A6245FFECCEB5FFECCEB5FF8A62
-            45FFFFFFE600FFFFEB00FFFFF100FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFC00FFFFFB00FFFFF500FFFFED00836248FFEACEB6FFEACEB6FF8362
-            48FFFFFFEB00FFFFF500FFFFF900FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFE8CDB8FFE8CDB8FF7C61
-            4CFFFFFFF200FFFFFA00FFFFFF00FFFFFE00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7C614CFF7C614CFF806D
-            5EFFFFFFF700FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
-          }
-          OnClick = btnAutoRunAddClick
-        end
-        object memAutorun: TMemo
-          Left = 15
-          Height = 160
-          Top = 55
-          Width = 445
-          OnChange = memAutorunChange
-          TabOrder = 0
-        end
-        object btnAutoRunAddMinimized: TSpeedButton
-          Left = 190
-          Height = 26
-          Hint = 'Add'
-          Top = 15
-          Width = 221
-          Caption = 'Add (run minimized)'
-          Glyph.Data = {
-            36040000424D3604000000000000360000002800000010000000100000000100
-            2000000000000004000064000000640000000000000000000000FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7B604BFF7D624DFF806D
-            5EFFFFFFF700FFFFFC00FDFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFECCEB5FFECCEB5FF7C61
-            4CFFFFFFF200FFFFFB00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFC00FFFFFB00FFFFF500FFFFED00856346FFEFCFB2FFCBAB8EFF8563
-            46FFFFFFEB00FFFFF500FFFFFB00FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFF800FFFFF200FFFFED00FFFFE6008E6342FFF6D0AEFFD2AC8AFF8E63
-            42FFFFFFE600FFFFED00FFFFF200FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00806D5EFF7C614DFF836248FF8A6343FF8E6342FFD2AC8AFFD4AB8AFF9063
-            41FF8E6342FF876246FF7E624AFF826D5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF007C614CFFE6CCB4FFD3B59CFFD4B497FFD5B395FFD4B294FFCFAC8BFFCFA9
-            89FFCCA688FFC6A487FFDCBEA3FF7E614CFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF007C614CFFEED4BCFFEFD2B7FFF2D2B5FFF1CFB2FFEDCFB2FFEFCFB2FFF5CF
-            B1FFF4CEB0FFEFCDB0FFEBCDB2FF7F634BFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00806D5EFF7A624CFF836248FF8A6343FF8A6343FFEDCFB4FFEDCFB4FF8C63
-            43FF8C6342FF856346FF7F634BFF816F5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFF700FFFFF200FFFFEB00FFFFE6008A6245FFECCEB5FFECCEB5FF8A62
-            45FFFFFFE600FFFFEB00FFFFF100FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFC00FFFFFB00FFFFF500FFFFED00836248FFEACEB6FFEACEB6FF8362
-            48FFFFFFEB00FFFFF500FFFFF900FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFE8CDB8FFE8CDB8FF7C61
-            4CFFFFFFF200FFFFFA00FFFFFF00FFFFFE00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7C614CFF7C614CFF806D
-            5EFFFFFFF700FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
-            FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
-          }
-          OnClick = btnAutoRunAddMinimizedClick
-        end
       end
       object chbRunInThread: TCheckBox
         Left = 15
@@ -1040,18 +925,125 @@ object frmsets: Tfrmsets
         Width = 199
         Caption = 'Run applications in separate threads'
         OnChange = chbRunInThreadChange
+        TabOrder = 5
+      end
+      object btnAutoRunAdd: TSpeedButton
+        Left = 15
+        Height = 26
+        Hint = 'Add'
+        Top = 235
+        Width = 190
+        Caption = 'Add program'
+        Glyph.Data = {
+          36040000424D3604000000000000360000002800000010000000100000000100
+          2000000000000004000064000000640000000000000000000000FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7B604BFF7D624DFF806D
+          5EFFFFFFF700FFFFFC00FDFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFECCEB5FFECCEB5FF7C61
+          4CFFFFFFF200FFFFFB00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFC00FFFFFB00FFFFF500FFFFED00856346FFEFCFB2FFCBAB8EFF8563
+          46FFFFFFEB00FFFFF500FFFFFB00FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFF800FFFFF200FFFFED00FFFFE6008E6342FFF6D0AEFFD2AC8AFF8E63
+          42FFFFFFE600FFFFED00FFFFF200FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00806D5EFF7C614DFF836248FF8A6343FF8E6342FFD2AC8AFFD4AB8AFF9063
+          41FF8E6342FF876246FF7E624AFF826D5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF007C614CFFE6CCB4FFD3B59CFFD4B497FFD5B395FFD4B294FFCFAC8BFFCFA9
+          89FFCCA688FFC6A487FFDCBEA3FF7E614CFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF007C614CFFEED4BCFFEFD2B7FFF2D2B5FFF1CFB2FFEDCFB2FFEFCFB2FFF5CF
+          B1FFF4CEB0FFEFCDB0FFEBCDB2FF7F634BFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00806D5EFF7A624CFF836248FF8A6343FF8A6343FFEDCFB4FFEDCFB4FF8C63
+          43FF8C6342FF856346FF7F634BFF816F5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFF700FFFFF200FFFFEB00FFFFE6008A6245FFECCEB5FFECCEB5FF8A62
+          45FFFFFFE600FFFFEB00FFFFF100FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFC00FFFFFB00FFFFF500FFFFED00836248FFEACEB6FFEACEB6FF8362
+          48FFFFFFEB00FFFFF500FFFFF900FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFE8CDB8FFE8CDB8FF7C61
+          4CFFFFFFF200FFFFFA00FFFFFF00FFFFFE00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7C614CFF7C614CFF806D
+          5EFFFFFFF700FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
+        }
+        OnClick = btnAutoRunAddClick
+      end
+      object btnAutoRunAddMinimized: TSpeedButton
+        Left = 210
+        Height = 26
+        Hint = 'Add'
+        Top = 235
+        Width = 281
+        Caption = 'Add (run minimized)'
+        Glyph.Data = {
+          36040000424D3604000000000000360000002800000010000000100000000100
+          2000000000000004000064000000640000000000000000000000FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7B604BFF7D624DFF806D
+          5EFFFFFFF700FFFFFC00FDFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFECCEB5FFECCEB5FF7C61
+          4CFFFFFFF200FFFFFB00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFC00FFFFFB00FFFFF500FFFFED00856346FFEFCFB2FFCBAB8EFF8563
+          46FFFFFFEB00FFFFF500FFFFFB00FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFF800FFFFF200FFFFED00FFFFE6008E6342FFF6D0AEFFD2AC8AFF8E63
+          42FFFFFFE600FFFFED00FFFFF200FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00806D5EFF7C614DFF836248FF8A6343FF8E6342FFD2AC8AFFD4AB8AFF9063
+          41FF8E6342FF876246FF7E624AFF826D5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF007C614CFFE6CCB4FFD3B59CFFD4B497FFD5B395FFD4B294FFCFAC8BFFCFA9
+          89FFCCA688FFC6A487FFDCBEA3FF7E614CFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF007C614CFFEED4BCFFEFD2B7FFF2D2B5FFF1CFB2FFEDCFB2FFEFCFB2FFF5CF
+          B1FFF4CEB0FFEFCDB0FFEBCDB2FF7F634BFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00806D5EFF7A624CFF836248FF8A6343FF8A6343FFEDCFB4FFEDCFB4FF8C63
+          43FF8C6342FF856346FF7F634BFF816F5EFFFFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFF700FFFFF200FFFFEB00FFFFE6008A6245FFECCEB5FFECCEB5FF8A62
+          45FFFFFFE600FFFFEB00FFFFF100FFFFF700FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFC00FFFFFB00FFFFF500FFFFED00836248FFEACEB6FFEACEB6FF8362
+          48FFFFFFEB00FFFFF500FFFFF900FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFB00FFFFF2007C614CFFE8CDB8FFE8CDB8FF7C61
+          4CFFFFFFF200FFFFFA00FFFFFF00FFFFFE00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFC00FFFFF700806D5EFF7C614CFF7C614CFF806D
+          5EFFFFFFF700FFFFFC00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFF
+          FF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00FFFFFF00
+        }
+        OnClick = btnAutoRunAddMinimizedClick
+      end
+      object memAutorun: TMemo
+        Left = 15
+        Height = 160
+        Top = 275
+        Width = 476
+        OnChange = memAutorunChange
         TabOrder = 6
+      end
+      object DividerBevel2: TDividerBevel
+        Left = 15
+        Height = 13
+        Top = 205
+        Width = 475
+        Caption = 'Autorun'
+        Anchors = [akTop, akLeft, akRight]
+        BevelWidth = 1
       end
     end
     object tsAbout: TTabSheet
       Caption = 'About'
       ClientHeight = 492
-      ClientWidth = 462
+      ClientWidth = 507
       object lblTitle: TLabel
         Left = 5
         Height = 36
         Top = 90
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'TDock'
@@ -1061,7 +1053,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 145
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'A desktop launch panel'
@@ -1071,7 +1063,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 175
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Author and developer: Roman Dubinin'
@@ -1081,7 +1073,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 205
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Testing and ideas: Andrey Levchenko, Alex Dubinin'
@@ -1091,7 +1083,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 235
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Built with Lazarus/FPC'
@@ -1101,7 +1093,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 265
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Licensed under LGPL 2.1'
@@ -1111,7 +1103,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 355
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Press F1 for Help'
@@ -1121,7 +1113,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 295
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'Uses Open Icon Library'
@@ -1131,7 +1123,7 @@ object frmsets: Tfrmsets
         Left = 5
         Height = 25
         Top = 325
-        Width = 446
+        Width = 495
         Alignment = taCenter
         AutoSize = False
         Caption = 'http://openiconlibrary.sourceforge.net/'
@@ -1159,9 +1151,9 @@ object frmsets: Tfrmsets
   end
   object lv: TListView
     Left = 15
-    Height = 525
-    Top = 25
-    Width = 80
+    Height = 520
+    Top = 26
+    Width = 85
     BorderStyle = bsNone
     Columns = <    
       item

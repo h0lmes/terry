@@ -40,12 +40,12 @@ type
     chbReflection: TCheckBox;
 		chbGlobalHide: TCheckBox;
     DividerBevel1: TDividerBevel;
+    DividerBevel2: TDividerBevel;
     edFontSize: TEdit;
     edFontSize2: TEdit;
 		edActivateOnMouseInterval: TEdit;
     edStartOffset: TEdit;
     edEndOffset: TEdit;
-    gbAutostart: TGroupBox;
     gbTaskbar: TGroupBox;
 		hkConsole: TEdit;
     Label1: TLabel;

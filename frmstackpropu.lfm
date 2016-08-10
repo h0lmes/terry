@@ -1,14 +1,14 @@
 object frmStackProp: TfrmStackProp
-  Left = 440
-  Height = 644
-  Top = 171
-  Width = 735
+  Left = 361
+  Height = 611
+  Top = 142
+  Width = 760
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
-  ClientHeight = 644
-  ClientWidth = 735
+  ClientHeight = 611
+  ClientWidth = 760
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -20,30 +20,33 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
-    Left = 10
-    Height = 26
-    Top = 610
-    Width = 101
+    Left = 594
+    Height = 31
+    Top = 480
+    Width = 150
+    Anchors = [akTop, akRight]
     Caption = 'OK'
     OnClick = btnOKClick
     TabOrder = 1
   end
   object btnApply: TButton
-    Left = 115
-    Height = 26
-    Top = 610
-    Width = 101
+    Left = 594
+    Height = 31
+    Top = 520
+    Width = 150
+    Anchors = [akTop, akRight]
     Caption = 'Apply'
     OnClick = btnApplyClick
     TabOrder = 2
   end
   object btnCancel: TButton
-    Left = 220
-    Height = 26
-    Top = 610
-    Width = 101
+    Left = 594
+    Height = 31
+    Top = 560
+    Width = 150
+    Anchors = [akTop, akRight]
     Caption = 'Cancel'
     OnClick = btnCancelClick
     TabOrder = 3
@@ -52,7 +55,7 @@ object frmStackProp: TfrmStackProp
     Left = 10
     Height = 591
     Top = 9
-    Width = 543
+    Width = 568
     ActivePage = tsProperties
     Anchors = [akTop, akLeft, akRight]
     ShowTabs = False
@@ -61,13 +64,13 @@ object frmStackProp: TfrmStackProp
     object tsProperties: TTabSheet
       Caption = 'Properties'
       ClientHeight = 583
-      ClientWidth = 535
+      ClientWidth = 560
       object edCaption: TEdit
         Tag = 10
-        Left = 95
+        Left = 125
         Height = 21
         Top = 14
-        Width = 428
+        Width = 425
         Anchors = [akTop, akLeft, akRight]
         OnChange = edCaptionChange
         TabOrder = 0
@@ -91,7 +94,7 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object cboMode: TComboBox
-        Left = 95
+        Left = 125
         Height = 21
         Top = 80
         Width = 180
@@ -111,7 +114,7 @@ object frmStackProp: TfrmStackProp
       end
       object lblAnimationSpeed: TLabel
         Tag = 10
-        Left = 185
+        Left = 195
         Height = 13
         Top = 120
         Width = 79
@@ -119,10 +122,10 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object tbAnimationSpeed: TTrackBar
-        Left = 185
+        Left = 190
         Height = 34
-        Top = 140
-        Width = 160
+        Top = 145
+        Width = 180
         Min = 1
         PageSize = 1
         Position = 1
@@ -131,10 +134,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 4
       end
       object tbOffset: TTrackBar
-        Left = 10
+        Left = 5
         Height = 34
-        Top = 140
-        Width = 160
+        Top = 145
+        Width = 180
         Frequency = 5
         Max = 50
         Min = -20
@@ -147,7 +150,7 @@ object frmStackProp: TfrmStackProp
       end
       object lblDistort: TLabel
         Tag = 10
-        Left = 360
+        Left = 380
         Height = 13
         Top = 120
         Width = 87
@@ -155,10 +158,10 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object tbDistort: TTrackBar
-        Left = 360
+        Left = 375
         Height = 34
-        Top = 140
-        Width = 160
+        Top = 145
+        Width = 180
         Frequency = 2
         Min = -10
         OnChange = tbDistortChange
@@ -177,19 +180,19 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object edImage: TEdit
-        Left = 95
+        Left = 125
         Height = 21
         Top = 45
-        Width = 428
+        Width = 425
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
         TabOrder = 1
       end
       object bbAddIcon: TBitBtn
-        Left = 479
+        Left = 504
         Height = 25
         Hint = 'Add shortcut/command'
-        Top = 350
+        Top = 380
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -234,10 +237,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 12
       end
       object bbDelIcon: TBitBtn
-        Left = 479
+        Left = 504
         Height = 25
         Hint = 'Delete icon'
-        Top = 380
+        Top = 410
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -282,10 +285,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 13
       end
       object bbEditIcon: TBitBtn
-        Left = 479
+        Left = 504
         Height = 25
         Hint = 'Configure icon'
-        Top = 410
+        Top = 440
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -329,10 +332,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 14
       end
       object bbIconUp: TBitBtn
-        Left = 479
+        Left = 504
         Height = 25
         Hint = 'Move up'
-        Top = 440
+        Top = 470
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -376,10 +379,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 15
       end
       object bbIconDown: TBitBtn
-        Left = 479
+        Left = 504
         Height = 25
         Hint = 'Move down'
-        Top = 470
+        Top = 500
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -424,9 +427,9 @@ object frmStackProp: TfrmStackProp
       end
       object list: TListBox
         Left = 10
-        Height = 218
-        Top = 350
-        Width = 455
+        Height = 188
+        Top = 380
+        Width = 480
         Anchors = [akTop, akLeft, akRight, akBottom]
         ExtendedSelect = False
         ItemHeight = 0
@@ -435,18 +438,18 @@ object frmStackProp: TfrmStackProp
       end
       object DividerBevel1: TDividerBevel
         Left = 10
-        Height = 25
-        Top = 295
-        Width = 513
+        Height = 20
+        Top = 315
+        Width = 540
         Caption = 'Items in this stack'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
         ParentFont = False
       end
       object cboPreview: TComboBox
-        Left = 125
+        Left = 180
         Height = 21
-        Top = 320
+        Top = 345
         Width = 180
         ItemHeight = 13
         Style = csDropDownList
@@ -455,60 +458,60 @@ object frmStackProp: TfrmStackProp
       object Label1: TLabel
         Left = 10
         Height = 13
-        Top = 325
+        Top = 350
         Width = 42
         Caption = 'Preview:'
         ParentColor = False
       end
       object DividerBevel2: TDividerBevel
         Left = 10
-        Height = 25
-        Top = 190
-        Width = 513
+        Height = 20
+        Top = 200
+        Width = 540
         Caption = 'Stack background'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
         ParentFont = False
       end
       object chbBackgroundBlur: TCheckBox
-        Left = 185
-        Height = 29
-        Top = 220
-        Width = 48
+        Left = 190
+        Height = 23
+        Top = 235
+        Width = 42
         Caption = 'Blur'
         TabOrder = 7
       end
       object btnSelectBkColor: TButton
-        Left = 15
+        Left = 20
         Height = 30
-        Top = 250
+        Top = 270
         Width = 210
         Caption = 'Select background color'
         OnClick = btnSelectBkColorClick
         TabOrder = 8
       end
       object chbBackground: TCheckBox
-        Left = 15
-        Height = 29
-        Top = 220
-        Width = 115
+        Left = 20
+        Height = 23
+        Top = 235
+        Width = 109
         Caption = 'Show background'
         TabOrder = 6
       end
       object lblBackgroundAlpha: TLabel
         Tag = 10
-        Left = 285
+        Left = 320
         Height = 13
-        Top = 225
+        Top = 240
         Width = 67
         Caption = 'Alpha channel'
         ParentColor = False
       end
       object tbBackgroundAlpha: TTrackBar
-        Left = 275
+        Left = 310
         Height = 34
-        Top = 250
-        Width = 160
+        Top = 265
+        Width = 215
         Frequency = 10
         Max = 100
         OnChange = tbBackgroundAlphaChange
@@ -634,7 +637,7 @@ object frmStackProp: TfrmStackProp
   end
   object iPic: TPaintBox
     Tag = 10
-    Left = 580
+    Left = 605
     Height = 128
     Top = 20
     Width = 128
@@ -642,9 +645,9 @@ object frmStackProp: TfrmStackProp
     OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
-    Left = 569
-    Height = 25
-    Top = 164
+    Left = 594
+    Height = 31
+    Top = 165
     Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Browse image'
@@ -652,9 +655,9 @@ object frmStackProp: TfrmStackProp
     TabOrder = 4
   end
   object btnClearImage: TButton
-    Left = 569
-    Height = 25
-    Top = 194
+    Left = 594
+    Height = 31
+    Top = 205
     Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Clear image'
@@ -662,9 +665,9 @@ object frmStackProp: TfrmStackProp
     TabOrder = 5
   end
   object btnSelectColor: TButton
-    Left = 569
-    Height = 25
-    Top = 224
+    Left = 594
+    Height = 31
+    Top = 245
     Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Select color'

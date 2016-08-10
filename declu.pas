@@ -204,6 +204,7 @@ const
   MONITOR_DEFAULTTONEAREST = 2;
   DATA_PROGRAM = $f001; // on WM_COPYDATA CDS.dwType for TDProgramData struct
   WM_DPICHANGED = $02E0;
+  HSHELL_MONITORCHANGED = 16;
 
   // icon hint align
   HA_HORIZONTAL_BOTTOM = 0;

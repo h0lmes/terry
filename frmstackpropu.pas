@@ -154,7 +154,7 @@ procedure TfrmStackProp.FormShow(Sender: TObject);
 begin
   font.Name := GetFont;
   font.size := GetFontSize;
-  clientheight := btnOK.top + btnOK.Height + 7;
+  clientheight := pages.top + pages.Height + 7;
   constraints.minheight := Height;
   constraints.maxheight := Height;
   constraints.minwidth := Width;

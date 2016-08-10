@@ -60,8 +60,6 @@ type
 		procedure DestroyBlurWindow;
 		procedure DoGlobalHotkeys;
     procedure FlashTaskWindow(hwnd: HWND);
-		procedure TaskWindowCreated(hwnd: HWND);
-		procedure TaskWindowDestroyed(hwnd: HWND);
 		function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
     procedure RegisterRawInput;
@@ -606,7 +604,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.RegisterRawInput;
 var
-  rid: array [0..1] of RAWINPUTDEVICE;
+  rid: array [0..0] of RAWINPUTDEVICE;
 begin
   rid[0].usUsagePage := 1;
   rid[0].usUsage := 2; // mouse
@@ -628,10 +626,10 @@ begin
 
   if message.msg = WM_SHELLHOOK then
   begin
-    if message.wParam = HSHELL_FLASH then FlashTaskWindow(message.lParam);
-    //if message.wParam = HSHELL_ACTIVATESHELLWINDOW then BaseCmd(tcActivate, 0);
-    if message.wParam = HSHELL_WINDOWCREATED then TaskWindowCreated(message.lParam);
-    if message.wParam = HSHELL_WINDOWDESTROYED then TaskWindowDestroyed(message.lParam);
+    if      message.wParam = HSHELL_FLASH           then FlashTaskWindow(message.lParam)
+    else if message.wParam = HSHELL_WINDOWCREATED   then UpdateRunning
+    else if message.wParam = HSHELL_WINDOWDESTROYED then UpdateRunning
+    else if message.wParam = HSHELL_MONITORCHANGED  then UpdateRunning;
     exit;
   end;
 
@@ -648,94 +646,23 @@ begin
         //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
       end;
 
-    WM_TIMER : WMTimer(message);
-    WM_USER : WMUser(message);
-    WM_COMMAND : WMCommand(message);
+    WM_TIMER :                 WMTimer(message);
+    WM_USER :                  WMUser(message);
+    WM_COMMAND :               WMCommand(message);
     WM_QUERYENDSESSION :
       begin
         FAllowCloseProgram := true;
         message.Result := CloseQuery;
       end;
-
-    WM_COPYDATA : WMCopyData(message);
-    WM_DISPLAYCHANGE : WMDisplayChange(message);
-    WM_SETTINGCHANGE : WMSettingChange(message);
+    WM_COPYDATA :              WMCopyData(message);
+    WM_DISPLAYCHANGE :         WMDisplayChange(message);
+    WM_SETTINGCHANGE :         WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
-    WM_DPICHANGED: WMDPIChanged(message);
-    WM_APP_RUN_THREAD_END: CloseHandle(message.lParam);
+    WM_DPICHANGED:             WMDPIChanged(message);
+    WM_APP_RUN_THREAD_END:     CloseHandle(message.lParam);
     else
       message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure SendShift(hwnd: HWnd; Down: Boolean);
-var
-  vKey, ScanCode, wParam: Word;
-  lParam: longint;
-begin
-  vKey := $10;
-  ScanCode := MapVirtualKey(vKey, 0);
-  wParam := vKey or ScanCode shl 8;
-  lParam := longint(ScanCode) shl 16 or 1;
-  if not Down then lParam := lParam or $C0000000;
-  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
-end;
-//------------------------------------------------------------------------------
-procedure SendCtrl(hwnd: HWnd; Down: Boolean);
-var
-  vKey, ScanCode, wParam: Word;
-  lParam: longint;
-begin
-  vKey := $11;
-  ScanCode := MapVirtualKey(vKey, 0);
-  wParam := vKey or ScanCode shl 8;
-  lParam := longint(ScanCode) shl 16 or 1;
-  if not Down then lParam := lParam or $C0000000;
-  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
-end;
-//------------------------------------------------------------------------------
-procedure SendKey(hwnd: HWnd; Key: char; noChar: boolean);
-const MAPVK_VK_TO_CHAR = 2;
-var
-  kbLayout: HKL;
-  vKey, ScanCode, wParam: Word;
-  lParam, ExKey: longint;
-  Shift, Ctrl: boolean;
-  keyboardState: TKeyboardState;
-  chars: string;
-  asciiResult: longint;
-begin
-  kbLayout := GetKeyboardLayout(0);
-  ExKey := VkKeyScanEx(Key, kbLayout);
-  Shift := GetKeyState(VK_SHIFT) and $80 = 0; //(ExKey and $00020000) <> 0;
-  Ctrl := (ExKey and $00040000) <> 0;
-  ScanCode := ExKey and $000000FF or $FF00;
-  if ord(key) < 128 then vKey := ord(Key)
-  else vKey := MapVirtualKeyEx(ord(key), MAPVK_VK_TO_CHAR, kbLayout);
-  wParam := vKey;
-  lParam := longint(ScanCode) shl 16 or 1;
-  if Shift then SendShift(hwnd, true);
-  if Ctrl then SendCtrl(hwnd, true);
-  SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
-  if not noChar then SendMessage(hwnd, WM_CHAR, vKey, lParam);
-  if not noChar then
-  begin
-    GetKeyboardState(keyboardState);
-    SetLength(chars, 2);
-    asciiResult := ToAsciiEx(vkey, ScanCode and $8FFF, keyboardState, @chars[1], 0, kbLayout);
-    if asciiResult = 1 then SetLength(chars, 1)
-    else if asciiResult <> 2 then chars := '';
-    if length(chars) = 1 then SendMessage(hwnd, WM_CHAR, ord(chars[1]), lParam);
-    if length(chars) = 2 then
-    begin
-      SendMessage(hwnd, WM_CHAR, ord(chars[1]), lParam);
-      SendMessage(hwnd, WM_CHAR, ord(chars[2]), lParam);
-    end;
-  end;
-  lParam := lParam or $C0000000;
-  SendMessage(hwnd, WM_KEYUP, vKey, lParam);
-  if Shift then SendShift(hwnd, false);
-  if Ctrl then SendCtrl(hwnd, false);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
@@ -757,7 +684,7 @@ begin
         begin
           key := chr(kb.vkey);
           if GetKeyState(VK_SHIFT) and $80 = 0 then key := LowerCase(key);
-          SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
+          //SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
         end;
       end;
   end;
@@ -833,16 +760,6 @@ end;
 procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
 begin
   if assigned(ItemMgr) then ItemMgr.AllItemCmd(icFlashTaskWindow, hwnd);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.TaskWindowCreated(hwnd: HWND);
-begin
-  UpdateRunning;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.TaskWindowDestroyed(hwnd: HWND);
-begin
-  UpdateRunning;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

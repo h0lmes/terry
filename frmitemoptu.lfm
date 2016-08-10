@@ -1,12 +1,12 @@
 object frmItemProp: TfrmItemProp
   Left = 398
-  Height = 361
+  Height = 365
   Top = 245
   Width = 730
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
-  ClientHeight = 361
+  ClientHeight = 365
   ClientWidth = 730
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
@@ -19,10 +19,10 @@ object frmItemProp: TfrmItemProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object btnOK: TButton
     Left = 10
-    Height = 26
+    Height = 31
     Top = 325
     Width = 101
     Caption = 'OK'
@@ -31,7 +31,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnApply: TButton
     Left = 115
-    Height = 26
+    Height = 31
     Top = 325
     Width = 101
     Caption = 'Apply'
@@ -40,7 +40,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnCancel: TButton
     Left = 220
-    Height = 26
+    Height = 31
     Top = 325
     Width = 101
     Caption = 'Cancel'
@@ -63,40 +63,40 @@ object frmItemProp: TfrmItemProp
       ClientWidth = 531
       object edCaption: TEdit
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 15
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         OnChange = edCaptionChange
         TabOrder = 0
       end
       object edCmd: TEdit
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 50
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         OnChange = edCmdChange
         TabOrder = 1
       end
       object edParams: TEdit
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 85
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         OnChange = edParamsChange
         TabOrder = 3
       end
       object edDir: TEdit
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 120
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         OnChange = edDirChange
         TabOrder = 5
@@ -136,10 +136,10 @@ object frmItemProp: TfrmItemProp
       end
       object cboWindow: TComboBox
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 190
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         ItemHeight = 13
         OnChange = cboWindowChange
@@ -147,10 +147,10 @@ object frmItemProp: TfrmItemProp
         TabOrder = 8
       end
       object chbHide: TCheckBox
-        Left = 115
-        Height = 29
+        Left = 145
+        Height = 23
         Top = 228
-        Width = 187
+        Width = 181
         Caption = 'Hide Terry when application runs'
         TabOrder = 9
       end
@@ -218,10 +218,10 @@ object frmItemProp: TfrmItemProp
       end
       object edImage: TEdit
         Tag = 10
-        Left = 115
+        Left = 145
         Height = 21
         Top = 155
-        Width = 370
+        Width = 340
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
         TabOrder = 7
@@ -351,7 +351,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnBrowseImage1: TButton
     Left = 564
-    Height = 25
+    Height = 31
     Top = 175
     Width = 150
     Anchors = [akTop, akRight]
@@ -361,7 +361,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnClearImage: TButton
     Left = 564
-    Height = 25
+    Height = 31
     Top = 210
     Width = 150
     Anchors = [akTop, akRight]
@@ -371,7 +371,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnSelectColor: TButton
     Left = 564
-    Height = 25
+    Height = 31
     Top = 245
     Width = 150
     Anchors = [akTop, akRight]
@@ -381,7 +381,7 @@ object frmItemProp: TfrmItemProp
   end
   object btnConvertLink: TButton
     Left = 345
-    Height = 26
+    Height = 31
     Top = 325
     Width = 199
     Caption = 'Convert .LNK'
