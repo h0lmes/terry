@@ -236,6 +236,7 @@ const
   ID_TIMER_ROLL             = 8;
   ID_TIMER_DRAGLEAVE        = 9;
   ID_TIMER_FOREGROUND       = 10;
+  ID_TIMER_WINDOWCREATED    = 11;
 
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 
@@ -327,6 +328,7 @@ resourcestring
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
   XDistort = 'Spacing/Distortion: %d';
+  XAnimationSpeed = 'Anim. speed: %d';
   XAlphaChannel = 'Alpha channel: %d';
   // frmstackpropu //
   XStackPreviewNone = 'none';

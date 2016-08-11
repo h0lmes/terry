@@ -47,6 +47,10 @@ msgstr "Тряска"
 msgid "Rotate"
 msgstr "Вращение"
 
+#: declu.xanimationspeed
+msgid "Anim. speed: %d"
+msgstr "Скорость аним.: %d"
+
 #: declu.xanimationswing
 msgid "Swing"
 msgstr "Покачивание"
@@ -857,8 +861,9 @@ msgid "Enable hint effects"
 msgstr "Включить эффекты для подсказок"
 
 #: tfrmsets.chboccupyfullmonitor.caption
-msgid "Occupy full monitor width or height"
-msgstr "Занимать всю ширину или высоту монитора"
+#| msgid "Occupy full monitor width or height"
+msgid "Stretch to full monitor width or height"
+msgstr "Растянуть на всю ширину или высоту монитора"
 
 #: tfrmsets.chbreflection.caption
 msgctxt "tfrmsets.chbreflection.caption"
@@ -929,8 +934,9 @@ msgid "Stack font size:"
 msgstr "Размер шрифта стека:"
 
 #: tfrmsets.label2.caption
-msgid "Do not occupy at the start - end, pixel"
-msgstr "Не занимать в начале - конце, пиксел"
+#| msgid "Do not occupy at the start - end, pixel"
+msgid "Margin at the start / end, px"
+msgstr "Отступ в начале - конце, пиксел"
 
 #: tfrmsets.lblanimateicons.caption
 msgctxt "TFRMSETS.LBLANIMATEICONS.CAPTION"
@@ -1045,8 +1051,9 @@ msgid "TDock"
 msgstr "TDock"
 
 #: tfrmsets.lblvisiblepart.caption
+#| msgid "Visible part size in pixels"
 msgctxt "TFRMSETS.LBLVISIBLEPART.CAPTION"
-msgid "Visible part size in pixels"
+msgid "Visible part in pixels"
 msgstr "Видимая часть (пиксел)"
 
 #: tfrmsets.lblzoomediconsize.caption

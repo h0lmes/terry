@@ -171,6 +171,7 @@ begin
     trayicon.Icon := application.Icon;
     LockList := TList.Create;
     crsection := TCriticalSection.Create;
+    FBlurWindow := 0;
 
     // workaround for Windows message handling in LCL //
     FWndInstance := MakeObjectInstance(NativeWndProc);
@@ -327,6 +328,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.CreateBlurWindow;
 begin
+  if FBlurWindow = 0 then
   try
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
@@ -627,14 +629,13 @@ begin
   if message.msg = WM_SHELLHOOK then
   begin
     if      message.wParam = HSHELL_FLASH           then FlashTaskWindow(message.lParam)
-    else if message.wParam = HSHELL_WINDOWCREATED   then UpdateRunning
+    else if message.wParam = HSHELL_WINDOWCREATED   then SetTimer(handle, ID_TIMER_WINDOWCREATED, 200, nil) // workaroud
     else if message.wParam = HSHELL_WINDOWDESTROYED then UpdateRunning
     else if message.wParam = HSHELL_MONITORCHANGED  then UpdateRunning;
     exit;
   end;
 
   case message.msg of
-
     WM_INPUT :
       if not FProgramIsClosing then
       begin
@@ -845,6 +846,11 @@ begin
     else if msg.WParam = ID_TIMER_FSA then OnTimerFSA
     else if msg.WParam = ID_TIMER_ROLL then OnTimerRoll
     else if msg.WParam = ID_TIMER_DRAGLEAVE then OnTimerDragLeave
+    else if msg.WParam = ID_TIMER_WINDOWCREATED then
+    begin
+      KillTimer(handle, ID_TIMER_WINDOWCREATED);
+      UpdateRunning;
+    end
     else if msg.WParam = ID_TIMER_FOREGROUND then OnTimerForeground;
   except
     on e: Exception do err('Base.WMTimer', e);
@@ -943,12 +949,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.UpdateRunning;
 var
-  parent: THandle;
+  parent: THandle = 0;
 begin
   try
     if sets.container.ShowRunningIndicator or sets.container.Taskbar then
     begin
-      if sets.container.TaskSameMonitor then parent := Handle else parent := 0;
+      if sets.container.TaskSameMonitor then parent := Handle;
       ProcessHelper.EnumAppWindows(parent);
       if ProcessHelper.WindowsCountChanged then ProcessHelper.EnumProc;
       if sets.container.ShowRunningIndicator then ItemMgr.SetParam(icUpdateRunning, 0);
@@ -2114,6 +2120,13 @@ begin
   else if cmd = 'regp' then
   begin
     for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);
+  end
+  else if cmd = 'tasks' then
+  begin
+    notify('----- tasks -----');
+    notify(ProcessHelper.Processes);
+    notify('----- tasks FQ -----');
+    notify(ProcessHelper.ProcessesFullName);
   end
   else if cmd = 'setdisplaymode' then
   begin

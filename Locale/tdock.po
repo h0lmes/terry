@@ -46,6 +46,10 @@ msgstr ""
 msgid "Rotate"
 msgstr ""
 
+#: declu.xanimationspeed
+msgid "Anim. speed: %d"
+msgstr ""
+
 #: declu.xanimationswing
 msgid "Swing"
 msgstr ""
@@ -800,7 +804,7 @@ msgid "Enable hint effects"
 msgstr ""
 
 #: tfrmsets.chboccupyfullmonitor.caption
-msgid "Occupy full monitor width or height"
+msgid "Stretch to full monitor width or height"
 msgstr ""
 
 #: tfrmsets.chbreflection.caption
@@ -871,7 +875,7 @@ msgid "Stack font size:"
 msgstr ""
 
 #: tfrmsets.label2.caption
-msgid "Do not occupy at the start - end, pixel"
+msgid "Margin at the start / end, px"
 msgstr ""
 
 #: tfrmsets.lblanimateicons.caption
@@ -972,7 +976,7 @@ msgid "TDock"
 msgstr ""
 
 #: tfrmsets.lblvisiblepart.caption
-msgid "Visible part size in pixels"
+msgid "Visible part in pixels"
 msgstr ""
 
 #: tfrmsets.lblzoomediconsize.caption

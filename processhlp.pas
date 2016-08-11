@@ -28,9 +28,13 @@ type
     procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
     function GetFullNameByPID_Internal(pid: uint): string;
     function SetPrivilege(Name: string): boolean;
+    function GetProcesses: string;
+    function GetProcessesFullName: string;
   public
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
+    property Processes: string read GetProcesses;
+    property ProcessesFullName: string read GetProcessesFullName;
     // //
     class procedure Cleanup;
     constructor Create(bVistaOrGreater: boolean);
@@ -134,6 +138,28 @@ end;
 //
 //
 //
+//------------------------------------------------------------------------------
+function TProcessHelper.GetProcesses: string;
+var
+  i: integer = 0;
+begin
+  while i < listProcess.Count do
+  begin
+    result := result + listProcess.Strings[i] + #10#13;
+    inc(i);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TProcessHelper.GetProcessesFullName: string;
+var
+  i: integer = 0;
+begin
+  while i < listProcessFullName.Count do
+  begin
+    result := result + listProcessFullName.Strings[i] + #10#13;
+    inc(i);
+  end;
+end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc;
 var
@@ -352,7 +378,7 @@ var
   fullyQualified: boolean;
 begin
   Name := AnsiLowerCase(Name);
-  fullyQualified := Name <> ExtractFilename(Name);
+  fullyQualified := ExtractFilePath(Name) <> '';
   found := 0;
 
   if fullyQualified then

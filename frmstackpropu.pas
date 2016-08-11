@@ -84,6 +84,7 @@ type
       Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure listDblClick(Sender: TObject);
+    procedure tbAnimationSpeedChange(Sender: TObject);
     procedure tbBackgroundAlphaChange(Sender: TObject);
     procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
@@ -372,6 +373,11 @@ end;
 procedure TfrmStackProp.tbDistortChange(Sender: TObject);
 begin
   lblDistort.Caption := Format(XDistort, [TTrackBar(Sender).Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbAnimationSpeedChange(Sender: TObject);
+begin
+  lblAnimationSpeed.Caption := Format(XAnimationSpeed, [TTrackBar(Sender).Position]);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);

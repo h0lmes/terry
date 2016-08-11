@@ -20,7 +20,7 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object btnOK: TButton
     Left = 594
     Height = 31
@@ -127,6 +127,7 @@ object frmStackProp: TfrmStackProp
         Top = 145
         Width = 180
         Min = 1
+        OnChange = tbAnimationSpeedChange
         PageSize = 1
         Position = 1
         ScalePos = trLeft
@@ -438,7 +439,7 @@ object frmStackProp: TfrmStackProp
       end
       object DividerBevel1: TDividerBevel
         Left = 10
-        Height = 20
+        Height = 15
         Top = 315
         Width = 540
         Caption = 'Items in this stack'
@@ -465,7 +466,7 @@ object frmStackProp: TfrmStackProp
       end
       object DividerBevel2: TDividerBevel
         Left = 10
-        Height = 20
+        Height = 15
         Top = 200
         Width = 540
         Caption = 'Stack background'
@@ -475,9 +476,9 @@ object frmStackProp: TfrmStackProp
       end
       object chbBackgroundBlur: TCheckBox
         Left = 190
-        Height = 23
+        Height = 19
         Top = 235
-        Width = 42
+        Width = 38
         Caption = 'Blur'
         TabOrder = 7
       end
@@ -492,9 +493,9 @@ object frmStackProp: TfrmStackProp
       end
       object chbBackground: TCheckBox
         Left = 20
-        Height = 23
+        Height = 19
         Top = 235
-        Width = 109
+        Width = 105
         Caption = 'Show background'
         TabOrder = 6
       end

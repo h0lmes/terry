@@ -285,14 +285,12 @@ begin
       if not FIsPIDL then
       begin
         FExecutable := toolu.UnzipPath(FCommand);
-        if not FileExists(FExecutable) then FExecutable := ''
-        else
-        begin
-          ext := ExtractFileExt(FExecutable);
-          if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
-          if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
-        end;
-        FIsExecutable := SameText(ExtractFileExt(FExecutable), '.exe');
+        ext := ExtractFileExt(FExecutable);
+        if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
+        if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
+        ext := ExtractFileExt(FExecutable);
+        FIsExecutable := SameText(ext, '.exe');
+        if not FileExists(FExecutable) and not FIsExecutable then FExecutable := '';
       end;
 
       // load images //

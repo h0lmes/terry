@@ -17,15 +17,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.2.4.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 515
-    ActivePage = tsIcons
+    ActivePage = tsPosition
     ShowTabs = False
-    TabIndex = 3
+    TabIndex = 1
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -46,18 +46,18 @@ object frmsets: Tfrmsets
       end
       object cbActivateOnMouse: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 130
-        Width = 218
+        Width = 214
         Caption = 'Activate dock on mouseover after, msec'
         OnChange = cbActivateOnMouseChange
         TabOrder = 4
       end
       object cbAutorun: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 15
-        Width = 120
+        Width = 116
         Caption = 'Start with Windows '
         OnChange = cbAutorunChange
         TabOrder = 0
@@ -81,18 +81,18 @@ object frmsets: Tfrmsets
         end
         object chbGlobalConsole: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 35
-          Width = 89
+          Width = 85
           Caption = 'Open console'
           OnChange = chbGlobalConsoleChange
           TabOrder = 1
         end
         object chbGlobalHide: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 10
-          Width = 124
+          Width = 120
           Caption = 'Hide dock completely'
           OnChange = chbGlobalHideChange
           TabOrder = 2
@@ -108,18 +108,18 @@ object frmsets: Tfrmsets
       end
       object cbHideTaskBar: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 40
-        Width = 130
+        Width = 126
         Caption = 'Hide Windows taskbar'
         OnChange = cbHideTaskBarChange
         TabOrder = 1
       end
       object chbReserveScreenEdge: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 65
-        Width = 126
+        Width = 122
         Caption = 'Reserve screen edge'
         OnChange = chbReserveScreenEdgeChange
         TabOrder = 2
@@ -147,36 +147,36 @@ object frmsets: Tfrmsets
         TabOrder = 7
         object chbTaskbar: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 0
-          Width = 208
+          Width = 204
           Caption = 'Show icons for running tasks (taskbar)'
           OnChange = chbTaskbarChange
           TabOrder = 0
         end
         object chbTaskbarLivePreviews: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 40
-          Width = 197
+          Width = 193
           Caption = 'Show live previews (when available)'
           OnChange = chbTaskbarLivePreviewsChange
           TabOrder = 1
         end
         object chbTaskbarGrouping: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 20
-          Width = 113
+          Width = 109
           Caption = 'Group similar tasks'
           OnChange = chbTaskbarGroupingChange
           TabOrder = 2
         end
         object chbTaskbarSameMonitor: TCheckBox
           Left = 10
-          Height = 23
+          Height = 19
           Top = 105
-          Width = 212
+          Width = 208
           Caption = 'Show only tasks from the same monitor'
           OnChange = chbTaskbarSameMonitorChange
           TabOrder = 3
@@ -207,9 +207,9 @@ object frmsets: Tfrmsets
       end
       object chbAutoHideOnFullScreenApp: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 170
-        Width = 348
+        Width = 344
         Caption = 'Hide dock completely while fullscreen application active (game, etc) '
         OnChange = chbAutoHideOnFullScreenAppChange
         TabOrder = 8
@@ -333,7 +333,7 @@ object frmsets: Tfrmsets
       object gbAutoSlide: TGroupBox
         Left = 15
         Height = 136
-        Top = 285
+        Top = 300
         Width = 475
         ClientHeight = 118
         ClientWidth = 471
@@ -350,8 +350,8 @@ object frmsets: Tfrmsets
           Left = 13
           Height = 13
           Top = 34
-          Width = 114
-          Caption = 'Visible part size in pixels'
+          Width = 93
+          Caption = 'Visible part in pixels'
           ParentColor = False
         end
         object lblShowDelay: TLabel
@@ -364,9 +364,9 @@ object frmsets: Tfrmsets
         end
         object cbAutoHide: TCheckBox
           Left = 13
-          Height = 23
+          Height = 19
           Top = 4
-          Width = 290
+          Width = 286
           Caption = 'Slide into screen edge when mouse is not over the dock'
           OnChange = cbAutoHideChange
           TabOrder = 0
@@ -408,10 +408,10 @@ object frmsets: Tfrmsets
       end
       object chbOccupyFullMonitor: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 215
-        Width = 191
-        Caption = 'Occupy full monitor width or height'
+        Width = 199
+        Caption = 'Stretch to full monitor width or height'
         OnChange = chbOccupyFullMonitorChange
         TabOrder = 6
       end
@@ -419,23 +419,23 @@ object frmsets: Tfrmsets
         Left = 15
         Height = 13
         Top = 245
-        Width = 184
-        Caption = 'Do not occupy at the start - end, pixel'
+        Width = 137
+        Caption = 'Margin at the start / end, px'
         ParentColor = False
       end
       object edStartOffset: TEdit
-        Left = 350
+        Left = 15
         Height = 21
-        Top = 240
-        Width = 65
+        Top = 265
+        Width = 85
         OnChange = edStartOffsetChange
         TabOrder = 7
       end
       object edEndOffset: TEdit
-        Left = 425
+        Left = 105
         Height = 21
-        Top = 240
-        Width = 65
+        Top = 265
+        Width = 85
         OnChange = edEndOffsetChange
         TabOrder = 8
       end
@@ -723,7 +723,7 @@ object frmsets: Tfrmsets
         Left = 215
         Height = 21
         Top = 120
-        Width = 275
+        Width = 260
         DropDownCount = 10
         ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
@@ -742,7 +742,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 260
-        Width = 460
+        Width = 445
         Frequency = 8
         Max = 128
         Min = 16
@@ -756,7 +756,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 315
-        Width = 460
+        Width = 445
         Frequency = 16
         Max = 256
         Min = 16
@@ -770,7 +770,7 @@ object frmsets: Tfrmsets
         Left = 330
         Height = 30
         Top = 375
-        Width = 160
+        Width = 145
         Max = 5
         Min = 2
         OnChange = tbZoomWidthChange
@@ -820,7 +820,7 @@ object frmsets: Tfrmsets
         Left = 30
         Height = 30
         Top = 440
-        Width = 460
+        Width = 445
         Frequency = 40
         Max = 400
         Min = 1
