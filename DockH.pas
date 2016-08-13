@@ -1,6 +1,6 @@
 unit DockH;
 
-// modified oct 17, 2014 //
+// modified aug 13, 2016 //
 
 interface
 uses Windows;
@@ -50,7 +50,6 @@ procedure Dock(id: HWND);
 function DockCreateItem(data: pchar): HWND;
 procedure DockDeleteItem(id: HWND);
 function DockAddProgram(data: pchar): HWND;
-function FullScreenAppActive(id: HWND): bool;
 procedure Notify(id: HWND; Message: PAnsiChar);
 procedure ActivateHint(id: HWND; ACaption: PWideChar; x, y: integer);
 procedure DeactivateHint(id: HWND);
@@ -329,15 +328,6 @@ var
 begin
 	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockAddProgram');
 	if not assigned(proc) then result := 0 else result := proc(data);
-end;
-//------------------------------------------------------------------------------
-function FullScreenAppActive(id: HWND): bool;
-type dtype = function(id: HWND): bool; stdcall;
-var
-  proc: dtype;
-begin
-	@proc:= GetProcAddress(GetModuleHandle(nil), 'FullScreenAppActive');
-	if not assigned(proc) then result := false else result := proc(id);
 end;
 //------------------------------------------------------------------------------
 procedure Notify(id: HWND; Message: PAnsiChar);

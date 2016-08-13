@@ -140,7 +140,7 @@ type
     procedure NewDock;
     procedure RemoveDock;
     procedure OpenWith(filename: string);
-    function  FullScreenAppActive(HWnd: HWND): boolean;
+    function  FullScreenAppActive: boolean;
     function  ListFullScreenApps: string;
     procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
     procedure execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
@@ -905,7 +905,7 @@ begin
 
     // hide/show the dock if fullscreen apps active
     if FHiddenByFSA and Visible then FHiddenByFSA := false;
-    fsa := FullScreenAppActive(0);
+    fsa := FullScreenAppActive;
     if sets.container.AutoHideOnFullScreenApp then
     begin
       if fsa and Visible then
@@ -1886,7 +1886,7 @@ begin
   message.Result := 0;
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.FullScreenAppActive(HWnd: HWND): boolean;
+function Tfrmmain.FullScreenAppActive: boolean;
 const
   clsPM = 'Progman';
   clsWW = 'WorkerW';
@@ -2125,7 +2125,7 @@ begin
   begin
     notify('----- tasks -----');
     notify(ProcessHelper.Processes);
-    notify('----- tasks FQ -----');
+    notify('----- modules -----');
     notify(ProcessHelper.ProcessesFullName);
   end
   else if cmd = 'setdisplaymode' then
@@ -2183,7 +2183,6 @@ begin
     if SameText(params, 'stop') then toolu.wacmd(40047);
     if SameText(params, 'previous') then toolu.wacmd(40044);
     if SameText(params, 'next') then toolu.wacmd(40048);
-
     if SameText(params, 'close') then toolu.wacmd(40001);
     if SameText(params, 'preferences') then toolu.wacmd(40012);
     if SameText(params, 'open_file') then toolu.wacmd(40029);

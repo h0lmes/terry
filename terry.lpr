@@ -382,12 +382,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function FullScreenAppActive(id: HWND): bool; stdcall;
-begin
-  result := false;
-  if assigned(frmmain) then result := frmmain.FullScreenAppActive(id);
-end;
-//------------------------------------------------------------------------------
 procedure Notify(id: HWND; Message: PAnsiChar); stdcall;
 begin
   if assigned(frmmain) then frmmain.Notify(strpas(Message));
@@ -438,7 +432,6 @@ exports
   DockCreateItem,
   DockDeleteItem,
   DockAddProgram,
-  FullScreenAppActive,
   Notify,
   ActivateHint,
   DeactivateHint,

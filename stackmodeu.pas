@@ -7,7 +7,7 @@ interface
 uses Classes, SysUtils, Math, declu;
 
 const
-  MODE_COUNT = 8;
+  MODE_COUNT = 9;
   MAX_DISTORT = 10;
   PI = 3.14159;
   DEFMODE_BIG = 4;
@@ -27,7 +27,6 @@ type
   TStackModeController = class(TObject)
   private
     names: array [0..MODE_COUNT] of string;
-    background: array [0..MODE_COUNT] of boolean;
     function GetFan(Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
     function GetFanAlt(Opening, ShowHint: boolean; Index: integer; Progress: extended;
@@ -37,6 +36,8 @@ type
     function GetCards(Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
     function GetLine(Opening, ShowHint: boolean; Index: integer; Progress: extended;
+        ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
+    function GetDoubleLine(Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
     function GetSun(Opening, ShowHint: boolean; Index: integer; Progress: extended;
         ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
@@ -48,10 +49,9 @@ type
     constructor Create;
     function GetModeCount: integer;
     function GetModeName(Mode: integer): string;
-    function AllowBackground(Mode: integer; ItemCount: integer): boolean;
     function GetStep(Mode: integer; ItemCount: integer): extended;
-    function GetItemData(Mode: integer; Opening, ShowHint: boolean; Index: integer; Progress: extended;
-        ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
+    function GetItemData(Mode: integer; Opening, ShowHint: boolean; Progress: extended;
+        Index, ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
   end;
 
 var
@@ -67,18 +67,10 @@ begin
   names[3] := 'Table';
   names[4] := 'Cards';
   names[5] := 'Line';
-  names[6] := 'Sun';
-  names[7] := 'Parallel Wave';
-  names[8] := 'Parallel';
-  background[0] := false;
-  background[1] := false;
-  background[2] := false;
-  background[3] := true;
-  background[4] := true;
-  background[5] := false;
-  background[6] := false;
-  background[7] := false;
-  background[8] := false;
+  names[6] := 'Double Line';
+  names[7] := 'Sun';
+  names[8] := 'Parallel Wave';
+  names[9] := 'Parallel';
 end;
 //------------------------------------------------------------------------------
 function TStackModeController.GetModeCount: integer;
@@ -91,15 +83,6 @@ begin
   result := names[mode];
 end;
 //------------------------------------------------------------------------------
-function TStackModeController.AllowBackground(Mode: integer; ItemCount: integer): boolean;
-begin
-  if Mode = 0 then
-  begin
-    if ItemCount > 15 then Mode := DEFMODE_BIG else Mode := DEFMODE_SMALL;
-  end;
-  result := background[mode];
-end;
-//------------------------------------------------------------------------------
 function TStackModeController.GetStep(Mode: integer; ItemCount: integer): extended;
 begin
   if mode = 0 then
@@ -107,7 +90,7 @@ begin
     if itemCount > 15 then mode := DEFMODE_BIG else mode := DEFMODE_SMALL;
   end;
   case Mode of
-    6, 7:
+    7, 8:
       begin
         result := 0.1 / ItemCount;
         if result < 0.01 then result := 0.01;
@@ -116,8 +99,8 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackModeController.GetItemData(Mode: integer; Opening, ShowHint: boolean; Index: integer; Progress: extended;
-    ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
+function TStackModeController.GetItemData(Mode: integer; Opening, ShowHint: boolean; Progress: extended;
+    Index, ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 begin
   if Mode = 0 then
   begin
@@ -130,9 +113,10 @@ begin
     3: result := GetTable       (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
     4: result := GetCards       (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
     5: result := GetLine        (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
-    6: result := GetSun         (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
-    7: result := GetParallelWave(Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
-    8: result := GetParallel    (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
+    6: result := GetDoubleLine  (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
+    7: result := GetSun         (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
+    8: result := GetParallelWave(Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
+    9: result := GetParallel    (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -151,7 +135,6 @@ begin
   result.alpha := round(255 * max(0, (progress - index / ItemCount) * 1 / (1 - index / ItemCount)));
   result.hint_alpha := 0;
   if Progress = 1 then result.hint_alpha := 255;
-  //result.hint_alpha := round(max(progress - 0.5, 0) * 510);
   // one degree per step (per icon) //
   inc(index);
   x := (ItemSize + 4) * index * cos(progress * index / 360 * PI * Distort) * progress;
@@ -199,7 +182,6 @@ begin
   result.alpha := round(255 * max(0, (progress - index / ItemCount) * 1 / (1 - index / ItemCount)));
   result.hint_alpha := 0;
   if Progress = 1 then result.hint_alpha := 255;
-  //result.hint_alpha := round(max(progress - 0.5, 0) * 510);
   // one degree per step (per icon) //
   inc(index);
   x := (ItemSize + 4) * index * cos(progress * index / 360 * PI * Distort) * progress;
@@ -316,8 +298,6 @@ begin
   result.alpha := round(255 * progress);
   result.hint_alpha := 0;
   if Progress = 1 then result.hint_alpha := 255;
-  //result.hint_alpha := round(510 * progress) - 255;
-  //if result.hint_alpha < 0 then result.hint_alpha := 0;
   result.hint_align := HA_HORIZONTAL_BOTTOM;
   d := Distort * 3;
   result.s := ItemSize;
@@ -373,17 +353,18 @@ begin
   result.y := 0;
   result.alpha := 0;
   result.angle := 0;
+  Distort *= 2;
 
   // simultaneous item count = 4 //
-  d := sin(min(1, max(0, (progress * (ItemCount+4-1)/ItemCount - index / ItemCount) * ItemCount / 4)) * PI / 2);
+  d := (progress * (ItemCount+4-1) / ItemCount - index / ItemCount) * ItemCount / 4;
+  if d < 0 then d := 0;
+  if d > 1 then d := 1;
+  d := sin(d * PI / 2);
   result.s := round(ItemSize * d);
   result.alpha := round(255 * d);
-  result.hint_align := 5;
   result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
-  inc(index);
-  x := (ItemSize + 4) * index;
+  x := (ItemSize + Distort + 4) * (index + 1) + 4 + Offset;
   y := 0;
-  x := x + 4 + Offset;
   result.angle := 0;
   case Site of
     0: begin
@@ -409,6 +390,58 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+function TStackModeController.GetDoubleLine(Opening, ShowHint: boolean; Index: integer; Progress: extended;
+    ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
+var
+  cols, rows: integer;
+  x, y, d: extended;
+begin
+  result.x := 0;
+  result.y := 0;
+  result.alpha := 0;
+  result.angle := 0;
+  Distort *= 2;
+
+  // simultaneous item count = 4 //
+  d := (progress * (ItemCount+4-1) / ItemCount - trunc(index div 2) / ItemCount) * ItemCount / 4;
+  if d < 0 then d := 0;
+  if d > 1 then d := 1;
+  d := sin(d * PI / 2);
+  result.s := round(ItemSize * d);
+  result.alpha := round(255 * d);
+  result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
+  result.angle := 0;
+  x := (ItemSize + Distort + 4) * (index div 2 + 1) + 4 + Offset;
+  y := ItemSize div 2 + 2 + Distort;
+  if index mod 2 = 0 then y := -y;
+  case Site of
+    0: begin
+        result.x := round(x);
+        result.y := round(y);
+        result.hint_align := HA_VERTICAL_BOTTOM;
+        if index mod 2 = 0 then result.hint_align := HA_VERTICAL_TOP;
+      end;
+    2: begin
+        result.x := -round(x);
+        result.y := round(y);
+        result.hint_align := HA_VERTICAL_BOTTOM;
+        if index mod 2 = 0 then result.hint_align := HA_VERTICAL_TOP;
+      end;
+    1: begin
+        result.x := -round(y);
+        result.y := round(x);
+        result.hint_align := HA_HORIZONTAL_LEFT;
+        if index mod 2 = 0 then result.hint_align := HA_HORIZONTAL_RIGHT;
+      end;
+    3: begin
+        result.x := -round(y);
+        result.y := -round(x);
+        result.hint_align := HA_HORIZONTAL_LEFT;
+        if index mod 2 = 0 then result.hint_align := HA_HORIZONTAL_RIGHT;
+      end;
+  end;
+end;
+//------------------------------------------------------------------------------
 function TStackModeController.GetSun(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
@@ -421,8 +454,11 @@ begin
   result.angle := 0;
 
   // simultaneous item count = 4 //
-  if Opening then d := sin(min(1, max(0, (progress * (ItemCount+4-1)/ItemCount - index / ItemCount) * ItemCount / 4)) * PI / 2)
-  else d := sin(min(1, max(0, (progress * (ItemCount+4-1)/ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / 4)) * PI / 2);
+  if Opening then d := (progress * (ItemCount+4-1) / ItemCount - index / ItemCount) * ItemCount / 4
+  else            d := (progress * (ItemCount+4-1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / 4;
+  if d < 0 then d := 0;
+  if d > 1 then d := 1;
+  d := sin(d * PI / 2);
   result.alpha := round(255 * d);
   result.hint_alpha := round(max(d - 0.5, 0) * 510);
   degPerStep := 6;
@@ -481,8 +517,11 @@ begin
   result.angle := 0;
 
   // simultaneous item count = 4 //
-  if Opening then d := sin(min(1, max(0, (progress * (ItemCount+4-1)/ItemCount - index / ItemCount) * ItemCount / 4)) * PI / 2)
-  else d := sin(min(1, max(0, (progress * (ItemCount+4-1)/ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / 4)) * PI / 2);
+  if Opening then d := (progress * (ItemCount+4-1) / ItemCount - index / ItemCount) * ItemCount / 4
+  else d := (progress * (ItemCount+4-1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / 4;
+  if d < 0 then d := 0;
+  if d > 1 then d := 1;
+  d := sin(d * PI / 2);
   x := Offset + d * ItemSize * 2.5 - ItemSize;
   if Opening then
   begin

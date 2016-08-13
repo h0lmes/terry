@@ -122,7 +122,7 @@ begin
 
       // draw the button
       button := false;
-      if FRunning and not FFloating then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
+      if FRunning then button := theme.DrawButton(dst, ItemRect.Left, ItemRect.Top, FSize, FAttention);
       FNCHitTestNC := button;
 
       bitmapX := 0;
