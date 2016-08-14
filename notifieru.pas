@@ -7,14 +7,12 @@ uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gfx, dw
 const
   NOTIFIER_FONT_NAME = 'Lucida Console';
   NOTIFIER_FONT_NAME_ALT = 'Courier New';
+  NOTIFIER_WCLASS = 'TDockNotifierWClass';
 
 type
   TNotifier = class
   private
-    FHWnd: uint;
-    WindowClassInstance: uint;
-    FWndInstance: TFarProc;
-    FPrevWndProc: TFarProc;
+    FHWnd: HANDLE;
     FActivating: boolean;
     FX: integer;
     FY: integer;
@@ -34,18 +32,30 @@ type
     class procedure Cleanup;
     constructor Create;
     destructor Destroy; override;
+    procedure RegisterWindowItemClass;
     function GetMonitorRect(monitor: integer): Windows.TRect;
     procedure Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
     procedure MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
     procedure Message_Internal(Text: string; monitor: integer; animate: boolean = True);
     procedure Close;
     procedure Timer;
-    procedure WindowProc(var msg: TMessage);
+    function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
   end;
 
 var Notifier: TNotifier;
 
 implementation
+//------------------------------------------------------------------------------
+function NotifierClassWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  inst: TNotifier;
+begin
+  inst := TNotifier(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if assigned(inst) then
+    result := inst.WindowProc(wnd, message, wParam, lParam)
+  else
+    result := DefWindowProc(wnd, message, wParam, lParam);
+end;
 //------------------------------------------------------------------------------
 class procedure TNotifier.Cleanup;
 begin
@@ -55,7 +65,6 @@ end;
 //------------------------------------------------------------------------------
 constructor TNotifier.Create;
 begin
-  inherited;
   FActive := false;
   FTextList := TStringList.Create;
   FText := '';
@@ -63,14 +72,10 @@ begin
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    RegisterWindowItemClass;
+    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, NOTIFIER_WCLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then
-    begin
-      SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
-      FWndInstance := MakeObjectInstance(WindowProc);
-      FPrevWndProc := Pointer(GetWindowLong(FHWnd, GWL_WNDPROC));
-      SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
-    end
+      SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('Notifier.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('Notifier.Create.CreateWindow', e);
@@ -81,12 +86,32 @@ destructor TNotifier.Destroy;
 begin
   try
     // restore window proc
-    if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
     DestroyWindow(FHWnd);
     if assigned(FTextList) then FTextList.Free;
     inherited;
   except
     on e: Exception do err('Notifier.Destroy', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TNotifier.RegisterWindowItemClass;
+var
+  wndClass: windows.TWndClass;
+begin
+  try
+    wndClass.style          := CS_DBLCLKS;
+    wndClass.lpfnWndProc    := @NotifierClassWindowProc;
+    wndClass.cbClsExtra     := 0;
+    wndClass.cbWndExtra     := 0;
+    wndClass.hInstance      := hInstance;
+    wndClass.hIcon          := 0;
+    wndClass.hCursor        := LoadCursor(0, idc_Arrow);
+    wndClass.hbrBackground  := 0;
+    wndClass.lpszMenuName   := nil;
+    wndClass.lpszClassName  := NOTIFIER_WCLASS;
+    windows.RegisterClass(wndClass);
+  except
+    on e: Exception do err('Notifier.RegisterWindowClass', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -138,12 +163,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TNotifier.Message_Internal(Text: string; monitor: integer; animate: boolean = True);
 var
-  hgdip, path, hbrush, hpen: Pointer;
+  hgdip, path, hbrush: Pointer;
   message_font, font_family: Pointer;
   text_rect: TRectF;
   message_margin, wa: Windows.TRect;
   bmp: _SimpleBitmap;
-  rgn: HRGN;
   alpha: uint;
   acoeff: integer;
 begin
@@ -297,9 +321,7 @@ begin
     SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
     if dwm.IsCompositionEnabled then
     begin
-      rgn := CreateRectRgn(0, 0, FW, FH);
-      DWM.EnableBlurBehindWindow(FHWnd, rgn);
-      DeleteObject(rgn);
+      DWM.EnableBlurBehindWindow(FHWnd, 0);
     end
     else
       DWM.DisableBlurBehindWindow(FHWnd);
@@ -399,21 +421,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.WindowProc(var msg: TMessage);
+function TNotifier.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 begin
-  msg.Result := 0;
-  if (msg.msg = wm_lbuttondown) or (msg.msg = wm_rbuttonup) then
+  result := 0;
+  if (message = wm_lbuttondown) or (message = wm_rbuttonup) then
   begin
     Close;
     exit;
   end
-  else if msg.msg = WM_TIMER then
+  else if message = WM_TIMER then
   begin
     Timer;
     exit;
   end;
 
-  msg.Result := DefWindowProc(FHWnd, msg.msg, msg.wParam, msg.lParam);
+  result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
 procedure TNotifier.err(where: string; e: Exception);

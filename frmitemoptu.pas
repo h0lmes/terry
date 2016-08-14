@@ -79,7 +79,6 @@ type
   private
     cancel_data: string;
     UpdateItemProc: _uproc;
-    color_: uint;
     color_data: integer;
     ItemHWnd: uint;
     FChanged: boolean;

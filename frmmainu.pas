@@ -43,7 +43,6 @@ type
     FWndOffsetTarget: integer;
     FHideKeysPressed: boolean;
     FConsoleKeysPressed: boolean;
-    FSavedWorkarea: windows.TRect;
     FRevertMonitor: integer;
     FOldBaseWindowRect: GDIPAPI.TRect;
     FOldBaseImageRect: GDIPAPI.TRect;
@@ -55,18 +54,18 @@ type
     FMenuCreate: THandle;
     WM_SHELLHOOK: integer;
     FBlurWindow: THandle;
-    function  CloseQuery: integer;
-		procedure CreateBlurWindow;
-		procedure DestroyBlurWindow;
-		procedure DoGlobalHotkeys;
+    function  CloseQueryI: integer;
+    procedure CreateBlurWindow;
+    procedure DestroyBlurWindow;
+    procedure DoGlobalHotkeys;
     procedure FlashTaskWindow(hwnd: HWND);
-		function IsHotkeyPressed(hotkey: integer): boolean;
+    function IsHotkeyPressed(hotkey: integer): boolean;
     procedure SaveSets;
     procedure RegisterRawInput;
     procedure NativeWndProc(var message: TMessage);
     procedure AppException(Sender: TObject; e: Exception);
     procedure AppDeactivate(Sender: TObject);
-		procedure UpdateBlurWindow;
+    procedure UpdateBlurWindow;
     procedure WMCopyData(var Message: TMessage);
     procedure WMTimer(var msg: TMessage);
     procedure WMUser(var msg: TMessage);
@@ -120,7 +119,7 @@ type
     procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     procedure SetTheme(ATheme: string);
-    function  BaseCmd(id: TDParam; param: integer): integer;
+    function  BaseCmd(id: TDParam; param: PtrInt): PtrInt;
     procedure SetParam(id: TDParam; Value: integer);
     function  GetHMenu(ParentMenu: uint): uint;
     function  ContextMenu(pt: Windows.TPoint): boolean;
@@ -156,6 +155,25 @@ uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
   frmtipu, multidocku, frmrestoreu;
 {$R *.lfm}
 {$R Resource\res.res}
+{$define EXT_DEBUG}
+//------------------------------------------------------------------------------
+function MainWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  inst: Tfrmmain;
+  msg: TMessage;
+begin
+  inst := Tfrmmain(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if assigned(inst) then
+  begin
+    msg.msg := message;
+    msg.wParam := wParam;
+    msg.lParam := lParam;
+    inst.NativeWndProc(msg);
+    result := msg.Result;
+  end
+  else
+    result := DefWindowProc(wnd, message, wParam, lParam);
+end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Init(SetsFilename: string);
 begin
@@ -174,9 +192,9 @@ begin
     FBlurWindow := 0;
 
     // workaround for Windows message handling in LCL //
-    FWndInstance := MakeObjectInstance(NativeWndProc);
+    SetWindowLongPtr(Handle, GWL_USERDATA, PtrUInt(self));
     FPrevWndProc := Pointer(GetWindowLongPtr(Handle, GWL_WNDPROC));
-    SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FWndInstance));
+    SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(@MainWindowProc));
 
     dwm.ExcludeFromPeek(Handle);
 
@@ -198,15 +216,16 @@ begin
     if sets.container.BlurEnabled then CreateBlurWindow;
 
     theme := TDTheme.Create(pchar(@sets.container.ThemeName), sets.container.Site);
+    {$ifdef EXT_DEBUG} AddLog('TDTheme.Create'); {$endif}
     if not theme.Load then
     begin
       notify(UTF8ToAnsi(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
       AddLog('Theme.Halt');
       halt;
     end;
+    {$ifdef EXT_DEBUG} AddLog('Theme.Load'); {$endif}
 
     // create ItemManager (disabled, invisible, ...) //
-    AddLog('Init.ItemManager');
     ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
       sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
       sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomEnabled,
@@ -217,6 +236,7 @@ begin
       sets.container.TaskLivePreviews, sets.container.TaskGrouping,
       sets.container.TaskThumbSize, sets.container.TaskSpot,
       sets.container.ShowHint, sets.container.Font);
+    {$ifdef EXT_DEBUG} AddLog('TItemManager.Create'); {$endif}
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
@@ -229,16 +249,20 @@ begin
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
     SetParam(gpBlurEnabled, sets.GetParam(gpBlurEnabled));
     BaseCmd(tcThemeChanged, 0);
+    {$ifdef EXT_DEBUG} AddLog('BaseCmd(tcThemeChanged)'); {$endif}
 
     // load items //
     try
       ItemMgr.Load(UnzipPath(sets.SetsPathFile));
+      {$ifdef EXT_DEBUG} AddLog('ItemMgr.Load'); {$endif}
       ItemMgr.Enable(true);
+      {$ifdef EXT_DEBUG} AddLog('ItemMgr.Enable('); {$endif}
       if not sets.Backup then
       begin
         AddLog('Init.BackupFailed');
         messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
       end;
+      {$ifdef EXT_DEBUG} AddLog('sets.Backup'); {$endif}
     except
       on e: Exception do
       begin
@@ -254,17 +278,21 @@ begin
     SetTimer(handle, ID_TIMER, 10, nil);
     SetTimer(handle, ID_TIMER_SLOW, 1000, nil);
     SetTimer(handle, ID_TIMER_FSA, 2000, nil);
+    {$ifdef EXT_DEBUG} AddLog('Timers'); {$endif}
 
     // Tray and StartMenu controllers //
     Tray := TTrayController.Create;
     StartMenu := TStartMenuController.Create;
+    {$ifdef EXT_DEBUG} AddLog('Tray and StartMenu'); {$endif}
 
     // show the dock //
     BaseCmd(tcSetVisible, 1);
     if sets.GetParam(gpStayOnTop) = 1 then SetParam(gpStayOnTop, 1);
+    {$ifdef EXT_DEBUG} AddLog('show dock'); {$endif}
 
     // RawInput (replacement for hook) //
     RegisterRawInput;
+    {$ifdef EXT_DEBUG} AddLog('RegisterRawInput'); {$endif}
 
     // DropManager //
     DropMgr := TDropManager.Create(Handle);
@@ -272,8 +300,9 @@ begin
     DropMgr.OnDragEnter := OnDragEnter;
     DropMgr.OnDragOver := OnDragOver;
     DropMgr.OnDragLeave := OnDragLeave;
+    {$ifdef EXT_DEBUG} AddLog('TDropManager.Create'); {$endif}
 
-    // apply the theme to do the full repaint //
+    // apply theme. trigger full repaint //
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
@@ -285,6 +314,7 @@ begin
     SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
     BaseCmd(tcThemeChanged, 0);
+    {$ifdef EXT_DEBUG} AddLog('apply theme. trigger full repaint'); {$endif}
 
     // 'RollDown' on startup if set so //
     FWndOffsetTarget := 0;
@@ -295,6 +325,7 @@ begin
     FInitDone := True;
 
     UpdateRunning;
+    {$ifdef EXT_DEBUG} AddLog('UpdateRunning'); {$endif}
   except
     on e: Exception do err('Base.Init', e);
   end;
@@ -330,7 +361,7 @@ procedure Tfrmmain.CreateBlurWindow;
 begin
   if FBlurWindow = 0 then
   try
-    FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
+    FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
     dwm.ExcludeFromPeek(FBlurWindow);
     SetWindowLong(Handle, GWL_HWNDPARENT, FBlurWindow); // attach main window
@@ -359,11 +390,11 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
-  if CloseQuery = 0 then CloseAction := caNone else CloseAction := caFree;
+  if CloseQueryI = 0 then CloseAction := caNone else CloseAction := caFree;
 end;
 //------------------------------------------------------------------------------
 // check if program can close and, if yes, free all resources
-function Tfrmmain.CloseQuery: integer;
+function Tfrmmain.CloseQueryI: integer;
 begin
   result := 0;
 
@@ -371,7 +402,7 @@ begin
   try
     crsection.Acquire;
     FProgramIsClosing := true;
-    AddLog('CloseQuery begin');
+    AddLog('CloseQueryI begin');
     if FEdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
     HideTaskbar(false);
     BaseCmd(tcSaveSets, 0);
@@ -404,7 +435,7 @@ begin
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Base.Close.Free', mb_iconexclamation);
     end;
-    AddLog('CloseQuery done');
+    AddLog('CloseQueryI done');
     result := 1;
   finally
     crsection.Leave;
@@ -503,7 +534,7 @@ begin
   BaseCmd(tcThemeChanged, 0);
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.BaseCmd(id: TDParam; param: integer): integer;
+function Tfrmmain.BaseCmd(id: TDParam; param: PtrInt): PtrInt;
 begin
   Result := 0;
 
@@ -549,9 +580,9 @@ begin
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
         if param <> 0 then UpdateRunning;
       end;
-    tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
+    tcToggleVisible: BaseCmd(tcSetVisible, PtrInt(not Visible));
     tcToggleTaskbar: frmmain.SetParam(gpHideSystemTaskbar, ifthen(sets.GetParam(gpHideSystemTaskbar) = 0, 1, 0));
-    tcGetVisible: Result := integer(ItemMgr.Visible);
+    tcGetVisible: Result := PtrInt(ItemMgr.Visible);
     tcDebugInfo: if assigned(ItemMgr) then ItemMgr.AllItemCmd(tcDebugInfo, 0);
   end;
 end;
@@ -655,7 +686,7 @@ begin
     WM_QUERYENDSESSION :
       begin
         FAllowCloseProgram := true;
-        message.Result := CloseQuery;
+        message.Result := CloseQueryI;
       end;
     WM_COPYDATA :              WMCopyData(message);
     WM_DISPLAYCHANGE :         WMDisplayChange(message);
@@ -1119,7 +1150,6 @@ end;
 
 var
   pt: windows.TPoint;
-  spt: windows.TSmallPoint;
   wnd, awnd: THandle;
 begin
   if FProgramIsClosing then exit;
@@ -1292,7 +1322,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.BasePaint(flags: integer);
 var
-  dst, hbrush: Pointer;
+  dst: Pointer;
   bmp: gfx._SimpleBitmap;
   needRepaint: boolean;
 begin
@@ -1356,7 +1386,7 @@ end;
 procedure Tfrmmain.UpdateBlurWindow;
 var
   bmp: _SimpleBitmap;
-  dst, brush: Pointer;
+  dst: Pointer;
   rect: GDIPAPI.TRect;
 begin
   try
@@ -2021,7 +2051,6 @@ var
   pt: windows.TPoint;
   mii: TMenuItemInfo;
   mname: array [0..MAX_PATH - 1] of char;
-  list: TStrings;
 begin
   if cmd = '' then exit;
 
@@ -2205,6 +2234,7 @@ var
   params, dir: pchar;
   hostHandle: THandle;
 begin
+  result := 0;
   hostHandle := Data.handle;
   params := nil;
   dir := nil;

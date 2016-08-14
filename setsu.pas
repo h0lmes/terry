@@ -98,8 +98,8 @@ type
     procedure Save(ASetsFile: string); overload;
     function Backup: boolean;
     function Restore(backupFilename: string): boolean;
-    function StoreParam(id: TDParam; value: integer): integer;
-    function GetParam(id: TDParam): integer;
+    function StoreParam(id: TDParam; value: PtrInt): PtrInt;
+    function GetParam(id: TDParam): PtrInt;
     procedure StoreSetsContainer;
     procedure RestoreSetsContainer;
     procedure CopySetsContainer(var dst: TDSetsContainer; var src: TDSetsContainer);
@@ -404,7 +404,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TDSets.StoreParam(id: TDParam; value: integer): integer;
+function TDSets.StoreParam(id: TDParam; value: PtrInt): PtrInt;
 begin
   case id of
   gpItemSize: container.ItemSize := SetRange(value, 16, 128);
@@ -465,7 +465,7 @@ begin
   result := value;
 end;
 //------------------------------------------------------------------------------
-function TDSets.GetParam(id: TDParam): integer;
+function TDSets.GetParam(id: TDParam): PtrInt;
 begin
   result:= 0;
   case id of

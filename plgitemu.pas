@@ -17,12 +17,12 @@ type
     FImage2: Pointer;
     FIW2: cardinal;
     FIH2: cardinal;
-    hwnd2: uint; // to speed up gdiplus drawing //
+    hwnd2: HANDLE; // to speed up gdiplus drawing //
     PluginFile: string;
     FIniFile: string;
     FIniSection: string;
     // plugin lib vars
-    hLib: uint;
+    hLib: HANDLE;
     OnCreate: _OnCreate;
     OnSave: _OnSave;
     OnDestroy: _OnDestroy;
@@ -40,7 +40,7 @@ type
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -56,7 +56,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TPluginItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   FFreed := true;
   inherited;
@@ -79,7 +79,7 @@ var
 begin
   try
     // window to speed up drawing //
-    hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, WINITEM_CLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
+    hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, TDITEM_WCLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
 
     FFreed := true;
     // get library path //

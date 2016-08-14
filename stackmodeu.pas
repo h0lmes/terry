@@ -123,7 +123,6 @@ end;
 function TStackModeController.GetFan(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y: extended;
 begin
   result.x := 0;
@@ -170,7 +169,6 @@ end;
 function TStackModeController.GetFanAlt(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y: extended;
 begin
   result.x := 0;
@@ -284,7 +282,7 @@ function TStackModeController.GetCards(Opening, ShowHint: boolean; Index: intege
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
   cols, rows, hSpace, vSpace: integer;
-  x, y, d, s: extended;
+  x, y, d: extended;
 begin
   result.x := 0;
   result.y := 0;
@@ -294,7 +292,7 @@ begin
   hSpace := 50;
   vSpace := 40;
   if not ShowHint then vSpace := 10;
-  s := 0.9 + (sin(progress * PI / 2) * 0.1);
+  //s := 0.9 + (sin(progress * PI / 2) * 0.1);
   result.alpha := round(255 * progress);
   result.hint_alpha := 0;
   if Progress = 1 then result.hint_alpha := 255;
@@ -346,7 +344,6 @@ end;
 function TStackModeController.GetLine(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y, d: extended;
 begin
   result.x := 0;
@@ -393,7 +390,6 @@ end;
 function TStackModeController.GetDoubleLine(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y, d: extended;
 begin
   result.x := 0;
@@ -445,7 +441,6 @@ end;
 function TStackModeController.GetSun(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y, d, r, degPerStep: extended;
 begin
   result.x := 0;
@@ -508,7 +503,6 @@ end;
 function TStackModeController.GetParallelWave(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y, d: extended;
 begin
   result.x := 0;
@@ -563,7 +557,6 @@ end;
 function TStackModeController.GetParallel(Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  cols, rows: integer;
   x, y, p: extended;
 begin
   result.x := 0;

@@ -5,6 +5,9 @@ interface
 uses Windows, Messages, SysUtils, Forms, Math,
   declu, toolu, GDIPAPI, gfx, setsu, dockh;
 
+const
+  TDHINT_WCLASS = 'TDockHintWClass';
+
 type
   THint = class
   private
@@ -38,7 +41,6 @@ type
     procedure DeactivateHint(hwndOwner: uint);
     procedure DeactivateImmediate;
     procedure Timer;
-    procedure UnregisterWindowClass;
   end;
 
 implementation
@@ -69,8 +71,6 @@ end;
 //------------------------------------------------------------------------------
 constructor THint.Create;
 begin
-  inherited;
-
   StrCopy(@FFont.Name[0], PChar(GetFont));
   FFont.size := GetfontSize;
   FFont.color := $ffffffff;
@@ -87,9 +87,8 @@ begin
     wndClass.hCursor        := LoadCursor(0, IDC_ARROW);
     wndClass.hbrBackground  := 0;
     wndClass.lpszMenuName   := nil;
-    wndClass.lpszClassName  := HINT_CLASS;
-    WindowClassInstance := Windows.RegisterClass(wndClass);
-    if WindowClassInstance < 33 then err('Can not register hint window class', nil);
+    wndClass.lpszClassName  := TDHINT_WCLASS;
+    windows.RegisterClass(wndClass);
   except
     on e: Exception do
     begin
@@ -99,12 +98,17 @@ begin
   end;
 
   try
-    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, HINT_CLASS, '', ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, TDHINT_WCLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
     if IsWindow(FHWnd) then SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self))
     else err('Hint.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('Hint.Create.CreateWindowEx', e);
   end;
+end;
+//------------------------------------------------------------------------------
+destructor THint.Destroy;
+begin
+  DestroyWindow(FHWnd);
 end;
 //------------------------------------------------------------------------------
 function THint.GetMonitorRect(monitor: integer): Windows.TRect;
@@ -397,21 +401,6 @@ begin
   except
     on e: Exception do err('Hint.DeactivateImmediate', e);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure THint.UnregisterWindowClass;
-begin
-  try Windows.UnregisterClass('Terry::Hint', WindowClassInstance);
-  except
-    on e: Exception do err('Hint.UnregisterWindowClass', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-destructor THint.Destroy;
-begin
-  DestroyWindow(FHWnd);
-  UnregisterWindowClass;
-  inherited;
 end;
 //------------------------------------------------------------------------------
 end.

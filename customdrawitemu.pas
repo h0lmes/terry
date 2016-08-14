@@ -23,20 +23,20 @@ type
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
     property Running: boolean read FRunning;
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
+    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); override;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TCustomDrawItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TCustomDrawItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FRunning := false;
 end;
 //------------------------------------------------------------------------------
 // set position, size, repaint window //
-procedure TCustomDrawItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
+procedure TCustomDrawItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint);
 var
   bmp: _SimpleBitmap;
   dst, hattr, brush: Pointer;

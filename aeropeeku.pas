@@ -7,6 +7,7 @@ uses Windows, Messages, Classes, SysUtils, Forms, lazutf8,
 
 const
   TITLE_PART = 63;
+  AEROPEEK_WCLASS = 'TDockAeroPeekWClass';
 
 type
   TAPWLayout = (apwlHorizontal, apwlVertical);
@@ -33,10 +34,8 @@ type
 
   TAeroPeekWindow = class
   private
-    FHWnd: uint;
-    WindowClassInstance: uint;
-    FWndInstance: TFarProc;
-    FPrevWndProc: TFarProc;
+    FHWnd: THandle;
+    FHostWnd: THandle;
     FPt: windows.TPoint;
     Fx: integer;
     Fy: integer;
@@ -54,7 +53,6 @@ type
     FCloseButtonSize: integer;
     FActivating: boolean;
     FActive: boolean;
-    FHostWnd: THandle;
     FSite: integer;
     FTaskThumbSize: integer;
     FWorkArea: windows.TRect;
@@ -82,11 +80,10 @@ type
     procedure Timer;
     procedure UnRegisterThumbnails;
     procedure UpdateTitles;
-    procedure WindowProc(var msg: TMessage);
     procedure err(where: string; e: Exception);
   public
-    property Handle: uint read FHWnd;
-    property HostHandle: uint read FHostWnd;
+    property Handle: THandle read FHWnd;
+    property HostHandle: THandle read FHostWnd;
     property Active: boolean read FActive;
 
     class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
@@ -99,11 +96,13 @@ type
 
     constructor Create;
     destructor Destroy; override;
+    procedure RegisterWindowItemClass;
     function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
     procedure MouseLeave;
     procedure CloseAPWindowInt;
     procedure CloseAPWindow(Timeout: cardinal = 0);
+    function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
   end;
 
 var AeroPeekWindow: TAeroPeekWindow;
@@ -168,6 +167,17 @@ begin
   AeroPeekWindow := nil;
 end;
 //------------------------------------------------------------------------------
+function AeroPeekClassWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  inst: TAeroPeekWindow;
+begin
+  inst := TAeroPeekWindow(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if assigned(inst) then
+    result := inst.WindowProc(wnd, message, wParam, lParam)
+  else
+    result := DefWindowProc(wnd, message, wParam, lParam);
+end;
+//------------------------------------------------------------------------------
 constructor TAeroPeekWindow.Create;
 begin
   inherited;
@@ -183,14 +193,9 @@ begin
   // create window //
   FHWnd := 0;
   try
-    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS, 'AeroPeekWindow', WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
-    if IsWindow(FHWnd) then
-    begin
-      SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
-      FWndInstance := MakeObjectInstance(WindowProc);
-      FPrevWndProc := Pointer(GetWindowLong(FHWnd, GWL_WNDPROC));
-      SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
-    end
+    RegisterWindowItemClass;
+    FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, AEROPEEK_WCLASS, nil, WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
+    if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('AeroPeekWindow.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('AeroPeekWindow.Create.CreateWindow', e);
@@ -199,13 +204,30 @@ end;
 //------------------------------------------------------------------------------
 destructor TAeroPeekWindow.Destroy;
 begin
-  try
-    // restore window proc
-    if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
-    DestroyWindow(FHWnd);
-    inherited;
+  try DestroyWindow(FHWnd);
   except
     on e: Exception do err('AeroPeekWindow.Destroy', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.RegisterWindowItemClass;
+var
+  wndClass: windows.TWndClass;
+begin
+  try
+    wndClass.style          := CS_DBLCLKS;
+    wndClass.lpfnWndProc    := @AeroPeekClassWindowProc;
+    wndClass.cbClsExtra     := 0;
+    wndClass.cbWndExtra     := 0;
+    wndClass.hInstance      := hInstance;
+    wndClass.hIcon          := 0;
+    wndClass.hCursor        := LoadCursor(0, idc_Arrow);
+    wndClass.hbrBackground  := 0;
+    wndClass.lpszMenuName   := nil;
+    wndClass.lpszClassName  := AEROPEEK_WCLASS;
+    windows.RegisterClass(wndClass);
+  except
+    on e: Exception do err('AeroPeekWindow.RegisterWindowClass', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -292,11 +314,8 @@ end;
 //------------------------------------------------------------------------------
 function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
 var
-  idx: integer;
-  wa: windows.TRect;
   opaque: bool;
-  hwnd, mon: THandle;
-  pt: windows.TPoint;
+  mon: THandle;
   mi: MONITORINFO;
 begin
   result := false;
@@ -420,6 +439,7 @@ begin
   FWindowCount := AppList.Count;
   if FWindowCount > 0 then FProcessCount := 1;
   index := 0;
+  prevpid := 0;
   while index < FWindowCount do
   begin
     wnd := THandle(AppList.Items[index]);
@@ -470,7 +490,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.DeleteItem(index: integer);
 var
-  isSeparator: boolean;
   tmp: integer;
 begin
   if (index >= 0) and (index < FItemCount) then
@@ -807,7 +826,8 @@ begin
       shadowEndColor[0] := 0;
       count := 1;
       GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
-      pt := MakePoint(FWidth div 2 + 1, FHeight div 2 + 1);
+      pt.X := FWidth div 2 + 1;
+      pt.Y := FHeight div 2 + 1;
       GdipSetPathGradientCenterPointI(brush, @pt);
       GdipSetPathGradientFocusScales(brush, 1 - FShadow / FWidth * 5, 1 - FShadow / FHeight * 5);
       GdipFillPath(hgdip, brush, shadow_path);
@@ -934,7 +954,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
 var
-  brush, pen, path: Pointer;
+  pen: Pointer;
   crossRect: GDIPAPI.TRect;
   color: cardinal;
 begin
@@ -1041,7 +1061,6 @@ end;
 procedure TAeroPeekWindow.Timer;
 var
   delta: integer;
-  rect: windows.TRect;
 begin
   if FActive and not FActivating then
   try
@@ -1089,20 +1108,19 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.WindowProc(var msg: TMessage);
+function TAeroPeekWindow.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 var
   index: integer;
   pt: windows.TPoint;
-  rect: windows.TRect;
   hovered: boolean;
 begin
-  msg.Result := 0;
+  Result := 0;
 
   // WM_LBUTTONDOWN
-  if msg.msg = WM_LBUTTONDOWN then
+  if message = WM_LBUTTONDOWN then
   begin
-    pt.x := TSmallPoint(msg.lParam).x;
-    pt.y := TSmallPoint(msg.lParam).y;
+    pt.x := TSmallPoint(DWORD(lParam)).x;
+    pt.y := TSmallPoint(DWORD(lParam)).y;
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
@@ -1116,12 +1134,12 @@ begin
     exit;
   end
   // WM_LBUTTONUP
-  else if msg.msg = WM_LBUTTONUP then
+  else if message = WM_LBUTTONUP then
   begin
     FCloseButtonDownIndex := -1;
     Paint;
-    pt.x := TSmallPoint(msg.lParam).x;
-    pt.y := TSmallPoint(msg.lParam).y;
+    pt.x := TSmallPoint(DWORD(lParam)).x;
+    pt.y := TSmallPoint(DWORD(lParam)).y;
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
@@ -1143,10 +1161,10 @@ begin
     end;
   end
   // WM_MOUSEMOVE
-  else if msg.msg = WM_MOUSEMOVE then
+  else if message = WM_MOUSEMOVE then
   begin
-    pt.x := TSmallPoint(msg.lParam).x;
-    pt.y := TSmallPoint(msg.lParam).y;
+    pt.x := TSmallPoint(DWORD(lParam)).x;
+    pt.y := TSmallPoint(DWORD(lParam)).y;
     hovered := false;
     for index := 0 to FItemCount - 1 do
     begin
@@ -1164,22 +1182,22 @@ begin
     if not hovered and (FHoverIndex > -1) then MouseLeave;
   end
   // WM_TIMER
-  else if msg.msg = WM_TIMER then
+  else if message = WM_TIMER then
   begin
-    if msg.wParam = ID_TIMER then Timer;
-
-    if msg.wParam = ID_TIMER_CLOSE then
+    if wParam = ID_TIMER then Timer
+    else
+    if wParam = ID_TIMER_CLOSE then
     begin
       GetCursorPos(pt);
       if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
-    end;
-
-    if msg.wParam = ID_TIMER_SLOW then UpdateTitles;
+    end
+    else
+    if wParam = ID_TIMER_SLOW then UpdateTitles;
 
     exit;
   end;
 
-  msg.Result := DefWindowProc(FHWnd, msg.msg, msg.wParam, msg.lParam);
+  Result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.err(where: string; e: Exception);

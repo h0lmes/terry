@@ -31,6 +31,7 @@ uses
 {$R *.res}
 
 {$undef DEBUG_EXPORTS}
+{$define EXT_DEBUG}
 
 //------------------------------------------------------------------------------
 {$ifdef DEBUG_EXPORTS}
@@ -157,7 +158,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure DockletSetImageOverlay(id: uint; overlay: Pointer; AutoDelete: bool); stdcall;
+procedure DockletSetImageOverlay(id: HWND; overlay: Pointer; AutoDelete: bool); stdcall;
 begin
   {$ifdef DEBUG_EXPORTS} inf('DockletSetImageOverlay', inttostr(id) + ', 0x' + inttohex(dword(overlay), 8)); {$endif}
   try
@@ -355,7 +356,7 @@ begin
     if assigned(frmmain.ItemMgr) then frmmain.ItemMgr.Dock(id);
 end;
 //------------------------------------------------------------------------------
-function DockCreateItem(data: pchar): uint; stdcall;
+function DockCreateItem(data: pchar): HWND; stdcall;
 begin
   result := 0;
   try
@@ -439,7 +440,7 @@ exports
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-function AWindowItemProc(wnd: HWND; message: uint; wParam: integer; lParam: integer): integer; stdcall;
+function TDWindowProc(wnd: HWND; message: uint; wParam: integer; lParam: integer): integer; stdcall;
 begin
   result := DefWindowProc(wnd, message, wParam, lParam);
 end;
@@ -450,7 +451,7 @@ var
 begin
   try
     wndClass.style          := CS_DBLCLKS;
-    wndClass.lpfnWndProc    := @AWindowItemProc;
+    wndClass.lpfnWndProc    := @TDWindowProc;
     wndClass.cbClsExtra     := 0;
     wndClass.cbWndExtra     := 0;
     wndClass.hInstance      := hInstance;
@@ -458,8 +459,8 @@ begin
     wndClass.hCursor        := LoadCursor(0, idc_Arrow);
     wndClass.hbrBackground  := 0;
     wndClass.lpszMenuName   := nil;
-    wndClass.lpszClassName  := WINITEM_CLASS;
-    if windows.RegisterClass(wndClass) = 0 then raise Exception.Create('Can not register window class');
+    wndClass.lpszClassName  := TDWCLASS;
+    windows.RegisterClass(wndClass);
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('RegisterWindowItemClass', e);
   end;
@@ -479,7 +480,7 @@ var
   idx: integer;
   setsFiles: TStrings;
   SetsFilename, ProgramPath: string;
-  hMutex: uint;
+  hMutex: HANDLE;
   h: THandle;
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
@@ -498,7 +499,7 @@ begin
   IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
   if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, w64);
   toolu.bIsWow64 := w64;
-
+  {$ifdef EXT_DEBUG} AddLog('version'); {$endif}
 
   // multi-dock support //
 
@@ -513,6 +514,7 @@ begin
       SetsFilename := ProgramPath + copy(ParamStr(idx), 3, MAX_PATH - 1);
     inc(idx);
   end;
+  {$ifdef EXT_DEBUG} AddLog('MultiDock'); {$endif}
 
   // if it was not specified
   if SetsFilename = '' then
@@ -532,6 +534,7 @@ begin
     end;
     setsFiles.free;
   end;
+  {$ifdef EXT_DEBUG} AddLog('scan sets files'); {$endif}
 
 
   // check running instances //
@@ -547,26 +550,35 @@ begin
     end;
     halt;
   end;
+  {$ifdef EXT_DEBUG} AddLog('CreateMutex'); {$endif}
 
   // application //
 
   Application.Initialize;
+  {$ifdef EXT_DEBUG} AddLog('Application.Initialize'); {$endif}
   Application.Title := PROGRAM_TITLE;
   h := WidgetSet.AppHandle;
-  SetWindowLong(h, GWL_EXSTYLE, GetWindowLong(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
+  SetWindowLongPtr(h, GWL_EXSTYLE, GetWindowLongPtr(h, GWL_EXSTYLE) or WS_EX_TOOLWINDOW);
+  {$ifdef EXT_DEBUG} AddLog('SetWindowLongPtr appHandle'); {$endif}
 
   Application.ShowMainForm := false;
   Application.CreateForm(Tfrmmain, frmmain);
-  SetWindowLong(frmmain.handle, GWL_EXSTYLE, GetWindowLong(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
+  {$ifdef EXT_DEBUG} AddLog('frmmain.Create'); {$endif}
+  SetWindowLongPtr(frmmain.handle, GWL_EXSTYLE, GetWindowLongPtr(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
   frmmain.RunsOnWinVistaOrHigher := VerInfo.dwMajorVersion >= 6;
   frmmain.RunsOnWin10 := VerInfo.dwMajorVersion >= 10;
+  {$ifdef EXT_DEBUG} AddLog('SetWindowLongPtr frmmain'); {$endif}
 
   RegisterWindowItemClass;
+  {$ifdef EXT_DEBUG} AddLog('RegisterWindowItemClass'); {$endif}
   Notifier := TNotifier.Create;
+  {$ifdef EXT_DEBUG} AddLog('TNotifier.Create'); {$endif}
   mixer := TMixer.Create;
+  {$ifdef EXT_DEBUG} AddLog('TMixer.Create'); {$endif}
 
   frmmain.Init(SetsFilename);
+  {$ifdef EXT_DEBUG} AddLog('frmmain.Init'); {$endif}
   Application.ShowMainForm := true;
   frmmain.ExecAutorun;
 

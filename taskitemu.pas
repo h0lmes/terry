@@ -39,9 +39,9 @@ type
     procedure RemoveNonExisting;
     procedure UpdateItem;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
-    function cmd(id: TDParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -54,7 +54,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TTaskItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TTaskItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FTaskGrouping := AParams.TaskGrouping;
@@ -173,6 +173,7 @@ begin
       // update image
       UpdateImage;
       // update caption
+      hwnd := THandle(FAppList.First);
       if FAppList.Count = 1 then Caption := TProcessHelper.GetWindowText(hwnd) else Caption := '';
     finally
       FUpdating:= false;
@@ -191,7 +192,7 @@ begin
     LoadAppImage(FExecutable, THandle(FAppList.Items[0]), FBigItemSize, false, false, FImage, FIW, FIH, 500);
 end;
 //------------------------------------------------------------------------------
-function TTaskItem.cmd(id: TDParam; param: integer): integer;
+function TTaskItem.cmd(id: TDParam; param: PtrInt): PtrInt;
 var
   temp: uint;
   idx: integer;
@@ -358,8 +359,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT);
 var
-  item: cardinal;
-  str: string;
   idx: integer;
 begin
   result := 0;

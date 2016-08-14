@@ -83,9 +83,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="frmmainu"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1834"/>
+        <TopLine Value="150"/>
         <CursorPos X="3" Y="1849"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -201,7 +202,6 @@
         <Filename Value="itemmgru.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="itemmgru"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1015"/>
@@ -1288,7 +1288,7 @@
         <UsageCount Value="7"/>
       </Unit135>
     </Units>
-    <JumpHistory Count="5" HistoryIndex="4">
+    <JumpHistory Count="4" HistoryIndex="3">
       <Position1>
         <Filename Value="frmmainu.pas"/>
         <Caret Line="908" Column="31" TopLine="891"/>
@@ -1305,10 +1305,6 @@
         <Filename Value="frmmainu.pas"/>
         <Caret Line="603" Column="24" TopLine="585"/>
       </Position4>
-      <Position5>
-        <Filename Value="frmmainu.pas"/>
-        <Caret Line="649" Column="25" TopLine="2051"/>
-      </Position5>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

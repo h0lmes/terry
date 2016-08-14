@@ -8,14 +8,15 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, Shl
 
 const
   MAX_CAPTION_WIDTH = 150;
+  TDSUBITEM_WCLASS = 'TDockSubItemWClass';
 
 type
   TCustomSubitem = class
   protected
     FFreed: boolean;
-    FHWnd: cardinal;
-    FHWndParent: cardinal;
-    FHMenu: cardinal;
+    FHWnd: HANDLE;
+    FHWndParent: HANDLE;
+    FHMenu: HANDLE;
     FCaption: string;
     FCaptionWidth: integer;
     FCaptionHeight: integer;
@@ -51,9 +52,7 @@ type
     FIW: uint; // image width
     FIH: uint; // image height
 
-    FWndInstance: TFarProc;
-    FPrevWndProc: TFarProc;
-
+    procedure RegisterWindowItemClass;
     procedure Init; virtual;
     procedure Redraw;
     function GetRectFromSize(ASize: integer): windows.TRect;
@@ -61,10 +60,10 @@ type
     function GetScreenRect: windows.TRect;
     procedure CloseStack;
     procedure UpdateItemMeasureCaption;
-    procedure NativeWndProc(var message: TMessage);
+    procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
-    property HWnd: uint read FHWnd;
+    property HWnd: HANDLE read FHWnd;
     property Caption: string read FCaption;
     property X: integer read Fx;
     property Y: integer read Fy;
@@ -82,7 +81,7 @@ type
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure SetFont(var Value: TDFontData);
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
@@ -93,14 +92,15 @@ type
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure MouseHeld(button: TMouseButton); virtual;
-    procedure WMCommand(var msg: TMessage); virtual; abstract;
+    procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var result: LRESULT); virtual; abstract;
     procedure Configure; virtual; abstract;
-    function cmd(id: TDParam; param: integer): integer; virtual;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; virtual;
     function CanOpenFolder: boolean; virtual; abstract;
     procedure OpenFolder; virtual; abstract;
     function DropFile(pt: windows.TPoint; filename: string): boolean; virtual; abstract;
     procedure Delete(AllowUndo: boolean = true); virtual;
     procedure BeginDrag; virtual;
+    function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
   end;
 
   { TShortcutSubitem }
@@ -117,7 +117,7 @@ type
     FUseShellContextMenus: boolean;
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
-    FLastMouseUp: cardinal;
+    FLastMouseUp: PtrUInt;
     procedure UpdateItemI;
     procedure UpdateItemRunningState;
     procedure Exec(action: TExecuteAction);
@@ -125,7 +125,7 @@ type
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); overload; override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); overload; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
@@ -137,14 +137,14 @@ type
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseHeld(button: TMouseButton); override;
-    procedure WMCommand(var msg: TMessage); override;
+    procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var result: LRESULT); override;
     procedure Configure; override;
-    function cmd(id: TDParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
 
-    class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
+    class function Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
     class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
@@ -154,7 +154,7 @@ type
 implementation
 uses themeu, frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutSubitem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TShortcutSubitem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -184,9 +184,7 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-function TShortcutSubitem.cmd(id: TDParam; param: integer): integer;
-var
-  b: boolean;
+function TShortcutSubitem.cmd(id: TDParam; param: PtrInt): PtrInt;
 begin
   if not FFreed then
   try
@@ -618,6 +616,7 @@ end;
 function TShortcutSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 var
   pt: windows.TPoint;
+  tickCount: PtrUInt;
 begin
   inherited;
   result := false;
@@ -626,9 +625,16 @@ begin
   begin
     cmd(icSelect, 0);
 
+    {$ifdef CPU64}
+    tickCount := gettickcount64;
+    {$else CPU64}
+    tickCount := gettickcount;
+    {$endif CPU64}
+
     if button = mbLeft then
     begin
-      if abs(gettickcount - FLastMouseUp) > FLaunchInterval then
+      if FLastMouseUp > tickCount then FLastMouseUp := 0;
+      if tickCount - FLastMouseUp > FLaunchInterval then
       begin
         if ssAlt in shift then Exec(eaGroup)
         else
@@ -637,7 +643,7 @@ begin
           Exec(eaDefault);
         CloseStack;
       end;
-      FLastMouseUp := gettickcount;
+      FLastMouseUp := tickCount;
       result := true;
     end;
 
@@ -692,24 +698,23 @@ begin
 
   // else, if it is disabled //
   if not result then msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
-  WMCommand(msg);
+  WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.WMCommand(var msg: TMessage);
+procedure TShortcutSubitem.WMCommand(wParam: WPARAM; lParam: LPARAM; var result: LRESULT);
 begin
   try
     DestroyMenu(FHMenu);
     FHMenu := 0;
     CloseStack;
-    msg.Result := 0;
-    case msg.wparam of // f001 to f020
+    result := 0;
+    case wparam of // f001 to f020
       $f001: Configure;
       $f002: OpenFolder;
       $f003: toolu.SetClipboard(ToString);
       $f004: Delete;
       $f006: Exec(eaRun);
-      //$f007..$f020: ;
     end;
   except
     on e: Exception do raise Exception.Create('TStackSubitem.WMCommand'#10#13 + e.message);
@@ -782,7 +787,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
+class function TShortcutSubitem.Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
@@ -844,24 +849,31 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-constructor TCustomSubitem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+function CustomSubitemClassWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  inst: TCustomSubitem;
+begin
+  inst := TCustomSubitem(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if assigned(inst) then
+    result := inst.WindowProc(wnd, message, wParam, lParam)
+  else
+    result := DefWindowProc(wnd, message, wParam, lParam);
+end;
+//------------------------------------------------------------------------------
+constructor TCustomSubitem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
 
   FHWndParent := AHWndParent;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_acceptfiles, WINITEM_CLASS, nil, ws_popup, -1000, -1000, 32, 32, FHWndParent, 0, hInstance, nil);
+  RegisterWindowItemClass;
+  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_acceptfiles, TDSUBITEM_WCLASS, nil, ws_popup, -1000, -1000, 32, 32, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
     exit;
   end;
-
-  SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
-  // change window proc
-  FWndInstance := MakeObjectInstance(self.NativeWndProc);
-  FPrevWndProc := Pointer(GetWindowLongPtr(FHWnd, GWL_WNDPROC));
-  SetWindowLongPtr(FHWnd, GWL_WNDPROC, LongInt(FWndInstance));
+  SetWindowLong(FHWnd, GWL_USERDATA, PtrUInt(self));
 
   FItemSize := AParams.ItemSize;
   FLaunchInterval := AParams.LaunchInterval;
@@ -872,9 +884,36 @@ begin
   CopyFontData(AParams.Font, FFont);
 end;
 //------------------------------------------------------------------------------
+destructor TCustomSubitem.Destroy;
+begin
+  // restore window proc
+  if IsWindow(FHWnd) then DestroyWindow(FHWnd);
+  inherited;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.RegisterWindowItemClass;
+var
+  wndClass: windows.TWndClass;
+begin
+  try
+    wndClass.style          := CS_DBLCLKS;
+    wndClass.lpfnWndProc    := @CustomSubitemClassWindowProc;
+    wndClass.cbClsExtra     := 0;
+    wndClass.cbWndExtra     := 0;
+    wndClass.hInstance      := hInstance;
+    wndClass.hIcon          := 0;
+    wndClass.hCursor        := LoadCursor(0, idc_Arrow);
+    wndClass.hbrBackground  := 0;
+    wndClass.lpszMenuName   := nil;
+    wndClass.lpszClassName  := TDSUBITEM_WCLASS;
+    windows.RegisterClass(wndClass);
+  except
+    on e: Exception do err('CustomSubitem.RegisterWindowClass', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TCustomSubitem.Init;
 begin
-  FPrevWndProc := nil;
   FFreed:= false;
   FQueryDelete := false;
   FEnabled:= true;
@@ -897,22 +936,14 @@ begin
   FIH := 32;
 end;
 //------------------------------------------------------------------------------
-destructor TCustomSubitem.Destroy;
-begin
-  // restore window proc
-  if assigned(FPrevWndProc) then SetWindowLong(FHWnd, GWL_WNDPROC, LongInt(FPrevWndProc));
-  if IsWindow(FHWnd) then DestroyWindow(FHWnd);
-  inherited;
-end;
-//------------------------------------------------------------------------------
 procedure TCustomSubitem.Redraw;
 begin
   if IsWindowVisible(FHWnd) then Draw(Fx, Fy, FSize, 255, FAngle, FHintAlign, FHintAlpha, FHintBackground, true);
 end;
 //------------------------------------------------------------------------------
-function TCustomSubitem.cmd(id: TDParam; param: integer): integer;
+function TCustomSubitem.cmd(id: TDParam; param: PtrInt): PtrInt;
 begin
-  result:= 0;
+  result := 0;
   try
     case id of
       // parameters //
@@ -1113,75 +1144,84 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomSubitem.NativeWndProc(var message: TMessage);
+function TCustomSubitem.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 var
   pos: TSmallPoint;
   wpt: windows.TPoint;
   ShiftState: TShiftState;
 begin
   try
-      with message do
-      begin
-        result := 0;
-        pos := TSmallPoint(lParam);
-        ShiftState := [];
-        if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
-        if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
-      end;
+      result := 0;
+      pos := TSmallPoint(DWORD(lParam));
+      ShiftState := [];
+      if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
+      if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
 
-      if message.msg = wm_lbuttondown then
+      if message = wm_lbuttondown then
       begin
             SetActiveWindow(FHWndParent);
             MouseDownPoint.x:= pos.x;
             MouseDownPoint.y:= pos.y;
             if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y);
       end
-      else if message.msg = wm_rbuttondown then
+      else if message = wm_rbuttondown then
       begin
             SetActiveWindow(FHWndParent);
             MouseDownPoint.x:= pos.x;
             MouseDownPoint.y:= pos.y;
             if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y);
       end
-      else if message.msg = wm_mbuttondown then
+      else if message = wm_mbuttondown then
       begin
             SetActiveWindow(FHWndParent);
       end
-      else if message.msg = wm_lbuttonup then
+      else if message = wm_lbuttonup then
       begin
             if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y);
       end
-      else if message.msg = wm_rbuttonup then
+      else if message = wm_rbuttonup then
       begin
             if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y);
       end
-      else if message.msg = wm_mousemove then
+      else if message = wm_mousemove then
       begin
-            if not FLockDragging and (message.wParam and MK_LBUTTON <> 0) then
+            if not FLockDragging and (wParam and MK_LBUTTON <> 0) then
             begin
               if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then BeginDrag;
             end;
       end
-      else if message.msg = wm_command then
+      else if message = wm_command then
       begin
-            WMCommand(message);
+            WMCommand(wParam, lParam, result);
       end
-      else if message.msg = wm_timer then
+      else if message = wm_timer then
       begin
-            if message.wParam = ID_TIMER_MOUSEHELD then
+            if wParam = ID_TIMER_MOUSEHELD then
             begin
               KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
               GetCursorPos(wpt);
               if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
             end;
       end
-      else if (message.msg = wm_close) or (message.msg = wm_quit) then exit;
+      else if (message = wm_close) or (message = wm_quit) then exit;
 
   except
-    on e: Exception do raise Exception.Create('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
+    on e: Exception do err('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message, 8) + ' ]', e);
   end;
 
-  with message do result := DefWindowProc(hWnd, Msg, wParam, lParam);
+  result := DefWindowProc(wnd, message, wParam, lParam);
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.err(where: string; e: Exception);
+begin
+  if assigned(e) then
+  begin
+    AddLog(where + #10#13 + e.message);
+    //notify(where + #10#13 + e.message);
+  end else begin
+    AddLog(where);
+    //notify(where);
+  end;
 end;
 //------------------------------------------------------------------------------
 end.

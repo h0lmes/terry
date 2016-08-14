@@ -78,7 +78,7 @@ type
 
     // load/save //
     procedure SaveItems;
-    procedure SaveItem(HWnd: uint);
+    procedure SaveItem(HWnd: HANDLE);
 
     procedure SetItems1;
     procedure RecalcDock;
@@ -152,7 +152,7 @@ type
       ShowHint: boolean; Font: TDFontData);
     destructor Destroy; override;
     procedure Enable(value: boolean);
-    procedure SetParam(id: TDParam; value: integer);
+    procedure SetParam(id: TDParam; value: PtrInt);
     procedure command(cmd, params: string);
     function  GetZoomEdge: integer;
 
@@ -170,7 +170,7 @@ type
     // items //
     procedure UnDelete;
     procedure CheckDeleted;
-    function  ZOrder(InsertAfter: uint): uint;
+    function  ZOrder(InsertAfter: HANDLE): uint;
     function  ItemIndex(HWnd: THandle): integer;
     procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
@@ -191,8 +191,8 @@ type
     function  IsItem(HWnd: HANDLE): HANDLE;
     function  ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
     function  ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
-    function  ItemCmd(HWnd: HANDLE; id: TDParam; param: integer): integer;
-    function  AllItemCmd(id: TDParam; param: integer): integer;
+    function  ItemCmd(HWnd: HANDLE; id: TDParam; param: PtrInt): PtrInt;
+    function  AllItemCmd(id: TDParam; param: PtrInt): PtrInt;
     procedure SetFont(var Value: TDFontData);
     function  GetPluginFile(HWnd: HANDLE): string;
     procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
@@ -298,7 +298,7 @@ begin
   dockh.notify(0, pchar(message));
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetParam(id: TDParam; value: integer);
+procedure TItemManager.SetParam(id: TDParam; value: PtrInt);
 begin
   try
     AllItemCmd(id, value);
@@ -379,8 +379,8 @@ begin
         begin
           FZoomTime := value;
           if FZoomTime < 1 then FZoomTime := 1;
-				end;
-			gpLockMouseEffect:        FLockMouseEffect := value <> 0;
+        end;
+      gpLockMouseEffect:        FLockMouseEffect := value <> 0;
       gpSeparatorAlpha:         FSeparatorAlpha := value;
       gpOccupyFullMonitor:      FOccupyFullMonitor := value <> 0;
     end;
@@ -527,7 +527,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SaveItem(HWnd: uint);
+procedure TItemManager.SaveItem(HWnd: HANDLE);
 var
   index: integer;
   Inst: TCustomItem;
@@ -661,7 +661,7 @@ begin
   if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ZOrder(InsertAfter: uint): uint;
+function TItemManager.ZOrder(InsertAfter: HANDLE): uint;
 var
   idx: integer;
 begin
@@ -717,7 +717,7 @@ begin
     UnZoom(true);
     AllItemCmd(icHover, 0);
     AllItemCmd(icSelect, 0);
-    AllItemCmd(icVisible, integer(value));
+    AllItemCmd(icVisible, PtrInt(value));
     FHoverItemHWnd := 0;
     FSelectedItemHWnd := 0;
   end;
@@ -1018,7 +1018,8 @@ end;
 procedure TItemManager.SetItems2(forceDraw: boolean);
 var
   idx: integer;
-  wpi, show_items: uint;
+  wpi: HDWP;
+  show_items: uint;
 begin
   if FEnabled then
   try
@@ -1516,7 +1517,7 @@ end;
 // enter/exit zooming mode, maintain zooming
 procedure TItemManager.Zoom(x, y: integer);
 var
-  item, saved: extended;
+  item: extended;
 begin
   if FEnabled and not FDraggingFile then
   try
@@ -1739,7 +1740,6 @@ end;
 procedure TItemManager.Undock(HWnd: HANDLE);
 var
   index: integer;
-  pt: windows.TPoint;
 begin
   if FEnabled and not FDraggingItem then
   try
@@ -1884,7 +1884,7 @@ begin
       end;
 
       Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
-      if Inst is TCustomItem then result := Inst.cmd(icIsItem, integer(HWnd));
+      if Inst is TCustomItem then result := Inst.cmd(icIsItem, PtrInt(HWnd));
       if result <> 0 then break;
       inc(idx);
     end;
@@ -1934,7 +1934,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemCmd(HWnd: HANDLE; id: TDParam; param: integer): integer;
+function TItemManager.ItemCmd(HWnd: HANDLE; id: TDParam; param: PtrInt): PtrInt;
 var
   Inst: TCustomItem;
 begin
@@ -1947,7 +1947,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.AllItemCmd(id: TDParam; param: integer): integer;
+function TItemManager.AllItemCmd(id: TDParam; param: PtrInt): PtrInt;
 var
   item: integer;
   Inst: TCustomItem;
@@ -2167,7 +2167,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TItemManager.AddTaskWindow(HWndTask: THandle);
 var
-  index, found, spot: integer;
+  index, found: integer;
   HWndItem: THandle;
   Inst: TCustomItem;
   str: string;

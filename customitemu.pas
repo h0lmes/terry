@@ -9,6 +9,7 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
 const
   anim_bounce: array [0..15] of single = (0, 0.1670, 0.3290, 0.4680, 0.5956, 0.6937, 0.7790, 0.8453, 0.8984, 0.9360, 0.9630, 0.9810, 0.9920, 0.9976, 0.9997, 1);
   MIN_BORDER = 20;
+  TDITEM_WCLASS = 'TDockItemWClass';
 
 type
 
@@ -23,11 +24,9 @@ type
     FHover: boolean;
   protected
     FFreed: boolean;
-    FHWnd: uint;
-    FHWndParent: uint;
-    FHMenu: cardinal;
-    FWndInstance: TFarProc;
-    FPrevWndProc: TFarProc;
+    FHWnd: HANDLE;
+    FHWndParent: HANDLE;
+    FHMenu: HANDLE;
     FCaption: string;
     FX: integer;
     FY: integer;
@@ -79,6 +78,7 @@ type
     OnBeforeMouseHover: TOnBeforeMouseHover;
     OnBeforeUndock: TOnBeforeUndock;
 
+    procedure RegisterWindowItemClass;
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
     procedure Attention(value: boolean);
@@ -90,11 +90,11 @@ type
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
     procedure notify(message: string);
-    procedure WindowProc(var message: TMessage);
+    procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
     property Floating: boolean read FFloating;
-    property HWnd: uint read FHWnd;
+    property HWnd: PtrUint read FHWnd;
     property Caption: string read FCaption write SetCaption;
     property X: integer read FX;
     property Y: integer read FY;
@@ -102,10 +102,10 @@ type
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); virtual;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure SetFont(var Value: TDFontData); virtual;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); virtual; abstract;
+    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); virtual; abstract;
     function ToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
@@ -114,7 +114,7 @@ type
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure WndMessage(var msg: TMessage); virtual; abstract;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
-    function cmd(id: TDParam; param: integer): integer; virtual;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; virtual;
     procedure Timer; virtual;
     procedure Configure; virtual;
     function CanOpenFolder: boolean; virtual;
@@ -128,29 +128,37 @@ type
     procedure Animate;
     procedure LME(lock: boolean);
     procedure Delete;
+    function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+function CustomItemClassWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+var
+  inst: TCustomItem;
+begin
+  inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if assigned(inst) then
+    result := inst.WindowProc(wnd, message, wParam, lParam)
+  else
+    result := DefWindowProc(wnd, message, wParam, lParam);
+end;
+//------------------------------------------------------------------------------
+constructor TCustomItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
 
   FHWndParent := AHWndParent;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, WINITEM_CLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
+  RegisterWindowItemClass;
+  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, TDITEM_WCLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
     exit;
   end;
-
   dockh.ExcludeFromPeek(FHWnd);
-  SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self));
-  // change window proc
-  FWndInstance := MakeObjectInstance(WindowProc);
-  FPrevWndProc := Pointer(GetWindowLongPtr(FHWnd, GWL_WNDPROC));
-  SetWindowLongPtr(FHWnd, GWL_WNDPROC, PtrInt(FWndInstance));
+  SetWindowLong(FHWnd, GWL_USERDATA, PtrUint(self));
 
   FItemSize := AParams.ItemSize;
   FSize := FItemSize;
@@ -172,16 +180,34 @@ destructor TCustomItem.Destroy;
 begin
   // restore window proc
   SetWindowLong(FHWnd, GWL_USERDATA, 0);
-  SetWindowLong(FHWnd, GWL_WNDPROC, PtrInt(FPrevWndProc));
-  FreeObjectInstance(FWndInstance);
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
   FHWnd := 0;
   inherited;
 end;
 //------------------------------------------------------------------------------
+procedure TCustomItem.RegisterWindowItemClass;
+var
+  wndClass: windows.TWndClass;
+begin
+  try
+    wndClass.style          := CS_DBLCLKS;
+    wndClass.lpfnWndProc    := @CustomItemClassWindowProc;
+    wndClass.cbClsExtra     := 0;
+    wndClass.cbWndExtra     := 0;
+    wndClass.hInstance      := hInstance;
+    wndClass.hIcon          := 0;
+    wndClass.hCursor        := LoadCursor(0, idc_Arrow);
+    wndClass.hbrBackground  := 0;
+    wndClass.lpszMenuName   := nil;
+    wndClass.lpszClassName  := TDITEM_WCLASS;
+    windows.RegisterClass(wndClass);
+  except
+    on e: Exception do err('CustomItem.RegisterWindowClass', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 procedure TCustomItem.Init;
 begin
-  FPrevWndProc := nil;
   FFreed := false;
   FEnabled := true;
   FCaption := '';
@@ -218,7 +244,7 @@ begin
   FNeedMouseWheel := false;
 end;
 //------------------------------------------------------------------------------
-function TCustomItem.cmd(id: TDParam; param: integer): integer;
+function TCustomItem.cmd(id: TDParam; param: PtrInt): PtrInt;
 var
   wRect: windows.TRect;
 begin
@@ -569,7 +595,7 @@ begin
   dockh.notify(FHWnd, pchar(message));
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.WindowProc(var message: TMessage);
+function TCustomItem.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 const
   MK_ALT = $1000;
 var
@@ -577,73 +603,77 @@ var
   ShiftState: classes.TShiftState;
   pos: windows.TSmallPoint;
   wpt: windows.TPoint;
+  msg: TMessage;
   //
   filecount: integer;
   filename: array [0..MAX_PATH - 1] of char;
 begin
   if not FFreed then
   try
-    WndMessage(message);
+    msg.msg := message;
+    msg.wParam := wParam;
+    msg.lParam := lParam;
+    WndMessage(msg);
+    result := msg.Result;
   except
-    on e: Exception do raise Exception.Create('CustomItem.WindowProc.WndMessage'#10#13 + e.message);
+    on e: Exception do err('CustomItem.WindowProc.WndMessage', e);
   end;
 
   try
     if not FFreed then
-    with message do
     begin
         result := 0;
-        pos := TSmallPoint(LParam);
+        pos := TSmallPoint(dword(lParam));
         ShiftState := [];
         if HIBYTE(GetKeyState(VK_MENU)) and $80 <> 0 then Include(ShiftState, ssAlt);
         if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
         if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
 
-        if (msg >= wm_keyfirst) and (msg <= wm_keylast) then
+        if (message >= wm_keyfirst) and (message <= wm_keylast) then
         begin
-          sendmessage(FHWndParent, msg, wParam, lParam);
+          result := sendmessage(FHWndParent, message, wParam, lParam);
           exit;
         end;
 
-        if msg = wm_lbuttondown then
+        if message = wm_lbuttondown then
         begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
               if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, msg, wParam, lParam);
+              else sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if msg = wm_rbuttondown then
+        else if message = wm_rbuttondown then
         begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
               if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, msg, wParam, lParam);
+              else sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if msg = wm_lbuttonup then
+        else if message = wm_lbuttonup then
         begin
               cmd(icUndock, 0);
               if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, msg, wParam, lParam);
+              else sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if msg = wm_rbuttonup then
+        else if message = wm_rbuttonup then
         begin
               if not FFreed then
               begin
                 if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
-                else sendmessage(FHWndParent, msg, wParam, lParam);
+                else sendmessage(FHWndParent, message, wParam, lParam);
               end;
         end
-        else if msg = wm_lbuttondblclk then
+        else if message = wm_lbuttondblclk then
         begin
-              if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam)
+              if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, message, wParam, lParam)
               else
-              if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, msg, wParam, lParam);
+              if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if msg = wm_mousewheel then
+        else if message = wm_mousewheel then
         begin
-              if not FNeedMouseWheel then sendmessage(FHWndParent, msg, wParam, lParam);
+              if not FNeedMouseWheel then sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if msg = wm_mousemove then
+        else if message = wm_mousemove then
         begin
               // undock item (the only place to undock) //
               if (not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
@@ -664,17 +694,17 @@ begin
                 dockh.Dock(FHWnd);
               end;
         end
-        else if msg = wm_exitsizemove then
+        else if message = wm_exitsizemove then
         begin
               // dock item (the only place to dock) //
               cmd(icUndock, 0);
               dockh.Dock(FHWnd);
         end
-        else if msg = wm_command then
+        else if message = wm_command then
         begin
-              WMCommand(message.wParam, message.lParam, message.Result);
+              WMCommand(wParam, lParam, Result);
         end
-        else if msg = wm_timer then
+        else if message = wm_timer then
         begin
               // mouse held //
               if wParam = ID_TIMER_MOUSEHELD then
@@ -684,7 +714,7 @@ begin
                 if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
               end;
         end
-        else if msg = wm_dropfiles then
+        else if message = wm_dropfiles then
         begin
               filecount := DragQueryFile(wParam, $ffffffff, nil, 0);
               GetCursorPos(wpt);
@@ -696,17 +726,25 @@ begin
                 inc(idx);
               end;
         end
-        else if (msg = wm_close) or (msg = wm_quit) then exit;
+        else if (message = wm_close) or (message = wm_quit) then exit;
 
-    end;
+    end; // end if not FFreed
     if FHWnd <> 0 then
-      message.result := DefWindowProc(FHWnd, message.Msg, message.wParam, message.lParam);
+      result := DefWindowProc(FHWnd, message, wParam, lParam);
   except
-    on e: Exception do
-    begin
-      AddLog('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
-      notify('CustomItem.WindowProc[ Msg=0x' + inttohex(message.msg, 8) + ' ] '#10#13 + e.message);
-    end;
+    on e: Exception do err('CustomItem.WindowProc[ Msg=0x' + inttohex(message, 8) + ' ]', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.err(where: string; e: Exception);
+begin
+  if assigned(e) then
+  begin
+    AddLog(where + #10#13 + e.message);
+    notify(where + #10#13 + e.message);
+  end else begin
+    AddLog(where);
+    messagebox(FHWnd, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
   end;
 end;
 //------------------------------------------------------------------------------

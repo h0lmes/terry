@@ -77,7 +77,7 @@ type
     procedure DeleteSubitems;
     procedure CopyCSIBucket(pFrom, pTo: PCSIBucket);
     function ItemIndex(HWnd: HANDLE): integer;
-    procedure AllSubitemsCmd(id: TDParam; param: integer);
+    procedure AllSubitemsCmd(id: TDParam; param: PtrInt);
     procedure OpenStack;
     procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
@@ -86,14 +86,14 @@ type
     procedure ShowBackgroundWindow(AX, AY, AW, AH: integer);
     procedure ZOrderTop;
     procedure ZOrderNoTop;
-    function ZOrderItems(InsertAfter: uint): uint;
+    function ZOrderItems(InsertAfter: HANDLE): HANDLE;
   public
     property ItemCount: integer read FItemCount;
 
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
 
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: PtrUInt; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure SetFont(var Value: TDFontData); override;
@@ -102,13 +102,13 @@ type
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TDParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
     procedure Configure; override;
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 
-    class function Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
+    class function Make(AHWnd: HANDLE; ACaption, AImage: string; ASpecialFolder: string = '';
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
       ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
@@ -127,7 +127,7 @@ type
 implementation
 uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TStackItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -310,7 +310,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.cmd(id: TDParam; param: integer): integer;
+function TStackItem.cmd(id: TDParam; param: PtrInt): PtrInt;
 var
   b: boolean;
   temp: uint;
@@ -516,7 +516,6 @@ begin
     $f003: toolu.SetClipboard(ToStringFullCopy);
     $f004: Delete;
     $f005: AddSubitem(GetClipboard);
-    //$f006..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -619,7 +618,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.DropFileI(filename: string);
 var
-  fcaption, fdir, ext: string;
+  ext: string;
 begin
   // update icon //
   ext := AnsiLowerCase(ExtractFileExt(filename));
@@ -668,7 +667,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TStackItem.Make(AHWnd: uint; ACaption, AImage: string; ASpecialFolder: string = '';
+class function TStackItem.Make(AHWnd: HANDLE; ACaption, AImage: string; ASpecialFolder: string = '';
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
   ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
@@ -1005,7 +1004,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.AllSubitemsCmd(id: TDParam; param: integer);
+procedure TStackItem.AllSubitemsCmd(id: TDParam; param: PtrInt);
 var
   idx: integer;
 begin
@@ -1121,7 +1120,6 @@ end;
 procedure TStackItem.ShowStackState;
 var
   idx: integer;
-  wpi: uint;
   wr, itemRect: windows.TRect;
   xyaa: TStackItemData;
   Xmin, Ymin, Xmax, Ymax: integer;
@@ -1194,7 +1192,7 @@ procedure TStackItem.CreateBackgroundWindowIfNotExists;
 begin
   if not IsWindow(FBackgroundWindow) then
   try
-    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, WINITEM_CLASS,
+    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
       'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
   except
     on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists'#10#13 + e.message);
@@ -1256,7 +1254,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.ZOrderItems(InsertAfter: uint): uint;
+function TStackItem.ZOrderItems(InsertAfter: HANDLE): HANDLE;
 var
   idx: integer;
 begin

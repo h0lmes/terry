@@ -92,7 +92,6 @@ type
   private
     cancel_data: string;
     UpdateItemProc: _uproc;
-    color_: uint;
     color_data: uint;
     background_color: uint;
     SpecialFolder: string;
@@ -449,7 +448,6 @@ end;
 procedure TfrmStackProp.Draw;
 var
   str: string;
-  apidl: PItemIDList;
 begin
   try
     try if assigned(FImage) then GdipDisposeImage(FImage);

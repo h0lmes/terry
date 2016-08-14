@@ -172,14 +172,14 @@ procedure SetClipboard(Text: string);
 function GetClipboard: string;
 function ColorToString(Color: uint): string;
 function StringToColor(const str: string): uint;
-function confirm(handle: cardinal; Text: string = ''): boolean;
-function FindWinamp: cardinal;
+function confirm(handle: HANDLE; Text: string = ''): boolean;
+function FindWinamp: HANDLE;
 function LaunchWinamp(sw: integer = sw_shownormal): boolean;
-function wacmd(cmd: cardinal): boolean;
+function wacmd(cmd: HANDLE): boolean;
 procedure AddLog(LogString: string);
 procedure TruncLog(fs: TFileStream);
 procedure LogWindow(handle: HWND);
-procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
+procedure bsm(msg: HANDLE; wparam: WPARAM; lparam: LPARAM);
 function IsIdenticalStreams(Source, Destination: TStream): boolean;
 procedure SendShift(hwnd: HWnd; Down: Boolean);
 procedure SendCtrl(hwnd: HWnd; Down: Boolean);
@@ -990,7 +990,7 @@ end;
 function BrowseFolder(hWnd: THandle; title, default: string): string;
 var
   lpItemID: PItemIDList;
-  BrowseInfo: Windows.TBrowseInfo;
+  BrowseInfo: ShlObj.TBrowseInfo;
   DisplayName: array[0..MAX_PATH] of char;
   path: array [0..MAX_PATH] of char;
 begin
@@ -1084,13 +1084,13 @@ begin
   Result := StrToInt(str);
 end;
 //------------------------------------------------------------------------------
-function confirm(handle: cardinal; Text: string = ''): boolean;
+function confirm(handle: HANDLE; Text: string = ''): boolean;
 begin
   if Text = '' then Text := 'Confirm action';
   Result := messagebox(handle, PChar(Text), 'Confirm', mb_yesno or mb_iconexclamation or mb_defbutton2) = idYes;
 end;
 //------------------------------------------------------------------------------
-function FindWinamp: cardinal;
+function FindWinamp: HANDLE;
 begin
   Result := findwindow('BaseWindow', nil);
   if not IsWindow(Result) then
@@ -1131,9 +1131,9 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function wacmd(cmd: cardinal): boolean;
+function wacmd(cmd: HANDLE): boolean;
 var
-  wahwnd: cardinal;
+  wahwnd: HANDLE;
 begin
   Result := False;
   wahwnd := FindWinamp;
@@ -1261,7 +1261,7 @@ begin
   AddLog('-');
 end;
 //------------------------------------------------------------------------------
-procedure bsm(msg: uint; wparam: WPARAM; lparam: LPARAM);
+procedure bsm(msg: HANDLE; wparam: WPARAM; lparam: LPARAM);
 var
   recip: integer;
 begin
@@ -1298,12 +1298,12 @@ end;
 //------------------------------------------------------------------------------
 procedure SendShift(hwnd: HWnd; Down: Boolean);
 var
-  vKey, ScanCode, wParam: Word;
+  vKey, ScanCode: Word;
   lParam: longint;
 begin
   vKey := $10;
   ScanCode := MapVirtualKey(vKey, 0);
-  wParam := vKey or ScanCode shl 8;
+  //wParam := vKey or ScanCode shl 8;
   lParam := longint(ScanCode) shl 16 or 1;
   if not Down then lParam := lParam or $C0000000;
   SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);
@@ -1311,12 +1311,12 @@ end;
 //------------------------------------------------------------------------------
 procedure SendCtrl(hwnd: HWnd; Down: Boolean);
 var
-  vKey, ScanCode, wParam: Word;
+  vKey, ScanCode: Word;
   lParam: longint;
 begin
   vKey := $11;
   ScanCode := MapVirtualKey(vKey, 0);
-  wParam := vKey or ScanCode shl 8;
+  //wParam := vKey or ScanCode shl 8;
   lParam := longint(ScanCode) shl 16 or 1;
   if not Down then lParam := lParam or $C0000000;
   SendMessage(hwnd, WM_KEYDOWN, vKey, lParam);

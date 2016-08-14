@@ -303,7 +303,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TDropManager.AddToListHGlobalFileGroupDescriptorW(h: HGLOBAL; var List: TStrings);
 var
-  gsize, i: longint;
+  i: longint;
   pgroup: PFILEGROUPDESCRIPTORW;
   pfgd: PFILEDESCRIPTORW;
 begin
@@ -316,7 +316,7 @@ begin
     i := 0;
     while i < pgroup.cItems do
     begin
-      pfgd := PFILEDESCRIPTORW(longint(@pgroup.fgd) + i * sizeof(PFILEDESCRIPTORW));
+      pfgd := PFILEDESCRIPTORW(PtrUInt(@pgroup.fgd) + i * sizeof(PFILEDESCRIPTORW));
       List.Add(pfgd.cFileName);
       {$ifdef DEBUG_DROPTGT}
       notifier.message(pfgd.cFileName);
@@ -487,16 +487,10 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-const
-  di_DragEnter = 3;
-  di_DragOver = 4;
-  di_DragLeave = 5;
-  di_Drop = 6;
-//------------------------------------------------------------------------------
 function TDropTarget.QueryInterface(constref IID: TGUID; out Obj): longint; stdcall;
 const E_NOINTERFACE = $80004002;
 begin
-  if GetInterface(IID, Obj) then result := 0 else result := E_NOINTERFACE;
+  if GetInterface(IID, Obj) then result := 0 else result := longint(E_NOINTERFACE);
 end;
 //------------------------------------------------------------------------------
 function TDropTarget._AddRef: Integer;

@@ -737,7 +737,7 @@ end;
 //----------------------------------------------------------------------
 function TProcessHelper.SetPrivilege(Name: string): boolean;
 var
-  hToken: cardinal;
+  hToken: THandle;
   tkp, tkpo: Windows.TTokenPrivileges;
   rl: dword;
 begin

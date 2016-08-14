@@ -28,7 +28,7 @@ type
     FExecutable: string;
     FIsPIDL: boolean;
     FPIDL: PItemIDList;
-    FLastMouseUp: cardinal;
+    FLastMouseUp: PtrUInt;
     FAppList: TFPList;
     FIsOpen: boolean; // is PeekWindow open or not
     FDynObject: boolean;
@@ -54,14 +54,14 @@ type
   public
     procedure UpdateItem(AData: string);
     //
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure MouseHeld(button: TMouseButton); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TDParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
     procedure Configure; override;
     function CanOpenFolder: boolean; override;
@@ -70,7 +70,7 @@ type
     function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     //
-    class function Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
+    class function Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
     class function FromFile(filename: string): string;
   end;
@@ -78,7 +78,7 @@ type
 implementation
 uses frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TShortcutItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -332,9 +332,8 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TShortcutItem.cmd(id: TDParam; param: integer): integer;
+function TShortcutItem.cmd(id: TDParam; param: PtrInt): PtrInt;
 var
-  b: boolean;
   temp: uint;
   idx: integer;
 begin
@@ -466,10 +465,19 @@ end;
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
 var
   pt: windows.TPoint;
+  tickCount: PtrUInt;
 begin
+  {$ifdef CPU32}
+  tickCount := gettickcount;
+  {$ENDIF}
+  {$ifdef CPU64}
+  tickCount := gettickcount64;
+  {$ENDIF}
+
   if button = mbLeft then
   begin
-    if (abs(gettickcount - FLastMouseUp) > FLaunchInterval) then
+    if FLastMouseUp > tickCount then FLastMouseUp := 0;
+    if tickCount - FLastMouseUp > FLaunchInterval then
     begin
       if ssAlt in shift then Exec(eaGroup)
       else
@@ -477,7 +485,7 @@ begin
       else
         Exec(eaDefault);
     end;
-    FLastMouseUp := gettickcount;
+    FLastMouseUp := tickCount;
   end;
 
   if button = mbRight then
@@ -508,8 +516,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ActivateProcessMainWindow(group: boolean): boolean;
-var
-  pt: windows.TPoint;
 begin
   result := false;
   if not FIsExecutable then exit;
@@ -619,7 +625,6 @@ begin
       end;
     $f008: ProcessHelper.Kill(FExecutable);
     $f009: ProcessHelper.ActivateWindowList(FAppList);
-    //$f00a..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -797,7 +802,7 @@ end;
 //
 //
 //------------------------------------------------------------------------------
-class function TShortcutItem.Make(AHWnd: uint; ACaption, ACommand, AParams, ADir, AImage: string;
+class function TShortcutItem.Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';

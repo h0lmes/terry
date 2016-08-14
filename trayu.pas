@@ -156,7 +156,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
-  HWnd: cardinal;
   hostRect: windows.TRect;
 begin
   FSite := site;
@@ -181,7 +180,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
-  HWnd: cardinal;
   hostRect: windows.TRect;
 begin
   FSite := site;
@@ -213,7 +211,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
-  HWnd: cardinal;
   hostRect: windows.TRect;
 begin
   FSite := site;

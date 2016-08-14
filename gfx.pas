@@ -1090,7 +1090,11 @@ const
   ICON_SMALL2 = PtrUInt(2);
   SMTO_NOTIMEOUTIFNOTHUNG = 8;
 var
+  {$ifdef CPU64}
+  icon: DWORD;
+  {$else CPU64}
   icon: HICON;
+  {$endif CPU64}
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;

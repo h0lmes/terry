@@ -108,7 +108,7 @@ type
       IsVista: boolean;
       IsWin7: boolean;
       IsWin10: boolean;
-      hDwmLib: uint;
+      hDwmLib: HANDLE;
       DwmDefWindowProc: function(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; Result: PInteger): BOOL; stdcall;
       SetWindowCompositionAttribute: function(Wnd: HWND; const AttrData: TWindowCompositionAttributeData): BOOL; stdcall;
       DwmIsCompositionEnabled: function(pfEnabled: PBoolean): HRESULT; stdcall;

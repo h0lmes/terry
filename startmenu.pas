@@ -14,7 +14,6 @@ type
     FControl, FShown: boolean;
     FStartMenuWnd: HWND;
     FDesktopUserPictureWnd: HWND;
-    FDesktopSpecialFoldersWnd: HWND;
   public
     constructor Create;
     procedure Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -31,7 +30,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStartMenuController.Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
 var
-  wRect, picRect, hostRect: windows.TRect;
+  hostRect: windows.TRect;
 begin
   FSite := site;
   FBaseRect := baseRect;

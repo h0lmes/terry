@@ -16,21 +16,21 @@ type
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
-    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint); override;
+    procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    function cmd(id: TDParam; param: integer): integer; override;
+    function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
     class function Make: string;
 end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TSeparatorItem.Create(AData: string; AHWndParent: cardinal; AParams: TDItemCreateParams);
+constructor TSeparatorItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
 begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;
@@ -65,7 +65,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TSeparatorItem.cmd(id: TDParam; param: integer): integer;
+function TSeparatorItem.cmd(id: TDParam; param: PtrInt): PtrInt;
 begin
   try
     result := inherited cmd(id, param);
@@ -84,7 +84,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TSeparatorItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi, AShowItem: uint);
+procedure TSeparatorItem.Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint);
 var
   sepx, sepy, sepw, seph: integer;
   dst, brush: Pointer;

@@ -135,7 +135,7 @@ type
     Filename: array [0..1023] of char;
   end;
 
-  TDBaseCmd = function(id: TDParam; param: integer): integer of object;
+  TDBaseCmd = function(id: TDParam; param: PtrInt): PtrInt of object;
 
   RAWMOUSE = packed record
     usFlags: USHORT;
@@ -195,8 +195,7 @@ const
   PROGRAM_TITLE = 'TDockApp';
   PROGRAM_REGKEY = 'tdock';
   PROGRAM_GUID = '{CF102D02-5C0B-4383-8902-2500AF8859B7}';
-  WINITEM_CLASS = 'TDockWClass';
-  HINT_CLASS = 'TDockHintClass';
+  TDWCLASS = 'TDWClass';
   ITEM_BACKGROUND = $2808080;
   RollStep = 4;
   SWP_NO_FLAGS = SWP_NOSIZE + SWP_NOMOVE + SWP_NOACTIVATE + SWP_NOOWNERZORDER + SWP_NOSENDCHANGING + SWP_ASYNCWINDOWPOS;
