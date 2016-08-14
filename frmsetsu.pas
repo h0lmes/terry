@@ -18,38 +18,47 @@ type
     btnDebug: TButton;
     btnFontBold: TSpeedButton;
     btnFontItalic: TSpeedButton;
-		btnRemoveDock: TButton;
-		btnRestore: TButton;
+    btnRemoveDock: TButton;
+    btnRestore: TButton;
     btnRunNow: TButton;
     btn_ok1: TBitBtn;
     btnColor: TButton;
+    cbAutoHide: TCheckBox;
 		cbShowHint: TCheckBox;
 		chbAutoHideOnFullScreenApp: TCheckBox;
-		chbGlobalConsole: TCheckBox;
+    chbGlobalConsole: TCheckBox;
+    chbGlobalHide: TCheckBox;
 		chbHintEffects: TCheckBox;
     chbReserveScreenEdge: TCheckBox;
     cboItemAnimationType: TComboBox;
     chbStackOpenAnimation: TCheckBox;
     chbRunInThread: TCheckBox;
-    chbTaskbar: TCheckBox;
-    chbTaskbarLivePreviews: TCheckBox;
-    chbTaskbarGrouping: TCheckBox;
-    chbTaskbarSameMonitor: TCheckBox;
     chbOccupyFullMonitor: TCheckBox;
+    chbTaskbar: TCheckBox;
+    chbTaskbarGrouping: TCheckBox;
+    chbTaskbarLivePreviews: TCheckBox;
+    chbTaskbarSameMonitor: TCheckBox;
     chbUseShellContextMenus: TCheckBox;
     chbReflection: TCheckBox;
-		chbGlobalHide: TCheckBox;
     DividerBevel1: TDividerBevel;
     DividerBevel2: TDividerBevel;
+    DividerBevel3: TDividerBevel;
+    DividerBevel4: TDividerBevel;
+    DividerBevel5: TDividerBevel;
+    edAutoHideTime: TEdit;
+    edAutoShowTime: TEdit;
     edFontSize: TEdit;
     edFontSize2: TEdit;
 		edActivateOnMouseInterval: TEdit;
+    edRolledVisiblePixels: TEdit;
     edStartOffset: TEdit;
     edEndOffset: TEdit;
-    gbTaskbar: TGroupBox;
-		hkConsole: TEdit;
+    hkConsole: TEdit;
+    hkHide: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    lblHideDelay: TLabel;
+    lblRemoveDock: TLabel;
     lblBackgroundTransparency1: TLabel;
     lblBackgroundTransparency2: TLabel;
     lblCredits6: TLabel;
@@ -63,19 +72,21 @@ type
     lblCredits3: TLabel;
     lblCredits4: TLabel;
     lblCredits5: TLabel;
+    lblShowDelay: TLabel;
+    lblVisiblePart: TLabel;
     lblZoomTime: TLabel;
     lbTheme: TListBox;
     listFont: TListBox;
     memAutorun: TMemo;
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
-		panelRemove: TPanel;
     pbox: TPaintBox;
     stMoveDockHint: TStaticText;
+    tsActions: TTabSheet;
+    tbAeroPeekThumbSize: TTrackBar;
     tbBaseAlpha: TTrackBar;
     tbSeparatorAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
-    tbAeroPeekThumbSize: TTrackBar;
     tbReflectionSize: TTrackBar;
     tbZoomTime: TTrackBar;
     tbReserveScreenEdgePercent: TTrackBar;
@@ -109,21 +120,11 @@ type
     cbAutorun: TCheckBox;
     tbCenterOffsetPercent: TTrackBar;
     btn_ok: TBitBtn;
-    gbHide: TGroupBox;
-    hkHide: TEdit;
     lblMonitor: TLabel;
     cboMonitor: TComboBox;
     lblZoomedIconSize: TLabel;
     lblEdgeOffset: TLabel;
     tbEdgeOffset: TTrackBar;
-    gbAutoSlide: TGroupBox;
-    lblHideDelay: TLabel;
-    lblVisiblePart: TLabel;
-    lblShowDelay: TLabel;
-    cbAutoHide: TCheckBox;
-    edRolledVisiblePixels: TEdit;
-    edAutoHideTime: TEdit;
-    edAutoShowTime: TEdit;
     lblMouseOverTip: TLabel;
     cbHideTaskBar: TCheckBox;
     chbBlur: TCheckBox;
@@ -287,7 +288,8 @@ begin
   lv.Items[2].Caption := XPageStyle;
   lv.Items[3].Caption := XPageIcons;
   lv.Items[4].Caption := XPageMisc;
-  lv.Items[5].Caption := XPageAbout;
+  lv.Items[5].Caption := XPageActions;
+  lv.Items[6].Caption := XPageAbout;
 
   cboBaseSite.Items.Add(XSiteLeft);
   cboBaseSite.Items.Add(XSiteTop);
@@ -376,42 +378,38 @@ begin
     toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
     lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
   except
-    on e: Exception do frmmain.err('frmSets.Show.1', e);
+    on e: Exception do frmmain.err('frmSets.Show', e);
   end;
 
   //
-  // поведение //
+  // tsGeneral //
   //
 
   try
     SetInitValue(cbAutorun, toolu.CheckAutoRun);
-    SetInitValue(cbAutoHide, sets.container.autohide);
-    SetInitValue(cbActivateOnMouse, sets.container.ActivateOnMouse);
-    SetInitValue(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
-    SetInitValue(edAutoHideTime, inttostr(sets.container.autohidetime));
-    SetInitValue(edAutoShowTime, inttostr(sets.container.autoshowtime));
-    SetInitValue(edRolledVisiblePixels, inttostr(sets.container.AutoHidePixels));
-    SetInitValue(hkHide, TShortCut(sets.container.GlobalHotkeyValue_Hide));
-    SetInitValue(hkConsole, TShortCut(sets.container.GlobalHotkeyValue_Console));
-    SetInitValue(chbGlobalHide, sets.container.GlobalHotkeyFlag_Hide);
-    SetInitValue(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
-    SetInitValue(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
-    SetInitValue(cbShowHint, sets.container.ShowHint);
-    SetInitValue(chbHintEffects, sets.container.HintEffects);
     SetInitValue(cbHideTaskBar, sets.container.HideSystemTaskbar);
     SetInitValue(chbReserveScreenEdge, sets.container.ReserveScreenEdge);
+    SetInitValue(tbReserveScreenEdgePercent, sets.container.ReserveScreenEdgePercent);
+    SetInitValue(cbActivateOnMouse, sets.container.ActivateOnMouse);
+    SetInitValue(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
+    SetInitValue(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
     SetInitValue(chbTaskbar, sets.container.Taskbar);
     SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
     SetInitValue(chbTaskbarGrouping, sets.container.TaskGrouping);
     SetInitValue(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
-    SetInitValue(tbReserveScreenEdgePercent, sets.container.ReserveScreenEdgePercent);
     SetInitValue(tbAeroPeekThumbSize, sets.container.TaskThumbSize);
+    SetInitValue(hkHide, TShortCut(sets.container.GlobalHotkeyValue_Hide));
+    SetInitValue(hkConsole, TShortCut(sets.container.GlobalHotkeyValue_Console));
+    SetInitValue(chbGlobalHide, sets.container.GlobalHotkeyFlag_Hide);
+    SetInitValue(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
+    SetInitValue(cbShowHint, sets.container.ShowHint);
+    SetInitValue(chbHintEffects, sets.container.HintEffects);
   except
-    on e: Exception do frmmain.err('frmSets.Show.2', e);
+    on e: Exception do frmmain.err('frmSets.Show.General', e);
   end;
 
   //
-  // расположение //
+  // tsPosition //
   //
 
   try
@@ -435,12 +433,16 @@ begin
     SetInitValue(chbOccupyFullMonitor, sets.container.OccupyFullMonitor);
     SetInitValue(edStartOffset, inttostr(sets.container.StartOffset));
     SetInitValue(edEndOffset, inttostr(sets.container.EndOffset));
+    SetInitValue(cbAutoHide, sets.container.autohide);
+    SetInitValue(edAutoHideTime, inttostr(sets.container.autohidetime));
+    SetInitValue(edAutoShowTime, inttostr(sets.container.autoshowtime));
+    SetInitValue(edRolledVisiblePixels, inttostr(sets.container.AutoHidePixels));
   except
-    on e: Exception do frmmain.err('frmSets.Show.3', e);
+    on e: Exception do frmmain.err('frmSets.Show.Position', e);
   end;
 
   //
-  // тема
+  // tsStyle
   //
 
   try
@@ -475,11 +477,11 @@ begin
     btnFontItalic.Down := FFont.Italic;
     btnFontItalic.OnClick := ApplyFont;
   except
-    on e: Exception do frmmain.err('frmSets.Show.4', e);
+    on e: Exception do frmmain.err('frmSets.Show.Style', e);
   end;
 
   //
-  // icons //
+  // tsIcons //
   //
 
   try
@@ -497,11 +499,11 @@ begin
     SetInitValue(chbShowRunningIndicator, sets.container.ShowRunningIndicator);
     SetInitValue(chbStackOpenAnimation, sets.container.StackAnimationEnabled);
   except
-    on e: Exception do frmmain.err('frmSets.Show.5', e);
+    on e: Exception do frmmain.err('frmSets.Show.Icons', e);
   end;
 
   //
-  // system //
+  // tsSystem //
   //
 
   try
@@ -510,16 +512,16 @@ begin
     SetInitValue(edShell, AnsiToUTF8(sets.container.shell));
     SetInitValue(edLaunchInterval, inttostr(sets.container.LaunchInterval));
   except
-    on e: Exception do frmmain.err('frmSets.Show.6', e);
+    on e: Exception do frmmain.err('frmSets.Show.Misc', e);
   end;
 
   //
-  // autorun //
+  // tsAutorun //
   //
 
   try ReadAutorun;
   except
-    on e: Exception do frmmain.err('frmSets.Show.7', e);
+    on e: Exception do frmmain.err('frmSets.Show.Autorun', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -586,7 +588,8 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnRemoveDockClick(Sender: TObject);
 begin
-  frmmain.execute_cmdline('/removedock');
+  if idYes = messagebox(handle, pchar(UTF8ToAnsi(XMsgRemoveDockWarning)), 'Warning', mb_yesno or mb_iconexclamation) then
+    frmmain.execute_cmdline('/removedock');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnRestoreClick(Sender: TObject);

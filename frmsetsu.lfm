@@ -1,7 +1,7 @@
 object frmsets: Tfrmsets
-  Left = 511
+  Left = 763
   Height = 561
-  Top = 191
+  Top = 197
   Width = 629
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
@@ -17,15 +17,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.2.2.0'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 515
-    ActivePage = tsPosition
+    ActivePage = tsActions
     ShowTabs = False
-    TabIndex = 1
+    TabIndex = 5
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -62,50 +62,6 @@ object frmsets: Tfrmsets
         OnChange = cbAutorunChange
         TabOrder = 0
       end
-      object gbHide: TGroupBox
-        Left = 15
-        Height = 85
-        Top = 355
-        Width = 476
-        Caption = 'Global hotkeys'
-        ClientHeight = 67
-        ClientWidth = 472
-        TabOrder = 6
-        object hkHide: TEdit
-          Left = 335
-          Height = 21
-          Top = 8
-          Width = 125
-          OnKeyDown = hkHideKeyDown
-          TabOrder = 0
-        end
-        object chbGlobalConsole: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 35
-          Width = 85
-          Caption = 'Open console'
-          OnChange = chbGlobalConsoleChange
-          TabOrder = 1
-        end
-        object chbGlobalHide: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 10
-          Width = 120
-          Caption = 'Hide dock completely'
-          OnChange = chbGlobalHideChange
-          TabOrder = 2
-        end
-        object hkConsole: TEdit
-          Left = 335
-          Height = 21
-          Top = 33
-          Width = 125
-          OnKeyDown = hkConsoleKeyDown
-          TabOrder = 3
-        end
-      end
       object cbHideTaskBar: TCheckBox
         Left = 15
         Height = 19
@@ -137,65 +93,6 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 3
       end
-      object gbTaskbar: TGroupBox
-        Left = 15
-        Height = 150
-        Top = 195
-        Width = 476
-        ClientHeight = 132
-        ClientWidth = 472
-        TabOrder = 7
-        object chbTaskbar: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 0
-          Width = 204
-          Caption = 'Show icons for running tasks (taskbar)'
-          OnChange = chbTaskbarChange
-          TabOrder = 0
-        end
-        object chbTaskbarLivePreviews: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 40
-          Width = 193
-          Caption = 'Show live previews (when available)'
-          OnChange = chbTaskbarLivePreviewsChange
-          TabOrder = 1
-        end
-        object chbTaskbarGrouping: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 20
-          Width = 109
-          Caption = 'Group similar tasks'
-          OnChange = chbTaskbarGroupingChange
-          TabOrder = 2
-        end
-        object chbTaskbarSameMonitor: TCheckBox
-          Left = 10
-          Height = 19
-          Top = 105
-          Width = 208
-          Caption = 'Show only tasks from the same monitor'
-          OnChange = chbTaskbarSameMonitorChange
-          TabOrder = 3
-        end
-        object tbAeroPeekThumbSize: TTrackBar
-          Left = 10
-          Height = 31
-          Top = 65
-          Width = 271
-          Frequency = 25
-          Max = 400
-          Min = 100
-          OnChange = tbAeroPeekThumbSizeChange
-          PageSize = 25
-          Position = 200
-          ShowSelRange = False
-          TabOrder = 4
-        end
-      end
       object edActivateOnMouseInterval: TEdit
         Left = 365
         Height = 21
@@ -208,41 +105,117 @@ object frmsets: Tfrmsets
       object chbAutoHideOnFullScreenApp: TCheckBox
         Left = 15
         Height = 19
-        Top = 170
+        Top = 180
         Width = 344
         Caption = 'Hide dock completely while fullscreen application active (game, etc) '
         OnChange = chbAutoHideOnFullScreenAppChange
+        TabOrder = 6
+      end
+      object chbTaskbar: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 240
+        Width = 204
+        Caption = 'Show icons for running tasks (taskbar)'
+        OnChange = chbTaskbarChange
+        TabOrder = 7
+      end
+      object chbTaskbarGrouping: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 265
+        Width = 109
+        Caption = 'Group similar tasks'
+        OnChange = chbTaskbarGroupingChange
         TabOrder = 8
       end
-      object panelRemove: TPanel
+      object chbTaskbarLivePreviews: TCheckBox
         Left = 15
-        Height = 35
-        Top = 450
-        Width = 475
-        BevelOuter = bvNone
-        ClientHeight = 35
-        ClientWidth = 475
-        Color = 176
-        ParentColor = False
+        Height = 19
+        Top = 315
+        Width = 193
+        Caption = 'Show live previews (when available)'
+        OnChange = chbTaskbarLivePreviewsChange
         TabOrder = 9
-        object btnRemoveDock: TButton
-          Left = 5
-          Height = 25
-          Top = 5
-          Width = 214
-          Caption = 'Remove this dock'
-          OnClick = btnRemoveDockClick
-          TabOrder = 0
-        end
-        object btnRestore: TButton
-          Left = 225
-          Height = 25
-          Top = 5
-          Width = 245
-          Caption = 'Restore settings'
-          OnClick = btnRestoreClick
-          TabOrder = 1
-        end
+      end
+      object tbAeroPeekThumbSize: TTrackBar
+        Left = 15
+        Height = 31
+        Top = 340
+        Width = 271
+        Frequency = 25
+        Max = 400
+        Min = 100
+        OnChange = tbAeroPeekThumbSizeChange
+        PageSize = 25
+        Position = 200
+        ShowSelRange = False
+        TabOrder = 10
+      end
+      object chbTaskbarSameMonitor: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 290
+        Width = 208
+        Caption = 'Show only tasks from the same monitor'
+        OnChange = chbTaskbarSameMonitorChange
+        TabOrder = 11
+      end
+      object DividerBevel3: TDividerBevel
+        Left = 15
+        Height = 15
+        Top = 215
+        Width = 475
+        Caption = 'Taskbar'
+        Anchors = [akTop, akLeft, akRight]
+        BevelWidth = 1
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object chbGlobalConsole: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 442
+        Width = 85
+        Caption = 'Open console'
+        OnChange = chbGlobalConsoleChange
+        TabOrder = 12
+      end
+      object chbGlobalHide: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 417
+        Width = 120
+        Caption = 'Hide dock completely'
+        OnChange = chbGlobalHideChange
+        TabOrder = 13
+      end
+      object hkHide: TEdit
+        Left = 365
+        Height = 21
+        Top = 415
+        Width = 125
+        OnKeyDown = hkHideKeyDown
+        TabOrder = 14
+      end
+      object hkConsole: TEdit
+        Left = 365
+        Height = 21
+        Top = 440
+        Width = 125
+        OnKeyDown = hkConsoleKeyDown
+        TabOrder = 15
+      end
+      object DividerBevel4: TDividerBevel
+        Left = 15
+        Height = 15
+        Top = 390
+        Width = 475
+        Caption = 'Global hotkeys'
+        Anchors = [akTop, akLeft, akRight]
+        BevelWidth = 1
+        Font.Style = [fsBold]
+        ParentFont = False
       end
     end
     object tsPosition: TTabSheet
@@ -330,72 +303,6 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 3
       end
-      object gbAutoSlide: TGroupBox
-        Left = 15
-        Height = 136
-        Top = 300
-        Width = 475
-        ClientHeight = 118
-        ClientWidth = 471
-        TabOrder = 4
-        object lblHideDelay: TLabel
-          Left = 13
-          Height = 13
-          Top = 84
-          Width = 191
-          Caption = 'Delay before hide down (in milliseconds)'
-          ParentColor = False
-        end
-        object lblVisiblePart: TLabel
-          Left = 13
-          Height = 13
-          Top = 34
-          Width = 93
-          Caption = 'Visible part in pixels'
-          ParentColor = False
-        end
-        object lblShowDelay: TLabel
-          Left = 13
-          Height = 13
-          Top = 59
-          Width = 182
-          Caption = 'Delay before show up (in milliseconds)'
-          ParentColor = False
-        end
-        object cbAutoHide: TCheckBox
-          Left = 13
-          Height = 19
-          Top = 4
-          Width = 286
-          Caption = 'Slide into screen edge when mouse is not over the dock'
-          OnChange = cbAutoHideChange
-          TabOrder = 0
-        end
-        object edRolledVisiblePixels: TEdit
-          Left = 365
-          Height = 21
-          Top = 29
-          Width = 91
-          OnChange = edRolledVisiblePixelsChange
-          TabOrder = 1
-        end
-        object edAutoHideTime: TEdit
-          Left = 365
-          Height = 21
-          Top = 79
-          Width = 91
-          OnChange = edAutoHideTimeChange
-          TabOrder = 3
-        end
-        object edAutoShowTime: TEdit
-          Left = 365
-          Height = 21
-          Top = 54
-          Width = 91
-          OnChange = edAutoShowTimeChange
-          TabOrder = 2
-        end
-      end
       object stMoveDockHint: TStaticText
         Left = 15
         Height = 65
@@ -404,7 +311,7 @@ object frmsets: Tfrmsets
         Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
         Color = clDefault
         ParentColor = False
-        TabOrder = 5
+        TabOrder = 4
       end
       object chbOccupyFullMonitor: TCheckBox
         Left = 15
@@ -413,7 +320,7 @@ object frmsets: Tfrmsets
         Width = 199
         Caption = 'Stretch to full monitor width or height'
         OnChange = chbOccupyFullMonitorChange
-        TabOrder = 6
+        TabOrder = 5
       end
       object Label2: TLabel
         Left = 15
@@ -429,7 +336,7 @@ object frmsets: Tfrmsets
         Top = 265
         Width = 85
         OnChange = edStartOffsetChange
-        TabOrder = 7
+        TabOrder = 6
       end
       object edEndOffset: TEdit
         Left = 105
@@ -437,7 +344,75 @@ object frmsets: Tfrmsets
         Top = 265
         Width = 85
         OnChange = edEndOffsetChange
+        TabOrder = 7
+      end
+      object cbAutoHide: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 340
+        Width = 286
+        Caption = 'Slide into screen edge when mouse is not over the dock'
+        OnChange = cbAutoHideChange
         TabOrder = 8
+      end
+      object lblVisiblePart: TLabel
+        Left = 15
+        Height = 13
+        Top = 370
+        Width = 93
+        Caption = 'Visible part in pixels'
+        ParentColor = False
+      end
+      object lblShowDelay: TLabel
+        Left = 15
+        Height = 13
+        Top = 395
+        Width = 182
+        Caption = 'Delay before show up (in milliseconds)'
+        ParentColor = False
+      end
+      object lblHideDelay: TLabel
+        Left = 15
+        Height = 13
+        Top = 420
+        Width = 191
+        Caption = 'Delay before hide down (in milliseconds)'
+        ParentColor = False
+      end
+      object edRolledVisiblePixels: TEdit
+        Left = 365
+        Height = 21
+        Top = 365
+        Width = 125
+        OnChange = edRolledVisiblePixelsChange
+        TabOrder = 9
+      end
+      object edAutoShowTime: TEdit
+        Left = 365
+        Height = 21
+        Top = 390
+        Width = 125
+        OnChange = edAutoShowTimeChange
+        TabOrder = 10
+      end
+      object edAutoHideTime: TEdit
+        Left = 365
+        Height = 21
+        Top = 415
+        Width = 125
+        OnChange = edAutoHideTimeChange
+        TabOrder = 11
+      end
+      object DividerBevel5: TDividerBevel
+        Left = 15
+        Height = 15
+        Top = 310
+        Width = 475
+        Caption = 'Autoslide'
+        Anchors = [akTop, akLeft, akRight]
+        BevelWidth = 1
+        Font.Style = [fsBold]
+        ParentFont = False
       end
     end
     object tsStyle: TTabSheet
@@ -446,9 +421,9 @@ object frmsets: Tfrmsets
       ClientWidth = 507
       object chbBlur: TCheckBox
         Left = 240
-        Height = 23
+        Height = 19
         Top = 15
-        Width = 110
+        Width = 106
         Caption = 'Enable Aero Glass'
         OnChange = chbBlurChange
         TabOrder = 0
@@ -541,6 +516,12 @@ object frmsets: Tfrmsets
         Caption = 'Font'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
+        Font.CharSet = RUSSIAN_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
       end
       object listFont: TListBox
         Left = 15
@@ -626,9 +607,9 @@ object frmsets: Tfrmsets
       end
       object chbReflection: TCheckBox
         Left = 240
-        Height = 23
+        Height = 19
         Top = 175
-        Width = 125
+        Width = 121
         Caption = 'Show icon reflections'
         OnChange = chbReflectionChange
         TabOrder = 11
@@ -885,9 +866,9 @@ object frmsets: Tfrmsets
       end
       object cbUseShell: TCheckBox
         Left = 15
-        Height = 23
-        Top = 125
-        Width = 253
+        Height = 19
+        Top = 135
+        Width = 249
         Caption = 'Use this shell to open local and network folders:'
         OnChange = cbUseShellChange
         TabOrder = 1
@@ -895,7 +876,7 @@ object frmsets: Tfrmsets
       object edShell: TEdit
         Left = 15
         Height = 21
-        Top = 155
+        Top = 165
         Width = 445
         OnChange = edShellChange
         TabOrder = 2
@@ -909,29 +890,20 @@ object frmsets: Tfrmsets
         OnClick = btnBrowseShellClick
         TabOrder = 3
       end
-      object btnDebug: TButton
-        Left = 15
-        Height = 25
-        Top = 455
-        Width = 215
-        Caption = 'Debug info'
-        OnClick = btnDebugClick
-        TabOrder = 4
-      end
       object chbRunInThread: TCheckBox
         Left = 15
-        Height = 23
+        Height = 19
         Top = 15
-        Width = 199
+        Width = 195
         Caption = 'Run applications in separate threads'
         OnChange = chbRunInThreadChange
-        TabOrder = 5
+        TabOrder = 4
       end
       object btnAutoRunAdd: TSpeedButton
         Left = 15
         Height = 26
         Hint = 'Add'
-        Top = 235
+        Top = 245
         Width = 190
         Caption = 'Add program'
         Glyph.Data = {
@@ -976,7 +948,7 @@ object frmsets: Tfrmsets
         Left = 210
         Height = 26
         Hint = 'Add'
-        Top = 235
+        Top = 245
         Width = 281
         Caption = 'Add (run minimized)'
         Glyph.Data = {
@@ -1020,19 +992,65 @@ object frmsets: Tfrmsets
       object memAutorun: TMemo
         Left = 15
         Height = 160
-        Top = 275
+        Top = 285
         Width = 476
         OnChange = memAutorunChange
-        TabOrder = 6
+        TabOrder = 5
       end
       object DividerBevel2: TDividerBevel
         Left = 15
         Height = 13
-        Top = 205
+        Top = 215
         Width = 475
         Caption = 'Autorun'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
+        Font.CharSet = RUSSIAN_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+    end
+    object tsActions: TTabSheet
+      Caption = 'Actions'
+      ClientHeight = 492
+      ClientWidth = 507
+      object btnRestore: TButton
+        Left = 15
+        Height = 30
+        Top = 20
+        Width = 475
+        Caption = 'Restore settings'
+        OnClick = btnRestoreClick
+        TabOrder = 0
+      end
+      object btnDebug: TButton
+        Left = 15
+        Height = 30
+        Top = 194
+        Width = 475
+        Caption = 'Debug info'
+        OnClick = btnDebugClick
+        TabOrder = 1
+      end
+      object btnRemoveDock: TButton
+        Left = 15
+        Height = 30
+        Top = 114
+        Width = 475
+        Caption = 'Remove this dock'
+        OnClick = btnRemoveDockClick
+        TabOrder = 2
+      end
+      object lblRemoveDock: TLabel
+        Left = 15
+        Height = 13
+        Top = 95
+        Width = 192
+        Caption = 'Caution! This action can not be undone!'
+        ParentColor = False
       end
     end
     object tsAbout: TTabSheet
@@ -1151,8 +1169,8 @@ object frmsets: Tfrmsets
   end
   object lv: TListView
     Left = 15
-    Height = 520
-    Top = 26
+    Height = 535
+    Top = 15
     Width = 85
     BorderStyle = bsNone
     Columns = <    
@@ -1165,12 +1183,12 @@ object frmsets: Tfrmsets
     IconOptions.AutoArrange = True
     IconOptions.WrapText = False
     Items.LazData = {
-      A20000000600000000000000FFFFFFFFFFFFFFFF000000000700000047656E65
+      BD0000000700000000000000FFFFFFFFFFFFFFFF000000000700000047656E65
       72616C01000000FFFFFFFFFFFFFFFF0000000008000000506F736974696F6E02
       000000FFFFFFFFFFFFFFFF00000000050000005374796C6503000000FFFFFFFF
       FFFFFFFF000000000500000049636F6E7304000000FFFFFFFFFFFFFFFF000000
-      00040000004D69736305000000FFFFFFFFFFFFFFFF000000000500000041626F
-      7574
+      00040000004D69736306000000FFFFFFFFFFFFFFFF0000000007000000416374
+      696F6E7305000000FFFFFFFFFFFFFFFF000000000500000041626F7574
     }
     LargeImages = images
     ParentColor = True
@@ -1187,7 +1205,7 @@ object frmsets: Tfrmsets
     Height = 32
     Width = 32
     Bitmap = {
-      4C69060000002000000020000000000000008F8F8FB48E8E8EFF8C8D8DFF8C8D
+      4C69070000002000000020000000000000008F8F8FB48E8E8EFF8C8D8DFF8C8D
       8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D
       8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D
       8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D8DFF8C8D
@@ -1946,6 +1964,134 @@ object frmsets: Tfrmsets
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       00000000000092683DC4A57542FFA57542FF9E7142E200000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000055AA035487C184165FB19E1663B99D1564BF9D1366
+      C69D116ACF9C106FD69C267FDF9A78A6D5370000000200000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000010539A3D218CCBFF29CBF6FF2DD7F8FF2DE2FBFF21E3
+      FDFF21E5FEFF21E6FEFF53BAF1FF2664A49E1F2F3F1000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000111539E920EA8E2FF10CBF7FF12D9F9FF09E2FDFF00E3
+      FFFF00E6FFFF22DFFCFF126BC8F9212D428B1E2D3C1100000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000244848071164AAE00EC0F4FF10CFF7FF11DCFAFF01E1FFFF00E3
+      FFFF02E6FFFF24A0E7FF164275CF222939433F3F3F0400000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000001453923D1082C2FF0FC5F6FF11D1F8FF0ADDFCFF00E1FFFF00E3
+      FFFF19D4F7FF0E60B1F2222A3A7E1E2D3C110000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000001135698900EA3DEFF0FC7F6FF11D3F8FF02DEFEFF00E0FFFF03E3
+      FFFF1497DBFE1B3B5EBB24293931000000020000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000244848071361A2DF0DBBF2FF0FC8F6FF0BD5FAFF00DEFFFF00E0FFFF0CC8
+      F1FF126099E8222A3B671933330A000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000015528E3B117CBBFF0DBEF4FF0FC9F7FF03D9FEFF00DDFFFF03DEFEFF1190
+      CCFC1E344DA5242B3A2300000001000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00011552918E0E9BD8FF0EBFF5FF0CCCF9FF00DAFFFF00DDFFFF0BBEE9FF185A
+      83DB222C3B512A2A2A0600000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000002424
+      4807145999DD0CB2F0FF0EBFF5FF05D2FCFF00DAFFFF02D8FBFF1388B9F8202E
+      408E212C37170000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000154A
+      833A1173B3FE0CB5F3FF0BC2F6FF00D7FFFF00D9FFFF0AB6E0FF1583AFF21382
+      B5B960B4DF822A557F0600000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000001154B
+      878D0E90D2FF0CB5F3FF05CAFAFF00D6FFFF00D8FFFF01D9FEFF2CE0FDFF42E0
+      F9FF3BACDCF42143652D00000001000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000242448071651
+      90DB0BA8EDFF1EBBF4FF26D0FBFF33D8FCFF38DBFBFF3BDAF7FF16D4F4FF08B6
+      E3FF17628DBB1E2D473200007F02000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000026518635277D
+      B6FE1DB1F0FF10B4F1FF0DBAF2FF0DC1F5FF01C3EEFF00C9EFFF04C4EBFF1483
+      B2E51F2E47681F2F3F1000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000030566C2F2E67
+      8FDB1A5080F3154976FC0F96C7FF08BEF0FF00C2ECFF01C6EEFF11A0CBFA1D41
+      5E94223044250000000200000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000027273A0D232A
+      3848222B3870113E63F40EB6EFFF02BBEBFF00C0ECFF0EB2DBFF1A6385C1212D
+      47442A2A55060000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      3F0414355A4C126D9AFF08B5EFFF00B9E8FF09B9E4FF1880A7E61F2D456A1E2D
+      4B11000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000211375F9D129BD3FF02B2E8FF04B9E8FF1694C0FA1E3E5B96223044250000
+      0002000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000133A
+      4E0D15527EEA0BAEEDFF01B1E5FF14A3D2FF1B567CC2212D47442A2A55060000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000133A
+      674F187EB2FF03AAE6FF0EAEDFFF196B9AE71E2D476B1E2D4B11000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000011540
+      73A514A1DDFF06ACE2FF1A80B5FA1E395797212E432600000002000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000001133660F1B63
+      96EF09A7E6FF1A98CCFF1A4773C4212C46452A2A550600000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000143A75571D8B
+      C2FF14A8DDFF1A588FE7212C466C1C2A46120000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000011A4A83AE1DB0
+      E3FF1E75ADFA1E345598202D4727000000020000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000001A356B132374A8F4259C
+      CDFF193C6BC5202B454624244807000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000183D7B5F33A2CAFF1C4F
+      86E8202C466D1C2A461200000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000013C739D9B3279A8FA1D30
+      5199202D47270000000200000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000021E33563B1E32528E1E2D
+      4443242448070000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000019334C0A1C2F421B1933
+      4C0A000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

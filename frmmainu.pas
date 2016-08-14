@@ -547,6 +547,7 @@ begin
         Visible := boolean(param);
         UpdateBlurWindow;
         if (param <> 0) and assigned(ItemMgr) then ItemMgr.Visible := true;
+        if param <> 0 then UpdateRunning;
       end;
     tcToggleVisible: BaseCmd(tcSetVisible, integer(not Visible));
     tcToggleTaskbar: frmmain.SetParam(gpHideSystemTaskbar, ifthen(sets.GetParam(gpHideSystemTaskbar) = 0, 1, 0));
@@ -637,15 +638,16 @@ begin
 
   case message.msg of
     WM_INPUT :
-      if not FProgramIsClosing then
-      begin
-        dwSize := 0;
-        GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
-        if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
-          raise Exception.Create('Base.NativeWndProc. Invalid RawInputData size');
-        if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse);
-        //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
-      end;
+      if assigned(ItemMgr) then
+        if not FProgramIsClosing and ItemMgr.Visible then
+        begin
+          dwSize := 0;
+          GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
+          if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
+            raise Exception.Create('Base.NativeWndProc. Invalid RawInputData size');
+          if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse)
+          else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
+        end;
 
     WM_TIMER :                 WMTimer(message);
     WM_USER :                  WMUser(message);
@@ -709,32 +711,33 @@ var
   monitorRect, itemMgrRect: Windows.TRect;
   oldMouseOver: boolean;
 begin
-  if not IsMouseEffectLocked and assigned(ItemMgr) and IsWindowVisible(Handle) and not FProgramIsClosing then
-  begin
-    Windows.GetCursorPos(pt);
-    if (pt.x <> FLastMouseHookPoint.x) or (pt.y <> FLastMouseHookPoint.y) or (LParam = $fffffff) then
+  if not IsMouseEffectLocked and assigned(ItemMgr) and not FProgramIsClosing then
+    if ItemMgr.Visible then
     begin
-      FLastMouseHookPoint.x := pt.x;
-      FLastMouseHookPoint.y := pt.y;
-      ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not IsHiddenDown);
+      Windows.GetCursorPos(pt);
+      if (pt.x <> FLastMouseHookPoint.x) or (pt.y <> FLastMouseHookPoint.y) or (LParam = $fffffff) then
+      begin
+        FLastMouseHookPoint.x := pt.x;
+        FLastMouseHookPoint.y := pt.y;
+        ItemMgr.WHMouseMove(pt, (LParam <> $fffffff) and not IsHiddenDown);
 
-      // detect mouse enter/leave //
-      oldMouseOver := FMouseOver;
-      monitorRect := ItemMgr.FMonitorRect;
-      itemMgrRect := ItemMgr.Rect;
-      if sets.container.site = bsBottom then
-        FMouseOver := (pt.y >= monitorRect.Bottom - 1) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
-      else if sets.container.site = bsTop then
-        FMouseOver := (pt.y <= monitorRect.Top) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
-      else if sets.container.site = bsLeft then
-        FMouseOver := (pt.x <= monitorRect.Left) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom)
-      else if sets.container.site = bsRight then
-        FMouseOver := (pt.x >= monitorRect.Right - 1) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom);
-      FMouseOver := FMouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
-      if FMouseOver and not oldMouseOver then OnMouseEnter;
-      if not FMouseOver and oldMouseOver then OnMouseLeave;
+        // detect mouse enter/leave //
+        oldMouseOver := FMouseOver;
+        monitorRect := ItemMgr.FMonitorRect;
+        itemMgrRect := ItemMgr.Rect;
+        if sets.container.site = bsBottom then
+          FMouseOver := (pt.y >= monitorRect.Bottom - 1) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
+        else if sets.container.site = bsTop then
+          FMouseOver := (pt.y <= monitorRect.Top) and (pt.x >= itemMgrRect.Left) and (pt.x <= itemMgrRect.Right)
+        else if sets.container.site = bsLeft then
+          FMouseOver := (pt.x <= monitorRect.Left) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom)
+        else if sets.container.site = bsRight then
+          FMouseOver := (pt.x >= monitorRect.Right - 1) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom);
+        FMouseOver := FMouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
+        if FMouseOver and not oldMouseOver then OnMouseEnter;
+        if not FMouseOver and oldMouseOver then OnMouseLeave;
+      end;
     end;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnMouseEnter;

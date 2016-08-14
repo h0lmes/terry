@@ -43,7 +43,7 @@ end;
 function DockletIsVisible(id: HWND): bool; stdcall;
 begin
   result := IsWindowVisible(frmmain.Handle);
-  {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible2', inttostr(id) + ', ' + inttostr(integer(result))); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletIsVisible', inttostr(id) + ', ' + inttostr(integer(result))); {$endif}
 end;
 //------------------------------------------------------------------------------
 function DockletIsUndocked(id: HWND): bool; stdcall;
@@ -63,7 +63,7 @@ function DockletGetRect(id: HWND; r: windows.PRect): bool; stdcall;
 var
   tmp: windows.TRect;
 begin
-  //{$ifdef DEBUG_EXPORTS} inf('DockletGetRect', inttostr(id)); {$endif}
+  {$ifdef DEBUG_EXPORTS} inf('DockletGetRect', inttostr(id)); {$endif}
   result := false;
   try
     if assigned(frmmain) then

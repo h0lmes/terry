@@ -290,6 +290,7 @@ resourcestring
   XKillProcess = 'Kill process';
   XPlaceTasksHere = 'Place tasks here';
   // frmsetsu //
+  XMsgRemoveDockWarning = 'Are you sure you pressed the correct button?';
   XLabelCenterOffset = 'Offset from center: %d %%';
   XLabelEdgeOffset = 'Offset from edge: %d pt';
   XLabelIconSize = 'Icon size: %d pt';
@@ -303,7 +304,7 @@ resourcestring
   XPageStyle = 'Style';
   XPageIcons = 'Icons';
   XPageMisc = 'Misc';
-  XPageAutorun = 'Autorun';
+  XPageActions = 'Actions';
   XPageAbout = 'About';
   XSiteLeft = 'Left';
   XSiteTop = 'Top';

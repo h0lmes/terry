@@ -221,6 +221,10 @@ msgstr ""
 msgid "Place target file onto dock instead of shortcut?"
 msgstr ""
 
+#: declu.xmsgremovedockwarning
+msgid "Are you sure you pressed the correct button?"
+msgstr ""
+
 #: declu.xmsgrunagain
 msgid "Run the program again."
 msgstr ""
@@ -258,9 +262,9 @@ msgctxt "declu.xpageabout"
 msgid "About"
 msgstr ""
 
-#: declu.xpageautorun
-msgctxt "declu.xpageautorun"
-msgid "Autorun"
+#: declu.xpageactions
+msgctxt "declu.xpageactions"
+msgid "Actions"
 msgstr ""
 
 #: declu.xpagegeneral
@@ -862,12 +866,21 @@ msgctxt "TFRMSETS.DIVIDERBEVEL2.CAPTION"
 msgid "Autorun"
 msgstr ""
 
-#: tfrmsets.edactivateonmouseinterval.text
-msgid "400"
+#: tfrmsets.dividerbevel3.caption
+msgid "Taskbar"
 msgstr ""
 
-#: tfrmsets.gbhide.caption
+#: tfrmsets.dividerbevel4.caption
+msgctxt "TFRMSETS.DIVIDERBEVEL4.CAPTION"
 msgid "Global hotkeys"
+msgstr ""
+
+#: tfrmsets.dividerbevel5.caption
+msgid "Autoslide"
+msgstr ""
+
+#: tfrmsets.edactivateonmouseinterval.text
+msgid "400"
 msgstr ""
 
 #: tfrmsets.label1.caption
@@ -967,6 +980,10 @@ msgstr ""
 msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
 msgstr ""
 
+#: tfrmsets.lblremovedock.caption
+msgid "Caution! This action can not be undone!"
+msgstr ""
+
 #: tfrmsets.lblshowdelay.caption
 msgid "Delay before show up (in milliseconds)"
 msgstr ""
@@ -998,6 +1015,11 @@ msgstr ""
 #: tfrmsets.tsabout.caption
 msgctxt "tfrmsets.tsabout.caption"
 msgid "About"
+msgstr ""
+
+#: tfrmsets.tsactions.caption
+msgctxt "tfrmsets.tsactions.caption"
+msgid "Actions"
 msgstr ""
 
 #: tfrmsets.tsgeneral.caption
