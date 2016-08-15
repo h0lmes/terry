@@ -783,7 +783,7 @@ procedure TDTheme.ThemesMenu(ThemeName: string; hMenu: THandle);
       begin
         flags := MF_STRING;
         if name = ThemeName then flags += MF_CHECKED;
-        AppendMenu(hMenu, flags, idx, pchar(name));
+        AppendMenuW(hMenu, flags, idx, pwchar(WideString(name)));
         inc(idx);
       end;
   end;

@@ -255,7 +255,7 @@ begin
       ItemMgr.Load(UnzipPath(sets.SetsPathFile));
       {$ifdef EXT_DEBUG} AddLog('ItemMgr.Load'); {$endif}
       ItemMgr.Enable(true);
-      {$ifdef EXT_DEBUG} AddLog('ItemMgr.Enable('); {$endif}
+      {$ifdef EXT_DEBUG} AddLog('ItemMgr.Enable'); {$endif}
       if not sets.Backup then
       begin
         AddLog('Init.BackupFailed');
@@ -1227,41 +1227,41 @@ begin
 
   if ParentMenu = 0 then
     if IsValidItemString(GetClipboard) then
-      AppendMenu(FMenu, MF_STRING, IDM_PASTE, pchar(UTF8ToAnsi(XPaste)));
+      AppendMenuW(FMenu, MF_STRING, IDM_PASTE, pwchar(UTF8Decode(XPaste)));
 
   // create submenu 'Add...' //
 
   FMenuCreate := CreatePopupMenu;
-  AppendMenu(FMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pchar(UTF8ToAnsi(XUndeleteIcon)));
-  AppendMenu(FMenuCreate, MF_STRING, $f023, pchar(UTF8ToAnsi(XSpecificIcons)));
-  AppendMenu(FMenuCreate, MF_STRING, $f021, pchar(UTF8ToAnsi(XEmptyIcon)));
-  AppendMenu(FMenuCreate, MF_STRING, $f022, pchar(UTF8ToAnsi(XFile)));
-  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenuCreate, MF_STRING, $f024, pchar(UTF8ToAnsi(XSeparator)));
-  AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenuCreate, MF_STRING, $f025, pchar(UTF8ToAnsi(XDock)));
+  AppendMenuW(FMenuCreate, MF_STRING + ifthen(ItemMgr._itemsDeleted.Count > 0, 0, MF_DISABLED), $f026, pwchar(UTF8Decode(XUndeleteIcon)));
+  AppendMenuW(FMenuCreate, MF_STRING, $f023, pwchar(UTF8Decode(XSpecificIcons)));
+  AppendMenuW(FMenuCreate, MF_STRING, $f021, pwchar(UTF8Decode(XEmptyIcon)));
+  AppendMenuW(FMenuCreate, MF_STRING, $f022, pwchar(UTF8Decode(XFile)));
+  AppendMenuW(FMenuCreate, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FMenuCreate, MF_STRING, $f024, pwchar(UTF8Decode(XSeparator)));
+  AppendMenuW(FMenuCreate, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FMenuCreate, MF_STRING, $f025, pwchar(UTF8Decode(XDock)));
   if sets.GetPluginCount = -1 then sets.ScanPlugins;
   if sets.GetPluginCount > 0 then
   begin
-    AppendMenu(FMenuCreate, MF_SEPARATOR, 0, '-');
+    AppendMenuW(FMenuCreate, MF_SEPARATOR, 0, '-');
     idx := 0;
     while idx < sets.GetPluginCount do
     begin
-      AppendMenu(FMenuCreate, MF_STRING, $f041 + idx, pchar(sets.GetPluginName(idx)));
+      AppendMenuW(FMenuCreate, MF_STRING, $f041 + idx, pwchar(WideString(sets.GetPluginName(idx))));
       inc(idx);
     end;
   end;
 
   // insert all menu items //
-  if ParentMenu <> 0 then AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING + MF_POPUP, FMenuCreate, pchar(UTF8ToAnsi(XAddIcon)));
-  AppendMenu(FMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), IDM_LOCKICONS, pchar(UTF8ToAnsi(XLockIcons)));
-  AppendMenu(FMenu, MF_STRING, IDM_COLLECTION, pchar(UTF8ToAnsi(XIconCollection)));
-  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING, IDM_TASKMGR, pchar(UTF8ToAnsi(XTaskManager)));
-  AppendMenu(FMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FMenu, MF_STRING, IDM_SETS, pchar(UTF8ToAnsi(XProgramSettings)));
-  AppendMenu(FMenu, MF_STRING, IDM_QUIT, pchar(UTF8ToAnsi(XExit)));
+  if ParentMenu <> 0 then AppendMenuW(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FMenu, MF_STRING + MF_POPUP, FMenuCreate, pwchar(UTF8Decode(XAddIcon)));
+  AppendMenuW(FMenu, MF_STRING + ifthen(sets.container.LockDragging, MF_CHECKED, 0), IDM_LOCKICONS, pwchar(UTF8Decode(XLockIcons)));
+  AppendMenuW(FMenu, MF_STRING, IDM_COLLECTION, pwchar(UTF8Decode(XIconCollection)));
+  AppendMenuW(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FMenu, MF_STRING, IDM_TASKMGR, pwchar(UTF8Decode(XTaskManager)));
+  AppendMenuW(FMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FMenu, MF_STRING, IDM_SETS, pwchar(UTF8Decode(XProgramSettings)));
+  AppendMenuW(FMenu, MF_STRING, IDM_QUIT, pwchar(UTF8Decode(XExit)));
 
   Result := FMenu;
 end;
@@ -2106,8 +2106,8 @@ begin
   begin
     GetCursorPos(pt);
     i := CreatePopupMenu;
-    AppendMenu(i, MF_STRING, $f000, pchar(UTF8ToAnsi(XOpenThemesFolder)));
-    AppendMenu(i, MF_SEPARATOR, 0, pchar('-'));
+    AppendMenuW(i, MF_STRING, $f000, pwchar(UTF8Decode(XOpenThemesFolder)));
+    AppendMenuW(i, MF_SEPARATOR, 0, '-');
     theme.ThemesMenu(pchar(sets.container.ThemeName), i);
     LockMouseEffect(Handle, true);
     SetForegroundWindow(handle);

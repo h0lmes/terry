@@ -178,7 +178,11 @@ begin
   if folder.GetDisplayNameOf(pidl, dwFlags, Str) = 0 then
   begin
     case Str.uType of
-      STRRET_WSTR: WideCharToMultiByte(CP_ACP, 0, str.pOleStr, -1, pszName, cchMax, nil, nil);
+      STRRET_WSTR:
+        begin
+          WideCharToMultiByte(CP_ACP, 0, str.pOleStr, -1, pszName, cchMax, nil, nil);
+          CoTaskMemFree(str.pOleStr);
+        end;
       STRRET_OFFSET: lstrcpyn(pszName, PChar(pidl) + str.uOffset, cchMax);
       STRRET_CSTR: lstrcpyn(pszName, str.cStr, cchMax);
       else Result := False;

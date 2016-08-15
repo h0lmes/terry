@@ -27,7 +27,7 @@ type
     FHWnd: HANDLE;
     FHWndParent: HANDLE;
     FHMenu: HANDLE;
-    FCaption: string;
+    FCaption: WideString;
     FX: integer;
     FY: integer;
     FSize: integer;
@@ -82,7 +82,7 @@ type
     procedure Init; virtual;
     procedure Redraw(Force: boolean = true); // updates item appearance
     procedure Attention(value: boolean);
-    procedure SetCaption(value: string);
+    procedure SetCaption(value: WideString);
     procedure MouseHover(AHover: boolean);
     procedure UpdateHint(Ax: integer = -32000; Ay: integer = -32000);
     function GetRectFromSize(ASize: integer): windows.TRect;
@@ -95,7 +95,7 @@ type
     property Freed: boolean read FFreed write FFreed;
     property Floating: boolean read FFloating;
     property HWnd: PtrUint read FHWnd;
-    property Caption: string read FCaption write SetCaption;
+    property Caption: WideString read FCaption write SetCaption;
     property X: integer read FX;
     property Y: integer read FY;
     property Size: integer read FSize;
@@ -453,7 +453,7 @@ begin
   result := '';
 end;
 //------------------------------------------------------------------------------
-procedure TCustomItem.SetCaption(value: string);
+procedure TCustomItem.SetCaption(value: WideString);
 begin
   if not (FCaption = value) then
   begin
@@ -501,7 +501,7 @@ begin
                       hy := min(baserect.top,    hy - FSize div 2 - hint_offset);
 
     FHintVisible := true;
-    dockh.ActivateHint(FHWnd, PWideChar(WideString(FCaption)), hx, hy);
+    dockh.ActivateHint(FHWnd, PWideChar(FCaption), hx, hy);
   except
     on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
   end;

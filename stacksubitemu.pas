@@ -595,12 +595,12 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.ToString: string;
 begin
-  result := Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  result := Make(FHWnd, AnsiString(FCaption), FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.SaveToString: string;
 begin
-  result := SaveMake(FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  result := SaveMake(AnsiString(FCaption), FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.HitTest(Ax, Ay: integer): boolean;
@@ -672,13 +672,13 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
-  AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
-  if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  AppendMenuW(FHMenu, MF_STRING, $f001, pwchar(UTF8Decode(XConfigureIcon)));
+  AppendMenuW(FHMenu, MF_STRING, $f003, pwchar(UTF8Decode(XCopy)));
+  if CanOpenFolder then AppendMenuW(FHMenu, MF_STRING, $f002, pwchar(UTF8Decode(XOpenFolderOf) + ' "' + Caption + '"'));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteIcon)));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FHMenu, MF_STRING, $f006, pwchar(UTF8Decode(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;

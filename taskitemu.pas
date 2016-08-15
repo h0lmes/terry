@@ -336,17 +336,17 @@ begin
   result := true;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPlaceTasksHere)));
-  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pchar(UTF8ToAnsi(XPinToDock)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pchar(UTF8ToAnsi(XKillProcess)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-  if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
+  AppendMenuW(FHMenu, MF_STRING, $f005, pwchar(UTF8Decode(XPlaceTasksHere)));
+  AppendMenuW(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f002, pwchar(UTF8Decode(XPinToDock)));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f003, pwchar(UTF8Decode(XKillProcess)));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  if FAppList.Count < 2 then AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseWindow)))
   else begin
-    AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
-    AppendMenu(FHMenu, MF_STRING, $f009, pchar(UTF8ToAnsi(XMinimizeRestoreAllWindows)));
+    AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseAllWindows)));
+    AppendMenuW(FHMenu, MF_STRING, $f009, pwchar(UTF8Decode(XMinimizeRestoreAllWindows)));
   end;
-  AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pchar(UTF8ToAnsi(XRun)));
+  AppendMenuW(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f004, pwchar(UTF8Decode(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;

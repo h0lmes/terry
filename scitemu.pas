@@ -132,7 +132,7 @@ begin
     if (length(IniFile) > 0) and (length(IniSection) > 0) then
     begin
       ini := TIniFile.Create(IniFile);
-      caption := ini.ReadString(IniSection, 'caption', '');
+      Caption := ini.ReadString(IniSection, 'caption', '');
       FCommand := ini.ReadString(IniSection, 'command', '');
       FParams := ini.ReadString(IniSection, 'params', '');
       FDir := ini.ReadString(IniSection, 'dir', '');
@@ -146,7 +146,7 @@ begin
     end
     else
     begin
-      caption := FetchValue(AData, 'caption="', '";');
+      Caption := FetchValue(AData, 'caption="', '";');
       FCommand := FetchValue(AData, 'command="', '";');
       FParams := FetchValue(AData, 'params="', '";');
       FDir := FetchValue(AData, 'dir="', '";');
@@ -276,7 +276,7 @@ begin
     end;
     if pos('{NETWORK}', imagefile) > 0 then
     begin
-      imagefile := ReplaceEx(imagefile, '{NETWORK}', Networks.StateString);
+      imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       FCaption := Networks.Description;
     end;
@@ -467,12 +467,11 @@ var
   pt: windows.TPoint;
   tickCount: PtrUInt;
 begin
-  {$ifdef CPU32}
-  tickCount := gettickcount;
-  {$ENDIF}
   {$ifdef CPU64}
   tickCount := gettickcount64;
-  {$ENDIF}
+  {$else CPU64}
+  tickCount := gettickcount;
+  {$endif CPU64}
 
   if button = mbLeft then
   begin
@@ -559,25 +558,25 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XEmptyBin)));
-  AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
-  AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
-  if CanOpenFolder then AppendMenu(FHMenu, MF_STRING, $f002, PChar(UTF8ToAnsi(XOpenFolderOf) + ' "' + Caption + '"'));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
+  if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenuW(FHMenu, MF_STRING, $f005, pwchar(UTF8Decode(XEmptyBin)));
+  AppendMenuW(FHMenu, MF_STRING, $f001, pwchar(UTF8Decode(XConfigureIcon)));
+  AppendMenuW(FHMenu, MF_STRING, $f003, pwchar(UTF8Decode(XCopy)));
+  if CanOpenFolder then AppendMenuW(FHMenu, MF_STRING, $f002, pwchar(UTF8Decode(XOpenFolderOf) + ' "' + Caption + '"'));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteIcon)));
 
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
   if FRunning then
   begin
-    AppendMenu(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pchar(UTF8ToAnsi(XKillProcess)));
-    AppendMenu(FHMenu, MF_SEPARATOR, 0, pchar('-'));
-    if FAppList.Count < 2 then AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseWindow)))
+    AppendMenuW(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pwchar(UTF8Decode(XKillProcess)));
+    AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+    if FAppList.Count < 2 then AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseWindow)))
     else begin
-      AppendMenu(FHMenu, MF_STRING, $f007, pchar(UTF8ToAnsi(XCloseAllWindows)));
-      AppendMenu(FHMenu, MF_STRING, $f009, pchar(UTF8ToAnsi(XMinimizeRestoreAllWindows)));
+      AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseAllWindows)));
+      AppendMenuW(FHMenu, MF_STRING, $f009, pwchar(UTF8Decode(XMinimizeRestoreAllWindows)));
     end;
   end;
-  AppendMenu(FHMenu, MF_STRING, $f006, pchar(UTF8ToAnsi(XRun)));
+  AppendMenuW(FHMenu, MF_STRING, $f006, pwchar(UTF8Decode(XRun)));
   mii.cbSize := sizeof(MENUITEMINFO);
   mii.fMask := MIIM_STATE;
   mii.fState := MFS_DEFAULT;
@@ -783,7 +782,7 @@ begin
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'shortcut', szIni);
   if not FDynObject then
-    if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
+    if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(AnsiString(caption)), szIni);
   if FCommand <> '' then WritePrivateProfileString(szIniGroup, 'command', pchar(FCommand), szIni);
   if FParams <> '' then WritePrivateProfileString(szIniGroup, 'params', pchar(FParams), szIni);
   if FDir <> '' then WritePrivateProfileString(szIniGroup, 'dir', pchar(FDir), szIni);

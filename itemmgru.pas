@@ -509,9 +509,7 @@ begin
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.tray'); {$endif}
       AddItem(TShortcutItem.Make(0, '', '', '', '', 'images\default\{LANGID}.png'));
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.LANGID'); {$endif}
-      {$ifndef CPU64}
       AddItem(TShortcutItem.Make(0, '', '/networks', '', '', 'images\default\network-{NETWORK}.png'));
-      {$endif}
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.NETWORK'); {$endif}
       AddItem(TShortcutItem.Make(0, '', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.VOLUME'); {$endif}

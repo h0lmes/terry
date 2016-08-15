@@ -492,11 +492,11 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f001, pchar(UTF8ToAnsi(XConfigureIcon)));
-  AppendMenu(FHMenu, MF_STRING, $f003, pchar(UTF8ToAnsi(XCopy)));
-  if IsValidShortcutString(GetClipboard) then AppendMenu(FHMenu, MF_STRING, $f005, pchar(UTF8ToAnsi(XPaste)));
-  AppendMenu(FHMenu, MF_SEPARATOR, 0, '-');
-  AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteIcon)));
+  AppendMenuW(FHMenu, MF_STRING, $f001, pwchar(UTF8Decode(XConfigureIcon)));
+  AppendMenuW(FHMenu, MF_STRING, $f003, pwchar(UTF8Decode(XCopy)));
+  if IsValidShortcutString(GetClipboard) then AppendMenuW(FHMenu, MF_STRING, $f005, pwchar(UTF8Decode(XPaste)));
+  AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
+  AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteIcon)));
 
   LME(true);
   msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
@@ -647,7 +647,7 @@ begin
 
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'stack', szIni);
-  if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(caption), szIni);
+  if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(AnsiString(caption)), szIni);
   if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
   if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
   if FMode <> 0 then WritePrivateProfileString(szIniGroup, 'mode', pchar(inttostr(FMode)), szIni);

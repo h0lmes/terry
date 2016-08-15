@@ -3,7 +3,7 @@
 //
 //
 // This unit incorporates functionality to interact with
-// windows network manager to handle network related events
+// windows network manager and handle network related events
 //
 //
 //
@@ -12,9 +12,10 @@
 unit networksu;
 
 {$mode delphi}
+{$undef EXT_DEBUG}
 
 interface
-uses Windows, Classes, SysUtils, ActiveX, iphlpapi2, networklist_tlb;
+uses Windows, Classes, SysUtils, ActiveX, iphlpapi2, networklist_tlb, toolu;
 
 type
 
@@ -49,6 +50,7 @@ type
     property StateString: string read getStateString;
     //
     class function CUpdate: integer;
+    class function CStateString: string;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -63,9 +65,17 @@ begin
   if not assigned(Networks) then
   begin
     Networks := TNetworks.Create;
+    {$ifdef EXT_DEBUG} AddLog('TNetworks.Create'); {$endif}
     Networks.ReadNetworks;
+    {$ifdef EXT_DEBUG} AddLog('Networks.ReadNetworks'); {$endif}
   end;
   result := Networks.State;
+end;
+//------------------------------------------------------------------------------
+class function TNetworks.CStateString: string;
+begin
+  result := 'idle';
+  if assigned(Networks) then result := Networks.StateString;
 end;
 //------------------------------------------------------------------------------
 constructor TNetworks.Create;
@@ -74,18 +84,26 @@ var
   pConnectionPoint: IConnectionPoint;
 begin
   ReadInterfaces;
+  {$ifdef EXT_DEBUG} AddLog('Networks.Create.ReadInterfaces'); {$endif}
   FReady := assigned(FAdapterTypes)
          and SUCCEEDED(CoCreateInstance(CLASS_NetworkListManager, nil, CLSCTX_ALL, IID_INetworkListManager, FNLM));
+  {$ifdef EXT_DEBUG} AddLog('Networks.Create.get FReady'); {$endif}
 
   if FReady then
+  begin
+    {$ifdef EXT_DEBUG} AddLog('FReady = true'); {$endif}
     if Succeeded(FNLM.QueryInterface(IID_IConnectionPointContainer, pContainer)) then
     begin
+      {$ifdef EXT_DEBUG} AddLog('Succeeded(FNLM.QueryInterface)'); {$endif}
       if Succeeded(pContainer.FindConnectionPoint(IID_INetworkEvents, pConnectionPoint)) then
       begin
+        {$ifdef EXT_DEBUG} AddLog('Succeeded(pContainer.FindConnectionPoint)'); {$endif}
         pConnectionPoint.Advise(self as IUnknown, dwCookie1);
         pConnectionPoint := nil;
+        {$ifdef EXT_DEBUG} AddLog('pConnectionPoint.Advise'); {$endif}
       end;
     end;
+  end;
 end;
 //------------------------------------------------------------------------------
 destructor TNetworks.Destroy;
@@ -201,12 +219,15 @@ var
   ii: integer;
   table: PMIB_IF_TABLE2;
 begin
+  {$ifdef EXT_DEBUG} AddLog('TNetworks.ReadInterfaces start'); {$endif}
   if not assigned(FAdapterTypes) then FAdapterTypes := TStringList.Create;
   if assigned(FAdapterTypes) then
   begin
+    {$ifdef EXT_DEBUG} AddLog('assigned(FAdapterTypes)'); {$endif}
     FAdapterTypes.Clear;
     if GetIFTable2(table) <> ERROR_NOT_ENOUGH_MEMORY then
     begin
+      {$ifdef EXT_DEBUG} AddLog('GetIFTable2 -> table.NumEntries=' + inttostr(table.NumEntries)); {$endif}
       ii := 0;
       while ii < table.NumEntries do
       begin
@@ -214,7 +235,9 @@ begin
           FAdapterTypes.AddObject(GUIDToString(table.Table[ii].InterfaceGuid), tobject(table.Table[ii].PhysicalMediumType));
         inc(ii);
       end;
+      {$ifdef EXT_DEBUG} AddLog('end GetIFTable2'); {$endif}
       FreeMibTable(table);
+      {$ifdef EXT_DEBUG} AddLog('FreeMibTable'); {$endif}
     end;
   end;
 end;

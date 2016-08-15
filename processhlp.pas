@@ -651,11 +651,11 @@ begin
       idx := 0;
       while idx < wlist.Count do
       begin
-        AppendMenu(hMenu, MF_STRING, $100 + idx, pchar(GetWindowText(THandle(wlist.items[idx]))));
+        AppendMenuW(hMenu, MF_STRING, $100 + idx, pwchar(WideString(GetWindowText(THandle(wlist.items[idx])))));
         inc(idx);
       end;
-      AppendMenu(hMenu, MF_SEPARATOR, 0, '-');
-      AppendMenu(hMenu, MF_STRING, $2, 'Run program');
+      AppendMenuW(hMenu, MF_SEPARATOR, 0, '-');
+      AppendMenuW(hMenu, MF_STRING, $2, 'Run program');
 
       menu_align := TPM_LEFTALIGN + TPM_TOPALIGN;
       case Edge of

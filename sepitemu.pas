@@ -247,7 +247,7 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  AppendMenu(FHMenu, MF_STRING, $f004, pchar(UTF8ToAnsi(XDeleteSeparator)));
+  AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteSeparator)));
   dockh.DockAddMenu(FHMenu);
   LME(true);
 
