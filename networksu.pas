@@ -31,7 +31,7 @@ type
     FConnected: boolean;
     FInternet: boolean;
     FConnections: integer;
-    FDescription: string;
+    FDescription: WideString;
     FAdapterTypes: TStrings;
     procedure Reset;
     procedure ReadNetworks;
@@ -45,12 +45,13 @@ type
     function NetworkConnectivityChanged(networkId: TGUID; NewConnectivity: NLM_CONNECTIVITY): HResult; stdcall;
     function NetworkPropertyChanged(networkId: TGUID; fFlags: NLM_NETWORK_PROPERTY_CHANGE): HResult; stdcall;
     //
-    property Description: string read FDescription;
+    property Description: WideString read FDescription;
     property State: integer read getState;
     property StateString: string read getStateString;
     //
     class function CUpdate: integer;
     class function CStateString: string;
+    class function CDescription: WideString;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -58,24 +59,38 @@ type
 var Networks: TNetworks;
 
 implementation
-uses frmmainu;
 //------------------------------------------------------------------------------
 class function TNetworks.CUpdate: integer;
 begin
+  result := 0;
   if not assigned(Networks) then
   begin
     Networks := TNetworks.Create;
-    {$ifdef EXT_DEBUG} AddLog('TNetworks.Create'); {$endif}
     Networks.ReadNetworks;
-    {$ifdef EXT_DEBUG} AddLog('Networks.ReadNetworks'); {$endif}
   end;
-  result := Networks.State;
+  if assigned(Networks) then result := Networks.State;
 end;
 //------------------------------------------------------------------------------
 class function TNetworks.CStateString: string;
 begin
-  result := 'idle';
+  result := '';
+  if not assigned(Networks) then
+  begin
+    Networks := TNetworks.Create;
+    Networks.ReadNetworks;
+  end;
   if assigned(Networks) then result := Networks.StateString;
+end;
+//------------------------------------------------------------------------------
+class function TNetworks.CDescription: WideString;
+begin
+  result := '';
+  if not assigned(Networks) then
+  begin
+    Networks := TNetworks.Create;
+    Networks.ReadNetworks;
+  end;
+  if assigned(Networks) then result := Networks.Description;
 end;
 //------------------------------------------------------------------------------
 constructor TNetworks.Create;
@@ -121,6 +136,11 @@ begin
       end;
     end;
 
+  if assigned(FAdapterTypes) then
+  begin
+    FAdapterTypes.free;
+    FAdapterTypes := nil;
+  end;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -171,7 +191,7 @@ begin
       EnumNetworks.Next(1, Network, fetched);
       while fetched > 0 do
       begin
-        FDescription := FDescription + string(WideString(Network.GetName)) +
+        FDescription := FDescription + Network.GetName +
           #10#13 + BoolToStrInternetAccess(Network.IsConnectedToInternet);
         FConnected := FConnected or Network.IsConnected;
         FInternet := FInternet or Network.IsConnectedToInternet;
@@ -216,7 +236,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TNetworks.ReadInterfaces;
 var
-  ii: integer;
+  idx: integer;
   table: PMIB_IF_TABLE2;
 begin
   {$ifdef EXT_DEBUG} AddLog('TNetworks.ReadInterfaces start'); {$endif}
@@ -228,12 +248,12 @@ begin
     if GetIFTable2(table) <> ERROR_NOT_ENOUGH_MEMORY then
     begin
       {$ifdef EXT_DEBUG} AddLog('GetIFTable2 -> table.NumEntries=' + inttostr(table.NumEntries)); {$endif}
-      ii := 0;
-      while ii < table.NumEntries do
+      idx := 0;
+      while idx < table.NumEntries do
       begin
-        if table.Table[ii].PhysicalMediumType <> NdisPhysicalMediumUnspecified then
-          FAdapterTypes.AddObject(GUIDToString(table.Table[ii].InterfaceGuid), tobject(table.Table[ii].PhysicalMediumType));
-        inc(ii);
+        if table.Table[idx].PhysicalMediumType <> NdisPhysicalMediumUnspecified then
+          FAdapterTypes.AddObject(GUIDToString(table.Table[idx].InterfaceGuid), tobject(table.Table[idx].PhysicalMediumType));
+        inc(idx);
       end;
       {$ifdef EXT_DEBUG} AddLog('end GetIFTable2'); {$endif}
       FreeMibTable(table);

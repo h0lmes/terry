@@ -25,18 +25,17 @@ type
     FAlert: boolean;
     FTimeout: cardinal;
     FMonitor: integer;
-    FText: string;
+    FText: WideString;
     procedure err(where: string; e: Exception);
   public
-    FTextList: TStrings;
     class procedure Cleanup;
     constructor Create;
     destructor Destroy; override;
     procedure RegisterWindowItemClass;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
-    procedure MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
-    procedure Message_Internal(Text: string; monitor: integer; animate: boolean = True);
+    procedure Message(Text: WideString; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
+    procedure MessageNoLog(Text: WideString; monitor: integer = 0; replace: boolean = false);
+    procedure Message_Internal(Text: WideString; monitor: integer; animate: boolean = True);
     procedure Close;
     procedure Timer;
     function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
@@ -66,7 +65,6 @@ end;
 constructor TNotifier.Create;
 begin
   FActive := false;
-  FTextList := TStringList.Create;
   FText := '';
 
   // create window //
@@ -74,8 +72,7 @@ begin
   try
     RegisterWindowItemClass;
     FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, NOTIFIER_WCLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
-    if IsWindow(FHWnd) then
-      SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
+    if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('Notifier.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('Notifier.Create.CreateWindow', e);
@@ -84,14 +81,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TNotifier.Destroy;
 begin
-  try
-    // restore window proc
-    DestroyWindow(FHWnd);
-    if assigned(FTextList) then FTextList.Free;
-    inherited;
-  except
-    on e: Exception do err('Notifier.Destroy', e);
-  end;
+  DestroyWindow(FHWnd);
 end;
 //------------------------------------------------------------------------------
 procedure TNotifier.RegisterWindowItemClass;
@@ -122,11 +112,10 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.Message(Text: string; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
+procedure TNotifier.Message(Text: WideString; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
 begin
-  if alert then AddLog('!' + text) else AddLog(text);
+  if alert then AddLog('!!! ' + text) else AddLog(text);
   try
-    FTextList.add('[' + formatdatetime('dd/MM/yyyy hh:nn:ss', now) + ']  ' + Text);
     self.FAlert := self.FAlert or alert;
 
     if not silent or alert then
@@ -145,7 +134,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.MessageNoLog(Text: string; monitor: integer = 0; replace: boolean = false);
+procedure TNotifier.MessageNoLog(Text: WideString; monitor: integer = 0; replace: boolean = false);
 begin
   try
     FTimeout := 8000;
@@ -161,7 +150,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.Message_Internal(Text: string; monitor: integer; animate: boolean = True);
+procedure TNotifier.Message_Internal(Text: WideString; monitor: integer; animate: boolean = True);
 var
   hgdip, path, hbrush: Pointer;
   message_font, font_family: Pointer;
@@ -219,7 +208,7 @@ begin
     text_rect.y := 0;
     text_rect.Width := FW - message_margin.left - message_margin.right;
     text_rect.Height := 0;
-    GdipMeasureString(hgdip, PWideChar(WideString(Text)), -1, message_font, @text_rect, nil, @text_rect, nil, nil);
+    GdipMeasureString(hgdip, PWideChar(Text), -1, message_font, @text_rect, nil, @text_rect, nil, nil);
     text_rect.Height := text_rect.Height + 1;
 
     text_rect.x := message_margin.left;
@@ -279,10 +268,6 @@ begin
     GdipCreateSolidFill(alpha, hbrush);
     GdipFillPath(hgdip, hbrush, path);
     GdipDeleteBrush(hbrush);
-    // outline
-    //GdipCreatePen1($60ffffff, 1, UnitPixel, hpen);
-    //GdipDrawPath(hgdip, hpen, path);
-    //GdipDeletePen(hpen);
     // cleanup
     GdipDeletePath(path);
   except
@@ -297,7 +282,7 @@ begin
   // message caption and text //
   try
     if FAlert then GdipCreateSolidFill($ffff5000, hbrush) else GdipCreateSolidFill($ffffffff, hbrush);
-    GdipDrawString(hgdip, PWideChar(WideString(Text)), -1, message_font, @text_rect, nil, hbrush);
+    GdipDrawString(hgdip, PWideChar(Text), -1, message_font, @text_rect, nil, hbrush);
     GdipDeleteBrush(hbrush);
   except
     on e: Exception do
@@ -320,9 +305,7 @@ begin
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
     SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
     if dwm.IsCompositionEnabled then
-    begin
-      DWM.EnableBlurBehindWindow(FHWnd, 0);
-    end
+      DWM.EnableBlurBehindWindow(FHWnd, 0)
     else
       DWM.DisableBlurBehindWindow(FHWnd);
   except

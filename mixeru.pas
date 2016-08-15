@@ -36,9 +36,13 @@ implementation
 //------------------------------------------------------------------------------
 class function TMixer.CUpdate: integer;
 begin
+  result := -1;
   if not assigned(Mixer) then Mixer := TMixer.Create;
-  Mixer.Update;
-  result := Mixer.State;
+  if assigned(Mixer) then
+  begin
+    Mixer.Update;
+    result := Mixer.State;
+  end;
 end;
 //------------------------------------------------------------------------------
 class function TMixer.CInc(value: integer): integer;
@@ -65,13 +69,13 @@ function TMixer.IsReady: boolean;
 begin
   if not FReady then
   begin
-		if assigned(FmmEndpoint) then FmmEndpoint := nil;
+    if assigned(FmmEndpoint) then FmmEndpoint := nil;
     if assigned(FmmDev) then FmmDev := nil;
     if assigned(FmmDevEnum) then
     begin
       FmmDevEnum._Release;
       FmmDevEnum := nil;
-		end;
+    end;
   end;
 
   if not FReady then
@@ -83,12 +87,12 @@ begin
 
   if not FReady then
   begin
-		if assigned(FmmDev) then FmmDev := nil;
+    if assigned(FmmDev) then FmmDev := nil;
     if assigned(FmmDevEnum) then
     begin
       FmmDevEnum._Release;
       FmmDevEnum := nil;
-		end;
+    end;
   end;
   result := FReady;
 end;
@@ -111,7 +115,7 @@ begin
   if IsReady then
   begin
     if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then FVolume := round(vol * 100);
-		if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
+    if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
   end;
 
   if (oldvol <> FVolume) or (oldmute <> FMute) then

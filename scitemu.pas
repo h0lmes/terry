@@ -278,7 +278,7 @@ begin
     begin
       imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      FCaption := Networks.Description;
+      FCaption := TNetworks.CDescription;
     end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
