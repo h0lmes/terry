@@ -3,7 +3,7 @@ unit scitemu;
 {$t+}
 
 interface
-uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
+uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
   IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customdrawitemu,
   toolu, processhlp, aeropeeku, mixeru, networksu;
 

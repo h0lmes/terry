@@ -254,9 +254,10 @@ end;
 // converts filesystem path or GUID to PIDL //
 function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 var
-  path: array [0..MAX_PATH - 1] of TOleChar;
-  desk: IShellFolder;
-  tmp, attribs: cardinal;
+  path: array [0..MAX_PATH - 1] of WideChar;
+  tmp: SFGAOF;
+  //desk: IShellFolder;
+  //attribs: cardinal;
 begin
   Result := nil;
   MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, pszFile, -1, @path, MAX_PATH);

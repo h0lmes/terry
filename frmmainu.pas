@@ -1,7 +1,8 @@
 unit frmmainu;
 
-interface
+{$define EXT_DEBUG}
 
+interface
 uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
@@ -33,8 +34,6 @@ type
     FSavingSettings: boolean;
     FAllowCloseProgram: boolean;
     FBlurActive: boolean;
-    FWndInstance: TFarProc;
-    FPrevWndProc: TFarProc;
     FHiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
     FEdgeReservedByDock: boolean;
     LockList: TList; // list of window handles that have requested a lock (disable zoom and related) //
@@ -50,6 +49,7 @@ type
     FMouseOver: boolean;
     FInitDone: boolean;
     //FHook: THandle;
+    FPrevWndProc: Pointer;
     FMenu: THandle;
     FMenuCreate: THandle;
     WM_SHELLHOOK: integer;
@@ -155,7 +155,6 @@ uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
   frmtipu, multidocku, frmrestoreu;
 {$R *.lfm}
 {$R Resource\res.res}
-{$define EXT_DEBUG}
 //------------------------------------------------------------------------------
 function MainWindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
 var
@@ -429,7 +428,6 @@ begin
       DeregisterShellHookWindow(Handle);
       // reset window proc
       SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
-      FreeObjectInstance(FWndInstance);
       // close other instances
       if not docks.ThisDockRemovalScheduled then docks.CloseOtherDocks;
     except
@@ -631,8 +629,9 @@ begin
 
   // take some actions after notifying ItemMgr //
   case id of
-    gpLockMouseEffect: WHMouseMove(0);
+    gpLockMouseEffect:       WHMouseMove(0);
     gpOccupyFullMonitor, gpStartOffset, gpEndOffset: BaseCmd(tcThemeChanged, 0);
+    gpTaskbar:               UpdateRunning;
   end;
 end;
 //------------------------------------------------------------------------------

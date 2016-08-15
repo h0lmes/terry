@@ -47,9 +47,19 @@ type
     FHTarget: integer;
     FAlpha: integer;
     FAlphaTarget: integer;
-    FIconSize, FBorderX, FBorderY, FShadow, ThumbW, ThumbH, ItemSplit: integer;
-    FTitleHeight, FTitleSplit, FSeparatorW, FSeparatorH: integer;
-    FRadius, FSelectionRadius: integer;
+    FIconSize: integer;
+    FBorderX: integer;
+    FBorderY: integer;
+    FShadow: integer;
+    ThumbW: integer;
+    ThumbH: integer;
+    ItemSplit: integer;
+    FTitleHeight: integer;
+    FTitleSplit: integer;
+    FSeparatorW: integer;
+    FSeparatorH: integer;
+    FRadius: integer;
+    FSelectionRadius: integer;
     FCloseButtonSize: integer;
     FActivating: boolean;
     FActive: boolean;
@@ -59,12 +69,17 @@ type
     FAnimate: boolean;
     FCloseButtonDownIndex: integer;
     FForegroundWindowIndex: integer;
-    FColor1, FColor2, FTextColor: cardinal;
+    FColor1: cardinal;
+    FColor2: cardinal;
+    FTextColor: cardinal;
     FCompositionEnabled: boolean;
     FFontFamily: string;
     FFontSize: integer;
     FLayout: TAPWLayout;
-    FWindowCount, FProcessCount, FItemCount, FSeparatorCount: integer;
+    FWindowCount: integer;
+    FProcessCount: integer;
+    FItemCount: integer;
+    FSeparatorCount: integer;
     FHoverIndex: integer;
     FState: TAPWState;
     items: array of TAeroPeekWindowItem;
@@ -135,10 +150,7 @@ end;
 // if Timeout set then close after timeout has elapsed
 class procedure TAeroPeekWindow.Close(Timeout: cardinal = 0);
 begin
-  if assigned(AeroPeekWindow) then
-  begin
-    AeroPeekWindow.CloseAPWindow(Timeout);
-  end;
+  if assigned(AeroPeekWindow) then AeroPeekWindow.CloseAPWindow(Timeout);
 end;
 //------------------------------------------------------------------------------
 // check if AeroPeekWindow is visible
@@ -204,10 +216,8 @@ end;
 //------------------------------------------------------------------------------
 destructor TAeroPeekWindow.Destroy;
 begin
-  try DestroyWindow(FHWnd);
-  except
-    on e: Exception do err('AeroPeekWindow.Destroy', e);
-  end;
+  DestroyWindow(FHWnd);
+  FHWnd := 0;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.RegisterWindowItemClass;
@@ -348,7 +358,7 @@ begin
       FWorkArea := mi.rcWork;
 
       //
-      FCompositionEnabled := dwm.IsCompositionEnabled and LivePreviews and (AppList.Count <= 10);
+      FCompositionEnabled := dwm.IsCompositionEnabled and LivePreviews and (AppList.Count <= 14);
       FAnimate := FCompositionEnabled;
       FLayout := apwlHorizontal;
       if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
@@ -1159,6 +1169,7 @@ begin
           end;
         end;
     end;
+    exit;
   end
   // WM_MOUSEMOVE
   else if message = WM_MOUSEMOVE then
@@ -1180,6 +1191,7 @@ begin
         end;
     end;
     if not hovered and (FHoverIndex > -1) then MouseLeave;
+    exit;
   end
   // WM_TIMER
   else if message = WM_TIMER then

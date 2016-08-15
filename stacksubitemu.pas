@@ -886,7 +886,6 @@ end;
 //------------------------------------------------------------------------------
 destructor TCustomSubitem.Destroy;
 begin
-  // restore window proc
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
   inherited;
 end;

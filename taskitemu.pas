@@ -384,7 +384,6 @@ begin
         Delete;
       end;
     $f009: ProcessHelper.ActivateWindowList(FAppList);
-    //$f00a..$f020: ;
   end;
 end;
 //------------------------------------------------------------------------------

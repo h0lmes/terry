@@ -147,7 +147,7 @@ type
     ulExtraInformation: ULONG;
   end;
 
-  RAWKEYBOARD = record
+  RAWKEYBOARD = packed record
     MakeCode: USHORT;
     Flags: USHORT;
     Reserved: USHORT;
@@ -156,7 +156,7 @@ type
     ExtraInformation: ULONG;
   end;
 
-  RAWHID = record
+  RAWHID = packed record
     dwSizeHid: DWORD;
     dwCount: DWORD;
     bRawData: array [0..0] of BYTE;
@@ -165,7 +165,7 @@ type
   RAWINPUTHEADER = packed record
     dwType: DWORD;
     dwSize: DWORD;
-    hDevice: DWORD;
+    hDevice: HANDLE;
     wParam: WPARAM;
   end;
 

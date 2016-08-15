@@ -17,15 +17,15 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.6.0.4'
   object pages: TPageControl
     Left = 105
     Height = 500
     Top = 15
     Width = 515
-    ActivePage = tsActions
+    ActivePage = tsSystem
     ShowTabs = False
-    TabIndex = 5
+    TabIndex = 4
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -882,9 +882,9 @@ object frmsets: Tfrmsets
         TabOrder = 2
       end
       object btnBrowseShell: TButton
-        Left = 465
+        Left = 464
         Height = 21
-        Top = 155
+        Top = 165
         Width = 26
         Caption = '...'
         OnClick = btnBrowseShellClick

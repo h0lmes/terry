@@ -1,7 +1,10 @@
 unit itemmgru;
 
+{$define EXT_DEBUG}
+
 interface
-uses Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math,
+uses
+  Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math,
   declu, DockH, toolu, gfx, GDIPAPI, processhlp,
   customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
 
@@ -446,6 +449,7 @@ begin
   except
     on e: Exception do err('ItemManager.Load.ReadIni', e, true);
   end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadIni'); {$endif}
 
   // read FItemArray //
   try
@@ -464,6 +468,7 @@ begin
   except
     on e: Exception do err('ItemManager.Load.ReadItems', e, true);
   end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadItems'); {$endif}
 
   // create default FItemArray if nothing loaded //
   try
@@ -474,31 +479,50 @@ begin
       stack := TStackItem(GetWindowLong(FItemArray[FItemCount - 1].h, GWL_USERDATA));
       if stack is TStackItem then
       begin
+        {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack is TStackItem'); {$endif}
         stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\default\shutdown.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\default\reboot.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
         stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
       end;
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack'); {$endif}
       // basic FItemArray //
       AddItem(TShortcutItem.Make(0, UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.startmenu'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Computer', 'CSIDL_DRIVES', '', '', ''));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.CSIDL_DRIVES'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Control panel', 'CSIDL_CONTROLS', '', '', ''));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.CSIDL_CONTROLS'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Parameters', 'ms-settings:', '', '', '%sysdir%\shell32.dll,315'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.ms-settings'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Documents', '%doc%', '', '', ''));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.doc'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.CSIDL_BITBUCKET'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Dock settings', '/sets', '', '', 'images\default\settings.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.sets'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Theme', '/theme', '', '', 'images\default\theme.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.theme'); {$endif}
       AddItem(TSeparatorItem.Make);
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Separator'); {$endif}
       AddItem(TShortcutItem.Make(0, 'Tray', '/tray', '', '', 'images\default\tray.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.tray'); {$endif}
       AddItem(TShortcutItem.Make(0, '', '', '', '', 'images\default\{LANGID}.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.LANGID'); {$endif}
+      {$ifndef CPU64}
       AddItem(TShortcutItem.Make(0, '', '/networks', '', '', 'images\default\network-{NETWORK}.png'));
+      {$endif}
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.NETWORK'); {$endif}
       AddItem(TShortcutItem.Make(0, '', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.VOLUME'); {$endif}
     end;
   except
     on e: Exception do err('ItemManager.Load.Default', e);
   end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default'); {$endif}
 
   ItemsChanged;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ItemsChanged'); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure TItemManager.Save(fsets: string);

@@ -522,7 +522,9 @@ const
     IntfIID:   '{DCB00000-570F-4A9B-8D69-199FDBA5723B}';
     EventIID:  '{DCB00004-570F-4A9B-8D69-199FDBA5723B}';
     LicenseKey: nil;
-    Version: 500);
+    Version: 500;
+    InstanceCount: 0;
+    );
 begin
   ServerData := @CServerData;
 end;

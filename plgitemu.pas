@@ -325,8 +325,6 @@ begin
     $f002: OpenFolder;
     $f003: toolu.SetClipboard(ToString);
     $f004: Delete;
-    //$f005..$f020: ;
-    //else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;
 //------------------------------------------------------------------------------

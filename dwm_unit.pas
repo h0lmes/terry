@@ -75,7 +75,7 @@ type
   end;
   P_DWM_THUMBNAIL_PROPERTIES = ^_DWM_THUMBNAIL_PROPERTIES;
 
-	_WINDOWCOMPOSITIONATTRIBUTE = (
+  _WINDOWCOMPOSITIONATTRIBUTE = (
       WCA_CLIENTRENDERING_POLICY = 16,
       WCA_ACCENT_POLICY = 19
   );
@@ -86,7 +86,7 @@ type
 		  ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
 		  ACCENT_ENABLE_BLURBEHIND = 3,
 		  ACCENT_INVALID_STATE = 4
-	);
+  );
 
   TWindowCompositionAttributeData = packed record
     attribute: THandle; //_WINDOWCOMPOSITIONATTRIBUTE;
@@ -96,9 +96,9 @@ type
 
   TAccentPolicy = packed record
     AccentState: integer; //_ACCENTSTATE;
-		AccentFlags: integer;
-	  GradientColor: integer;
-	  AnimationId: integer;
+    AccentFlags: integer;
+    GradientColor: integer;
+    AnimationId: integer;
   end;
 
   { TDWMHelper }
@@ -258,30 +258,30 @@ begin
   if IsWin10 then
   begin
     SetWindowRgn(AHandle, 0, true);
-	  ZeroMemory(@accent, sizeof(TAccentPolicy));
-	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
-	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
-	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
-	  data.size := sizeof(TAccentPolicy);
-	  data.data := @accent;
-	  SetWindowCompositionAttribute(AHandle, data);
+    ZeroMemory(@accent, sizeof(TAccentPolicy));
+    ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
+    accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
+    data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
+    data.size := sizeof(TAccentPolicy);
+    data.data := @accent;
+    SetWindowCompositionAttribute(AHandle, data);
 
     flag := false;
-	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
-	  data.size := sizeof(flag);
-	  data.data := @flag;
-	  SetWindowCompositionAttribute(AHandle, data);
+    data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
+    data.size := sizeof(flag);
+    data.data := @flag;
+    SetWindowCompositionAttribute(AHandle, data);
   end
   else
   begin
-	    if @DwmEnableBlurBehindWindow <> nil then
-	    begin
+       if @DwmEnableBlurBehindWindow <> nil then
+       begin
 	      ZeroMemory(@bb, SizeOf(bb));
 	      bb.dwFlags := 1;
 	      bb.fEnable := false;
 	      DwmEnableBlurBehindWindow(AHandle, @bb);
-	    end;
-	end;
+       end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.ExcludeFromPeek(const AHandle: THandle);
@@ -344,7 +344,7 @@ begin
     FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
     dskThumbProps.dwFlags := DWM_TNP_SOURCECLIENTAREAONLY;
     dskThumbProps.fSourceClientAreaOnly := true;
-		DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+    DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -399,10 +399,10 @@ begin
       FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
       dskThumbProps.dwFlags := DWM_TNP_RECTDESTINATION or DWM_TNP_VISIBLE or DWM_TNP_SOURCECLIENTAREAONLY or DWM_TNP_OPACITY;
       dskThumbProps.fSourceClientAreaOnly := true;
-		  dskThumbProps.fVisible := true;
-		  dskThumbProps.opacity := 255;
-		  dskThumbProps.rcDestination := destRect;
-		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+      dskThumbProps.fVisible := true;
+      dskThumbProps.opacity := 255;
+      dskThumbProps.rcDestination := destRect;
+      hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
       result := SUCCEEDED(hr);
   end;
   except
@@ -421,7 +421,7 @@ begin
       FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
       dskThumbProps.dwFlags := DWM_TNP_VISIBLE;
       dskThumbProps.fVisible := visible;
-		  hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
+      hr := DwmUpdateThumbnailProperties(hThumbnailId, @dskThumbProps);
       result := SUCCEEDED(hr);
   end;
 end;
