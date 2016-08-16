@@ -397,11 +397,10 @@
         <Filename Value="stacksubitemu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="stacksubitemu"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="6"/>
         <WindowIndex Value="0"/>
         <TopLine Value="575"/>
-        <CursorPos X="42" Y="603"/>
+        <CursorPos X="19" Y="576"/>
         <UsageCount Value="201"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -420,10 +419,13 @@
         <Filename Value="processhlp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="processhlp"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="148"/>
-        <CursorPos X="43" Y="191"/>
+        <CursorPos X="24" Y="177"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit33>
       <Unit34>
@@ -1295,7 +1297,7 @@
         <UsageCount Value="10"/>
       </Unit136>
     </Units>
-    <JumpHistory Count="14" HistoryIndex="13">
+    <JumpHistory Count="13" HistoryIndex="12">
       <Position1>
         <Filename Value="frmmainu.pas"/>
         <Caret Line="908" Column="31" TopLine="891"/>
@@ -1333,25 +1335,21 @@
         <Caret Line="187" Column="50" TopLine="175"/>
       </Position9>
       <Position10>
-        <Filename Value="stacksubitemu.pas"/>
-        <Caret Line="281" Column="55" TopLine="700"/>
-      </Position10>
-      <Position11>
         <Filename Value="stackitemu.pas"/>
         <Caret Line="640" Column="67" TopLine="617"/>
-      </Position11>
-      <Position12>
+      </Position10>
+      <Position11>
         <Filename Value="scitemu.pas"/>
         <Caret Line="135" Column="59" TopLine="117"/>
-      </Position12>
-      <Position13>
+      </Position11>
+      <Position12>
         <Filename Value="stackitemu.pas"/>
         <Caret Line="232" Column="56" TopLine="217"/>
-      </Position13>
-      <Position14>
+      </Position12>
+      <Position13>
         <Filename Value="stacksubitemu.pas"/>
         <Caret Line="218" Column="45" TopLine="200"/>
-      </Position14>
+      </Position13>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

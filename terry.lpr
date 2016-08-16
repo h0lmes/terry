@@ -31,7 +31,7 @@ uses
 {$R *.res}
 
 {$undef DEBUG_EXPORTS}
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 //------------------------------------------------------------------------------
 {$ifdef DEBUG_EXPORTS}

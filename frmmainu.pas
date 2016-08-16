@@ -1,6 +1,6 @@
 unit frmmainu;
 
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 interface
 uses

@@ -1,6 +1,6 @@
 unit itemmgru;
 
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 interface
 uses

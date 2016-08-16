@@ -1,5 +1,7 @@
 unit aeropeeku;
 
+{$define EXT_DEBUG}
+
 interface
 
 uses Windows, Messages, Classes, SysUtils, Forms, lazutf8,
@@ -50,7 +52,6 @@ type
     FIconSize: integer;
     FBorderX: integer;
     FBorderY: integer;
-    FShadow: integer;
     ThumbW: integer;
     ThumbH: integer;
     ItemSplit: integer;
@@ -118,6 +119,10 @@ type
     procedure CloseAPWindowInt;
     procedure CloseAPWindow(Timeout: cardinal = 0);
     function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
+    procedure LButtonDown(pt: windows.TPoint);
+    procedure LButtonUp(pt: windows.TPoint);
+    procedure MouseMove(pt: windows.TPoint);
+    procedure WMTimer(wParam: WPARAM);
   end;
 
 var AeroPeekWindow: TAeroPeekWindow;
@@ -207,6 +212,7 @@ begin
   try
     RegisterWindowItemClass;
     FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, AEROPEEK_WCLASS, nil, WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
+    DWM.ExcludeFromPeek(FHWnd);
     if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('AeroPeekWindow.Create.CreateWindowEx failed', nil);
   except
@@ -299,7 +305,7 @@ end;
 procedure TAeroPeekWindow.UpdateTitles;
 var
   index: integer;
-  title: array [0..255] of WideChar;
+  title: array [0..TITLE_PART] of WideChar;
   needRepaint, needRearrange: boolean;
 begin
   needRepaint := false;
@@ -383,6 +389,7 @@ begin
 
       // add items
       AddItems(AppList);
+      {$ifdef EXT_DEBUG} Addlog('OpenAPWindow.ItemCount=' + inttostr(FItemCount)); {$endif}
       // register thumbnails
       RegisterThumbnails;
       // set items' positions, calulate window size, update workarea
@@ -423,7 +430,8 @@ begin
       // show the window
       Paint;
       // set it as foreground
-      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_showwindow);
+      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate);
+      ShowWindow(FHWnd, SW_SHOW);
       SetTimer(FHWnd, ID_TIMER, 10, nil);
       SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
       FActive := true;
@@ -436,6 +444,50 @@ begin
 
   // fix window icons bug
   UpdateTitles;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
+begin
+  try
+    if Timeout = 0 then
+    begin
+        KillTimer(FHWnd, ID_TIMER_CLOSE);
+        // set desired position
+        if FAnimate then
+        begin
+            FAlphaTarget := 25;
+            if FSite = 3 then FYTarget := Fy + 20
+            else if FSite = 1 then FYTarget := Fy - 20
+            else if FSite = 0 then FXTarget := Fx - 20
+            else if FSite = 2 then FXTarget := Fx + 20;
+            FState := apwsClose;
+        end else begin
+            CloseAPWindowInt;
+        end;
+    end
+    else
+    begin
+        SetTimer(Handle, ID_TIMER_CLOSE, Timeout, nil);
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.CloseAPWindow', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.CloseAPWindowInt;
+begin
+  try
+    DWM.InvokeAeroPeek(0, 0, 0);
+    KillTimer(FHWnd, ID_TIMER_SLOW);
+    KillTimer(FHWnd, ID_TIMER);
+    UnRegisterThumbnails;
+    ClearImages;
+    ShowWindow(FHWnd, SW_HIDE);
+    FActive := false;
+    TAeroPeekWindow.Cleanup;
+  except
+    on e: Exception do err('AeroPeekWindow.CloseAPWindowInt', e);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.AddItems(AppList: TFPList);
@@ -568,7 +620,6 @@ begin
     begin
       FBorderX := 16;
       FBorderY := 16;
-      FShadow := 0;
       FIconSize := 16;
       FTitleHeight := 19;
       FTitleSplit := 14;
@@ -579,7 +630,6 @@ begin
     end else begin
       FBorderX := 18;
       FBorderY := 14;
-      FShadow := 0;
       FIconSize := 16;
       FTitleHeight := 22;
       FTitleSplit := 0;
@@ -790,6 +840,9 @@ begin
     if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
     if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
     if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+    {$ifdef EXT_DEBUG} Addlog('FXTarget=' + inttostr(FXTarget)); {$endif}
+    {$ifdef EXT_DEBUG} Addlog('FYTarget=' + inttostr(FYTarget)); {$endif}
+    {$ifdef EXT_DEBUG} Addlog('FWorkArea=' + recttostring(FWorkArea)); {$endif}
   except
     on e: Exception do err('AeroPeekWindow.SetItems', e);
   end;
@@ -798,13 +851,11 @@ end;
 procedure TAeroPeekWindow.Paint;
 var
   bmp: _SimpleBitmap;
-  hgdip, brush, pen, path, shadow_path, family, font, format: Pointer;
+  hgdip, brush, pen, path, family, font, format: Pointer;
   titleRect: GDIPAPI.TRectF;
   rect: GDIPAPI.TRect;
-  pt: GDIPAPI.TPoint;
-  shadowEndColor: array [0..0] of ARGB;
   rgn: HRGN;
-  count, index, tmp: integer;
+  index, tmp: integer;
   title: array [0..255] of WideChar;
 begin
   try
@@ -821,33 +872,10 @@ begin
     if not assigned(hgdip) then raise Exception.Create('CreateGraphics failed');
     GdipSetSmoothingMode(hgdip, SmoothingModeAntiAlias);
     GdipCreatePath(FillModeWinding, path);
-    AddPathRoundRect(path, FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2, FRadius);
-
-    // shadow
-    if FShadow > 0 then
-    begin
-      GdipCreatePath(FillModeWinding, shadow_path);
-      AddPathRoundRect(shadow_path, 0, 0, FWidth, FHeight, trunc(FRadius * 2.5));
-      GdipSetClipPath(hgdip, path, CombineModeReplace);
-      GdipSetClipPath(hgdip, shadow_path, CombineModeComplement);
-
-      GdipCreatePathGradientFromPath(shadow_path, brush);
-      GdipSetPathGradientCenterColor(brush, $b0000000);
-      shadowEndColor[0] := 0;
-      count := 1;
-      GdipSetPathGradientSurroundColorsWithCount(brush, @shadowEndColor, count);
-      pt.X := FWidth div 2 + 1;
-      pt.Y := FHeight div 2 + 1;
-      GdipSetPathGradientCenterPointI(brush, @pt);
-      GdipSetPathGradientFocusScales(brush, 1 - FShadow / FWidth * 5, 1 - FShadow / FHeight * 5);
-      GdipFillPath(hgdip, brush, shadow_path);
-      GdipResetClip(hgdip);
-      GdipDeleteBrush(brush);
-      GdipDeletePath(shadow_path);
-    end;
+    GdipAddPathRectangle(path, 0, 0, FWidth, FHeight);
 
     // background
-    rect := GDIPAPI.MakeRect(FShadow, FShadow, FWidth - FShadow * 2, FHeight - FShadow * 2);
+    rect := GDIPAPI.MakeRect(0, 0, FWidth, FHeight);
     GdipCreateLineBrushFromRectI(@rect, FColor1, FColor2, LinearGradientModeVertical, WrapModeTileFlipY, brush);
     GdipFillPath(hgdip, brush, path);
     GdipDeleteBrush(brush);
@@ -855,7 +883,7 @@ begin
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
     GdipResetPath(path); // light border
-    AddPathRoundRect(path, FShadow + 1, FShadow + 1, FWidth - FShadow * 2 - 2, FHeight - FShadow * 2 - 2, FRadius);
+    GdipAddPathRectangle(path, 1, 1, FWidth - 2, FHeight - 2);
     GdipCreatePen1($10ffffff, 1, UnitPixel, pen);
     GdipDrawPath(hgdip, pen, path);
     GdipDeletePen(pen);
@@ -899,6 +927,7 @@ begin
     GdipSetStringFormatFlags(format, StringFormatFlagsNoWrap or StringFormatFlagsNoFitBlackBox);
     GdipSetStringFormatLineAlign(format, StringAlignmentCenter);
     for index := 0 to FItemCount - 1 do
+    begin
       if items[index].hwnd = 0 then // separator
       begin
         if FLayout = apwlHorizontal then
@@ -937,6 +966,7 @@ begin
         if index <> FHoverIndex then titleRect.Width := items[index].rectClose.Right - items[index].rectTitle.Left;
         GdipDrawString(hgdip, PWideChar(@title), -1, font, @titleRect, format, brush);
       end;
+    end;
     GdipDeleteStringFormat(format);
     GdipDeleteBrush(brush);
     GdipDeleteFont(font);
@@ -946,12 +976,12 @@ begin
     UpdateLWindow(FHWnd, bmp, FAlpha);
     GdipDeleteGraphics(hgdip);
     gfx.DeleteBitmap(bmp);
-    if not FCompositionEnabled then SetWindowPos(FHWnd, $ffffffff, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
+    if not FCompositionEnabled then SetWindowPos(FHWnd, HWND_TOPMOST, Fx, Fy, FWidth, FHeight, swp_noactivate + swp_showwindow);
 
     // enable blur behind
     if FCompositionEnabled then
     begin
-      rgn := CreateRoundRectRgn(FShadow, FShadow, FWidth - FShadow, FHeight - FShadow, FRadius * 2, FRadius * 2);
+      rgn := CreateRectRgn(0, 0, FWidth, FHeight);
       dwm.EnableBlurBehindWindow(FHWnd, rgn);
       DeleteObject(rgn);
     end else begin
@@ -1019,52 +1049,10 @@ procedure TAeroPeekWindow.MouseLeave;
 begin
   if FHoverIndex > -1 then
   begin
+    DWM.InvokeAeroPeek(0, 0, 0);
     FHoverIndex := -1;
     Paint;
     CloseAPWindow(500);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.CloseAPWindowInt;
-begin
-  try
-    KillTimer(FHWnd, ID_TIMER_SLOW);
-    KillTimer(FHWnd, ID_TIMER);
-    UnRegisterThumbnails;
-    ClearImages;
-    ShowWindow(FHWnd, SW_HIDE);
-    FActive := false;
-    TAeroPeekWindow.Cleanup;
-  except
-    on e: Exception do err('AeroPeekWindow.CloseAPWindowInt', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
-begin
-  try
-    if Timeout = 0 then
-    begin
-        KillTimer(FHWnd, ID_TIMER_CLOSE);
-        // set desired position
-        if FAnimate then
-        begin
-            FAlphaTarget := 25;
-            if FSite = 3 then FYTarget := Fy + 20
-            else if FSite = 1 then FYTarget := Fy - 20
-            else if FSite = 0 then FXTarget := Fx - 20
-            else if FSite = 2 then FXTarget := Fx + 20;
-            FState := apwsClose;
-        end else begin
-            CloseAPWindowInt;
-        end;
-    end
-    else
-    begin
-        SetTimer(Handle, ID_TIMER_CLOSE, Timeout, nil);
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.CloseAPWindow', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1120,17 +1108,27 @@ end;
 //------------------------------------------------------------------------------
 function TAeroPeekWindow.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 var
-  index: integer;
   pt: windows.TPoint;
-  hovered: boolean;
 begin
   Result := 0;
-
-  // WM_LBUTTONDOWN
-  if message = WM_LBUTTONDOWN then
-  begin
+  try
     pt.x := TSmallPoint(DWORD(lParam)).x;
     pt.y := TSmallPoint(DWORD(lParam)).y;
+    if message = WM_LBUTTONDOWN then LButtonDown(pt)
+    else if message = WM_LBUTTONUP then LButtonUp(pt)
+    else if message = WM_MOUSEMOVE then MouseMove(pt)
+    else if message = WM_TIMER then WMTimer(wParam)
+    else Result := DefWindowProc(wnd, message, wParam, lParam);
+  except
+    on e: Exception do err('AeroPeekWindow.WindowProc', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.LButtonDown(pt: windows.TPoint);
+var
+  index: integer;
+begin
+  try
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
@@ -1141,15 +1139,18 @@ begin
             Paint;
           end;
     end;
-    exit;
-  end
-  // WM_LBUTTONUP
-  else if message = WM_LBUTTONUP then
-  begin
+  except
+    on e: Exception do err('AeroPeekWindow.LButtonDown', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.LButtonUp(pt: windows.TPoint);
+var
+  index: integer;
+begin
+  try
     FCloseButtonDownIndex := -1;
     Paint;
-    pt.x := TSmallPoint(DWORD(lParam)).x;
-    pt.y := TSmallPoint(DWORD(lParam)).y;
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
@@ -1169,13 +1170,17 @@ begin
           end;
         end;
     end;
-    exit;
-  end
-  // WM_MOUSEMOVE
-  else if message = WM_MOUSEMOVE then
-  begin
-    pt.x := TSmallPoint(DWORD(lParam)).x;
-    pt.y := TSmallPoint(DWORD(lParam)).y;
+  except
+    on e: Exception do err('AeroPeekWindow.LButtonUp', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.MouseMove(pt: windows.TPoint);
+var
+  index: integer;
+  hovered: boolean;
+begin
+  try
     hovered := false;
     for index := 0 to FItemCount - 1 do
     begin
@@ -1187,15 +1192,21 @@ begin
           begin
             FHoverIndex := index;
             Paint;
+            DWM.InvokeAeroPeek(1, items[FHoverIndex].hwnd, FHWnd);
           end;
         end;
     end;
     if not hovered and (FHoverIndex > -1) then MouseLeave;
-    exit;
-  end
-  // WM_TIMER
-  else if message = WM_TIMER then
-  begin
+  except
+    on e: Exception do err('AeroPeekWindow.MouseMove', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.WMTimer(wParam: WPARAM);
+var
+  pt: windows.TPoint;
+begin
+  try
     if wParam = ID_TIMER then Timer
     else
     if wParam = ID_TIMER_CLOSE then
@@ -1205,11 +1216,9 @@ begin
     end
     else
     if wParam = ID_TIMER_SLOW then UpdateTitles;
-
-    exit;
+  except
+    on e: Exception do err('AeroPeekWindow.WMTimer', e);
   end;
-
-  Result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.err(where: string; e: Exception);

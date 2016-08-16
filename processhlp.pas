@@ -1,7 +1,7 @@
 unit processhlp;
 
 {$mode delphi}
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 interface
 
@@ -34,7 +34,7 @@ type
     procedure EnumProc64;
     procedure AddProcessById(processId: DWORD);
     procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
-    function GetFullNameByPID_Internal(pid: uint): string;
+    function GetFullNameByHProcess(hProcess: HANDLE): string;
     function SetPrivilege(Name: string): boolean;
     function GetProcesses: string;
     function GetProcessesFullName: string;
@@ -181,13 +181,15 @@ begin
   {$ifdef CPU64}
   EnumProc64;
   {$else CPU64}
-  EnumProc32;
+  //EnumProc32;
+  EnumProc64;
   {$endif CPU64}
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc32;
 var
   snapshotHandle: HANDLE;
+  hProcess: HANDLE;
   processEntry: TProcessEntry32;
   flag: bool;
   idx: integer;
@@ -212,7 +214,11 @@ begin
       {$ifdef EXT_DEBUG} AddLog('___Process = ' + AnsiLowerCase(processEntry.szExeFile)); {$endif}
       listProcess.AddObject(AnsiLowerCase(processEntry.szExeFile), TObject(processEntry.th32ProcessID));
       if listProcessFullName.IndexOfObject(tobject(processEntry.th32ProcessID)) < 0 then
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(processEntry.th32ProcessID)), TObject(processEntry.th32ProcessID));
+      begin
+        hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, processEntry.th32ProcessID);
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByHProcess(hProcess)), TObject(processEntry.th32ProcessID));
+        CloseHandle(hProcess);
+      end;
       flag := Process32Next(snapshotHandle, processEntry);
       {$ifdef EXT_DEBUG} AddLog('___Process32Next'); {$endif}
     end;
@@ -279,14 +285,14 @@ begin
       GetModuleBaseName(hProcess, hMod, @szProcessName, sizeof(szProcessName) div sizeof(TCHAR));
       listProcess.AddObject(AnsiLowerCase(strpas(szProcessName)), TObject(processId));
       if listProcessFullName.IndexOfObject(tobject(processId)) < 0 then
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(processId)), TObject(processId));
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByHProcess(hProcess)), TObject(processId));
     end;
+    CloseHandle(hProcess);
   end;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetFullNameByPID_Internal(pid: uint): string;
+function TProcessHelper.GetFullNameByHProcess(hProcess: HANDLE): string;
 var
-  hProcess: HANDLE;
   size: dword;
   {$ifdef CPU64}
   buff: array [0..MAX_PATH - 1] of WideChar;
@@ -295,36 +301,30 @@ var
   {$endif CPU64}
 begin
   result := '';
-  hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, pid);
-  if hProcess > 32 then
+  size := MAX_PATH;
+  ZeroMemory(@buff, MAX_PATH);
+
+  if assigned(QueryFullProcessImageName) then
   begin
-      size := MAX_PATH;
-      ZeroMemory(@buff, MAX_PATH);
+      QueryFullProcessImageName(hProcess, 0, buff, size);
+      {$ifdef CPU64}
+      GetLongPathNameW(buff, buff, MAX_PATH);
+      result := AnsiString(strpas(pwchar(@buff)));
+      {$else CPU64}
+      GetLongPathNameA(buff, buff, MAX_PATH);
+      result := strpas(pchar(@buff));
+      {$endif CPU64}
+  end;
 
-      if assigned(QueryFullProcessImageName) then
-      begin
-          QueryFullProcessImageName(hProcess, 0, buff, size);
-          {$ifdef CPU64}
-          GetLongPathNameW(buff, buff, MAX_PATH);
-          result := AnsiString(strpas(pwchar(@buff)));
-          {$else CPU64}
-          GetLongPathNameA(buff, buff, MAX_PATH);
-          result := strpas(pchar(@buff));
-          {$endif CPU64}
-      end;
-
-      if result = '' then
-      begin
-        {$ifdef CPU64}
-        GetModuleFileNameExW(hProcess, 0, buff, MAX_PATH);
-        result := AnsiString(strpas(pwchar(@buff)));
-        {$else CPU64}
-        GetModuleFileNameExA(hProcess, 0, buff, MAX_PATH);
-        result := strpas(pchar(@buff));
-        {$endif CPU64}
-      end;
-
-      CloseHandle(hProcess);
+  if result = '' then
+  begin
+    {$ifdef CPU64}
+    GetModuleFileNameExW(hProcess, 0, buff, MAX_PATH);
+    result := AnsiString(strpas(pwchar(@buff)));
+    {$else CPU64}
+    GetModuleFileNameExA(hProcess, 0, buff, MAX_PATH);
+    result := strpas(pchar(@buff));
+    {$endif CPU64}
   end;
 end;
 //------------------------------------------------------------------------------

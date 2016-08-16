@@ -51,7 +51,7 @@ type
   );
 
   _DWMFLIP3DWINDOWPOLICY = (
-      DWMFLIP3D_DEFAULT,
+      DWMFLIP3D_DEFAULT = 0,
       DWMFLIP3D_EXCLUDEBELOW,
       DWMFLIP3D_EXCLUDEABOVE,
       DWMFLIP3D_LAST
@@ -163,7 +163,7 @@ begin
 
   SetWindowCompositionAttribute := GetProcAddress(GetModuleHandle(user32), 'SetWindowCompositionAttribute');
 
-  hDwmLib:= LoadLibrary('dwmapi.dll');
+  hDwmLib := LoadLibrary('dwmapi.dll');
   if hDwmLib <> 0 then
   begin
     @DwmDefWindowProc := GetProcAddress(hDwmLib, 'DwmDefWindowProc');
@@ -186,6 +186,7 @@ end;
 destructor TDWMHelper.Destroy;
 begin
   FreeLibrary(hDwmLib);
+  hDwmLib := 0;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -201,11 +202,10 @@ end;
 //------------------------------------------------------------------------------
 function TDWMHelper.IsCompositionEnabled: boolean;
 var
-  enabled: Boolean;
+  enabled: Boolean = false;
 begin
-  enabled := false;
-  if @DwmIsCompositionEnabled <> nil then DwmIsCompositionEnabled(@enabled);
-  result:= enabled;
+  if @DwmIsCompositionEnabled <> nil then
+    result := (DwmIsCompositionEnabled(@enabled) = S_OK) and enabled;
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.EnableBlurBehindWindow(const AHandle: THandle; rgn: HRGN);
