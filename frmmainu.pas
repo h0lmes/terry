@@ -1,6 +1,6 @@
 unit frmmainu;
 
-{$undef EXT_DEBUG}
+{$define EXT_DEBUG}
 
 interface
 uses
@@ -259,16 +259,15 @@ begin
       if not sets.Backup then
       begin
         AddLog('Init.BackupFailed');
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
+        messageboxw(handle, pwchar(UTF8Decode(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
       end;
       {$ifdef EXT_DEBUG} AddLog('sets.Backup'); {$endif}
     except
       on e: Exception do
       begin
         SaveSets;
-        AddLog('Init.LoadItems failed');
-        AddLog(e.message);
-        messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsCorrupted + ' ' + XMsgRunRestore)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+        AddLog('Init.LoadItems failed' + LineEnding + e.message);
+        messageboxw(handle, pwchar(UTF8Decode(XErrorSetsCorrupted + ' ' + XMsgRunRestore)), PROGRAM_NAME, MB_ICONEXCLAMATION);
         TfrmRestore.Open;
       end;
     end;

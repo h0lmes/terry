@@ -1,7 +1,6 @@
 unit gfx;
 
 interface
-
 uses Windows, Classes, SysUtils, ShellAPI, ActiveX, CommCtrl, GDIPAPI, declu;
 
 const
@@ -79,6 +78,11 @@ type
 function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
     psize: LPSIZE; hdcSrc: HDC; pptSrc: LPPOINT; crKey: COLORREF;
     pblend: LPBLENDFUNCTION; dwFlags: DWORD): BOOL; stdcall; external 'user32.dll';
+
+function SendMessageTimeout (hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutA(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutW(hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM; fuFlags, uTimeout: UINT; var lpdwResult: DWORD_PTR): LRESULT; external 'user32' name 'SendMessageTimeoutW';
+
 
 function CreateBitmap(var bmp: _SimpleBitmap; HWnd: THandle): boolean;
 procedure DeleteBitmap(var bmp: _SimpleBitmap);
@@ -1090,11 +1094,7 @@ const
   ICON_SMALL2 = PtrUInt(2);
   SMTO_NOTIMEOUTIFNOTHUNG = 8;
 var
-  {$ifdef CPU64}
-  icon: DWORD;
-  {$else CPU64}
   icon: HICON;
-  {$endif CPU64}
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
@@ -1362,15 +1362,15 @@ begin
     begin
       if exact then
       begin
-        srcwidth:= MaxSize;
+        srcwidth := MaxSize;
         srcheight := MaxSize;
       end else begin
-        if MaxSize <= 96 then srcwidth:= 96
-        else if MaxSize <= 128 then srcwidth:= 128
-        else if MaxSize <= 160 then srcwidth:= 160
-        else if MaxSize <= 192 then srcwidth:= 192
-        else if MaxSize <= 256 then srcwidth:= 256;
-        srcheight:= srcwidth;
+        if MaxSize <= 96 then srcwidth := 96
+        else if MaxSize <= 128 then srcwidth := 128
+        else if MaxSize <= 160 then srcwidth := 160
+        else if MaxSize <= 192 then srcwidth := 192
+        else if MaxSize <= 256 then srcwidth := 256;
+        srcheight := srcwidth;
       end;
       imgTemp := image;
       GdipCreateBitmapFromScan0(srcwidth, srcheight, 0, PixelFormat32bppPARGB, nil, image);
@@ -1378,13 +1378,14 @@ begin
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
       GdipDrawImageRectRectI(g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
-      GdipDeleteGraphics(g);
+      try GdipDeleteGraphics(g);
+      except end;
       if DeleteSource then GdipDisposeImage(imgTemp);
       result := true;
     end else begin
       if exact then
       begin
-        srcwidth:= MaxSize;
+        srcwidth := MaxSize;
         srcheight := MaxSize;
       end;
       imgTemp := image;
@@ -1393,7 +1394,8 @@ begin
       GdipSetInterpolationMode(g, InterpolationModeHighQualityBicubic);
       GdipSetPixelOffsetMode(g, PixelOffsetModeHighQuality);
       GdipDrawImageRectRectI(g, imgTemp, 0, 0, srcwidth, srcheight, 0, 0, w, h, UnitPixel, nil, nil, nil);
-      GdipDeleteGraphics(g);
+      try GdipDeleteGraphics(g);
+      except end;
       if DeleteSource then GdipDisposeImage(imgTemp);
       result := true;
     end;
