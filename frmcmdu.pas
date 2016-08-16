@@ -56,7 +56,7 @@ begin
     if FileExists(toolu.UnzipPath('%pp%\recent_commands.txt')) then
       recent.LoadFromFile(toolu.UnzipPath('%pp%\recent_commands.txt'));
   except
-    on e: Exception do frmmain.Notify('frmCmd.LoadRecent'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmCmd.LoadRecent', e);
   end;
 end;
 //------------------------------------------------------------------------------

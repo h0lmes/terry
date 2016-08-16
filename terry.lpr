@@ -385,7 +385,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Notify(id: HWND; Message: PAnsiChar); stdcall;
 begin
-  if assigned(frmmain) then frmmain.Notify(strpas(Message));
+  if assigned(frmmain) then frmmain.Notify(WideString(strpas(Message)));
 end;
 //------------------------------------------------------------------------------
 procedure ActivateHint(id: HWND; Caption: PWideChar; x, y: integer); stdcall;

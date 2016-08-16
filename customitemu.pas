@@ -342,7 +342,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('CustomItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('CustomItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -503,7 +503,7 @@ begin
     FHintVisible := true;
     dockh.ActivateHint(FHWnd, PWideChar(FCaption), hx, hy);
   except
-    on e: Exception do raise Exception.Create('TCustomItem.UpdateHint'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TCustomItem.UpdateHint ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -738,8 +738,8 @@ procedure TCustomItem.err(where: string; e: Exception);
 begin
   if assigned(e) then
   begin
-    AddLog(where + #10#13 + e.message);
-    notify(where + #10#13 + e.message);
+    AddLog(where + LineEnding + e.message);
+    notify(where + LineEnding + e.message);
   end else begin
     AddLog(where);
     messagebox(FHWnd, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);

@@ -1216,8 +1216,8 @@ procedure TAeroPeekWindow.err(where: string; e: Exception);
 begin
   if assigned(e) then
   begin
-    AddLog(where + #10#13 + e.message);
-    messagebox(0, PChar(where + #10#13 + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
+    AddLog(where + LineEnding + e.message);
+    messagebox(0, PChar(where + LineEnding + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
   end else begin
     AddLog(where);
     messagebox(0, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);

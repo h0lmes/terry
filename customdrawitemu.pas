@@ -96,7 +96,7 @@ begin
       if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
       UpdateHint(screenX, screenY);
     except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition ' + LineEnding + e.message);
     end;
 
     // init bitmap //
@@ -187,7 +187,7 @@ begin
       inc(bitmapX, ItemRect.Left);
       inc(bitmapY, ItemRect.Top);
     except
-      on e: Exception do raise Exception.Create('InitBitmap'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('InitBitmap ' + LineEnding + e.message);
     end;
 
     // draw icon //
@@ -211,7 +211,7 @@ begin
     // OnAfterDraw
     if assigned(OnAfterDraw) then OnAfterDraw;
   except
-    on e: Exception do raise Exception.Create('CustomDrawItem.Draw(' + FCaption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('CustomDrawItem.Draw(' + FCaption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

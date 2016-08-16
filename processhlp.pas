@@ -1,10 +1,11 @@
 unit processhlp;
 
 {$mode delphi}
+{$define EXT_DEBUG}
 
 interface
 
-uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu, dwm_unit;
+uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu, dwm_unit, toolu;
 
 type
   {TProcessHelper}
@@ -23,8 +24,15 @@ type
     hUser32: HMODULE;
     hPowrprofDll: HMODULE;
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
-    queryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
+    {$ifdef CPU64}
+    QueryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PWChar; var lpdwSize: dword): boolean; stdcall;
+    {$else CPU64}
+    QueryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
+    {$endif CPU64}
     // processes //
+    procedure EnumProc32;
+    procedure EnumProc64;
+    procedure AddProcessById(processId: DWORD);
     procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
     function GetFullNameByPID_Internal(pid: uint): string;
     function SetPrivilege(Name: string): boolean;
@@ -100,7 +108,12 @@ begin
   begin
     hKernel32 := GetModuleHandle('KERNEL32.DLL');
     if hKernel32 = 0 then hKernel32 := LoadLibrary('KERNEL32.DLL');
-    if hKernel32 <> 0 then @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
+    if hKernel32 <> 0 then
+      {$ifdef CPU64}
+      @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameW');
+      {$else CPU64}
+      @QueryFullProcessImageName := GetProcAddress(hKernel32, 'QueryFullProcessImageNameA');
+      {$endif CPU64}
   end;
   hUser32 := GetModuleHandle('USER32.DLL');
   if hUser32 = 0 then hUser32 := LoadLibrary('USER32.DLL');
@@ -143,9 +156,10 @@ function TProcessHelper.GetProcesses: string;
 var
   i: integer = 0;
 begin
+  result := '';
   while i < listProcess.Count do
   begin
-    result := result + listProcess.Strings[i] + #10#13;
+    result := result + listProcess.Strings[i] + LineEnding;
     inc(i);
   end;
 end;
@@ -154,36 +168,55 @@ function TProcessHelper.GetProcessesFullName: string;
 var
   i: integer = 0;
 begin
+  result := '';
   while i < listProcessFullName.Count do
   begin
-    result := result + listProcessFullName.Strings[i] + #10#13;
+    result := result + listProcessFullName.Strings[i] + LineEnding;
     inc(i);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc;
+begin
+  {$ifdef CPU64}
+  EnumProc64;
+  {$else CPU64}
+  EnumProc32;
+  {$endif CPU64}
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.EnumProc32;
 var
-  snap: HANDLE;
-  f: bool;
-  lp: TProcessEntry32;
+  snapshotHandle: HANDLE;
+  processEntry: TProcessEntry32;
+  flag: bool;
   idx: integer;
 begin
   crsection.Acquire;
   try
     if not FReady then exit;
     listProcess.Clear;
-    snap := CreateToolhelp32Snapshot(2, GetCurrentProcessId);
-    if snap < 32 then exit;
-    lp.dwSize := sizeof(lp);
-    f := Process32First(snap, lp);
-    while longint(f) <> 0 do
+    snapshotHandle := CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    {$ifdef EXT_DEBUG} AddLog('___CreateToolhelp32Snapshot'); {$endif}
+    if snapshotHandle < 32 then
     begin
-      listProcess.AddObject(AnsiLowerCase(lp.szExeFile), TObject(lp.th32ProcessID));
-      if listProcessFullName.IndexOfObject(tobject(lp.th32ProcessID)) < 0 then
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(lp.th32ProcessID)), TObject(lp.th32ProcessID));
-      f := Process32Next(snap, lp);
+      snapshotHandle := GetLastError;
+      raise Exception.Create('CreateToolhelp32Snapshot error ' + inttostr(snapshotHandle));
+      exit;
     end;
-    CloseHandle(snap);
+    processEntry.dwSize := sizeof(TProcessEntry32);
+    flag := Process32First(snapshotHandle, processEntry);
+    {$ifdef EXT_DEBUG} AddLog('___Process32First'); {$endif}
+    while flag do
+    begin
+      {$ifdef EXT_DEBUG} AddLog('___Process = ' + AnsiLowerCase(processEntry.szExeFile)); {$endif}
+      listProcess.AddObject(AnsiLowerCase(processEntry.szExeFile), TObject(processEntry.th32ProcessID));
+      if listProcessFullName.IndexOfObject(tobject(processEntry.th32ProcessID)) < 0 then
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(processEntry.th32ProcessID)), TObject(processEntry.th32ProcessID));
+      flag := Process32Next(snapshotHandle, processEntry);
+      {$ifdef EXT_DEBUG} AddLog('___Process32Next'); {$endif}
+    end;
+    CloseHandle(snapshotHandle);
 
     // delete non-existing processes from listProcessFullName //
     idx := listProcessFullName.Count - 1;
@@ -197,11 +230,69 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TProcessHelper.EnumProc64;
+var
+  aProcesses: array [0..1023] of DWORD;
+  cbNeeded: DWORD;
+  cProcesses: DWORD;
+  i: integer;
+begin
+  crsection.Acquire;
+  try
+    if not FReady then exit;
+    listProcess.Clear;
+
+    if not EnumProcesses(aProcesses, sizeof(aProcesses), cbNeeded) then
+      raise Exception.Create('ProcessHelper.EnumProc2.EnumProcesses() failed');
+    cProcesses := cbNeeded div sizeof(DWORD);
+    i := 0;
+    while i < cProcesses do
+    begin
+      if aProcesses[i] <> 0 then AddProcessById(aProcesses[i]);
+      inc(i);
+    end;
+
+    // delete non-existing processes from listProcessFullName //
+    i := listProcessFullName.Count - 1;
+    while i >= 0 do
+    begin
+      if listProcess.IndexOfObject(listProcessFullName.Objects[i]) < 0 then listProcessFullName.Delete(i);
+      dec(i);
+    end;
+  finally
+    crsection.Leave;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TProcessHelper.AddProcessById(processId: DWORD);
+var
+  hProcess: HANDLE;
+  hMod: HMODULE;
+  cbNeeded: DWORD;
+  szProcessName: array [0..MAX_PATH - 1] of TCHAR;
+begin
+  hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, processId);
+  if hProcess <> 0 then
+  begin
+    if EnumProcessModules(hProcess, @hMod, sizeof(hMod), cbNeeded) then
+    begin
+      GetModuleBaseName(hProcess, hMod, @szProcessName, sizeof(szProcessName) div sizeof(TCHAR));
+      listProcess.AddObject(AnsiLowerCase(strpas(szProcessName)), TObject(processId));
+      if listProcessFullName.IndexOfObject(tobject(processId)) < 0 then
+        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByPID_Internal(processId)), TObject(processId));
+    end;
+  end;
+end;
+//------------------------------------------------------------------------------
 function TProcessHelper.GetFullNameByPID_Internal(pid: uint): string;
 var
   hProcess: HANDLE;
   size: dword;
+  {$ifdef CPU64}
+  buff: array [0..MAX_PATH - 1] of WideChar;
+  {$else CPU64}
   buff: array [0..MAX_PATH - 1] of AnsiChar;
+  {$endif CPU64}
 begin
   result := '';
   hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, pid);
@@ -213,14 +304,24 @@ begin
       if assigned(QueryFullProcessImageName) then
       begin
           QueryFullProcessImageName(hProcess, 0, buff, size);
-          GetLongPathName(buff, buff, MAX_PATH);
+          {$ifdef CPU64}
+          GetLongPathNameW(buff, buff, MAX_PATH);
+          result := AnsiString(strpas(pwchar(@buff)));
+          {$else CPU64}
+          GetLongPathNameA(buff, buff, MAX_PATH);
           result := strpas(pchar(@buff));
+          {$endif CPU64}
       end;
 
       if result = '' then
       begin
-          GetModuleFileNameEx(hProcess, 0, buff, MAX_PATH);
-          result := strpas(pchar(@buff));
+        {$ifdef CPU64}
+        GetModuleFileNameExW(hProcess, 0, buff, MAX_PATH);
+        result := AnsiString(strpas(pwchar(@buff)));
+        {$else CPU64}
+        GetModuleFileNameExA(hProcess, 0, buff, MAX_PATH);
+        result := strpas(pchar(@buff));
+        {$endif CPU64}
       end;
 
       CloseHandle(hProcess);
@@ -311,9 +412,11 @@ begin
   if not FReady then exit;
   newAppList := TFPList.Create;
   pids := TFPList.Create;
+  {$ifdef EXT_DEBUG} AddLog('ProcessHelper.GetProcessWindows(' + Name + ')'); {$endif}
 
   try
     GetProcessPIDs(Name, pids);
+    {$ifdef EXT_DEBUG} AddLog('pids.Count = ' + inttostr(pids.Count)); {$endif}
     if pids.Count > 0 then
     begin
       index := 0;
@@ -445,7 +548,6 @@ var
   helper: TProcessHelper absolute l;
   exstyle: PtrUInt;
   ch: array [0..10] of char;
-  pid: dword;
 begin
   result := true;
   inc(helper.FWindowsCount);

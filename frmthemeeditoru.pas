@@ -117,7 +117,7 @@ procedure TfrmThemeEditor.msaveClick(Sender: TObject);
 begin
   if assigned(theme) then
   try
-    if theme.Save then frmmain.notify(UTF8ToAnsi(XMsgThemeSaved));
+    if theme.Save then frmmain.notify(UTF8Decode(XMsgThemeSaved));
   except
     on e: Exception do messagebox(Handle, pchar(e.message), declu.PROGRAM_NAME, MB_ICONERROR);
   end;

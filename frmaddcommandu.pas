@@ -56,7 +56,7 @@ begin
   if not FileExists(tmpFilename) then tmpFilename := UnzipPath('%pp%\locale\commandlist.ini');
   if not FileExists(tmpFilename) then
   begin
-    frmmain.notify(UTF8ToAnsi(XErrorCommandListNotFound));
+    frmmain.notify(UTF8Decode(XErrorCommandListNotFound));
     exit;
   end;
   if not assigned(frmAddCommand) then application.CreateForm(self, frmAddCommand);
@@ -135,7 +135,7 @@ begin
 
     tree.EndUpdate;
   except
-    on e: Exception do raise Exception.Create('frmAddCommand.FormShow.ReadItems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('frmAddCommand.FormShow.ReadItems ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ begin
     strlcopy(item.icon, pchar(icon), 255);
     strlcopy(item.description, pchar(description), 1023);
   except
-    on e: Exception do raise Exception.Create('frmAddCommand.AddItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('frmAddCommand.AddItem ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

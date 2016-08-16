@@ -235,7 +235,7 @@ begin
             (xi - size - XOffset + 1) div ReflectionSize ) * 2 div 3, 0);
         end;
   except
-    on e: Exception do raise Exception.Create('BitmapReflection'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('BitmapReflection ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -500,7 +500,7 @@ begin
       GdipSetImageAttributesColorMatrix(attr, ColorAdjustTypeBitmap, true, @lMatrix, nil, ColorMatrixFlagsDefault);
     end;
   except
-    on e: Exception do raise Exception.Create('CreateColorAttributes'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('CreateColorAttributes ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -973,7 +973,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('DrawItemIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DrawItemIndicator ' + LineEnding + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -1036,7 +1036,7 @@ begin
     try DestroyIcon(sfi.hIcon);
     except end;
   except
-    on e: Exception do raise Exception.Create('LoadImageFromPIDL'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadImageFromPIDL ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1081,7 +1081,7 @@ begin
       if assigned(appImage) then GdipDisposeImage(appImage);
     end;
   except
-    on e: Exception do raise Exception.Create('LoadAppImage'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadAppImage ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1137,7 +1137,7 @@ begin
       result := 0; // no icon
     end;
   except
-    on e: Exception do raise Exception.Create('LoadImageFromHWnd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadImageFromHWnd ' + LineEnding + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -1159,7 +1159,7 @@ begin
     if bIsWindowsVista then
       if not IsJumboIcon(result) then result := 0;
   except
-    on e: Exception do raise Exception.Create('GetIconFromFileSH'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('GetIconFromFileSH ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1252,7 +1252,7 @@ begin
 
     DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
-    on e: Exception do raise Exception.Create('LoadImage'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadImage ' + LineEnding + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -1398,7 +1398,7 @@ begin
       result := true;
     end;
   except
-    on e: Exception do raise Exception.Create('DownscaleImage'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DownscaleImage ' + LineEnding + e.message);
   end;
 end;
 //--------------------------------------------------------------------------------------------------
@@ -1598,7 +1598,7 @@ begin
       DeleteObject(ii.hbmColor);
     end;
   except
-    on e: Exception do raise Exception.Create('IsJumboIcon'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('IsJumboIcon ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

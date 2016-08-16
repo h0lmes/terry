@@ -279,7 +279,7 @@ begin
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('StackItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdateItem ' + LineEnding + e.message);
   end;
 
   UpdateItemInternal;
@@ -306,7 +306,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -397,7 +397,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('StackItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -577,7 +577,7 @@ begin
     SetTimer(FHWnd, ID_TIMER_OPEN, 1000, nil);
     Redraw;
   except
-    on e: Exception do raise Exception.Create('StackItem.OnDragEnter'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.OnDragEnter ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -596,7 +596,7 @@ begin
     SetTimer(FHWnd, ID_TIMER_CLOSE, 1000, nil);
     Redraw;
   except
-    on e: Exception do raise Exception.Create('StackItem.OnDragLeave'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.OnDragLeave ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -751,7 +751,7 @@ begin
 
     PIDL_Free(pidFolder);
   except
-    on e: Exception do raise Exception.Create('StackItem.AddSpecialFolder'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddSpecialFolder ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -803,7 +803,7 @@ begin
 
     Redraw;
   except
-    on e: Exception do raise Exception.Create('StackItem.UpdatePreview'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.UpdatePreview ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -848,7 +848,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('StackItem.AddSubitem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.AddSubitem ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -866,7 +866,7 @@ begin
       if items[idx].item.QueryDelete then DeleteSubitem(idx) else inc(idx);
     end;
   except
-    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -886,7 +886,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('StackItem.DeleteSubitem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.DeleteSubitem ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -908,7 +908,7 @@ begin
 
     UpdatePreview;
   except
-    on e: Exception do raise Exception.Create('StackItem.DeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.DeleteSubitems ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -924,7 +924,7 @@ begin
   try
     result := items[index].item.Caption;
   except
-    on e: Exception do raise Exception.Create('StackItem.GetSubitemCaption'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.GetSubitemCaption ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -935,7 +935,7 @@ begin
   try
     result := items[index].item.ToString;
   except
-    on e: Exception do raise Exception.Create('StackItem.SubitemToString'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemToString ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -949,7 +949,7 @@ begin
     CopyCSIBucket(@items[index], @items[index - 1]);
     CopyCSIBucket(@csib, @items[index]);
   except
-    on e: Exception do raise Exception.Create('StackItem.SubitemMoveUp'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemMoveUp ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -963,7 +963,7 @@ begin
     CopyCSIBucket(@items[index], @items[index + 1]);
     CopyCSIBucket(@csib, @items[index]);
   except
-    on e: Exception do raise Exception.Create('StackItem.SubitemMoveDown'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemMoveDown ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -973,7 +973,7 @@ begin
   try
     items[index].item.Configure;
   except
-    on e: Exception do raise Exception.Create('StackItem.SubitemConfigure'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemConfigure ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1000,7 +1000,7 @@ begin
       end;
     end;
   except
-    on e: Exception do raise Exception.Create('StackItem.ItemIndex'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.ItemIndex ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1014,7 +1014,7 @@ begin
   try
     for idx := 0 to FItemCount - 1 do items[idx].item.cmd(id, param);
   except
-    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.CheckDeleteSubitems ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1195,7 +1195,7 @@ begin
     FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
       'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
   except
-    on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1228,7 +1228,7 @@ begin
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
   except
-    on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1238,7 +1238,7 @@ begin
     // set all items topmost and place the dock window right underneath
 	  SetWindowPos(FHWnd, ZOrderItems(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
   except
-    on e: Exception do raise Exception.Create('StackItem.ZOrderTop'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.ZOrderTop ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1250,7 +1250,7 @@ begin
 	  // set all items non topmost
 	  ZOrderItems(HWND_NOTOPMOST);
   except
-    on e: Exception do raise Exception.Create('StackItem.ZOrderNoTop'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackItem.ZOrderNoTop ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

@@ -175,10 +175,10 @@ destructor TShortcutSubitem.Destroy;
 begin
   FFreed := true;
   try GdipDisposeImage(FImage);
-  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.GdipDisposeImage'#10#13 + e.message);
+  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.GdipDisposeImage ' + LineEnding + e.message);
   end;
   try if FIsPIDL then PIDL_Free(FPIDL);
-  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.PIDL_Free'#10#13 + e.message);
+  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.PIDL_Free ' + LineEnding + e.message);
   end;
 
   inherited;
@@ -210,7 +210,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -233,7 +233,7 @@ begin
     try FShowCmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
     except end;
   except
-    on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data ' + LineEnding + e.message);
   end;
 
   UpdateItemI;
@@ -299,7 +299,8 @@ begin
       else
       begin
         if FIsPIDL then LoadImageFromPIDL(FPIDL, FItemSize, true, true, FImage, FIW, FIH)
-        else LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
+        else
+          LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
       end;
 
       // measure caption and adjust border size //
@@ -311,7 +312,7 @@ begin
     Redraw;
     sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
-    on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -360,7 +361,7 @@ begin
       xReal := Ax - ItemRect.Left - FSize div 2;
       yReal := Ay - ItemRect.Top - FSize div 2;
     except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition ' + LineEnding + e.message);
     end;
 
     // init drawing //
@@ -394,7 +395,7 @@ begin
       end;
 
     except
-      on e: Exception do raise Exception.Create('InitDraw'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('InitDraw ' + LineEnding + e.message);
     end;
 
     // draw icon //
@@ -486,7 +487,7 @@ begin
     DeleteBitmap(bmp);
 
   except
-    on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -569,7 +570,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('StackSubitem.Measure(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.Measure(' + caption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -589,7 +590,7 @@ begin
     GdipDrawImageRectRectI(graphics, FImage, Ax, Ay, ASize, ASize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
     if FColorData <> DEFAULT_COLOR_DATA then GdipDisposeImageAttributes(hattr);
   except
-    on e: Exception do raise Exception.Create('StackSubitem.DrawPreview'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.DrawPreview ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -717,7 +718,7 @@ begin
       $f006: Exec(eaRun);
     end;
   except
-    on e: Exception do raise Exception.Create('TStackSubitem.WMCommand'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TStackSubitem.WMCommand ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -964,7 +965,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('TCustomSubitem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TCustomSubitem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -979,7 +980,7 @@ begin
     result.Top := -ASize div 2;
     result.Bottom := result.Top + ASize;
   except
-    on e: Exception do raise Exception.Create('TCustomSubitem.Measure(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TCustomSubitem.Measure(' + caption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1215,8 +1216,8 @@ procedure TCustomSubitem.err(where: string; e: Exception);
 begin
   if assigned(e) then
   begin
-    AddLog(where + #10#13 + e.message);
-    //notify(where + #10#13 + e.message);
+    AddLog(where + LineEnding + e.message);
+    //notify(where + LineEnding + e.message);
   end else begin
     AddLog(where);
     //notify(where);

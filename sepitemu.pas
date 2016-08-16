@@ -61,7 +61,7 @@ begin
     //
     Redraw;
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ begin
         end;
     end;
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -121,7 +121,7 @@ begin
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
     except
-      on e: Exception do raise Exception.Create('SetPosition'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('SetPosition ' + LineEnding + e.message);
     end;
 
     xBitmap := ItemRect.Left;
@@ -185,7 +185,7 @@ begin
           DeleteBitmap(bmp);
         end;
       except
-        on e: Exception do raise Exception.Create('DrawWithImage'#10#13 + e.message);
+        on e: Exception do raise Exception.Create('DrawWithImage ' + LineEnding + e.message);
       end;
 
     end
@@ -214,13 +214,13 @@ begin
           DeleteBitmap(bmp);
         end;
       except
-        on e: Exception do raise Exception.Create('DrawWithNoImage'#10#13 + e.message);
+        on e: Exception do raise Exception.Create('DrawWithNoImage ' + LineEnding + e.message);
       end;
 
     end;
 
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.Draw(' + caption + ')'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.Draw(' + caption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -282,7 +282,7 @@ begin
     WritePrivateProfileString(szIniGroup, nil, nil, szIni);
     WritePrivateProfileString(szIniGroup, 'class', 'separator', szIni);
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.Save'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.Save ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

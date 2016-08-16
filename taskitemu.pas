@@ -155,7 +155,7 @@ begin
       Caption := TProcessHelper.GetWindowText(THandle(FAppList.First));
     if not assigned(FImage) then UpdateImage;
   except
-    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -182,7 +182,7 @@ begin
     if FIsOpen then ShowPeekWindow; // update peek window
     Redraw;
   except
-    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('TaskItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ begin
       Redraw;
     end;
   except
-    on e: Exception do raise Exception.Create('TTaskItem.Timer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TTaskItem.Timer ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -461,7 +461,7 @@ begin
     TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
     FIsOpen := true;
   except
-    on e: Exception do raise Exception.Create('TaskItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('TaskItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

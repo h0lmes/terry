@@ -291,7 +291,7 @@ begin
     ReloadGraphics;
     Result := True;
   except
-    on e: Exception do raise Exception.Create('Error loading theme'#13#10#13#10 + e.message);
+    on e: Exception do raise Exception.Create('Error loading theme' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -335,7 +335,7 @@ begin
 
     result := true;
   except
-    on e: Exception do raise Exception.Create('Error saving theme'#13#10#13#10 + e.message);
+    on e: Exception do raise Exception.Create('Error saving theme' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -420,7 +420,7 @@ begin
         GdipDisposeImage(img);
       end;
     except
-      on e: Exception do raise Exception.Create('Error loading background: ' + Path + Background.ImageFile + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading background: ' + Path + Background.ImageFile + LineEnding + e.message);
     end;
 
     // separator image //
@@ -434,7 +434,7 @@ begin
         GdipGetImageHeight(Separator.Image, Separator.H);
       end;
     except
-      on e: Exception do raise Exception.Create('Error loading separator: ' + Path + Separator.ImageFile + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading separator: ' + Path + Separator.ImageFile + LineEnding + e.message);
     end;
 
     // stack default icon //
@@ -444,7 +444,7 @@ begin
       GdipGetImageWidth(Stack.Image, Stack.W);
       GdipGetImageHeight(Stack.Image, Stack.H);
     except
-      on e: Exception do raise Exception.Create('Error loading stack icon: ' + Path + 'stack.png' + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading stack icon: ' + Path + 'stack.png' + LineEnding + e.message);
     end;
 
     // running indicator image //
@@ -463,7 +463,7 @@ begin
         GdipDisposeImage(img);
       end;
     except
-      on e: Exception do raise Exception.Create('Error loading indicator: ' + Path + 'indicator.png' + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading indicator: ' + Path + 'indicator.png' + LineEnding + e.message);
     end;
 
     // running button image //
@@ -479,7 +479,7 @@ begin
         GdipDisposeImage(img);
       end;
     except
-      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'button.png' + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'button.png' + LineEnding + e.message);
     end;
 
     // attention button image //
@@ -493,12 +493,12 @@ begin
         GdipDisposeImage(img);
       end;
     except
-      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'attentionbutton.png' + #13#10#13#10 + e.message);
+      on e: Exception do raise Exception.Create('Error loading button: ' + Path + 'attentionbutton.png' + LineEnding + e.message);
     end;
 
     img := nil;
   except
-    on e: Exception do raise Exception.Create('Error loading theme files. ' + e.message);
+    on e: Exception do raise Exception.Create('Error loading theme files.' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -615,7 +615,7 @@ begin
     GdipDrawImageRectRectI(dst, Indicator.Image, Left, Top, Indicator.W, Indicator.H,
       0, 0, Indicator.W, Indicator.H, UnitPixel, nil, nil, nil);
   except
-    on e: Exception do raise Exception.Create('DrawIndicator'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DrawIndicator' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

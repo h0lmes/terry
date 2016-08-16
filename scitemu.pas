@@ -164,7 +164,7 @@ begin
       except end;
     end;
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItem ' + LineEnding + e.message);
   end;
 
   UpdateItemI;
@@ -233,7 +233,7 @@ begin
 
     Redraw;
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItemInternal'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.UpdateItemInternal ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -252,7 +252,7 @@ begin
   begin
     LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
   end
-  else // if no custom image set
+  else // if no custom image set - load from object itself (PIDL or File)
   begin
     if FIsPIDL then LoadImageFromPIDL(FPIDL, FBigItemSize, false, true, FImage, FIW, FIH)
     else LoadImage(UnzipPath(FCommand), FBigItemSize, false, true, FImage, FIW, FIH);
@@ -281,7 +281,7 @@ begin
       FCaption := TNetworks.CDescription;
     end;
   except
-    on e: Exception do raise Exception.Create('LoadDynObjectImage'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('LoadDynObjectImage ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -394,7 +394,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.Cmd'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Cmd ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -444,7 +444,7 @@ begin
       Redraw;
     end;
   except
-    on e: Exception do raise Exception.Create('ShortcutItem.Timer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.Timer ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

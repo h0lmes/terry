@@ -133,7 +133,7 @@ begin
       frmStackProp.edCaption.SetFocus;
     end;
   except
-    on e: Exception do frmmain.notify('frmStackProp.Open'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmStackProp.Open', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ begin
       chbBackground.Checked, chbBackgroundBlur.Checked, background_color);
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
-    on e: Exception do frmmain.notify('frmStackProp.btnApplyClick'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmStackProp.btnApplyClick', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -466,7 +466,7 @@ begin
 
     DrawFit;
   except
-    on e: Exception do frmmain.notify('frmStackProp.Draw'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmStackProp.Draw', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -513,7 +513,7 @@ begin
     GdipDisposeImageAttributes(hattr);
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmmain.notify('frmStackProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmStackProp.DrawFit', e);
   end;
 end;
 //------------------------------------------------------------------------------

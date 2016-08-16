@@ -1154,7 +1154,7 @@ var
 begin
   try
     // prepare log string
-    LogString := formatdatetime('yyMMdd-hhnnss', now) + '  ' + LogString + #13#10;
+    LogString := formatdatetime('yyMMdd-hhnnss', now) + '  ' + LogString + LineEnding;
     LengthLogString := Length(LogString);
     PStr := StrAlloc(LengthLogString + 1);
     StrPCopy(PStr, LogString);

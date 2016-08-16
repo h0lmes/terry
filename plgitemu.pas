@@ -117,7 +117,7 @@ begin
     end;
     FFreed := false;
   except
-    on e: Exception do raise Exception.Create('PluginItem.CreatePlugin'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.CreatePlugin ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ begin
       strlcopy(szIniGroup, pchar(FIniSection), length(FIniSection));
       lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
     except
-      on e: Exception do raise Exception.Create('PluginItem.CallCreate'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('PluginItem.CallCreate ' + LineEnding + e.message);
     end;
   end
   else
@@ -141,7 +141,7 @@ begin
     try
       lpData := OnCreate(FHWnd, hLib, nil, nil);
     except
-      on e: Exception do raise Exception.Create('PluginItem.CallCreate_NoIni'#10#13 + e.message);
+      on e: Exception do raise Exception.Create('PluginItem.CallCreate_NoIni ' + LineEnding + e.message);
     end;
   end;
 end;
@@ -151,7 +151,7 @@ begin
   try
     if assigned(OnDestroy) then OnDestroy(lpData, FHWnd);
   except
-    on e: Exception do raise Exception.Create('PluginItem.OnDestroy'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.OnDestroy ' + LineEnding + e.message);
   end;
   try if AutoDeleteImage then GdipDisposeImage(FImage);
   except end;
@@ -212,7 +212,7 @@ begin
       Redraw;
     end;
   except
-    on e: Exception do raise Exception.Create('PluginItem.Timer'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.Timer ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -352,7 +352,7 @@ begin
     WritePrivateProfileString(szIniGroup, 'file', pchar(toolu.ZipPath(PluginFile)), szIni);
     if assigned(OnSave) then OnSave(lpData, szIni, szIniGroup, false);
   except
-    on E: Exception do raise Exception.Create('PluginItem.Save'#10#13'Plugin DLL: ' + PluginFile + #10#13 + e.message);
+    on E: Exception do raise Exception.Create('PluginItem.Save ' + LineEnding + 'Plugin DLL: ' + PluginFile + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

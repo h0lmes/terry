@@ -99,7 +99,7 @@ var
 
 {$t+}
 implementation
-uses declu, scitemu, PIDL, toolu, setsu, frmmainu;
+uses declu, scitemu, PIDL, toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmItemProp.Open(AData: string; uproc: _uproc);
@@ -114,7 +114,7 @@ begin
       frmItemProp.edCaption.SetFocus;
     end;
   except
-    on e: Exception do frmmain.notify('TfrmItemProp.Open'#10#13 + e.message);
+    on e: Exception do frmmain.err('TfrmItemProp.Open', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ begin
 
     if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
-    on e: Exception do frmmain.notify('TfrmItemProp.btnApplyClick'#10#13 + e.message);
+    on e: Exception do frmmain.err('TfrmItemProp.btnApplyClick', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -445,7 +445,7 @@ begin
 
     DrawFit;
   except
-    on e: Exception do frmmain.notify('frmItemProp.Draw'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmItemProp.Draw', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -492,7 +492,7 @@ begin
     GdipDisposeImageAttributes(hattr);
     GdipDeleteGraphics(hgdip);
   except
-    on e: Exception do frmmain.notify('frmItemProp.DrawFit'#10#13 + e.message);
+    on e: Exception do frmmain.err('frmItemProp.DrawFit', e);
   end;
 end;
 //------------------------------------------------------------------------------

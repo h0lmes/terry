@@ -65,7 +65,7 @@ end;
 //------------------------------------------------------------------------------
 procedure THint.err(where: string; e: Exception);
 begin
-  if assigned(e) then dockh.notify(0, pchar(where + #10#13 + e.message))
+  if assigned(e) then dockh.notify(0, pchar(where + LineEnding + e.message))
   else dockh.notify(0, pchar(where));
 end;
 //------------------------------------------------------------------------------

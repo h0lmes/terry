@@ -124,9 +124,9 @@ begin
       if length(Text) > 50 then FTimeout := 15000
       else if length(Text) > 30 then FTimeout := 11000;
 
-      Text := Text + #10#13#10#13 + '~ ' + declu.PROGRAM_NAME + '#';
+      Text := Text + LineEnding + LineEnding + '~ ' + declu.PROGRAM_NAME + '#';
       if FText = '' then FText := Text
-      else FText := FText + #13#10#13#10 + Text;
+      else FText := FText + LineEnding + LineEnding + Text;
       Message_Internal(FText, monitor, false);
     end;
   except
@@ -141,9 +141,9 @@ begin
     if length(Text) > 50 then FTimeout := 15000
     else if length(Text) > 30 then FTimeout := 11000;
 
-    Text := Text + #10#13#10#13 + '~ ' + declu.PROGRAM_NAME + '#';
+    Text := Text + LineEnding + LineEnding + '~ ' + declu.PROGRAM_NAME + '#';
     if replace or (FText = '') then FText := Text
-    else FText := FText + #13#10#13#10 + Text;
+    else FText := FText + LineEnding + LineEnding + Text;
     Message_Internal(FText, monitor, false);
   except
     on e: Exception do err('Notifier.MessageNoLog', e);
@@ -425,8 +425,8 @@ procedure TNotifier.err(where: string; e: Exception);
 begin
   if assigned(e) then
   begin
-    AddLog(where + #10#13 + e.message);
-    messagebox(FHWnd, PChar(where + #10#13 + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
+    AddLog(where + LineEnding + e.message);
+    messagebox(FHWnd, PChar(where + LineEnding + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
   end else begin
     AddLog(where);
     messagebox(FHWnd, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);

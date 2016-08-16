@@ -192,7 +192,7 @@ begin
       while fetched > 0 do
       begin
         FDescription := FDescription + Network.GetName +
-          #10#13 + BoolToStrInternetAccess(Network.IsConnectedToInternet);
+          LineEnding + BoolToStrInternetAccess(Network.IsConnectedToInternet);
         FConnected := FConnected or Network.IsConnected;
         FInternet := FInternet or Network.IsConnectedToInternet;
 
@@ -212,7 +212,7 @@ begin
 
         Network := nil;
         EnumNetworks.Next(1, Network, fetched);
-        if fetched > 0 then FDescription := FDescription + #10#13#10#13;
+        if fetched > 0 then FDescription := FDescription + LineEnding + LineEnding;
       end;
     end;
     EnumNetworks := nil;

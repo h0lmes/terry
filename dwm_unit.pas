@@ -406,7 +406,7 @@ begin
       result := SUCCEEDED(hr);
   end;
   except
-    on e: Exception do raise Exception.Create('DWMHelper.SetThumbnailRect'#13#10 + e.message);
+    on e: Exception do raise Exception.Create('DWMHelper.SetThumbnailRect ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

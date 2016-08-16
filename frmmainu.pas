@@ -5,9 +5,9 @@ unit frmmainu;
 interface
 uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
-  Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, ShlObj, Math, Syncobjs, MMSystem, LMessages,
+  Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
-  DropTgtU, setsu, trayu, startmenu, aeropeeku, mixeru;
+  DropTgtU, setsu, trayu, startmenu, aeropeeku;
 
 type
   PRunData = ^TRunData;
@@ -113,9 +113,9 @@ type
     procedure CloseProgram;
     procedure ApplyParams;
     procedure Restore(backupFile: string);
-    procedure err(where: string; e: Exception);
-    procedure notify(message: string; silent: boolean = False);
-    procedure alert(message: string);
+    procedure err(where: WideString; e: Exception);
+    procedure notify(message: WideString; silent: boolean = False);
+    procedure alert(message: WideString);
     procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
     procedure DeactivateHint(hwnd: uint);
     procedure SetTheme(ATheme: string);
@@ -150,7 +150,7 @@ type
 var frmmain: Tfrmmain;
 
 implementation
-uses themeu, toolu, scitemu, PIDL, dockh, frmsetsu, frmcmdu, frmitemoptu,
+uses themeu, toolu, scitemu, PIDL, frmsetsu, frmcmdu, frmitemoptu,
   frmStackPropu, frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
   frmtipu, multidocku, frmrestoreu;
 {$R *.lfm}
@@ -218,7 +218,7 @@ begin
     {$ifdef EXT_DEBUG} AddLog('TDTheme.Create'); {$endif}
     if not theme.Load then
     begin
-      notify(UTF8ToAnsi(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
+      notify(UTF8Decode(XErrorLoadTheme + ' ' + XErrorContactDeveloper));
       AddLog('Theme.Halt');
       halt;
     end;
@@ -366,7 +366,7 @@ begin
     SetWindowLong(Handle, GWL_HWNDPARENT, FBlurWindow); // attach main window
     SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
-    on e: Exception do raise Exception.Create('Base.CreateBlurWindow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.CreateBlurWindow' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -377,7 +377,7 @@ begin
     if IsWindow(FBlurWindow) then DestroyWindow(FBlurWindow);
     FBlurWindow := 0;
   except
-    on e: Exception do raise Exception.Create('Base.DestroyBlurWindow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.DestroyBlurWindow' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -512,7 +512,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Restore(backupFile: string);
 begin
-  notify('Restore: ' + backupFile);
+  notify(WideString('Restore: ' + backupFile));
   if sets.Restore(backupFile) then
   begin
     AddLog('Restore.Succeeded');
@@ -709,7 +709,8 @@ begin
     if (fw <> handle) and (fw <> frmcmd.handle) and IsWindowVisible(frmcmd.Handle) then
       if kb.Message = WM_KEYDOWN then
       begin
-        //notify('VKey = ' + inttostr(kb.VKey) + #10#13 + 'Message = ' + inttostr(kb.Message) + #10#13 + 'Flags = ' + inttostr(kb.Flags) + #10#13 + 'Ext = ' + inttostr(kb.ExtraInformation) + #10#13 + 'MakeCode = ' + inttostr(kb.MakeCode));
+        //notify('VKey = ' + inttostr(kb.VKey) + LineEnding + 'Message = ' + inttostr(kb.Message) + LineEnding +
+          //'Flags = ' + inttostr(kb.Flags) + LineEnding + 'Ext = ' + inttostr(kb.ExtraInformation) + LineEnding + 'MakeCode = ' + inttostr(kb.MakeCode));
         if kb.vkey = vk_return then frmcmd.exec
         else
         if kb.vkey = vk_escape then frmcmd.close
@@ -924,7 +925,7 @@ begin
     // maintain taskbar visibility
     if sets.container.HideSystemTaskbar then HideTaskbar(true);
   except
-    on e: Exception do raise Exception.Create('Base.OnTimerSlow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.OnTimerSlow' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -949,7 +950,7 @@ begin
       if not fsa and not Visible and FHiddenByFSA then BaseCmd(tcSetVisible, 1);
     end;
   except
-    on e: Exception do raise Exception.Create('Base.OnTimerFSA'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.OnTimerFSA' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -994,7 +995,7 @@ begin
 		  if sets.container.Taskbar then ItemMgr.Taskbar;
 		end;
 	except
-    on e: Exception do raise Exception.Create('Base.UpdateRunning'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.UpdateRunning' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1132,6 +1133,8 @@ var
   buf: array [0..MAX_PATH - 1] of char;
 begin
   result := false;
+  ZeroMemory(@buf, MAX_PATH);
+  ZeroMemory(@dockrect, sizeof(dockrect));
   if IsWindowVisible(wnd) and not IsIconic(wnd) then
   begin
     GetWindowRect(wnd, @rect);
@@ -1378,7 +1381,7 @@ begin
       gfx.DeleteBitmap(bmp);
     end;
   except
-    on e: Exception do raise Exception.Create('Base.BaseDraw'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.BaseDraw' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1417,7 +1420,7 @@ begin
 	    SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_HIDEWINDOW);
 	  end;
   except
-    on e: Exception do raise Exception.Create('Base.UpdateBlurWindow'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.UpdateBlurWindow' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1426,23 +1429,23 @@ begin
   DoMenu;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.err(where: string; e: Exception);
+procedure Tfrmmain.err(where: WideString; e: Exception);
 begin
-  where := UTF8ToAnsi(XErrorIn) + ' ' + where;
-  if assigned(e) then where := where + #10#13 + e.message;
+  where := UTF8Decode(XErrorIn) + ' ' + where;
+  if assigned(e) then where := where + LineEnding + WideString(e.message);
   notify(where);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.notify(message: string; silent: boolean = False);
+procedure Tfrmmain.notify(message: WideString; silent: boolean = False);
 begin
   if assigned(Notifier) then Notifier.Message(message, sets.GetParam(gpMonitor), False, silent)
-  else if not silent then messagebox(handle, pchar(message), nil, mb_iconerror);
+  else if not silent then messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.alert(message: string);
+procedure Tfrmmain.alert(message: WideString);
 begin
   if assigned(notifier) then notifier.message(message, sets.GetParam(gpMonitor), True, False)
-  else messagebox(handle, pchar(message), nil, mb_iconerror);
+  else messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
@@ -1458,7 +1461,7 @@ begin
       if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
     end;
   except
-    on e: Exception do toolu.AddLog('frmmain.ActivateHint' + #10#13 + e.message);
+    on e: Exception do toolu.AddLog('frmmain.ActivateHint' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1500,7 +1503,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AppException(Sender: TObject; e: Exception);
 begin
-  notify('[AppException]'#13#10 + Sender.ClassName + #13#10 + e.message);
+  notify(WideString('[AppException] ' + LineEnding + Sender.ClassName + LineEnding + e.message));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AppDeactivate(Sender: TObject);
@@ -1607,7 +1610,7 @@ begin
     // update workarea
     if updateWorkarea then SetWorkarea(taskbarMonitorWorkarea);
   except
-    on e: Exception do raise Exception.Create('Base.HideTaskbar'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.HideTaskbar' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1714,7 +1717,7 @@ begin
 
     if Changed then SetWorkarea(WorkArea);
   except
-    on e: Exception do raise Exception.Create('Base.ReserveScreenEdge'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.ReserveScreenEdge' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1767,7 +1770,7 @@ begin
 
     if Changed then SetWorkarea(WorkArea);
   except
-    on e: Exception do raise Exception.Create('Base.UnreserveScreenEdge'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Base.UnreserveScreenEdge' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1843,7 +1846,7 @@ begin
     if pcds^.cbData <> sizeof(TDProgramData) then
     begin
       message.Result := 0;
-      notify(UTF8ToAnsi(XErrorInvalidProgramDataStructureSize));
+      notify(UTF8Decode(XErrorInvalidProgramDataStructureSize));
       exit;
     end;
     ppd := PTDProgramData(pcds^.lpData);
@@ -1923,12 +1926,14 @@ const
   clsPM = 'Progman';
   clsWW = 'WorkerW';
   clsAVP = 'AVP.SandboxBorderWindow'; // Kaspersky
+  MAX_CLS_LEN = 24;
 var
   wnd: hWnd;
   rc, rMonitor: windows.TRect;
-  cls: array [0..23] of char;
+  cls: array [0..MAX_CLS_LEN - 1] of char;
 begin
   result := false;
+  ZeroMemory(@cls, MAX_CLS_LEN);
   rMonitor := ItemMgr.FMonitorRect;
   wnd := GetWindow(Handle, GW_HWNDFIRST);
   while wnd <> 0 do
@@ -1936,22 +1941,22 @@ begin
     if wnd = Handle then exit; // exit if we reached main dock window
     if IsWindow(wnd) then
     begin
-	      if IsWindowVisible(wnd) and not DWM.IsWindowCloaked(wnd) then
-	      begin
-	          if GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0 then
+      if IsWindowVisible(wnd) and not DWM.IsWindowCloaked(wnd) then
+      begin
+        if GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0 then
+        begin
+          GetWindowRect(wnd, rc);
+          if (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
+          begin
+            GetClassName(wnd, cls, MAX_CLS_LEN - 1);
+		        if (strlcomp(@cls, clsPM, 7) <> 0) and (strlcomp(@cls, clsWW, 7) <> 0) and (strlcomp(@cls, clsAVP, 23) <> 0) then
             begin
-		            GetWindowRect(wnd, rc);
-		            if (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
-							  begin
-		              GetClassName(wnd, cls, 23);
-		              if (strlcomp(@cls, clsPM, 7) <> 0) and (strlcomp(@cls, clsWW, 7) <> 0) and (strlcomp(@cls, clsAVP, 23) <> 0) then
-                  begin
-                      result := true;
-                      exit;
-									end;
-								end;
+              result := true;
+              exit;
 						end;
-	      end;
+					end;
+				end;
+	    end;
 		end;
 		wnd := GetWindow(wnd, GW_HWNDNEXT);
   end;
@@ -1970,18 +1975,18 @@ begin
   begin
     if wnd = Handle then
     begin
-      result := result + 'HWnd = ' + inttostr(wnd) + #13#10;
+      result := result + 'HWnd = ' + inttostr(wnd) + LineEnding;
       FillChar(cls, MAX_PATH, #0);
       GetClassName(wnd, cls, MAX_PATH);
-      result := result + 'Class = ' + strpas(@cls) + #13#10;
+      result := result + 'Class = ' + strpas(@cls) + LineEnding;
       FillChar(cls, MAX_PATH, #0);
       GetWindowText(wnd, cls, MAX_PATH);
-      result := result + 'Text = ' + strpas(@cls) + #13#10;
+      result := result + 'Text = ' + strpas(@cls) + LineEnding;
       GetWindowRect(wnd, rc);
-      result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + #13#10;
+      result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + LineEnding;
       FillChar(cls, MAX_PATH, #0);
       GetWindowModuleFileName(wnd, cls, MAX_PATH);
-      result := result + 'Module = ' + strpas(@cls) + #13#10#13#10;
+      result := result + 'Module = ' + strpas(@cls) + LineEnding + LineEnding;
 		end
     else
 		if IsWindowVisible(Wnd) then
@@ -1990,17 +1995,17 @@ begin
         if (GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0) and
           (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
         begin
-          result := result + 'HWnd = ' + inttostr(wnd) + #13#10;
+          result := result + 'HWnd = ' + inttostr(wnd) + LineEnding;
           FillChar(cls, MAX_PATH, #0);
           GetClassName(wnd, cls, MAX_PATH);
-          result := result + 'Class = ' + strpas(@cls) + #13#10;
+          result := result + 'Class = ' + strpas(@cls) + LineEnding;
           FillChar(cls, MAX_PATH, #0);
           GetWindowText(wnd, cls, MAX_PATH);
-          result := result + 'Text = ' + strpas(@cls) + #13#10;
-          result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + #13#10;
+          result := result + 'Text = ' + strpas(@cls) + LineEnding;
+          result := result + 'Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom) + LineEnding;
           FillChar(cls, MAX_PATH, #0);
           GetWindowModuleFileName(wnd, cls, MAX_PATH);
-          result := result + 'Module = ' + strpas(@cls) + #13#10#13#10;
+          result := result + 'Module = ' + strpas(@cls) + LineEnding + LineEnding;
         end;
     end;
     wnd := GetWindow(wnd, GW_HWNDNEXT);
@@ -2021,8 +2026,8 @@ begin
     end;
   except
     on e: Exception do raise Exception.Create(
-        'Command parse/execute error.'#10#13 +
-        'Command=' + acmd + #10#13 + 'Params=' + aparams + #10#13 + 'SYSMSG=' + e.message);
+        'Command parse/execute error.' + LineEnding +
+        'Command=' + acmd + LineEnding + 'Params=' + aparams + LineEnding + 'SYSMSG=' + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -2067,8 +2072,8 @@ begin
   if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cmd2, params)
   else if cmd = 'quit' then         frmmain.CloseProgram
   else if cmd = 'hide' then         frmmain.BaseCmd(tcSetVisible, 0)
-  else if cmd = 'say' then          frmmain.notify(toolu.UnzipPath(params))
-  else if cmd = 'alert' then        frmmain.alert(toolu.UnzipPath(params))
+  else if cmd = 'say' then          frmmain.notify(WideString(toolu.UnzipPath(params)))
+  else if cmd = 'alert' then        frmmain.alert(WideString(toolu.UnzipPath(params)))
   else if cmd = 'visible' then      frmmain.BaseCmd(tcToggleVisible, 0)
   else if cmd = 'systaskbar' then   frmmain.BaseCmd(tcToggleTaskbar, 0)
   else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
@@ -2150,14 +2155,14 @@ begin
   else if cmd = 'emptybin' then     SHEmptyRecycleBin(Handle, nil, 0)
   else if cmd = 'regp' then
   begin
-    for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);
+    for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(WideString(ItemMgr._registeredPrograms.Strings[i]));
   end
   else if cmd = 'tasks' then
   begin
     notify('----- tasks -----');
-    notify(ProcessHelper.Processes);
+    notify(WideString(ProcessHelper.Processes));
     notify('----- modules -----');
-    notify(ProcessHelper.ProcessesFullName);
+    notify(WideString(ProcessHelper.ProcessesFullName));
   end
   else if cmd = 'setdisplaymode' then
   begin
@@ -2298,10 +2303,10 @@ begin
 	    strcopy(pchar(@Data.dir), pchar(dir));
 	    Data.showcmd := showcmd;
 	    if BeginThread(RunThread, Data) = 0 then
-        notify('Run.BeginThread failed'#10#13 +
-          'cmd=' + exename + #10#13 +
-          'params=' + params + #10#13 +
-          'dir=' + dir);
+        notify(WideString('Run.BeginThread failed' + LineEnding +
+          'cmd=' + exename + LineEnding +
+          'params=' + params + LineEnding +
+          'dir=' + dir));
     end else begin
       pparams := nil;
       pdir := nil;

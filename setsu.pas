@@ -381,7 +381,7 @@ begin
     backupFile := BackupsPath + '\' + setsFilenameBase + '__' + FormatDateTime('yyyy-MM-dd__hh-nn-ss', Now) + '.ini';
     if not windows.CopyFile(pchar(SetsPathFile), pchar(backupFile), false) then result := false;
   except
-    on e: Exception do raise Exception.Create('Sets.Backup '#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Backup ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -400,7 +400,7 @@ begin
 
     if windows.CopyFile(pchar(backupFilename), pchar(SetsPathFile), false) then result := true;
   except
-    on e: Exception do raise Exception.Create('Sets.Restore '#10#13 + e.message);
+    on e: Exception do raise Exception.Create('Sets.Restore ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

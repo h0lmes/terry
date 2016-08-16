@@ -285,11 +285,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TItemManager.err(where: string; e: Exception; Critical: boolean = false);
 begin
-  if assigned(e) then where := where + ' '#10#13 + e.Message else where := where + ' '#10#13'Error';
+  if assigned(e) then where := where + ' ' + LineEnding + e.Message else where := where + ' ' + LineEnding + 'Error';
   if Critical then
   begin
     messagebox(FParentHWnd,
-      pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + #10#13#10#13 + where),
+      pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + LineEnding + LineEnding + where),
       PROGRAM_NAME, MB_ICONERROR);
     halt;
   end else
@@ -545,7 +545,7 @@ begin
         TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
     end;
   except
-    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + #10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -559,7 +559,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
   except
-    on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + #10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1000,7 +1000,7 @@ begin
     else if FSite = bsRight then FBaseWindowRect.x := FMonitorRect.Right - FBaseWindowRect.Width + FWndOffset - FEdgeOffset
     else if FSite = bsBottom then FBaseWindowRect.y := FMonitorRect.Bottom - FBaseWindowRect.Height + FWndOffset - FEdgeOffset;
   except
-    on e: Exception do raise Exception.Create('ItemManager.RecalcDock'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.RecalcDock ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1020,6 +1020,7 @@ end;
 //------------------------------------------------------------------------------
 function TItemManager.GetZoomEdge: integer;
 begin
+  result := 0;
   case FSite of
     bsLeft: result := FBaseWindowRect.X + x + widthZoomed;
     bsTop: result := FBaseWindowRect.Y + y + heightZoomed;
@@ -1120,7 +1121,7 @@ begin
     Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
   except
-    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1170,7 +1171,7 @@ begin
     else
     if class_name = 'task' then Inst := TTaskItem.Create(data, FParentHWnd, icp);
   except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + class_name + #10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + class_name + LineEnding + e.message);
   end;
 
   try
@@ -1184,7 +1185,7 @@ begin
         AddToRegisteredPrograms(result);
       end;
   except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1218,7 +1219,7 @@ begin
     // update dock //
     ItemsChanged;
   except
-    on e: Exception do raise Exception.Create('ItemManager.DeleteItem'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.DeleteItem ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1232,7 +1233,7 @@ begin
     str := Inst.RegisterProgram;
     if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
   except
-    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1246,7 +1247,7 @@ begin
     rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
     if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
   except
-    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1675,7 +1676,7 @@ begin
 
     if (FItemCount > 0) and allow_zoom and FZoomItems then Zoom(pt.x, pt.y);
   except
-    on e: Exception do raise Exception.Create('ItemManager.WHMouseMove'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.WHMouseMove ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

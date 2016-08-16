@@ -143,7 +143,7 @@ begin
     end;
     DragFinish(h);
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListHDrop'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListHDrop ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ begin
     notifier.message(strpas(pchar(@data)));
     {$endif}
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ begin
     end;
     GlobalUnlock(h);
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListHGlobalPIDL'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListHGlobalPIDL ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ begin
       end;
     end;
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -297,7 +297,7 @@ begin
     notifier.message(pchar(lpsz));
     {$endif}
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -325,7 +325,7 @@ begin
     end;
     GlobalUnlock(h);
   except
-    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL'#10#13 + e.message);
+    on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
