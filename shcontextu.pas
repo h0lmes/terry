@@ -18,7 +18,7 @@ procedure GetFileInfo(PIDL: PItemIDList; Large, Open: Boolean; var FileInfo: TSH
 implementation
 {$R-}
 //------------------------------------------------------------------------------
-function MenuCallbackProc(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LResult; stdcall; export;
+function MenuCallbackProc(Wnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall; export;
 var
   CM2: IContextMenu2;
 begin
@@ -26,7 +26,7 @@ begin
     WM_CREATE:
       begin
         CM2 := IContextMenu2(PCreateStruct(lParam).lpCreateParams);
-        SetWindowLong(Wnd, GWL_USERDATA, LongInt(CM2));
+        SetWindowLongPtr(Wnd, GWL_USERDATA, PtrUInt(CM2));
         result := DefWindowProc(Wnd, Msg, wParam, lParam);
       end;
 

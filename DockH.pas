@@ -1,48 +1,49 @@
 unit DockH;
 
-// modified aug 14, 2016 //
+// modified aug 17, 2016 //
 
 interface
 uses Windows;
 
 type
   _PluginData = Pointer;
-  _OnGetInformation = procedure(szName, szAuthor: pchar; lpiVersion: PInteger; szNotes: pchar); stdcall;
-  _OnCreate = function(id, hInstance: uint; szIni, szIniGroup: pchar): _PluginData; stdcall;
-  _OnSave = procedure(lpData: _PluginData; szIni, szIniGroup: pchar; isForExport: boolean); stdcall;
-  _OnDestroy = procedure(lpData: _PluginData; id: uint); stdcall;
-  _OnLeftButtonClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
-  _OnLeftButtonHeld = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
-  _OnDoubleClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
+  _OnGetInformation =   procedure(szName, szAuthor: pchar; lpiVersion: PInteger; szNotes: pchar); stdcall;
+  _OnCreate =           function(id: HWND; hInstance: THandle; szIni, szIniGroup: pchar): _PluginData; stdcall;
+  _OnSave =             procedure(lpData: _PluginData; szIni, szIniGroup: pchar; isForExport: boolean); stdcall;
+  _OnDestroy =          procedure(lpData: _PluginData; id: HWND); stdcall;
+  _OnLeftButtonClick =  function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
+  _OnLeftButtonHeld =   function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
+  _OnDoubleClick =      function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
   _OnRightButtonClick = function(lpData: _PluginData; ptCursor: PPoint; lpSize: PSize): boolean; stdcall;
-  _OnConfigure = procedure(lpData: _PluginData); stdcall;
-  _OnAcceptDropFiles = function(lpData: _PluginData): boolean; stdcall;
-  _OnDropFiles = procedure(lpData: _PluginData; hDrop: uint); stdcall;
-  _OnProcessMessage = procedure(lpData: _PluginData; hwnd, uMsg: uint; wParam: WPARAM; lParam: LPARAM); stdcall;
+  _OnConfigure =        procedure(lpData: _PluginData); stdcall;
+  _OnAcceptDropFiles =  function(lpData: _PluginData): boolean; stdcall;
+  _OnDropFiles =        procedure(lpData: _PluginData; hDrop: THandle); stdcall;
+  _OnProcessMessage =   procedure(lpData: _PluginData; hwnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM); stdcall;
 
-function DockletIsVisible(id: HANDLE): bool;
-function DockletIsUndocked(id: HANDLE): bool;
-function DockletGetRect(id: HANDLE; r: PRect): bool;
-function DockletGetLabel(id: HANDLE; szCaption: pchar): integer;
-function DockletSetLabel(id: HANDLE; szCaption: pchar): integer;
-procedure DockletSetImage(id: HANDLE; image: pointer; AutoDelete: bool);
-procedure DockletSetImageFile(id: HANDLE; szImage: pchar);
-procedure DockletSetImageOverlay(id: HANDLE; overlay: pointer; AutoDelete: bool);
-procedure DockletDoAttensionAnimation(id: HANDLE);
-procedure DockletGetRootFolder(id: HANDLE; szFolder: pchar);
-procedure DockletGetRelativeFolder(id: HANDLE; szFolder: pchar);
-function DockletBrowseForImage(id: HANDLE; szImage: pchar; szRoot: pchar): bool;
+function DockletIsVisible(id: HWND): bool;
+function DockletIsUndocked(id: HWND): bool;
+function DockletGetRect(id: HWND; r: PRect): bool;
+function DockletGetLabel(id: HWND; szCaption: pchar): integer;
+function DockletSetLabel(id: HWND; szCaption: pchar): integer;
+procedure DockletSetImage(id: HWND; image: pointer; AutoDelete: bool);
+procedure DockletSetImageFile(id: HWND; szImage: pchar);
+procedure DockletSetImageOverlay(id: HWND; overlay: pointer; AutoDelete: bool);
+procedure DockletDoAttensionAnimation(id: HWND);
+procedure DockletGetRootFolder(id: HWND; szFolder: pchar);
+procedure DockletGetRelativeFolder(id: HWND; szFolder: pchar);
+function DockletBrowseForImage(id: HWND; szImage: pchar; szRoot: pchar): bool;
 function DockletLoadGDIPlusImage(szImage: pchar): pointer;
-procedure DockletLockMouseEffect(id: HANDLE; lock: bool);
-function DockletQueryDockEdge(id: HANDLE): integer;
-function DockletSetDockEdge(id: HANDLE; Edge: integer): integer;
-function DockletQueryDockAlign(id: HANDLE): integer;
-function DockletSetDockAlign(id: HANDLE; Offset: integer): integer;
+procedure DockletLockMouseEffect(id: HWND; lock: bool);
+function DockletQueryDockEdge(id: HWND): integer;
+function DockletSetDockEdge(id: HWND; Edge: integer): integer;
+function DockletQueryDockAlign(id: HWND): integer;
+function DockletSetDockAlign(id: HWND; Offset: integer): integer;
 // additional API, Terry specific //
 function DockColorDialog(color: puint): bool;
 function DockGetRect: TRect;
 procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer);
-function DockAddMenu(hMenu: HWND): uint;
+procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer);
+function DockAddMenu(hMenu: THandle): THandle;
 function EdgeFromSDK(edge: integer): integer;
 function EdgeToSDK(edge: integer): integer;
 procedure Undock(id: HWND);
@@ -57,8 +58,8 @@ procedure ExcludeFromPeek(id: HWND);
 
 implementation
 //------------------------------------------------------------------------------
-function DockletIsVisible(id: HANDLE): bool;
-type dtype = function(id: HANDLE): bool; stdcall;
+function DockletIsVisible(id: HWND): bool;
+type dtype = function(id: HWND): bool; stdcall;
 var
   proc: dtype;
 begin
@@ -66,8 +67,8 @@ begin
 	if not assigned(proc) then result:= false else result:= proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockletIsUndocked(id: HANDLE): bool;
-type dtype = function(id: HANDLE): bool; stdcall;
+function DockletIsUndocked(id: HWND): bool;
+type dtype = function(id: HWND): bool; stdcall;
 var
   proc: dtype;
 begin
@@ -75,8 +76,8 @@ begin
 	if not assigned(proc) then result:= false else result:= proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockletGetRect(id: HANDLE; r: PRect): bool;
-type dtype = function(id: HANDLE; r: PRect): bool; stdcall;
+function DockletGetRect(id: HWND; r: PRect): bool;
+type dtype = function(id: HWND; r: PRect): bool; stdcall;
 var
   proc: dtype;
 begin
@@ -84,8 +85,8 @@ begin
 	if not assigned(proc) then result:= false else result:= proc(id, r);
 end;
 //------------------------------------------------------------------------------
-function DockletGetLabel(id: HANDLE; szCaption: pchar): integer;
-type dtype = function(id: HANDLE; szCaption: pchar): integer; stdcall;
+function DockletGetLabel(id: HWND; szCaption: pchar): integer;
+type dtype = function(id: HWND; szCaption: pchar): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -93,8 +94,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id, szCaption);
 end;
 //------------------------------------------------------------------------------
-function DockletSetLabel(id: HANDLE; szCaption: pchar): integer;
-type dtype = function(id: HANDLE; szCaption: pchar): integer; stdcall;
+function DockletSetLabel(id: HWND; szCaption: pchar): integer;
+type dtype = function(id: HWND; szCaption: pchar): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -102,8 +103,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id, szCaption);
 end;
 //------------------------------------------------------------------------------
-procedure DockletSetImage(id: HANDLE; image: pointer; AutoDelete: bool);
-type dtype = procedure(id: HANDLE; image: pointer; AutoDelete: bool); stdcall;
+procedure DockletSetImage(id: HWND; image: pointer; AutoDelete: bool);
+type dtype = procedure(id: HWND; image: pointer; AutoDelete: bool); stdcall;
 var
   proc: dtype;
 begin
@@ -111,8 +112,8 @@ begin
 	if assigned(proc) then proc(id, image, AutoDelete);
 end;
 //------------------------------------------------------------------------------
-procedure DockletSetImageFile(id: HANDLE; szImage: pchar);
-type dtype = procedure(id: HANDLE; szImage: pchar); stdcall;
+procedure DockletSetImageFile(id: HWND; szImage: pchar);
+type dtype = procedure(id: HWND; szImage: pchar); stdcall;
 var
   proc: dtype;
 begin
@@ -120,8 +121,8 @@ begin
 	if assigned(proc) then proc(id, szImage);
 end;
 //------------------------------------------------------------------------------
-procedure DockletSetImageOverlay(id: HANDLE; overlay: pointer; AutoDelete: bool);
-type dtype = procedure(id: HANDLE; overlay: pointer; AutoDelete: bool); stdcall;
+procedure DockletSetImageOverlay(id: HWND; overlay: pointer; AutoDelete: bool);
+type dtype = procedure(id: HWND; overlay: pointer; AutoDelete: bool); stdcall;
 var
   proc: dtype;
 begin
@@ -129,8 +130,8 @@ begin
 	if assigned(proc) then proc(id, overlay, AutoDelete);
 end;
 //------------------------------------------------------------------------------
-procedure DockletDoAttensionAnimation(id: HANDLE);
-type dtype = procedure(id: HANDLE); stdcall;
+procedure DockletDoAttensionAnimation(id: HWND);
+type dtype = procedure(id: HWND); stdcall;
 var
   proc: dtype;
 begin
@@ -138,8 +139,8 @@ begin
 	if assigned(proc) then proc(id);
 end;
 //------------------------------------------------------------------------------
-procedure DockletGetRootFolder(id: HANDLE; szFolder: pchar);
-type dtype = procedure(id: HANDLE; szFolder: pchar); stdcall;
+procedure DockletGetRootFolder(id: HWND; szFolder: pchar);
+type dtype = procedure(id: HWND; szFolder: pchar); stdcall;
 var
   proc: dtype;
 begin
@@ -147,8 +148,8 @@ begin
 	if assigned(proc) then proc(id, szFolder);
 end;
 //------------------------------------------------------------------------------
-procedure DockletGetRelativeFolder(id: HANDLE; szFolder: pchar);
-type dtype = procedure(id: HANDLE; szFolder: pchar); stdcall;
+procedure DockletGetRelativeFolder(id: HWND; szFolder: pchar);
+type dtype = procedure(id: HWND; szFolder: pchar); stdcall;
 var
   proc: dtype;
 begin
@@ -165,8 +166,8 @@ begin
 	if not assigned(proc) then result:= nil else result:= proc(szImage);
 end;
 //------------------------------------------------------------------------------
-function DockletBrowseForImage(id: HANDLE; szImage: pchar; szRoot: pchar): bool;
-type dtype = function(id: HANDLE; szImage: pchar; szRoot: pchar): bool; stdcall;
+function DockletBrowseForImage(id: HWND; szImage: pchar; szRoot: pchar): bool;
+type dtype = function(id: HWND; szImage: pchar; szRoot: pchar): bool; stdcall;
 var
   proc: dtype;
 begin
@@ -174,8 +175,8 @@ begin
 	if not assigned(proc) then result:= false else result:= proc(id, szImage, szRoot);
 end;
 //------------------------------------------------------------------------------
-function DockletQueryDockEdge(id: HANDLE): integer;
-type dtype = function(id: HANDLE): integer; stdcall;
+function DockletQueryDockEdge(id: HWND): integer;
+type dtype = function(id: HWND): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -183,8 +184,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockletSetDockEdge(id: HANDLE; Edge: integer): integer;
-type dtype = function(id: HANDLE; Edge: integer): integer; stdcall;
+function DockletSetDockEdge(id: HWND; Edge: integer): integer;
+type dtype = function(id: HWND; Edge: integer): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -192,8 +193,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id, Edge);
 end;
 //------------------------------------------------------------------------------
-function DockletQueryDockAlign(id: HANDLE): integer;
-type dtype = function(id: HANDLE): integer; stdcall;
+function DockletQueryDockAlign(id: HWND): integer;
+type dtype = function(id: HWND): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -201,8 +202,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id);
 end;
 //------------------------------------------------------------------------------
-function DockletSetDockAlign(id: HANDLE; Offset: integer): integer;
-type dtype = function(id: HANDLE; Offset: integer): integer; stdcall;
+function DockletSetDockAlign(id: HWND; Offset: integer): integer;
+type dtype = function(id: HWND; Offset: integer): integer; stdcall;
 var
   proc: dtype;
 begin
@@ -210,8 +211,8 @@ begin
 	if not assigned(proc) then result:= 0 else result:= proc(id, Offset);
 end;
 //------------------------------------------------------------------------------
-procedure DockletLockMouseEffect(id: HANDLE; lock: bool);
-type dtype = procedure(id: HANDLE; lock: bool); stdcall;
+procedure DockletLockMouseEffect(id: HWND; lock: bool);
+type dtype = procedure(id: HWND; lock: bool); stdcall;
 var
   proc: dtype;
 begin
@@ -256,8 +257,17 @@ begin
 	if assigned(proc) then proc(id, exename, params, dir, showcmd);
 end;
 //------------------------------------------------------------------------------
-function DockAddMenu(hMenu: HWND): uint;
-type dtype = function(hMenu: HWND): uint; stdcall;
+procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer);
+type dtype = procedure(id: HWND; exename, params, dir: pwchar; showcmd: integer); stdcall;
+var
+  proc: dtype;
+begin
+	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockExecuteW');
+	if assigned(proc) then proc(id, exename, params, dir, showcmd);
+end;
+//------------------------------------------------------------------------------
+function DockAddMenu(hMenu: THandle): THandle;
+type dtype = function(hMenu: THandle): THandle; stdcall;
 var
   proc: dtype;
 begin

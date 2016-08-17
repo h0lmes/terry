@@ -17,12 +17,12 @@ type
     FImage2: Pointer;
     FIW2: cardinal;
     FIH2: cardinal;
-    hwnd2: HANDLE; // to speed up gdiplus drawing //
+    hwnd2: HWND; // to speed up gdiplus drawing //
     PluginFile: string;
     FIniFile: string;
     FIniSection: string;
     // plugin lib vars
-    hLib: HANDLE;
+    hLib: THandle;
     OnCreate: _OnCreate;
     OnSave: _OnSave;
     OnDestroy: _OnDestroy;
@@ -40,7 +40,7 @@ type
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -56,7 +56,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TPluginItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   FFreed := true;
   inherited;
@@ -309,7 +309,7 @@ begin
   LME(true);
 
   // else, if it is disabled //
-  msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  msg.WParam := WPARAM(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
 end;

@@ -8,7 +8,7 @@ type
   TDropTarget = class;
 
   TProc = procedure of object;
-  TDropProc = procedure(list: TStrings; hWnd: uint) of object;
+  TDropProc = procedure(list: TStrings; hWnd: THandle) of object;
 
   // Life states //
   Tgwdt_ls = (gwdt_ls_start, gwdt_ls_exists, gwdt_ls_locked, gwdt_ls_regd);
@@ -308,9 +308,7 @@ var
   pfgd: PFILEDESCRIPTORW;
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListHGlobalFileGroupDescriptorW');
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHGlobalFileGroupDescriptorW'); {$endif}
 
     pgroup := GlobalLock(h);
     i := 0;
@@ -318,9 +316,7 @@ begin
     begin
       pfgd := PFILEDESCRIPTORW(PtrUInt(@pgroup.fgd) + i * sizeof(PFILEDESCRIPTORW));
       List.Add(pfgd.cFileName);
-      {$ifdef DEBUG_DROPTGT}
-      notifier.message(pfgd.cFileName);
-      {$endif}
+      {$ifdef DEBUG_DROPTGT} notifier.message(pfgd.cFileName); {$endif}
       inc(i);
     end;
     GlobalUnlock(h);

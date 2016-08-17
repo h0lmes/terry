@@ -23,18 +23,23 @@ type
 
   TTrayController = class
   private
+    FParentHWnd: HWND;
     FSite: TBaseSite;
     FControlWindow: HWND;
     Fx: integer;
     Fy: integer;
-    FControl, FShown: boolean;
+    FControl: boolean;
+    FShown: boolean;
     FPoint: windows.TPoint;
-    FBaseRect, FMonitorRect: windows.TRect;
+    FBaseRect: windows.TRect;
+    FMonitorRect: windows.TRect;
+    FWin10: boolean;
     procedure RunAvailableNetworks;
     procedure RunNotificationAreaIcons;
     procedure RunDateAndTime;
     procedure RunPowerOptions;
     procedure RunMobilityCenter;
+    procedure Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
   public
     constructor Create;
     function AutoTrayEnabled: boolean;
@@ -50,12 +55,17 @@ type
   end;
 
 implementation
-uses frmmainu;
 //------------------------------------------------------------------------------
 constructor TTrayController.Create;
+var
+  VerInfo: windows.TOSVersioninfo;
 begin
   inherited;
   FControl := false;
+  FParentHWnd := FindWindow('Window', PROGRAM_NAME);
+  VerInfo.dwOSVersionInfoSize:= sizeof(TOSVersionInfo);
+  windows.GetVersionEx(VerInfo);
+  FWin10 := VerInfo.dwMajorVersion >= 10;
 end;
 //------------------------------------------------------------------------------
 function TTrayController.AutoTrayEnabled: boolean;
@@ -107,7 +117,7 @@ var
 begin
   if not AutoTrayEnabled then
   begin
-    messagebox(frmmain.handle, pchar(UTF8ToAnsi(XMsgNotificationAreaIcons)), '', MB_ICONEXCLAMATION);
+    messageboxw(FParentHWnd, pwchar(UTF8Decode(XMsgNotificationAreaIcons)), '', MB_ICONEXCLAMATION);
     RunNotificationAreaIcons;
     exit;
   end;
@@ -175,7 +185,7 @@ begin
   FShown := false;
   FControl := false;
   // open volume control
-  frmmain.Run('sndvol.exe', '-f ' + inttostr(FPoint.x + FPoint.y * $10000), '', sw_shownormal);
+  Run('sndvol.exe', '-f ' + inttostr(FPoint.x + FPoint.y * $10000), '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
@@ -197,7 +207,7 @@ begin
 
   // open View Available Networks
   RunAvailableNetworks;
-  if frmmain.RunsOnWin10 then
+  if FWin10 then
   begin
     FControlWindow := findwindow('NativeHWNDHost', 'View Available Networks');
     FShown := false;
@@ -283,28 +293,43 @@ end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunAvailableNetworks;
 begin
-  if frmmain.RunsOnWin10 then frmmain.Run('ms-settings:network', '', '', sw_shownormal)
-  else frmmain.Run('rundll32.exe', 'van.dll,RunVAN', '', sw_shownormal);
+  if FWin10 then Run('ms-settings:network')
+  else Run('rundll32.exe', 'van.dll,RunVAN');
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunNotificationAreaIcons;
 begin
-  frmmain.Run('control.exe', '/name Microsoft.NotificationAreaIcons', '', sw_shownormal);
+  Run('control.exe', '/name Microsoft.NotificationAreaIcons');
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunDateAndTime;
 begin
-  frmmain.Run('control.exe', '/name Microsoft.DateAndTime', '', sw_shownormal);
+  Run('control.exe', '/name Microsoft.DateAndTime');
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunPowerOptions;
 begin
-  frmmain.Run('control.exe', '/name Microsoft.PowerOptions', '', sw_shownormal);
+  Run('control.exe', '/name Microsoft.PowerOptions');
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.RunMobilityCenter;
 begin
-  frmmain.Run('control.exe', '/name Microsoft.MobilityCenter', '', sw_shownormal);
+  Run('control.exe', '/name Microsoft.MobilityCenter');
+end;
+//------------------------------------------------------------------------------
+procedure TTrayController.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
+var
+  pparams, pdir: pchar;
+begin
+  try
+    pparams := nil;
+    pdir := nil;
+    if params <> '' then pparams := PChar(params);
+    if dir <> '' then pdir := PChar(dir);
+    shellexecute(FParentHWnd, nil, pchar(exename), pparams, pdir, showcmd);
+  except
+    on e: Exception do raise Exception.Create('TrayController.Run ' + LineEnding + e.message);
+  end;
 end;
 //------------------------------------------------------------------------------
 end.

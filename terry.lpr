@@ -26,7 +26,7 @@ uses
   plgitemu, stackitemu, stacksubitemu, hintu, droptgtu, shcontextu, notifieru,
   PIDL, dwm_unit, EColor, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
   processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu,
-  MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu;
+  MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu, iniproc;
 
 {$R *.res}
 
@@ -335,7 +335,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function DockAddMenu(hMenu: HWND): uint; stdcall;
+procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer); stdcall;
+begin
+  try
+    if assigned(frmmain) then frmmain.mexecute(WideString(exename), WideString(params), WideString(dir), showcmd, id);
+  except
+    on e: Exception do if assigned(frmmain) then frmmain.err('DockExecute', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+function DockAddMenu(hMenu: THandle): THandle; stdcall;
 begin
   result := 0;
   try
@@ -373,7 +382,7 @@ begin
   if assigned(frmmain) then if assigned(frmmain.ItemMgr) then frmmain.ItemMgr.DeleteItem(id);
 end;
 //------------------------------------------------------------------------------
-function DockAddProgram(data: pchar): uint; stdcall;
+function DockAddProgram(data: pchar): THandle; stdcall;
 begin
   try
     result := 0;
@@ -480,7 +489,7 @@ var
   idx: integer;
   setsFiles: TStrings;
   SetsFilename, ProgramPath: string;
-  hMutex: HANDLE;
+  hMutex: THandle;
   h: THandle;
 begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
@@ -566,8 +575,6 @@ begin
   {$ifdef EXT_DEBUG} AddLog('frmmain.Create'); {$endif}
   SetWindowLongPtr(frmmain.handle, GWL_EXSTYLE, GetWindowLongPtr(frmmain.handle, GWL_EXSTYLE) or WS_EX_LAYERED or WS_EX_TOOLWINDOW);
   frmmain.Caption := PROGRAM_NAME;
-  frmmain.RunsOnWinVistaOrHigher := VerInfo.dwMajorVersion >= 6;
-  frmmain.RunsOnWin10 := VerInfo.dwMajorVersion >= 10;
   {$ifdef EXT_DEBUG} AddLog('SetWindowLongPtr frmmain'); {$endif}
 
   RegisterWindowItemClass;

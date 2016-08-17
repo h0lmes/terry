@@ -95,7 +95,7 @@ type
     color_data: uint;
     background_color: uint;
     SpecialFolder: string;
-    ItemHWnd: uint;
+    ItemHWnd: HWND;
     FChanged: boolean;
     item: TStackItem;
     FImage: Pointer;

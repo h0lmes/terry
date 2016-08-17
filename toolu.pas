@@ -162,7 +162,7 @@ function GetKnownPath(rfid: KNOWNFOLDERID): WideString;
 procedure setdisplaymode(x: integer = 800; y: integer = 600; bits: integer = 16; freq: integer = 60);
 function GetLangID: integer;
 function GetLangIDString(id: integer): string;
-function GetLangIDName(id: integer): string;
+function GetLangIDName(id: integer): WideString;
 function GetRecycleBinState: integer;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
@@ -172,14 +172,14 @@ procedure SetClipboard(Text: string);
 function GetClipboard: string;
 function ColorToString(Color: uint): string;
 function StringToColor(const str: string): uint;
-function confirm(handle: HANDLE; Text: string = ''): boolean;
-function FindWinamp: HANDLE;
+function confirm(handle: HWND; Text: string = ''): boolean;
+function FindWinamp: HWND;
 function LaunchWinamp(sw: integer = sw_shownormal): boolean;
 function wacmd(cmd: HANDLE): boolean;
 procedure AddLog(LogString: string);
 procedure TruncLog(fs: TFileStream);
 procedure LogWindow(handle: HWND);
-procedure bsm(msg: HANDLE; wparam: WPARAM; lparam: LPARAM);
+procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);
 function IsIdenticalStreams(Source, Destination: TStream): boolean;
 procedure SendShift(hwnd: HWnd; Down: Boolean);
 procedure SendCtrl(hwnd: HWnd; Down: Boolean);
@@ -516,7 +516,7 @@ end;
 //------------------------------------------------------------------------------
 procedure searchfiles(path, mask: string; list: TStrings);
 var
-  fhandle: HANDLE;
+  fhandle: THandle;
   f: TWin32FindData;
 begin
   list.Clear;
@@ -905,15 +905,15 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function GetLangIDName(id: integer): string;
+function GetLangIDName(id: integer): WideString;
 const
   MAX_LANG_LEN = 85;
 var
-  buffer: array [0..MAX_LANG_LEN] of char;
+  buffer: array [0..MAX_LANG_LEN] of wchar;
 begin
   result := '';
-  if GetLocaleInfo(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
-    result := pchar(buffer);
+  if GetLocaleInfoW(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
+    result := pwchar(buffer);
 end;
 //------------------------------------------------------------------------------
 // returns 1 for full bin, 0 for empty bin
@@ -1084,13 +1084,13 @@ begin
   Result := StrToInt(str);
 end;
 //------------------------------------------------------------------------------
-function confirm(handle: HANDLE; Text: string = ''): boolean;
+function confirm(handle: HWND; Text: string = ''): boolean;
 begin
   if Text = '' then Text := 'Confirm action';
   Result := messagebox(handle, PChar(Text), 'Confirm', mb_yesno or mb_iconexclamation or mb_defbutton2) = idYes;
 end;
 //------------------------------------------------------------------------------
-function FindWinamp: HANDLE;
+function FindWinamp: HWND;
 begin
   Result := findwindow('BaseWindow', nil);
   if not IsWindow(Result) then
@@ -1133,7 +1133,7 @@ end;
 //------------------------------------------------------------------------------
 function wacmd(cmd: HANDLE): boolean;
 var
-  wahwnd: HANDLE;
+  wahwnd: THandle;
 begin
   Result := False;
   wahwnd := FindWinamp;
@@ -1226,7 +1226,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: HANDLE; dwData: ULONG_PTR): BOOL; stdcall;
+function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: THandle; dwData: ULONG_PTR): BOOL; stdcall;
 begin
   result := false;
   if hData <> 0 then
@@ -1261,7 +1261,7 @@ begin
   AddLog('-');
 end;
 //------------------------------------------------------------------------------
-procedure bsm(msg: HANDLE; wparam: WPARAM; lparam: LPARAM);
+procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);
 var
   recip: integer;
 begin

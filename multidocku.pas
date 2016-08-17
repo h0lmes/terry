@@ -87,7 +87,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TMultiDock.Enum;
 var
-  h: HANDLE;
+  h: THandle;
 begin
   listWindows.clear;
   h := FindWindow('Progman', nil);
@@ -110,7 +110,7 @@ begin
   while i < listWindows.Count do
   begin
     // dock center point
-    GetWindowRect(HANDLE(listWindows.items[i]), rDock);
+    GetWindowRect(HWND(listWindows.items[i]), rDock);
     ptDock.x := (rDock.Right + rDock.Left) div 2;
     ptDock.y := (rDock.Bottom + rDock.Top) div 2;
     // get monitor
@@ -141,7 +141,7 @@ begin
   idx := 0;
   while idx < listWindows.Count do
   begin
-    postmessage(HANDLE(listWindows.items[idx]), WM_COMMAND, IDM_QUIT, 0);
+    postmessage(HWND(listWindows.items[idx]), WM_COMMAND, IDM_QUIT, 0);
     inc(idx);
   end;
 end;

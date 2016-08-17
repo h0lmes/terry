@@ -13,6 +13,9 @@ type
   TProcessHelper = class(TObject)
   private
     FReady: boolean;
+    FVistaOrHigher: boolean;
+    FWin7OrHigher: boolean;
+    FWin10: boolean;
     crsection: TCriticalSection;
     listProcess: TStrings; // process + PID
     listProcessFullName: TStrings; // process full module name + PID
@@ -25,16 +28,16 @@ type
     hPowrprofDll: HMODULE;
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
     {$ifdef CPU64}
-    QueryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PWChar; var lpdwSize: dword): boolean; stdcall;
+    QueryFullProcessImageName: function(hProcess: THandle; dwFlags: dword; lpExeName: PWChar; var lpdwSize: dword): boolean; stdcall;
     {$else CPU64}
-    QueryFullProcessImageName: function(hProcess: HANDLE; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
+    QueryFullProcessImageName: function(hProcess: THandle; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
     {$endif CPU64}
     // processes //
     procedure EnumProc32;
     procedure EnumProc64;
     procedure AddProcessById(processId: DWORD);
     procedure GetProcessPIDs(Name: string; var pids: TFPList; OnlyFist: boolean = false);
-    function GetFullNameByHProcess(hProcess: HANDLE): string;
+    function GetFullNameByHProcess(hProcess: THandle): string;
     function SetPrivilege(Name: string): boolean;
     function GetProcesses: string;
     function GetProcessesFullName: string;
@@ -45,7 +48,7 @@ type
     property ProcessesFullName: string read GetProcessesFullName;
     // //
     class procedure Cleanup;
-    constructor Create(bVistaOrGreater: boolean);
+    constructor Create;
     destructor Destroy; override;
     procedure EnterCRS;
     procedure LeaveCRS;
@@ -58,8 +61,8 @@ type
     procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
     // windows //
-    class function GetWindowText(h: THandle): string;
-    procedure AllowSetForeground(hWnd: HWND);
+    class function GetWindowText(wnd: THandle): string;
+    procedure AllowSetForeground(wnd: HWND);
     function WindowOnTop(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle);
     procedure ActivateWindowList(list: TFPList);
@@ -86,10 +89,19 @@ begin
   ProcessHelper := nil;
 end;
 //------------------------------------------------------------------------------
-constructor TProcessHelper.Create(bVistaOrGreater: boolean);
+constructor TProcessHelper.Create;
+var
+  VerInfo: windows.TOSVersioninfo;
 begin
   FReady := false;
   inherited Create;
+
+  VerInfo.dwOSVersionInfoSize:= sizeof(TOSVersionInfo);
+  windows.GetVersionEx(VerInfo);
+  FVistaOrHigher := VerInfo.dwMajorVersion >= 6;
+  FWin7OrHigher := (VerInfo.dwMajorVersion > 6) or ((VerInfo.dwMajorVersion = 6) and (VerInfo.dwMinorVersion >= 2));
+  FWin10 := VerInfo.dwMajorVersion >= 10;
+
   crsection := TCriticalSection.Create;
   listProcess := TStringList.Create;
   listProcessFullName := TStringList.Create;
@@ -104,7 +116,7 @@ begin
   @QueryFullProcessImageName := nil;
   @AllowSetForegroundWindow := nil;
 
-  if bVistaOrGreater then
+  if FVistaOrHigher then
   begin
     hKernel32 := GetModuleHandle('KERNEL32.DLL');
     if hKernel32 = 0 then hKernel32 := LoadLibrary('KERNEL32.DLL');
@@ -179,17 +191,16 @@ end;
 procedure TProcessHelper.EnumProc;
 begin
   {$ifdef CPU64}
-  EnumProc64;
+  if FWin10 then EnumProc32 else EnumProc64;
   {$else CPU64}
-  //EnumProc32;
-  EnumProc64;
+  if FWin10 then EnumProc32 else EnumProc64;
   {$endif CPU64}
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc32;
 var
-  snapshotHandle: HANDLE;
-  hProcess: HANDLE;
+  snapshotHandle: THandle;
+  hProcess: THandle;
   processEntry: TProcessEntry32;
   flag: bool;
   idx: integer;
@@ -272,7 +283,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.AddProcessById(processId: DWORD);
 var
-  hProcess: HANDLE;
+  hProcess: THandle;
   hMod: HMODULE;
   cbNeeded: DWORD;
   szProcessName: array [0..MAX_PATH - 1] of TCHAR;
@@ -291,7 +302,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.GetFullNameByHProcess(hProcess: HANDLE): string;
+function TProcessHelper.GetFullNameByHProcess(hProcess: THandle): string;
 var
   size: dword;
   {$ifdef CPU64}
@@ -333,7 +344,7 @@ end;
 procedure TProcessHelper.Kill(Name: string);
 var
   index: integer;
-  hProc: HANDLE;
+  hProc: THandle;
   pids: TFPList;
 begin
   EnumProc;
@@ -592,37 +603,37 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TProcessHelper.GetWindowText(h: THandle): string;
+class function TProcessHelper.GetWindowText(wnd: THandle): string;
 var
   win_name: array [0..255] of char;
 begin
-  windows.GetWindowText(h, @win_name[0], 255);
+  windows.GetWindowText(wnd, @win_name[0], 255);
   result := strpas(pchar(@win_name[0]));
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.AllowSetForeground(hWnd: HWND);
+procedure TProcessHelper.AllowSetForeground(wnd: HWND);
 var
   dwProcess: dword;
 begin
   if assigned(AllowSetForegroundWindow) then
   begin
     dwProcess := 0;
-    GetWindowThreadProcessId(hWnd, @dwProcess);
+    GetWindowThreadProcessId(wnd, @dwProcess);
     AllowSetForegroundWindow(dwProcess);
   end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.WindowOnTop(wnd: THandle): boolean;
-    function ZOrderIndex(hWnd: uint): integer;
+    function ZOrderIndex(wnd: HWND): integer;
     var
       index: integer;
-      h: THandle;
+      h: HWND;
     begin
       result := 0;
       index := 0;
 	    h := FindWindow('Progman', nil);
 	    if h = 0 then h := FindWindow('Dwm', nil);
-	    while (h <> 0) and (h <> hWnd) do
+	    while (h <> 0) and (h <> wnd) do
 	    begin
 		      inc(index);
 		      h := GetWindow(h, GW_HWNDPREV);

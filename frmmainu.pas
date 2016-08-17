@@ -29,7 +29,7 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure trayiconMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
-    inta: cardinal;
+    inta: THandle;
     FProgramIsClosing: boolean;
     FSavingSettings: boolean;
     FAllowCloseProgram: boolean;
@@ -106,8 +106,6 @@ type
     AHint: THint;
     Tray: TTrayController;
     StartMenu: TStartMenuController;
-    RunsOnWinVistaOrHigher: boolean;
-    RunsOnWin10: boolean;
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
     procedure CloseProgram;
@@ -116,12 +114,12 @@ type
     procedure err(where: WideString; e: Exception);
     procedure notify(message: WideString; silent: boolean = False);
     procedure alert(message: WideString);
-    procedure ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
-    procedure DeactivateHint(hwnd: uint);
+    procedure ActivateHint(hwnd: THandle; ACaption: WideString; x, y: integer);
+    procedure DeactivateHint(hwnd: THandle);
     procedure SetTheme(ATheme: string);
     function  BaseCmd(id: TDParam; param: PtrInt): PtrInt;
     procedure SetParam(id: TDParam; Value: integer);
-    function  GetHMenu(ParentMenu: uint): uint;
+    function  GetHMenu(ParentMenu: THandle): THandle;
     function  ContextMenu(pt: Windows.TPoint): boolean;
     procedure SetFont(var Value: TDFontData);
     procedure LockMouseEffect(hWnd: HWND; lock: boolean);
@@ -129,10 +127,10 @@ type
     function  GetMonitorWorkareaRect(pMonitor: PInteger = nil): Windows.TRect;
     function  GetMonitorBoundsRect(pMonitor: PInteger = nil): Windows.TRect;
     procedure MoveDock(iDirection: integer);
-    procedure OnDragEnter(list: TStrings; hWnd: uint);
+    procedure OnDragEnter(list: TStrings; hWnd: THandle);
     procedure OnDragOver;
     procedure OnDragLeave;
-    procedure OnDrop(files: TStrings; hWnd: uint);
+    procedure OnDrop(files: TStrings; hWnd: THandle);
     procedure DropFiles(files: TStrings);
     procedure AddFile; overload;
     procedure AddFile(Filename: string); overload;
@@ -206,7 +204,7 @@ begin
     //if FileExists(theFile) then FHook := LoadLibrary(pchar(theFile));
 
     // ProcessHelper (must be created before tray controller). Depends on DWM //
-    ProcessHelper := TProcessHelper.Create(RunsOnWinVistaOrHigher);
+    ProcessHelper := TProcessHelper.Create;
 
     sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
@@ -362,7 +360,7 @@ begin
     FBlurWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
       'BlurWindow', WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
     dwm.ExcludeFromPeek(FBlurWindow);
-    SetWindowLong(Handle, GWL_HWNDPARENT, FBlurWindow); // attach main window
+    SetWindowLongPtr(Handle, GWL_HWNDPARENT, FBlurWindow); // attach main window
     SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
   except
     on e: Exception do raise Exception.Create('Base.CreateBlurWindow' + LineEnding + e.message);
@@ -372,7 +370,7 @@ end;
 procedure Tfrmmain.DestroyBlurWindow;
 begin
   try
-    SetWindowLong(Handle, GWL_HWNDPARENT, 0); // detach main window
+    SetWindowLongPtr(Handle, GWL_HWNDPARENT, 0); // detach main window
     if IsWindow(FBlurWindow) then DestroyWindow(FBlurWindow);
     FBlurWindow := 0;
   except
@@ -651,7 +649,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NativeWndProc(var message: TMessage);
 var
-  dwSize: uint;
+  dwSize: DWORD;
   ri: RAWINPUT;
 begin
   message.result := 0;
@@ -700,7 +698,7 @@ end;
 procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
 var
   key: char;
-  fw: uint;
+  fw: THandle;
 begin
   if assigned(frmcmd) then
   begin
@@ -1105,12 +1103,12 @@ end;
 // it is complicated. describe later ...
 procedure Tfrmmain.SetNotForeground;
 
-function IsDockWnd(wnd: uint): boolean;
+function IsDockWnd(wnd: THandle): boolean;
 begin
   result := (wnd = handle) or (wnd = FBlurWindow) or (ItemMgr.IsItem(wnd) <> 0);
 end;
 
-function ZOrderIndex(hWnd: uint): integer;
+function ZOrderIndex(hWnd: THandle): integer;
 var
   index: integer;
   h: THandle;
@@ -1126,7 +1124,7 @@ begin
   result := index;
 end;
 
-function DockAboveWnd(wnd: uint): boolean;
+function DockAboveWnd(wnd: THandle): boolean;
 var
   rect, dockrect: windows.TRect;
   buf: array [0..MAX_PATH - 1] of char;
@@ -1212,7 +1210,7 @@ begin
   ContextMenu(pt);
 end;
 //------------------------------------------------------------------------------
-function Tfrmmain.GetHMenu(ParentMenu: uint): uint;
+function Tfrmmain.GetHMenu(ParentMenu: THandle): THandle;
   function IsValidItemString(str: string): boolean;
   var
     classname: string;
@@ -1238,9 +1236,7 @@ begin
   AppendMenuW(FMenuCreate, MF_STRING, $f023, pwchar(UTF8Decode(XSpecificIcons)));
   AppendMenuW(FMenuCreate, MF_STRING, $f021, pwchar(UTF8Decode(XEmptyIcon)));
   AppendMenuW(FMenuCreate, MF_STRING, $f022, pwchar(UTF8Decode(XFile)));
-  AppendMenuW(FMenuCreate, MF_SEPARATOR, 0, '-');
   AppendMenuW(FMenuCreate, MF_STRING, $f024, pwchar(UTF8Decode(XSeparator)));
-  AppendMenuW(FMenuCreate, MF_SEPARATOR, 0, '-');
   AppendMenuW(FMenuCreate, MF_STRING, $f025, pwchar(UTF8Decode(XDock)));
   if sets.GetPluginCount = -1 then sets.ScanPlugins;
   if sets.GetPluginCount > 0 then
@@ -1277,7 +1273,7 @@ begin
   LockMouseEffect(Handle, true);
   SetForegroundWindow(handle);
   SetForeground;
-  msg.WParam := uint(TrackPopupMenuEx(FMenu, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
+  msg.WParam := WPARAM(TrackPopupMenuEx(FMenu, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
   WMCommand(msg);
   Result := True;
 end;
@@ -1447,7 +1443,7 @@ begin
   else messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.ActivateHint(hwnd: uint; ACaption: WideString; x, y: integer);
+procedure Tfrmmain.ActivateHint(hwnd: THandle; ACaption: WideString; x, y: integer);
 var
   monitor: cardinal;
 begin
@@ -1464,7 +1460,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.DeactivateHint(hwnd: uint);
+procedure Tfrmmain.DeactivateHint(hwnd: THandle);
 begin
   if not FProgramIsClosing and assigned(AHint) then AHint.DeactivateHint(hwnd);
 end;
@@ -1535,7 +1531,7 @@ end;
 // hide/show taskbar and start button
 procedure Tfrmmain.HideTaskbar(hide: boolean);
 var
-  hwndTaskbar, hwndButton: uint;
+  hwndTaskbar, hwndButton: THandle;
   buttonVisible, taskbarVisible, updateWorkarea: boolean;
   taskbarRect, taskbarMonitorWorkarea, taskbarMonitorBounds: Windows.TRect;
   ptMon, ptTaskbar: windows.TPoint;
@@ -1616,7 +1612,7 @@ end;
 procedure Tfrmmain.SetWorkarea(rect: windows.TRect);
   procedure GetMaximizedWindows(monitorBounds: windows.TRect; list: TFPList);
   var
-    h: HANDLE;
+    h: THandle;
     wp: WINDOWPLACEMENT;
   begin
     wp.length := sizeof(wp);
@@ -1773,7 +1769,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: uint);
+procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: THandle);
 begin
   KillTimer(Handle, ID_TIMER_DRAGLEAVE); // stop tracing mouse pointer
   ItemMgr.DragEnter;
@@ -1806,7 +1802,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.OnDrop(files: TStrings; hWnd: uint);
+procedure Tfrmmain.OnDrop(files: TStrings; hWnd: THandle);
 var
   pt: Windows.TPoint;
 begin
@@ -2202,13 +2198,13 @@ begin
     inta := findwindowex(inta, 0, lpsz1, lpsz2);
     SetClipboard(inttohex(inta, 8));
   end
-  else if cmd = 'showwindow' then showwindow(uint(inta), strtoint(params))
+  else if cmd = 'showwindow' then showwindow(THandle(inta), strtoint(params))
   else if cmd = 'sendmessage' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i2) then i2 := 0;
     if not trystrtoint(Trim(fetch(params, ',', true)), i3) then i3 := 0;
     if not trystrtoint(Trim(fetch(params, ',', true)), i4) then i4 := 0;
-    sendmessage(uint(inta), uint(i2), i3, i4);
+    sendmessage(THandle(inta), uint(i2), i3, i4);
   end
   else if cmd = 'winamp' then
   begin

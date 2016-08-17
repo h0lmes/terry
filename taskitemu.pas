@@ -39,7 +39,7 @@ type
     procedure RemoveNonExisting;
     procedure UpdateItem;
 
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
@@ -54,7 +54,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TTaskItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TTaskItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FTaskGrouping := AParams.TaskGrouping;
@@ -353,7 +353,7 @@ begin
   SetMenuItemInfo(FHMenu, $f004, false, @mii);
   LME(true);
 
-  msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  msg.WParam := WPARAM(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
 end;
 //------------------------------------------------------------------------------

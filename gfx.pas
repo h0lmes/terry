@@ -94,7 +94,7 @@ procedure CreateColorMatrix(color_data: integer; var clMatrix: ColorMatrix);
 procedure CreateLightnessMatrix(Lit: integer; var brMatrix: ColorMatrix);
 procedure CreateAlphaMatrix(alpha: integer; var matrix: ColorMatrix);
 procedure CreateColorAttributes(ColorData: cardinal; Selected: boolean; out attr: Pointer);
-function CreateGraphics(dc: hdc; color: uint = 0): Pointer;
+function CreateGraphics(dc: HDC; color: uint = 0): Pointer;
 procedure DeleteGraphics(hgdip: Pointer);
 procedure AddPathRoundRect(path: pointer; x, y, w, h, radius: integer); overload;
 procedure AddPathRoundRect(path: pointer; rect: GDIPAPI.TRect; radius: integer); overload;
@@ -107,8 +107,8 @@ procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer 
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
-function GetIconFromFileSH(aFile: string): HICON;
-procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+function GetIconFromFileSH(aFile: WideString): HICON;
+procedure LoadImage(imagefile: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure CreateDefaultImage(var image: pointer);
 procedure CreateDefaultStackImage(var image: pointer);
 function IconToGDIPBitmap(AIcon: HICON): Pointer;
@@ -1012,7 +1012,7 @@ end;
 //------------------------------------------------------------------------------
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
-  sfi: TSHFileInfoA;
+  sfi: TSHFileInfoW;
   hil: HIMAGELIST;
   ico: HICON;
   shil: cardinal;
@@ -1027,7 +1027,7 @@ begin
     shil := SHIL_EXTRALARGE;
     if bIsWindowsVista then shil := SHIL_JUMBO;
 
-    SHGetFileInfoA(pchar(pidl), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
+    SHGetFileInfoW(pwchar(pidl), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
     if S_OK = SHGetImageList(shil, IID_IImageList, @hil) then
         ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
 
@@ -1141,10 +1141,10 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-function GetIconFromFileSH(aFile: string): HICON;
+function GetIconFromFileSH(aFile: WideString): HICON;
 var
   imageList: HIMAGELIST;
-  sfi: TSHFileInfo;
+  sfi: TSHFileInfoW;
   shil: cardinal;
 begin
   try
@@ -1152,7 +1152,7 @@ begin
     shil := SHIL_EXTRALARGE;
     if bIsWindowsVista then shil := SHIL_JUMBO;
 
-    SHGetFileInfo(PChar(aFile), 0, sfi, SizeOf(TSHFileInfo), SHGFI_SYSICONINDEX);
+    SHGetFileInfoW(PWChar(aFile), 0, sfi, SizeOf(TSHFileInfoW), SHGFI_SYSICONINDEX);
     if S_OK = SHGetImageList(shil, IID_IImageList, @imageList) then
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
 
@@ -1208,12 +1208,12 @@ begin
   Result := itext;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure LoadImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImage(imagefile: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   icoIndex: integer;
   iIcon: word;
   ico: HICON;
-  ext: string;
+  ext: WideString;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
@@ -1230,10 +1230,10 @@ begin
     end
     else
     begin
-      ext := AnsiLowerCase(ExtractFileExt(imagefile));
+      ext := LowerCase(ExtractFileExt(imagefile));
       if (ext = '.png') or (ext = '.gif') then
       begin
-        GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), image);
+        GdipCreateBitmapFromFile(PWideChar(imagefile), image);
       end
       else
       begin
@@ -1241,7 +1241,7 @@ begin
         if iIcon = 0 then ico := GetIconFromFileSH(imagefile);
         if ico = 0 then
         begin
-          ico := ExtractAssociatedIcon(hInstance, pchar(imagefile), @iIcon);
+          ico := ExtractAssociatedIconW(hInstance, pwchar(imagefile), @iIcon);
           image := IconToGdipBitmap(ico);
           DeleteObject(ico);
         end else begin

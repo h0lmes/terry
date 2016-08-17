@@ -3,7 +3,7 @@ unit customitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math,
+uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, FileUtil,
   declu, dockh, gfx, toolu;
 
 const
@@ -24,9 +24,9 @@ type
     FHover: boolean;
   protected
     FFreed: boolean;
-    FHWnd: HANDLE;
-    FHWndParent: HANDLE;
-    FHMenu: HANDLE;
+    FHWnd: HWND;
+    FHWndParent: HWND;
+    FHMenu: THandle;
     FCaption: WideString;
     FX: integer;
     FY: integer;
@@ -94,7 +94,7 @@ type
   public
     property Freed: boolean read FFreed write FFreed;
     property Floating: boolean read FFloating;
-    property HWnd: PtrUint read FHWnd;
+    property Handle: HWND read FHWnd;
     property Caption: WideString read FCaption write SetCaption;
     property X: integer read FX;
     property Y: integer read FY;
@@ -102,7 +102,7 @@ type
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
 
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); virtual;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure SetFont(var Value: TDFontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); virtual; abstract;
@@ -120,7 +120,7 @@ type
     function CanOpenFolder: boolean; virtual;
     procedure OpenFolder; virtual;
     function RegisterProgram: string; virtual;
-    function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; virtual;
+    function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(szIni: pchar; szIniGroup: pchar); virtual; abstract;
 
     function HitTest(Ax, Ay: integer): boolean;
@@ -144,12 +144,12 @@ begin
     result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TCustomItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
 
-  FHWndParent := AHWndParent;
+  FHWndParent := wndParent;
   RegisterWindowItemClass;
   FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, TDITEM_WCLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
@@ -158,7 +158,7 @@ begin
     exit;
   end;
   dockh.ExcludeFromPeek(FHWnd);
-  SetWindowLong(FHWnd, GWL_USERDATA, PtrUint(self));
+  SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUint(self));
 
   FItemSize := AParams.ItemSize;
   FSize := FItemSize;
@@ -434,7 +434,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TCustomItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
+function TCustomItem.DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean;
 begin
   result := false;
 end;

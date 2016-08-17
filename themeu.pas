@@ -747,7 +747,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TDTheme.SearchThemes(ThemeName: string; lb: TListBox);
 var
-  fhandle: HANDLE;
+  fhandle: THandle;
   f: TWin32FindData;
   idx: integer;
 begin
@@ -755,11 +755,11 @@ begin
   lb.items.Clear;
 
   fhandle := FindFirstFile(PChar(FThemesFolder + '*.*'), f);
-  if not (fhandle = HANDLE(-1)) then
+  if not (fhandle = THandle(-1)) then
     if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
   while FindNextFile(fhandle, f) do
     if ((f.dwFileAttributes and 16) = 16) then lb.items.add(AnsiToUTF8(f.cFileName));
-  if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
+  if not (fhandle = THandle(-1)) then Windows.FindClose(fhandle);
 
   idx := 0;
   while idx < lb.items.Count do
@@ -789,17 +789,17 @@ procedure TDTheme.ThemesMenu(ThemeName: string; hMenu: THandle);
   end;
 
 var
-  fhandle: HANDLE;
+  fhandle: THandle;
   f: TWin32FindData;
   idx: integer;
 begin
   idx := 1;
   fhandle := FindFirstFile(PChar(FThemesFolder + '*.*'), f);
-  if not (fhandle = HANDLE(-1)) then
+  if not (fhandle = THandle(-1)) then
     if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, idx);
   while FindNextFile(fhandle, f) do
     if ((f.dwFileAttributes and 16) = 16) then AppendMI(f.cFileName, idx);
-  if not (fhandle = HANDLE(-1)) then Windows.FindClose(fhandle);
+  if not (fhandle = THandle(-1)) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------
 destructor TDTheme.Destroy;

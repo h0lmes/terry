@@ -5,7 +5,7 @@ unit stackitemu;
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
   Math, IniFiles, GDIPAPI, PIDL,
-  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu, dwm_unit;
+  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu, dwm_unit, iniproc;
 
 const
   MAX_SUBITEMS = 64;
@@ -29,7 +29,7 @@ type
     hint_align: integer;
     hint_alpha: integer;
     draw: boolean;
-    hWnd: HANDLE;
+    wnd: HWND;
     item: TCustomSubitem;
   end;
 
@@ -38,7 +38,7 @@ type
   TStackItem = class(TCustomDrawItem)
   private
     FUseShellContextMenus: boolean;
-    FImageFile: string;
+    FImageFile: WideString;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
     FItemCount: integer;
     FState: TStackState;
@@ -49,7 +49,7 @@ type
     FOpenAnimation: boolean;
     FDistort: integer;
     FDragOver: boolean;
-    FSpecialFolder: string;
+    FSpecialFolder: WideString;
     FPreview: integer; // 0 - none, 1 - four, 2 - nine
     FPreviewImage: pointer;
     FPreviewImageW: uint;
@@ -76,7 +76,7 @@ type
     procedure CheckDeleteSubitems;
     procedure DeleteSubitems;
     procedure CopyCSIBucket(pFrom, pTo: PCSIBucket);
-    function ItemIndex(HWnd: HANDLE): integer;
+    function ItemIndex(wnd: HWND): integer;
     procedure AllSubitemsCmd(id: TDParam; param: PtrInt);
     procedure OpenStack;
     procedure CloseStack(immediate: boolean = false);
@@ -86,14 +86,14 @@ type
     procedure ShowBackgroundWindow(AX, AY, AW, AH: integer);
     procedure ZOrderTop;
     procedure ZOrderNoTop;
-    function ZOrderItems(InsertAfter: HANDLE): HANDLE;
+    function ZOrderItems(InsertAfter: HWND): HWND;
   public
     property ItemCount: integer read FItemCount;
 
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
 
-    constructor Create(AData: string; AHWndParent: PtrUInt; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure SetFont(var Value: TDFontData); override;
@@ -105,10 +105,10 @@ type
     function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
     procedure Configure; override;
-    function DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean; override;
+    function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(szIni: pchar; szIniGroup: pchar); override;
 
-    class function Make(AHWnd: HANDLE; ACaption, AImage: string; ASpecialFolder: string = '';
+    class function Make(wnd: HWND; ACaption, AImage: WideString; ASpecialFolder: WideString = '';
       color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
       ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
@@ -116,7 +116,7 @@ type
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
-    function GetSubitemCaption(index: integer): string;
+    function GetSubitemCaption(index: integer): WideString;
     function SubitemToString(index: integer): string;
     procedure DeleteSubitem(index: integer);
     procedure SubitemMoveUp(index: integer);
@@ -127,7 +127,7 @@ type
 implementation
 uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TStackItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -176,9 +176,8 @@ end;
 procedure TStackItem.UpdateItem(AData: string);
 var
   IniFile, IniSection: string;
-  ini: TIniFile;
   idx: integer;
-  data: string;
+  data: WideString;
   list: TStrings;
 begin
   if FFreed then exit;
@@ -192,36 +191,35 @@ begin
 
       if (length(IniFile) > 0) and (length(IniSection) > 0) then
       begin
-        ini := TIniFile.Create(IniFile);
-        caption := ini.ReadString(IniSection, 'caption', '');
-        FImageFile := ini.ReadString(IniSection, 'image', '');
-        FColorData := toolu.StringToColor(ini.ReadString(IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
-        try FMode := SetRange(strtoint(ini.ReadString(IniSection, 'mode', '0')), 0, 1000);
+        Caption :=    GetIniStringW(IniFile, IniSection, 'caption', '');
+        FImageFile := GetIniStringW(IniFile, IniSection, 'image', '');
+        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
+
+        try FMode :=           SetRange(GetIniIntW(IniFile, IniSection, 'mode', 0), 0, 1000);
         except end;
-        try FOffset := SetRange(strtoint(ini.ReadString(IniSection, 'offset', '0')), -20, 50);
+        try FOffset :=         SetRange(GetIniIntW(IniFile, IniSection, 'offset', 0), -20, 50);
         except end;
-        try FAnimationSpeed := SetRange(strtoint(ini.ReadString(IniSection, 'animation_speed', inttostr(DEFAULT_ANIM_SPEED))), 1, 10);
+        try FAnimationSpeed := SetRange(GetIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED), 1, 10);
         except end;
-        try FDistort := SetRange(strtoint(ini.ReadString(IniSection, 'distort', inttostr(DEFAULT_DISTORT))), -10, 10);
+        try FDistort :=        SetRange(GetIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT), -10, 10);
         except end;
         FPreview := DEFAULT_STACK_PREVIEW;
-        try FPreview := SetRange(strtoint(ini.ReadString(IniSection, 'preview', '')), 0, 2);
+        try FPreview :=        SetRange(GetIniIntW(IniFile, IniSection, 'preview', FPreview), 0, 2);
         except end;
-        FSpecialFolder := ini.ReadString(IniSection, 'special_folder', '');
+        FSpecialFolder :=      GetIniStringW(IniFile, IniSection, 'special_folder', '');
         UpdateSpecialFolder;
-        try FShowBackground := boolean(strtoint(ini.ReadString(IniSection, 'background', '0')));
+        try FShowBackground := GetIniBoolW(IniFile, IniSection, 'background', false);
         except end;
-        try FBackgroundBlur := boolean(strtoint(ini.ReadString(IniSection, 'background_blur', '1')));
+        try FBackgroundBlur := GetIniBoolW(IniFile, IniSection, 'background_blur', true);
         except end;
-        FBackgroundColor := toolu.StringToColor(ini.ReadString(IniSection, 'background_color', toolu.ColorToString(DEFAULT_STACK_BGCOLOR)));
+        FBackgroundColor :=    toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEFAULT_STACK_BGCOLOR)));
 
         idx := 1;
         repeat
-          data := ini.ReadString(IniSection, 'subitem' + inttostr(idx), '');
+          data := GetIniStringW(IniFile, IniSection, WideString('subitem' + inttostr(idx)), '');
           if data <> '' then AddSubitem(data);
           inc(idx);
         until (data = '') or (idx > MAX_SUBITEMS);
-        ini.free;
       end
       else
       begin
@@ -384,7 +382,7 @@ begin
           if (FItemCount > 0) and (FState = stsOpen) then
           begin
             for idx := 0 to FItemCount - 1 do
-              if items[idx].hWnd = HANDLE(param) then result := FHWnd;
+              if items[idx].wnd = THandle(param) then result := FHWnd;
           end;
         end;
     end;
@@ -499,7 +497,7 @@ begin
   AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteIcon)));
 
   LME(true);
-  msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  msg.WParam := WPARAM(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
 end;
@@ -539,7 +537,7 @@ begin
         found := false;
         if FItemCount > 0 then
           for idx := 0 to FItemCount - 1 do
-            if items[idx].hWnd = HANDLE(lParam) then found := true;
+            if items[idx].wnd = THandle(lParam) then found := true;
         if not found then CloseStack;
       end;
 
@@ -600,17 +598,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.DropFile(hWnd: HANDLE; pt: windows.TPoint; filename: string): boolean;
+function TStackItem.DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean;
 var
   index: integer;
 begin
   result := not FFreed;
   if result then
   begin
-    if hWnd = FHWnd then DropFileI(filename)
+    if wnd = FHWnd then DropFileI(filename)
     else
     begin
-      index := ItemIndex(hWnd);
+      index := ItemIndex(wnd);
       if index <> NOT_AN_ITEM then items[index].item.DropFile(pt, filename);
     end;
   end;
@@ -642,19 +640,22 @@ end;
 procedure TStackItem.Save(szIni: pchar; szIniGroup: pchar);
 var
   idx: integer;
+  section, ini: WideString;
 begin
   if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
 
+  section := strpas(szIniGroup);
+  ini := strpas(szIni);
   WritePrivateProfileString(szIniGroup, nil, nil, szIni);
   WritePrivateProfileString(szIniGroup, 'class', 'stack', szIni);
-  if caption <> '' then WritePrivateProfileString(szIniGroup, 'caption', pchar(AnsiString(caption)), szIni);
-  if FImageFile <> '' then WritePrivateProfileString(szIniGroup, 'image', pchar(FImageFile), szIni);
+  if caption <> '' then WriteIniStringW(ini, section, 'caption', Caption);
+  if FImageFile <> '' then WriteIniStringW(ini, section, 'image', FImageFile);
   if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
   if FMode <> 0 then WritePrivateProfileString(szIniGroup, 'mode', pchar(inttostr(FMode)), szIni);
   if FOffset <> 0 then WritePrivateProfileString(szIniGroup, 'offset', pchar(inttostr(FOffset)), szIni);
   WritePrivateProfileString(szIniGroup, 'animation_speed', pchar(inttostr(FAnimationSpeed)), szIni);
   WritePrivateProfileString(szIniGroup, 'distort', pchar(inttostr(FDistort)), szIni);
-  WritePrivateProfileString(szIniGroup, 'special_folder', pchar(FSpecialFolder), szIni);
+  WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
   if FPreview <> DEFAULT_STACK_PREVIEW then WritePrivateProfileString(szIniGroup, 'preview', pchar(inttostr(FPreview)), szIni);
   if FShowBackground then WritePrivateProfileString(szIniGroup, 'background', '1', szIni);
   if FShowBackground then WritePrivateProfileString(szIniGroup, 'background_blur', '1', szIni);
@@ -667,17 +668,17 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TStackItem.Make(AHWnd: HANDLE; ACaption, AImage: string; ASpecialFolder: string = '';
+class function TStackItem.Make(wnd: HWND; ACaption, AImage: WideString; ASpecialFolder: WideString = '';
   color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
   ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
   AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEFAULT_STACK_BGCOLOR): string;
 begin
   result := 'class="stack";';
-  result := result + 'hwnd="' + inttostr(AHWnd) + '";';
-  if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
-  if AImage <> '' then result := result + 'image="' + AImage + '";';
-  if ASpecialFolder <> '' then result := result + 'special_folder="' + ASpecialFolder + '";';
+  result := result + 'hwnd="' + inttostr(wnd) + '";';
+  if ACaption <> '' then result := result + 'caption="' + AnsiString(ACaption) + '";';
+  if AImage <> '' then result := result + 'image="' + AnsiString(AImage) + '";';
+  if ASpecialFolder <> '' then result := result + 'special_folder="' + AnsiString(ASpecialFolder) + '";';
   if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if AMode <> 0 then result := result + 'mode="' + inttostr(AMode) + '";';
   if AOffset <> 0 then result := result + 'offset="' + inttostr(AOffset) + '";';
@@ -841,7 +842,7 @@ begin
         DeleteSubitem(FItemCount - 1);
         dec(FItemCount);
       end
-      else items[FItemCount - 1].hWnd := items[FItemCount - 1].item.HWnd;
+      else items[FItemCount - 1].wnd := items[FItemCount - 1].item.Handle;
     finally
       FUpdating := upd;
     end;
@@ -876,7 +877,7 @@ begin
   try
     items[index].item.Free;
     items[index].item := nil;
-    items[index].hWnd := 0;
+    items[index].wnd := 0;
     while index < FItemCount - 1 do
     begin
       CopyCSIBucket(@items[index + 1], @items[index]);
@@ -902,7 +903,7 @@ begin
     begin
       items[idx].item.Free;
       items[idx].item := nil;
-      items[idx].hWnd := 0;
+      items[idx].wnd := 0;
     end;
     FItemCount := 0;
 
@@ -917,7 +918,7 @@ begin
   AddSubitem(TShortcutSubitem.Make(0, 'New item', '', '', '', ''));
 end;
 //------------------------------------------------------------------------------
-function TStackItem.GetSubitemCaption(index: integer): string;
+function TStackItem.GetSubitemCaption(index: integer): WideString;
 begin
   result := '';
   if (index >= 0) and (index < FItemCount) then
@@ -979,21 +980,21 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.CopyCSIBucket(pFrom, pTo: PCSIBucket);
 begin
-  pTo^.hWnd := pFrom^.hWnd;
+  pTo^.wnd := pFrom^.wnd;
   pTo^.item := pFrom^.item;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.ItemIndex(HWnd: HANDLE): integer;
+function TStackItem.ItemIndex(wnd: HWND): integer;
 var
   idx: integer;
 begin
   try
     result := NOT_AN_ITEM;
-    if (HWnd = 0) or (FItemCount <= 0) then exit;
+    if (wnd = 0) or (FItemCount <= 0) then exit;
 
     for idx := 0 to FItemCount - 1 do
     begin
-      if items[idx].hWnd = hWnd then
+      if items[idx].wnd = wnd then
       begin
         result := idx;
         break;
@@ -1084,7 +1085,7 @@ begin
       if showItems then
       begin
         wpi := BeginDeferWindowPos(FItemCount);
-        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
+        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].wnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
         EndDeferWindowPos(wpi);
       end;
   end
@@ -1109,7 +1110,7 @@ begin
       begin
         if FShowBackground then ShowWindow(FBackgroundWindow, SW_HIDE);
         wpi := BeginDeferWindowPos(FItemCount);
-        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].hWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
+        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].wnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
         EndDeferWindowPos(wpi);
       end else begin
         ShowStackState;
@@ -1254,18 +1255,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackItem.ZOrderItems(InsertAfter: HANDLE): HANDLE;
+function TStackItem.ZOrderItems(InsertAfter: HWND): HWND;
 var
   idx: integer;
 begin
   result := 0;
   if FEnabled then
   begin
-    if FItemCount > 0 then result := items[0].hWnd;
+    if FItemCount > 0 then result := items[0].wnd;
     idx := 0;
     while idx < FItemCount do
     begin
-      SetWindowPos(items[idx].hWnd, InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
+      SetWindowPos(items[idx].wnd, InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
       inc(idx);
     end;
   end;

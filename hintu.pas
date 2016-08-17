@@ -12,9 +12,8 @@ type
   THint = class
   private
     wndClass: TWndClass;
-    WindowClassInstance: uint;
     FHWnd: THandle;
-    FHWndOwner: uint;
+    FHWndOwner: THandle;
     FSite: TBaseSite;
     FActivating: boolean;
     FVisible: boolean;
@@ -37,15 +36,15 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure ActivateHint(hwndOwner: uint; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
-    procedure DeactivateHint(hwndOwner: uint);
+    procedure ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
+    procedure DeactivateHint(hwndOwner: HWND);
     procedure DeactivateImmediate;
     procedure Timer;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-function WndProc(wnd: hwnd; message: uint; wParam: integer; lParam: integer): integer; stdcall;
+function WndProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
 var
   objHint: THint;
 begin
@@ -99,7 +98,7 @@ begin
 
   try
     FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, TDHINT_WCLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
-    if IsWindow(FHWnd) then SetWindowLong(FHWnd, GWL_USERDATA, cardinal(self))
+    if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('Hint.Create.CreateWindowEx failed', nil);
   except
     on e: Exception do err('Hint.Create.CreateWindowEx', e);
@@ -121,7 +120,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure THint.ActivateHint(hwndOwner: uint; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
+procedure THint.ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
 var
   wdc, dc: THandle;
   dst, font, family: Pointer;
@@ -365,7 +364,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure THint.DeactivateHint(hwndOwner: uint);
+procedure THint.DeactivateHint(hwndOwner: HWND);
 begin
   if hwndOwner = FHWndOwner then
   try

@@ -81,7 +81,7 @@ type
 
     // load/save //
     procedure SaveItems;
-    procedure SaveItem(HWnd: HANDLE);
+    procedure SaveItem(wnd: HWND);
 
     procedure SetItems1;
     procedure RecalcDock;
@@ -104,10 +104,10 @@ type
     procedure SetDropPlace(index: integer);
     procedure SetDropPlaceEx(index: integer);
 
-    procedure DockAdd(HWnd: THandle);
+    procedure DockAdd(wnd: HWND);
     procedure  AllItemTimer;
-    procedure PluginCallCreate(HWnd: HANDLE);
-    function  IsSeparator(HWnd: HANDLE): boolean;
+    procedure PluginCallCreate(wnd: HWND);
+    function  IsSeparator(wnd: HWND): boolean;
   public
     FItemArray: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
     FItemCount: integer;
@@ -173,7 +173,7 @@ type
     // items //
     procedure UnDelete;
     procedure CheckDeleted;
-    function  ZOrder(InsertAfter: HANDLE): uint;
+    function  ZOrder(InsertAfter: THandle): THandle;
     function  ItemIndex(HWnd: THandle): integer;
     procedure InsertItems(list: TStrings);
     procedure InsertItem(AData: string);
@@ -189,22 +189,22 @@ type
     procedure WMDeactivateApp;
 
     // Win Item Procs //
-    procedure Undock(HWnd: HANDLE);
-    procedure Dock(HWnd: HANDLE);
-    function  IsItem(HWnd: HANDLE): HANDLE;
-    function  ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
-    function  ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
-    function  ItemCmd(HWnd: HANDLE; id: TDParam; param: PtrInt): PtrInt;
+    procedure Undock(wnd: HWND);
+    procedure Dock(wnd: HWND);
+    function  IsItem(wnd: HWND): HWND;
+    function  ItemDropFile(wndItem: HWND; pt: windows.TPoint; filename: string): boolean;
+    function  ItemDropFiles(wndItem: HWND; pt: windows.TPoint; files: TStrings): boolean;
+    function  ItemCmd(wnd: HWND; id: TDParam; param: PtrInt): PtrInt;
     function  AllItemCmd(id: TDParam; param: PtrInt): PtrInt;
     procedure SetFont(var Value: TDFontData);
-    function  GetPluginFile(HWnd: HANDLE): string;
-    procedure SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
-    procedure SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
-    procedure PluginAnimate(HWnd: HANDLE);
-    procedure SetPluginCaption(HWnd: HANDLE; NewCaption: string);
-    function  GetPluginCaption(HWnd: HANDLE): string;
-    function  GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
-    function  IsPluginUndocked(HWnd: HANDLE): boolean;
+    function  GetPluginFile(wnd: HWND): string;
+    procedure SetPluginImage(wnd: HWND; lpImageNew: Pointer; AutoDelete: boolean);
+    procedure SetPluginOverlay(wnd: HWND; lpOverlayNew: Pointer; AutoDelete: boolean);
+    procedure PluginAnimate(wnd: HWND);
+    procedure SetPluginCaption(wnd: HWND; NewCaption: string);
+    function  GetPluginCaption(wnd: HWND): string;
+    function  GetPluginRect(wnd: HWND; var r: windows.TRect): boolean;
+    function  IsPluginUndocked(wnd: HWND): boolean;
 end;
 
 implementation
@@ -549,14 +549,14 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SaveItem(HWnd: HANDLE);
+procedure TItemManager.SaveItem(wnd: HWND);
 var
   index: integer;
   Inst: TCustomItem;
 begin
   try
-    index := ItemIndex(HWnd);
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    index := ItemIndex(wnd);
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
   except
     on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
@@ -683,7 +683,7 @@ begin
   if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ZOrder(InsertAfter: HANDLE): uint;
+function TItemManager.ZOrder(InsertAfter: THandle): THandle;
 var
   idx: integer;
 begin
@@ -1113,12 +1113,12 @@ begin
   if Update then ItemsChanged(true);
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.PluginCallCreate(HWnd: HANDLE);
+procedure TItemManager.PluginCallCreate(wnd: HWND);
 var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
   except
     on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
@@ -1181,7 +1181,7 @@ begin
         FreeAndNil(Inst);
       end else // if everything is okay
       begin
-        result := Inst.HWnd;
+        result := Inst.Handle;
         AddToRegisteredPrograms(result);
       end;
   except
@@ -1634,7 +1634,7 @@ end;
 function TItemManager.CheckMouseOn: boolean;
 var
   pt: windows.TPoint;
-  wnd: uint;
+  wnd: THandle;
   item: integer;
 begin
   result := false;
@@ -1760,7 +1760,7 @@ end;
 //
 //------------------------------------------------------------------------------
 // detach the item
-procedure TItemManager.Undock(HWnd: HANDLE);
+procedure TItemManager.Undock(wnd: HWND);
 var
   index: integer;
 begin
@@ -1768,8 +1768,8 @@ begin
   try
     FDraggingFile := false;
     FDraggingItem := true;
-    FDragHWnd := HWnd;
-    index := ItemIndex(HWnd);
+    FDragHWnd := wnd;
+    index := ItemIndex(wnd);
     try if index <> NOT_AN_ITEM then
       begin
         FItemArray[index].h := 0;
@@ -1785,14 +1785,14 @@ end;
 // add new item to dock
 // if there is a DropPlace, then put item there
 // if DropPlace not exists, then put item at the end of the items array
-procedure TItemManager.DockAdd(HWnd: THandle);
+procedure TItemManager.DockAdd(wnd: HWND);
 begin
   if (FDropPlace < 0) or (FDropPlace >= FItemCount) then SetDropPlace(FItemCount);
-  FItemArray[FDropPlace].h := HWnd;
+  FItemArray[FDropPlace].h := wnd;
   FItemArray[FDropPlace].s := FItemSize;
-  ItemCmd(HWnd, icFree, 0); // enable item
-  ItemCmd(HWnd, icUndock, 0);
-  SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
+  ItemCmd(wnd, icFree, 0); // enable item
+  ItemCmd(wnd, icUndock, 0);
+  SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
   SetDropPlaceEx(NOT_AN_ITEM);
   SetDropPlace(NOT_AN_ITEM);
   ItemsChanged;
@@ -1800,21 +1800,21 @@ end;
 //------------------------------------------------------------------------------
 // put the item to dock
 // if necessary create a new stack or put into existing one
-procedure TItemManager.Dock(HWnd: HANDLE);
+procedure TItemManager.Dock(wnd: HWND);
 var
   idx: integer;
   DragInst, Inst, NewInst: TCustomItem;
-  NewItemHWnd: THandle;
+  NewItemWnd: THandle;
   pt: windows.TPoint;
 begin
-  //if not FEnabled or (FDragHWnd <> HWnd) then exit;
+  //if not FEnabled or (FDragHWnd <> wnd) then exit;
   if FEnabled then
   try
-    SetWindowPos(HWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
+    SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     GetCursorPos(pt);
     SetDropPlaceFromPoint(pt);
 
-    DragInst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    DragInst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
 
     // delete //
     if (FDropPlace < 0) or (FDropPlace >= FItemCount) then
@@ -1824,8 +1824,8 @@ begin
     // put to a free slot //
     if FDropPlace = FDropPlaceEx then
     begin
-      FItemArray[FDropPlace].h := HWnd;
-      ItemCmd(HWnd, icUndock, 0);
+      FItemArray[FDropPlace].h := wnd;
+      ItemCmd(wnd, icUndock, 0);
     end else
     // combine with existing item //
     begin
@@ -1852,11 +1852,11 @@ begin
       begin
         if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
         begin
-          NewItemHWnd := CreateItem(TStackItem.Make(0, '', ''));
-          if NewItemHWnd <> THandle(0) then
+          NewItemWnd := CreateItem(TStackItem.Make(0, '', ''));
+          if NewItemWnd <> THandle(0) then
           begin
-            FItemArray[FDropPlace].h := NewItemHWnd;
-            NewInst := TCustomItem(GetWindowLong(NewItemHWnd, GWL_USERDATA));
+            FItemArray[FDropPlace].h := NewItemWnd;
+            NewInst := TCustomItem(GetWindowLong(NewItemWnd, GWL_USERDATA));
             TStackItem(NewInst).AddSubitem(TShortcutItem(Inst).ToString);
             TStackItem(NewInst).AddSubitem(TShortcutItem(DragInst).ToString);
             DragInst.Delete;
@@ -1867,8 +1867,8 @@ begin
       end else begin
           if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
           begin
-            FItemArray[FDropPlace].h := HWnd;
-            ItemCmd(HWnd, icUndock, 0);
+            FItemArray[FDropPlace].h := wnd;
+            ItemCmd(wnd, icUndock, 0);
           end else begin
             DragInst.Delete;
           end;
@@ -1889,25 +1889,25 @@ end;
 // if item is found - result is HWnd
 // if subitem is found - result is its parent item HWnd
 // if no match found result is 0
-function TItemManager.IsItem(HWnd: HANDLE): HANDLE;
+function TItemManager.IsItem(wnd: HWND): HWND;
 var
   idx: integer;
   Inst: TCustomItem;
 begin
-  result := THandle(0);
+  result := HWND(0);
   if FEnabled then
   try
     idx := 0;
     while idx < FItemCount do
     begin
-      if FItemArray[idx].h = HWnd then
+      if FItemArray[idx].h = wnd then
       begin
-        result := HWnd;
+        result := wnd;
         break;
       end;
 
       Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
-      if Inst is TCustomItem then result := Inst.cmd(icIsItem, PtrInt(HWnd));
+      if Inst is TCustomItem then result := Inst.cmd(icIsItem, PtrInt(wnd));
       if result <> 0 then break;
       inc(idx);
     end;
@@ -1916,54 +1916,54 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemDropFile(HWndItem: HANDLE; pt: windows.TPoint; filename: string): boolean;
+function TItemManager.ItemDropFile(wndItem: HWND; pt: windows.TPoint; filename: string): boolean;
 var
   Inst: TCustomItem;
-  HWndChild: HANDLE;
+  wndChild: HWND;
 begin
   try
     result := false;
-    HWndChild := HWndItem;
-    HWndItem := IsItem(HWndItem);
-    if HWndItem <> THandle(0) then
+    wndChild := wndItem;
+    wndItem := IsItem(wndItem);
+    if wndItem <> THandle(0) then
     begin
-      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
-      if Inst is TCustomItem then result := Inst.DropFile(HWndChild, pt, filename);
+      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
+      if Inst is TCustomItem then result := Inst.DropFile(wndChild, pt, filename);
     end;
   except
     on e: Exception do err('ItemManager.ItemDrop', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemDropFiles(HWndItem: HANDLE; pt: windows.TPoint; files: TStrings): boolean;
+function TItemManager.ItemDropFiles(wndItem: HWND; pt: windows.TPoint; files: TStrings): boolean;
 var
   idx: integer;
   Inst: TCustomItem;
-  HWndChild: HANDLE;
+  wndChild: HWND;
 begin
   try
     result := false;
-    HWndChild := HWndItem;
-    HWndItem := IsItem(HWndItem);
-    if HWndItem <> THandle(0) then
+    wndChild := wndItem;
+    wndItem := IsItem(wndItem);
+    if wndItem <> THandle(0) then
     begin
-      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
       if Inst is TCustomItem then
         for idx := 0 to files.Count - 1 do
-          result := result or Inst.DropFile(HWndChild, pt, files.strings[idx]);
+          result := result or Inst.DropFile(wndChild, pt, files.strings[idx]);
     end;
   except
     on e: Exception do err('ItemManager.ItemDrop', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.ItemCmd(HWnd: HANDLE; id: TDParam; param: PtrInt): PtrInt;
+function TItemManager.ItemCmd(wnd: HWND; id: TDParam; param: PtrInt): PtrInt;
 var
   Inst: TCustomItem;
 begin
   try
     result := 0;
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.cmd(id, param);
   except
     on e: Exception do err('ItemManager.ItemCmd', e);
@@ -2027,111 +2027,111 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.GetPluginFile(HWnd: HANDLE): string;
+function TItemManager.GetPluginFile(wnd: HWND): string;
 var
   Inst: TCustomItem;
 begin
   try
     result := '';
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TPluginItem then result := TPluginItem(Inst).Filename;
   except
     on e: Exception do err('ItemManager.GetPluginFile', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetPluginImage(HWnd: HANDLE; lpImageNew: Pointer; AutoDelete: boolean);
+procedure TItemManager.SetPluginImage(wnd: HWND; lpImageNew: Pointer; AutoDelete: boolean);
 var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateImage(lpImageNew, AutoDelete);
   except
     on e: Exception do err('ItemManager.SetPluginImage', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetPluginOverlay(HWnd: HANDLE; lpOverlayNew: Pointer; AutoDelete: boolean);
+procedure TItemManager.SetPluginOverlay(wnd: HWND; lpOverlayNew: Pointer; AutoDelete: boolean);
 var
   Inst: TCustomItem;
 begin
   try
-    if HWnd <> 0 then Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    if wnd <> 0 then Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateOverlay(lpOverlayNew, AutoDelete);
   except
     on e: Exception do err('ItemManager.SetPluginOverlay', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.PluginAnimate(HWnd: HANDLE);
+procedure TItemManager.PluginAnimate(wnd: HWND);
 var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if (Inst is TCustomItem) and (FItemAnimation > 0) then Inst.Animate;
   except
     on e: Exception do err('ItemManager.PluginAnimate', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetPluginCaption(HWnd: HANDLE; NewCaption: string);
+procedure TItemManager.SetPluginCaption(wnd: HWND; NewCaption: string);
 var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Caption := NewCaption;
   except
     on e: Exception do err('ItemManager.SetPluginCaption', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.GetPluginCaption(HWnd: HANDLE): string;
+function TItemManager.GetPluginCaption(wnd: HWND): string;
 var
   Inst: TCustomItem;
 begin
   try
     result := '';
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Caption;
   except
     on e: Exception do err('ItemManager.GetPluginCaption', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.GetPluginRect(HWnd: HANDLE; var r: windows.TRect): boolean;
+function TItemManager.GetPluginRect(wnd: HWND; var r: windows.TRect): boolean;
 var
   Inst: TCustomItem;
 begin
   try
     result := Visible;
     r := classes.Rect(0, 0, 0, 0);
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then r := Inst.ScreenRect;
   except
     on e: Exception do err('ItemManager.GetPluginRect', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.IsPluginUndocked(HWnd: HANDLE): boolean;
+function TItemManager.IsPluginUndocked(wnd: HWND): boolean;
 var
   Inst: TCustomItem;
 begin
   try
     result := false;
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Floating;
   except
     on e: Exception do err('ItemManager.IsPluginUndocked', e);
   end;
 end;
 //------------------------------------------------------------------------------
-function TItemManager.IsSeparator(HWnd: HANDLE): boolean;
+function TItemManager.IsSeparator(wnd: HWND): boolean;
 begin
   try
-    result := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA)) is TSeparatorItem;
+    result := TCustomItem(GetWindowLong(wnd, GWL_USERDATA)) is TSeparatorItem;
   except
     on e: Exception do err('ItemManager.IsSeparator', e);
   end;
@@ -2191,7 +2191,7 @@ end;
 procedure TItemManager.AddTaskWindow(HWndTask: THandle);
 var
   index, found: integer;
-  HWndItem: THandle;
+  wndItem: HWND;
   Inst: TCustomItem;
   str: string;
 begin
@@ -2236,8 +2236,8 @@ begin
 			end;
 
 			SetDropPlace(index);
-      HWndItem := AddItem(TTaskItem.Make, true);
-      Inst := TCustomItem(GetWindowLong(HWndItem, GWL_USERDATA));
+      wndItem := AddItem(TTaskItem.Make, true);
+      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;
   except

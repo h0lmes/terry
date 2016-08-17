@@ -16,7 +16,7 @@ type
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); override;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); override;
     function ToString: string; override;
@@ -30,7 +30,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TSeparatorItem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TSeparatorItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;
@@ -251,7 +251,7 @@ begin
   dockh.DockAddMenu(FHMenu);
   LME(true);
 
-  msg.wParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  msg.wParam := WPARAM(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
 end;

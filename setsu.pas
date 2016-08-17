@@ -642,7 +642,7 @@ end;
 procedure TDSets.ScanPlugins;
 var
   idx: integer;
-  hLib: uint;
+  hLib: THandle;
   OnGetInformation: _OnGetInformation;
   szName, szAuthor, szNotes: array [0..255] of char;
   lpiVersion: integer;
@@ -682,7 +682,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TDSets.GetPluginInfo(index: integer; mem: TMemo);
 var
-  hLib: uint;
+  hLib: THandle;
   OnGetInformation: _OnGetInformation;
   szName, szAuthor, szNotes: array [0..255] of char;
   lpiVersion: integer;

@@ -12,7 +12,7 @@ const
 type
   TNotifier = class
   private
-    FHWnd: HANDLE;
+    FHWnd: HWND;
     FActivating: boolean;
     FX: integer;
     FY: integer;

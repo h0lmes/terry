@@ -80,7 +80,7 @@ type
     cancel_data: string;
     UpdateItemProc: _uproc;
     color_data: integer;
-    ItemHWnd: uint;
+    ItemHWnd: THandle;
     FChanged: boolean;
     FImage: Pointer;
     FIW: cardinal;
@@ -153,7 +153,7 @@ begin
 
   // show parameters //
 
-  edCaption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
+  edCaption.Text := UTF8Encode(FetchValue(AData, 'caption="', '";'));
   edCmd.Text := AnsiToUTF8(FetchValue(AData, 'command="', '";'));
   edParams.Text := AnsiToUTF8(FetchValue(AData, 'params="', '";'));
   edDir.Text := AnsiToUTF8(FetchValue(AData, 'dir="', '";'));
@@ -230,7 +230,7 @@ begin
     else if cboWindow.ItemIndex = 1 then showcmd := sw_showminimized
     else showcmd := sw_showmaximized;
 
-    str := TShortcutItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text),
+    str := TShortcutItem.Make(ItemHWnd, UTF8Decode(edCaption.Text),
       UTF8ToAnsi(edCmd.Text), UTF8ToAnsi(edParams.Text), UTF8ToAnsi(edDir.Text),
       UTF8ToAnsi(edImage.Text), showcmd, color_data, chbHide.Checked);
 

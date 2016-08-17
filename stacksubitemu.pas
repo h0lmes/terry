@@ -14,10 +14,10 @@ type
   TCustomSubitem = class
   protected
     FFreed: boolean;
-    FHWnd: HANDLE;
-    FHWndParent: HANDLE;
-    FHMenu: HANDLE;
-    FCaption: string;
+    FHWnd: HWND;
+    FHWndParent: HWND;
+    FHMenu: THandle;
+    FCaption: WideString;
     FCaptionWidth: integer;
     FCaptionHeight: integer;
     Fx: integer;
@@ -63,8 +63,8 @@ type
     procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
-    property HWnd: HANDLE read FHWnd;
-    property Caption: string read FCaption;
+    property Handle: HWND read FHWnd;
+    property Caption: WideString read FCaption;
     property X: integer read Fx;
     property Y: integer read Fy;
     property Size: integer read FSize;
@@ -81,7 +81,7 @@ type
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure SetFont(var Value: TDFontData);
 
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); virtual;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
@@ -125,7 +125,7 @@ type
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
-    constructor Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams); overload; override;
+    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure UpdateItem(AData: string); overload; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
@@ -144,7 +144,7 @@ type
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
 
-    class function Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
+    class function Make(wnd: HWND; ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
     class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
       AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
@@ -152,9 +152,9 @@ type
   end;
 
 implementation
-uses themeu, frmitemoptu;
+uses frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutSubitem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TShortcutSubitem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -241,7 +241,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.UpdateItemI;
 var
-  sfi: TSHFileInfoA;
+  sfi: TSHFileInfoW;
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
@@ -274,8 +274,8 @@ begin
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
-        OleCheck(SHGetFileInfoA(pchar(FPIDL), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
-        FCaption := sfi.szDisplayName;
+        OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
+        FCaption := strpas(pwchar(sfi.szDisplayName));
       end;
 
       // check if this is the shortcut to an executable file
@@ -471,7 +471,7 @@ begin
       GdipCreateFont(family, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
       GdipCreateSolidFill(AHintAlpha shl 24 + FFont.color and $ffffff, brush);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-      GdipDrawString(dst, PWideChar(WideString(FCaption)), -1, font, @rect, nil, brush);
+      GdipDrawString(dst, PWideChar(FCaption), -1, font, @rect, nil, brush);
       GdipDeleteBrush(brush);
       GdipDeleteFont(font);
       GdipDeleteFontFamily(family);
@@ -698,7 +698,7 @@ begin
   end;
 
   // else, if it is disabled //
-  if not result then msg.WParam := uint(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
+  if not result then msg.WParam := WPARAM(TrackPopupMenuEx(FHMenu, TPM_RETURNCMD, pt.x, pt.y, FHWnd, nil));
   WMCommand(msg.wParam, msg.lParam, msg.Result);
   Result := True;
 end;
@@ -788,11 +788,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.Make(AHWnd: HANDLE; ACaption, ACommand, AParams, ADir, AImage: string;
+class function TShortcutSubitem.Make(wnd: HWND; ACaption, ACommand, AParams, ADir, AImage: string;
   AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
-  result := result + 'hwnd="' + inttostr(AHWnd) + '";';
+  result := result + 'hwnd="' + inttostr(wnd) + '";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
   if ACommand <> '' then result := result + 'command="' + ACommand + '";';
   if AParams <> '' then result := result + 'params="' + AParams + '";';
@@ -861,12 +861,12 @@ begin
     result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-constructor TCustomSubitem.Create(AData: string; AHWndParent: HANDLE; AParams: TDItemCreateParams);
+constructor TCustomSubitem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
 
-  FHWndParent := AHWndParent;
+  FHWndParent := wndParent;
   RegisterWindowItemClass;
   FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_acceptfiles, TDSUBITEM_WCLASS, nil, ws_popup, -1000, -1000, 32, 32, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
@@ -874,7 +874,7 @@ begin
     FFreed := true;
     exit;
   end;
-  SetWindowLong(FHWnd, GWL_USERDATA, PtrUInt(self));
+  SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self));
 
   FItemSize := AParams.ItemSize;
   FLaunchInterval := AParams.LaunchInterval;
@@ -1125,7 +1125,7 @@ begin
             rect.y := 0;
             rect.Width := 0;
             rect.Height := 0;
-            GdipMeasureString(hgdip, PWideChar(WideString(FCaption)), -1, hfont, @rect, nil, @rect, nil, nil);
+            GdipMeasureString(hgdip, PWideChar(FCaption), -1, hfont, @rect, nil, @rect, nil, nil);
           finally
             GdipDeleteFont(hfont);
           end;
