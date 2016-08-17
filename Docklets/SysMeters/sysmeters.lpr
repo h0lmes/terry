@@ -24,7 +24,7 @@ type
 
   PData = ^TData;
   TData = object
-    hWnd: uint;
+    hWnd: HANDLE;
     mode: TMeterMode;
     letter: char;
     caption: string;
@@ -282,7 +282,7 @@ begin
   else if data.mode = mmDrive then Drive(data);
 end;
 //------------------------------------------------------------------------------
-procedure OnProcessMessage(lpData: PData; hwnd, uMsg: uint; wParam: WPARAM; lParam: LPARAM); stdcall;
+procedure OnProcessMessage(lpData: PData; hwnd: HANDLE; uMsg: uint; wParam: WPARAM; lParam: LPARAM); stdcall;
 begin
   if uMsg = WM_TIMER then
   try
@@ -320,7 +320,7 @@ begin
   DockletSetImageFile(lpData.hwnd, @tmp);
 end;
 //------------------------------------------------------------------------------
-function OnCreate(hwnd, hInstance: uint; szIni, szIniGroup: pchar): PData; stdcall;
+function OnCreate(hwnd, hInstance: HANDLE; szIni, szIniGroup: pchar): PData; stdcall;
 var
   szRet: array [0..MAX_PATH - 1] of char;
   Instance: PData;
@@ -354,7 +354,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure OnDestroy(data: PData; hwnd: uint); stdcall;
+procedure OnDestroy(data: PData; hwnd: HANDLE); stdcall;
 begin
   KillTimer(hWnd, 1);
   Dispose(data);
@@ -383,7 +383,7 @@ const
   drives: array [3..26] of char =
     ('C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
 var
-  hMenu, hDiskMenu: uint;
+  hMenu, hDiskMenu: HANDLE;
   cmd, i: integer;
   pt: windows.TPoint;
 begin
