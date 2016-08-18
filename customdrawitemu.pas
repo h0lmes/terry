@@ -23,13 +23,13 @@ type
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
     property Running: boolean read FRunning;
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); override;
   end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TCustomDrawItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TCustomDrawItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FRunning := false;

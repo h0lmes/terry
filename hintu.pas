@@ -55,7 +55,7 @@ begin
   end
   else if (message = WM_TIMER) and (wParam = ID_TIMER) then
   begin
-    objHint := THint(GetWindowLong(wnd, GWL_USERDATA));
+    objHint := THint(GetWindowLongPtr(wnd, GWL_USERDATA));
     if objHint is THint then objHint.Timer;
     exit;
   end;

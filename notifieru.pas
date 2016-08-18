@@ -20,7 +20,7 @@ type
     FYTarget: integer;
     FW: integer;
     FH: integer;
-    FShowTime: uint;
+    FShowTime: QWord;
     FActive: boolean;
     FAlert: boolean;
     FTimeout: cardinal;
@@ -332,7 +332,7 @@ begin
     end;
   end;
 
-  FShowTime := gettickcount;
+  FShowTime := gettickcount64;
   if not FActive then SetTimer(FHWnd, ID_TIMER, 10, nil);
   FActive := True;
   FActivating := False;
@@ -371,7 +371,7 @@ begin
     begin
       GetCursorPos(pt);
       if WindowFromPoint(pt) <> FHWnd then
-        if gettickcount - FShowTime > FTimeout then Close;
+        if gettickcount64 - FShowTime > FTimeout then Close;
     end;
   except
     on e: Exception do err('Notifier.Timer', e);

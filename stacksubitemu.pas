@@ -11,7 +11,9 @@ const
   TDSUBITEM_WCLASS = 'TDockSubItemWClass';
 
 type
-  TCustomSubitem = class
+
+  { TCustomSubitem is an abstract class }
+  TCustomSubitem = class(TBaseItem)
   protected
     FFreed: boolean;
     FHWnd: HWND;
@@ -81,9 +83,9 @@ type
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure SetFont(var Value: TDFontData);
 
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); virtual;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); virtual; abstract;
+    procedure FromString(data: string); virtual; abstract;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); virtual; abstract;
     function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
@@ -125,9 +127,13 @@ type
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); overload; override;
+    // TBaseItem
+    procedure GetShortcutData(var data: TDShortcutData); override;
+    procedure SetShortcutData(var data: TDShortcutData); override;
+    //
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
-    procedure UpdateItem(AData: string); overload; override;
+    procedure FromString(data: string); override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
     function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
@@ -154,7 +160,7 @@ type
 implementation
 uses frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutSubitem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TShortcutSubitem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -167,8 +173,6 @@ begin
   FColorData := DEF_COLOR_DATA;
   FShowCmd := 0;
   FHide := false;
-
-  UpdateItem(AData);
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutSubitem.Destroy;
@@ -214,28 +218,54 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateItem(AData: string);
+procedure TShortcutSubitem.FromString(data: string);
 begin
-  if not FFreed then
   try
-    FCaption := FetchValue(AData, 'caption="', '";');
-    FCommand := FetchValue(AData, 'command="', '";');
-    FParams := FetchValue(AData, 'params="', '";');
-    FDir := FetchValue(AData, 'dir="', '";');
-    FImageFile := FetchValue(AData, 'image="', '";');
-    FHide := false;
-    FColorData := DEF_COLOR_DATA;
-    FShowCmd := 1;
-    try FHide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
-    except end;
-    try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
-    except end;
-    try FShowCmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
-    except end;
+      if data <> '' then
+      begin
+        FCaption := FetchValue(data, 'caption="', '";');
+        FCommand := FetchValue(data, 'command="', '";');
+        FParams := FetchValue(data, 'params="', '";');
+        FDir := FetchValue(data, 'dir="', '";');
+        FImageFile := FetchValue(data, 'image="', '";');
+        FHide := false;
+        FColorData := DEF_COLOR_DATA;
+        FShowCmd := 1;
+        try FHide := boolean(strtoint(FetchValue(data, 'hide="', '";')));
+        except end;
+        try FColorData := strtoint(FetchValue(data, 'color_data="', '";'));
+        except end;
+        try FShowCmd := strtoint(FetchValue(data, 'showcmd="', '";'));
+        except end;
+        UpdateItemI;
+      end;
   except
-    on e: Exception do raise Exception.Create('StackSubitem.UpdateItem.Data ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ShortcutItem.FromString ' + LineEnding + e.message);
   end;
-
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.GetShortcutData(var data: TDShortcutData);
+begin
+  data.Caption   := FCaption;
+  data.Command   := FCommand;
+  data.Params    := FParams;
+  data.Dir       := FDir;
+  data.ImageFile := FImageFile;
+  data.ShowCmd   := FShowCmd;
+  data.ColorData := FColorData;
+  data.Hide      := FHide;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.SetShortcutData(var data: TDShortcutData);
+begin
+  FCaption    := data.Caption;
+  FCommand    := data.Command;
+  FParams     := data.Params;
+  FDir        := data.Dir;
+  FImageFile  := data.ImageFile;
+  FShowCmd    := data.ShowCmd;
+  FColorData  := data.ColorData;
+  FHide       := data.Hide;
   UpdateItemI;
 end;
 //------------------------------------------------------------------------------
@@ -617,7 +647,7 @@ end;
 function TShortcutSubitem.MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean;
 var
   pt: windows.TPoint;
-  tickCount: PtrUInt;
+  tickCount, elapsed: QWord;
 begin
   inherited;
   result := false;
@@ -626,16 +656,12 @@ begin
   begin
     cmd(icSelect, 0);
 
-    {$ifdef CPU64}
     tickCount := gettickcount64;
-    {$else CPU64}
-    tickCount := gettickcount;
-    {$endif CPU64}
+    elapsed := tickCount - FLastMouseUp;
 
     if button = mbLeft then
     begin
-      if FLastMouseUp > tickCount then FLastMouseUp := 0;
-      if tickCount - FLastMouseUp > FLaunchInterval then
+      if elapsed > FLaunchInterval then
       begin
         if ssAlt in shift then Exec(eaGroup)
         else
@@ -724,7 +750,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.Configure;
 begin
-  TfrmItemProp.Open(ToString, UpdateItem);
+  TfrmItemProp.Open(Handle);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.Exec(action: TExecuteAction);
@@ -861,7 +887,7 @@ begin
     result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-constructor TCustomSubitem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TCustomSubitem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;
@@ -1060,7 +1086,7 @@ begin
   if AllowUndo then
   begin
     wnd := dockh.DockCreateItem(pchar(ToString));
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then
     begin
       GetCursorPos(pt);
@@ -1081,7 +1107,7 @@ var
   pt: windows.TPoint;
 begin
   wnd := dockh.DockCreateItem(pchar(ToString));
-  Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+  Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
   if Inst is TCustomItem then
   begin
     GetCursorPos(pt);

@@ -16,7 +16,7 @@ type
     procedure UpdateItemInternal;
     function ContextMenu(pt: Windows.TPoint): boolean;
   public
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); override;
     function ToString: string; override;
@@ -30,7 +30,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TSeparatorItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TSeparatorItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FSeparatorAlpha := AParams.SeparatorAlpha;
@@ -220,7 +220,7 @@ begin
     end;
 
   except
-    on e: Exception do raise Exception.Create('SeparatorItem.Draw(' + caption + ') ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('SeparatorItem.Draw ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -268,9 +268,8 @@ begin
   DestroyMenu(FHMenu);
   FHMenu := 0;
   case wParam of // f001 to f020
-    $f001..$f003: ;
+    // $f001..$f003: ;
     $f004: Delete;
-    $f005..$f020: ;
     else sendmessage(FHWndParent, WM_COMMAND, wParam, lParam);
   end;
 end;

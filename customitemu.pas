@@ -17,9 +17,28 @@ type
   TOnBeforeMouseHover = procedure(param: boolean) of object;
   TOnBeforeUndock = procedure of object;
 
-  { TCustomItem }
+  { TDShortcutData }
+  TDShortcutData = record
+    Caption: string;
+    Command: string;
+    Params: string;
+    Dir: string;
+    ImageFile: string;
+    ImageFile2: string;
+    ShowCmd: integer;
+    ColorData: integer;
+    Hide: boolean;
+  end;
 
-  TCustomItem = class
+  { TBaseItem is an abstract class }
+  TBaseItem = class
+    public
+      procedure GetShortcutData(var data: TDShortcutData); virtual; abstract;
+      procedure SetShortcutData(var data: TDShortcutData); virtual; abstract;
+  end;
+
+  { TCustomItem is an abstract class }
+  TCustomItem = class(TBaseItem)
   private
     FHover: boolean;
   protected
@@ -102,7 +121,7 @@ type
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
 
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); virtual;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure SetFont(var Value: TDFontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); virtual; abstract;
@@ -144,7 +163,7 @@ begin
     result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TCustomItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;

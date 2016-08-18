@@ -484,7 +484,6 @@ end;
 //
 //------------------------------------------------------------------------------
 function TDropTarget.QueryInterface(constref IID: TGUID; out Obj): longint; stdcall;
-const E_NOINTERFACE = $80004002;
 begin
   if GetInterface(IID, Obj) then result := 0 else result := longint(E_NOINTERFACE);
 end;

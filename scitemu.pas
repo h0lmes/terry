@@ -4,7 +4,8 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, customdrawitemu,
+  IniFiles, GDIPAPI, gfx, PIDL, ShContextU, declu, dockh,
+  customitemu, customdrawitemu,
   toolu, processhlp, aeropeeku, mixeru, networksu, iniproc;
 
 type
@@ -52,10 +53,13 @@ type
     procedure ShowPeekWindow(Timeout: cardinal = 0);
     procedure UpdatePeekWindow;
   public
-    procedure UpdateItem(AData: string);
+    // TBaseItem
+    procedure GetShortcutData(var data: TDShortcutData); override;
+    procedure SetShortcutData(var data: TDShortcutData); override;
     //
-    constructor Create(AData: string; AWndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(AWndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
+    procedure LoadFrom(IniFile, IniSection: string);
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure MouseHeld(button: TMouseButton); override;
@@ -78,7 +82,7 @@ type
 implementation
 uses frmitemoptu;
 //------------------------------------------------------------------------------
-constructor TShortcutItem.Create(AData: string; AWndParent: HWND; AParams: TDItemCreateParams);
+constructor TShortcutItem.Create(AWndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -101,8 +105,6 @@ begin
   OnBeforeUndock := BeforeUndock;
   OnAfterDraw := AfterDraw;
   OnDrawOverlay := DrawOverlay;
-
-  UpdateItem(AData);
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutItem.Destroy;
@@ -118,16 +120,11 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.UpdateItem(AData: string);
-var
-  IniFile, IniSection: string;
+procedure TShortcutItem.LoadFrom(IniFile, IniSection: string);
 begin
   if FFreed then exit;
 
   try
-    IniFile := FetchValue(AData, 'inifile="', '";');
-    IniSection := FetchValue(AData, 'inisection="', '";');
-
     if (length(IniFile) > 0) and (length(IniSection) > 0) then
     begin
       Caption :=    GetIniStringW(IniFile, IniSection, 'caption', '');
@@ -138,32 +135,40 @@ begin
       FImageFile2 := cutafter(FImageFile, ';');
       FImageFile := cut(FImageFile, ';');
       FHide :=      GetIniBoolW(IniFile, IniSection, 'hide', false);
-      FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
+      FColorData := toolu.StringToColor(
+                    GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
       FShowCmd :=   GetIniIntW(IniFile, IniSection, 'showcmd', sw_shownormal);
-    end
-    else
-    begin
-      Caption := FetchValue(AData, 'caption="', '";');
-      FCommand := FetchValue(AData, 'command="', '";');
-      FParams := FetchValue(AData, 'params="', '";');
-      FDir := FetchValue(AData, 'dir="', '";');
-      FImageFile := FetchValue(AData, 'image="', '";');
-      FImageFile2 := cutafter(FImageFile, ';');
-      FImageFile := cut(FImageFile, ';');
-      FHide := false;
-      FColorData := DEF_COLOR_DATA;
-      FShowCmd := 1;
-      try FHide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
-      except end;
-      try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
-      except end;
-      try FShowCmd := strtoint(FetchValue(AData, 'showcmd="', '";'));
-      except end;
+      UpdateItemI;
     end;
   except
     on e: Exception do raise Exception.Create('ShortcutItem.UpdateItem ' + LineEnding + e.message);
   end;
-
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.GetShortcutData(var data: TDShortcutData);
+begin
+  data.Caption    := FCaption;
+  data.Command    := FCommand;
+  data.Params     := FParams;
+  data.Dir        := FDir;
+  data.ImageFile  := FImageFile;
+  data.ImageFile2 := FImageFile2;
+  data.ShowCmd    := FShowCmd;
+  data.ColorData  := FColorData;
+  data.Hide       := FHide;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.SetShortcutData(var data: TDShortcutData);
+begin
+  Caption     := data.Caption;
+  FCommand    := data.Command;
+  FParams     := data.Params;
+  FDir        := data.Dir;
+  FImageFile  := data.ImageFile;
+  FImageFile2 := data.ImageFile2;
+  FShowCmd    := data.ShowCmd;
+  FColorData  := data.ColorData;
+  FHide       := data.Hide;
   UpdateItemI;
 end;
 //------------------------------------------------------------------------------
@@ -447,7 +452,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Configure;
 begin
-  TfrmItemProp.Open(ToString, UpdateItem);
+  TfrmItemProp.Open(Handle);
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.ToString: string;
@@ -462,18 +467,14 @@ end;
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
 var
   pt: windows.TPoint;
-  tickCount: PtrUInt;
+  tickCount, elapsed: QWord;
 begin
-  {$ifdef CPU64}
   tickCount := gettickcount64;
-  {$else CPU64}
-  tickCount := gettickcount;
-  {$endif CPU64}
+  elapsed := tickCount - FLastMouseUp;
 
   if button = mbLeft then
   begin
-    if FLastMouseUp > tickCount then FLastMouseUp := 0;
-    if tickCount - FLastMouseUp > FLaunchInterval then
+    if elapsed > FLaunchInterval then
     begin
       if ssAlt in shift then Exec(eaGroup)
       else
@@ -555,10 +556,12 @@ begin
   result := false;
 
   FHMenu := CreatePopupMenu;
-  if FDynObjectRecycleBin and (FDynObjectState > 0) then AppendMenuW(FHMenu, MF_STRING, $f005, pwchar(UTF8Decode(XEmptyBin)));
+  if FDynObjectRecycleBin and (FDynObjectState > 0) then
+    AppendMenuW(FHMenu, MF_STRING, $f005, pwchar(UTF8Decode(XEmptyBin)));
   AppendMenuW(FHMenu, MF_STRING, $f001, pwchar(UTF8Decode(XConfigureIcon)));
   AppendMenuW(FHMenu, MF_STRING, $f003, pwchar(UTF8Decode(XCopy)));
-  if CanOpenFolder then AppendMenuW(FHMenu, MF_STRING, $f002, pwchar(UTF8Decode(XOpenFolderOf) + ' "' + Caption + '"'));
+  if CanOpenFolder then
+    AppendMenuW(FHMenu, MF_STRING, $f002, pwchar(UTF8Decode(XOpenFolderOf) + ' "' + Caption + '"'));
   AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
   AppendMenuW(FHMenu, MF_STRING, $f004, pwchar(UTF8Decode(XDeleteIcon)));
 
@@ -567,7 +570,8 @@ begin
   begin
     AppendMenuW(FHMenu, MF_STRING + ifthen(FIsExecutable, 0, MF_DISABLED), $f008, pwchar(UTF8Decode(XKillProcess)));
     AppendMenuW(FHMenu, MF_SEPARATOR, 0, '-');
-    if FAppList.Count < 2 then AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseWindow)))
+    if FAppList.Count < 2 then
+      AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseWindow)))
     else begin
       AppendMenuW(FHMenu, MF_STRING, $f007, pwchar(UTF8Decode(XCloseAllWindows)));
       AppendMenuW(FHMenu, MF_STRING, $f009, pwchar(UTF8Decode(XMinimizeRestoreAllWindows)));
@@ -587,7 +591,6 @@ begin
     else
     begin
       filename := toolu.UnzipPath(FCommand);
-      //if not fileexists(filename) and not directoryexists(filename) then filename := toolu.FindFile(filename);
       if fileexists(filename) or directoryexists(filename) then result := shcontextu.ShContextMenu(FHWnd, pt, filename, FHMenu);
     end;
   end;

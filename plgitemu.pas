@@ -40,7 +40,7 @@ type
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -56,7 +56,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TPluginItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   FFreed := true;
   inherited;
@@ -70,7 +70,7 @@ begin
   FImage2 := nil;
 
   lpData := nil;
-  CreatePlugin(AData);
+  //CreatePlugin(AData);
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.CreatePlugin(AData: string);
@@ -328,15 +328,8 @@ procedure TPluginItem.WndMessage(var msg: TMessage);
 begin
   msg.Result := 0;
   if not FFreed and assigned(OnWndMessage) then
-  with msg do
-  begin
-      {if (msg >= wm_mousefirst) and (msg <= wm_mouselast) then
-      begin
-        TSmallPoint(lParam).x := TSmallPoint(lParam).x - Rect.Left;
-        TSmallPoint(lParam).y := TSmallPoint(lParam).y - Rect.Top;
-      end;}
+    with msg do
       OnWndMessage(lpData, FHWnd, Msg, wParam, lParam);
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.Save(ini, section: string);

@@ -61,7 +61,7 @@ type
     procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
     // windows //
-    class function GetWindowText(wnd: THandle): string;
+    class function GetWindowText(wnd: THandle): WideString;
     procedure AllowSetForeground(wnd: HWND);
     function WindowOnTop(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle);
@@ -603,12 +603,12 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TProcessHelper.GetWindowText(wnd: THandle): string;
+class function TProcessHelper.GetWindowText(wnd: THandle): WideString;
 var
-  win_name: array [0..255] of char;
+  name: array [0..255] of wchar;
 begin
-  windows.GetWindowText(wnd, @win_name[0], 255);
-  result := strpas(pchar(@win_name[0]));
+  windows.GetWindowTextW(wnd, @name[0], 255);
+  result := strpas(pwchar(@name[0]));
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.AllowSetForeground(wnd: HWND);

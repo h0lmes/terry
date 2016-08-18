@@ -4,11 +4,10 @@ interface
 
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  DefaultTranslator, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, GDIPAPI, gfx;
+  DefaultTranslator, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, GDIPAPI,
+  gfx, customitemu;
 
 type
-  _uproc = procedure(AData: string) of object;
-
   { TfrmItemProp }
 
   TfrmItemProp = class(TForm)
@@ -72,26 +71,24 @@ type
     procedure btnApplyClick(Sender: TObject);
     procedure edCmdChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
   private
-    cancel_data: string;
-    UpdateItemProc: _uproc;
+    cancelData: TDShortcutData;
     color_data: integer;
     ItemHWnd: THandle;
     FChanged: boolean;
     FImage: Pointer;
     FIW: cardinal;
     FIH: cardinal;
-    function SetData(AData: string): boolean;
+    function SetData(itemWnd: HWND): boolean;
     procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
     procedure Draw;
     procedure DrawFit;
   public
-    class procedure Open(AData: string; uproc: _uproc);
+    class procedure Open(itemWnd: HWND);
   end;
 
 var
@@ -99,17 +96,15 @@ var
 
 {$t+}
 implementation
-uses declu, scitemu, PIDL, toolu, frmmainu;
+uses declu, PIDL, toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure TfrmItemProp.Open(AData: string; uproc: _uproc);
+class procedure TfrmItemProp.Open(itemWnd: HWND);
 begin
-  if AData <> '' then
   try
     if not assigned(frmItemProp) then Application.CreateForm(self, frmItemProp);
-    if frmItemProp.SetData(AData) then
+    if frmItemProp.SetData(itemWnd) then
     begin
-      frmItemProp.UpdateItemProc := uproc;
       frmItemProp.Show;
       frmItemProp.edCaption.SetFocus;
     end;
@@ -137,37 +132,38 @@ begin
   constraints.minwidth := Width;
 end;
 //------------------------------------------------------------------------------
-function TfrmItemProp.SetData(AData: string): boolean;
+function TfrmItemProp.SetData(itemWnd: HWND): boolean;
 var
-  scmd: integer;
+  Inst: TBaseItem;
 begin
+  // checks
+
   result := false;
+
   if FChanged then
     if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
+
+  Inst := TBaseItem(GetWindowLongPtr(itemWnd, GWL_USERDATA));
+  if not (Inst is TBaseItem) then exit;
+
   result := true;
 
-  cancel_data := AData;
-  try ItemHWnd := strtoint(FetchValue(AData, 'hwnd="', '";'));
-  except end;
+  // read item data
+
+  ItemHWnd := itemWnd;
+  Inst.GetShortcutData(cancelData);
   pages.ActivePageIndex := 0;
 
   // show parameters //
 
-  edCaption.Text := UTF8Encode(FetchValue(AData, 'caption="', '";'));
-  edCmd.Text := AnsiToUTF8(FetchValue(AData, 'command="', '";'));
-  edParams.Text := AnsiToUTF8(FetchValue(AData, 'params="', '";'));
-  edDir.Text := AnsiToUTF8(FetchValue(AData, 'dir="', '";'));
-  edImage.text := FetchValue(AData, 'image="', '";');
-
-  chbHide.Checked := False;
-  try chbHide.Checked := boolean(StrToInt(FetchValue(AData, 'hide="', '";')));
-  except
-  end;
-
-  color_data := DEF_COLOR_DATA;
-  try color_data := toolu.StringToColor(FetchValue(AData, 'color_data="', '";'));
-  except
-  end;
+  edCaption.Text := UTF8Encode(cancelData.Caption);
+  edCmd.Text := AnsiToUTF8(cancelData.Command);
+  edParams.Text := AnsiToUTF8(cancelData.Params);
+  edDir.Text := AnsiToUTF8(cancelData.Dir);
+  edImage.text := cancelData.ImageFile + ';' + cancelData.ImageFile2;
+  chbHide.Checked := cancelData.Hide;
+  //
+  color_data := cancelData.ColorData;
   tbHue.OnChange := nil;
   tbSat.OnChange := nil;
   tbBr.OnChange := nil;
@@ -180,14 +176,10 @@ begin
   tbSat.OnChange := tbHueChange;
   tbBr.OnChange := tbHueChange;
   tbCont.OnChange := tbHueChange;
-
-  scmd := 0;
-  try scmd := StrToInt(FetchValue(AData, 'showcmd="', '";'));
-  except
-  end;
+  //
   cboWindow.ItemIndex := 0;
-  if scmd = sw_showminimized then cboWindow.ItemIndex := 1
-  else if scmd = sw_showmaximized then cboWindow.ItemIndex := 2;
+  if cancelData.ShowCmd = sw_showminimized then cboWindow.ItemIndex := 1
+  else if cancelData.ShowCmd = sw_showmaximized then cboWindow.ItemIndex := 2;
 
   Draw;
   iPic.OnPaint := iPicPaint;
@@ -203,9 +195,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnCancelClick(Sender: TObject);
+var
+  Inst: TBaseItem;
 begin
   if FChanged then
-     if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
+  begin
+    Inst := TBaseItem(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
+    if Inst is TBaseItem then Inst.SetShortcutData(cancelData);
+  end;
   FChanged := false;
   Close;
 end;
@@ -220,21 +217,28 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnApplyClick(Sender: TObject);
 var
-  showcmd: integer;
-  str: string;
+  data: TDShortcutData;
+  Inst: TBaseItem;
 begin
   try
-    FChanged := false;
-
-    if cboWindow.ItemIndex = 0 then showcmd := sw_shownormal
-    else if cboWindow.ItemIndex = 1 then showcmd := sw_showminimized
-    else showcmd := sw_showmaximized;
-
-    str := TShortcutItem.Make(ItemHWnd, UTF8Decode(edCaption.Text),
-      UTF8ToAnsi(edCmd.Text), UTF8ToAnsi(edParams.Text), UTF8ToAnsi(edDir.Text),
-      UTF8ToAnsi(edImage.Text), showcmd, color_data, chbHide.Checked);
-
-    if assigned(UpdateItemProc) then UpdateItemProc(str);
+    Inst := TBaseItem(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
+    if Inst is TBaseItem then
+    begin
+      data.Caption    := UTF8Decode(edCaption.Text);
+      data.Command    := UTF8ToAnsi(edCmd.Text);
+      data.Params     := UTF8ToAnsi(edParams.Text);
+      data.Dir        := UTF8ToAnsi(edDir.Text);
+      data.ImageFile  := UTF8ToAnsi(edImage.Text);
+      data.ImageFile2 := cutafter(data.ImageFile, ';');
+      data.ImageFile  := cut(data.ImageFile, ';');
+      if cboWindow.ItemIndex = 0 then data.ShowCmd := sw_shownormal
+      else if cboWindow.ItemIndex = 1 then data.ShowCmd := sw_showminimized
+      else data.ShowCmd := sw_showmaximized;
+      data.ColorData  := color_data;
+      data.Hide       := chbHide.Checked;
+      Inst.SetShortcutData(data);
+      FChanged := false;
+    end;
   except
     on e: Exception do frmmain.err('TfrmItemProp.btnApplyClick', e);
   end;

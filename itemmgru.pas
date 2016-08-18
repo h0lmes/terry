@@ -33,7 +33,7 @@ type
     FItemSpacing: integer;
     FZoomItems: boolean; // enables zoom //
     FZoomTime: integer;
-    ZoomStartTime: integer; // timestamp when zoming in or out has begun
+    FZoomStartTime: QWord; // timestamp when zoming in or out has begun
     FReflection: boolean;
     FReflectionSize: integer;
     FItemAnimation: integer;
@@ -476,7 +476,7 @@ begin
     begin
       // "end session" stack //
       AddItem(TStackItem.Make(0, 'End session', ''));
-      stack := TStackItem(GetWindowLong(FItemArray[FItemCount - 1].h, GWL_USERDATA));
+      stack := TStackItem(GetWindowLongPtr(FItemArray[FItemCount - 1].h, GWL_USERDATA));
       if stack is TStackItem then
       begin
         {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack is TStackItem'); {$endif}
@@ -542,7 +542,7 @@ begin
     for idx := 0 to FItemCount - 1 do
     begin
       if FItemArray[idx].h <> 0 then
-        TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
+        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
     end;
   except
     on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + LineEnding + e.message);
@@ -556,7 +556,7 @@ var
 begin
   try
     index := ItemIndex(wnd);
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
   except
     on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
@@ -581,7 +581,7 @@ begin
   try
     for idx := 0 to FItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA));
       Inst.Freed := true;
       FreeAndNil(Inst);
       FItemArray[idx].h := 0;
@@ -602,7 +602,7 @@ begin
   try
     for idx := 0 to _itemsDeleted.Count - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
       if Inst is TCustomItem then
       begin
         Inst.Freed := true;
@@ -644,7 +644,7 @@ begin
     if _itemsDeleted.Count > 0 then
       for idx := _itemsDeleted.Count - 1 downto 0 do
       begin
-        Inst := TCustomItem(GetWindowLong(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLongPtr(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
         if Inst is TTaskItem then
         begin
           FreeAndNil(Inst);
@@ -1056,7 +1056,7 @@ begin
     while idx < FItemCount do
     begin
       if FItemArray[idx].h <> 0 then
-        TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA)).Draw(
+        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Draw(
           FItemArray[idx].x, FItemArray[idx].y, FItemArray[idx].s, forceDraw, wpi, show_items);
       inc(idx);
     end;
@@ -1118,7 +1118,7 @@ var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
   except
     on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
@@ -1229,7 +1229,7 @@ var
   str: string;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
     str := Inst.RegisterProgram;
     if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
   except
@@ -1243,7 +1243,7 @@ var
   rpIndex: integer;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(HWnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
     rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
     if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
   except
@@ -1404,8 +1404,8 @@ begin
     if FDropPlaceEx <> NOT_AN_ITEM then
       if FDraggingItem then
       begin
-        Inst := TCustomItem(GetWindowLong(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
-        DragInst := TCustomItem(GetWindowLong(FDragHWnd, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLongPtr(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
+        DragInst := TCustomItem(GetWindowLongPtr(FDragHWnd, GWL_USERDATA));
         if ((Inst is TStackItem) and (DragInst is TStackItem)) or
           ((Inst is TStackItem) and (DragInst is TShortcutItem)) or
           ((Inst is TShortcutItem) and (DragInst is TShortcutItem)) then atype := DII_ADD; // add
@@ -1524,7 +1524,7 @@ begin
 
     for idx := 0 to FItemCount - 1 do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then
         if PtInRect(Inst.ScreenRect, classes.Point(Ax, Ay)) then
         begin
@@ -1558,7 +1558,7 @@ begin
     // enter FZooming mode //
     if not FZooming and (item <> NOT_AN_ITEM) then
     begin
-      ZoomStartTime := GetTickCount;
+      FZoomStartTime := GetTickCount64;
       FZoomInOutItem := item;
       FZooming := true;
     end;
@@ -1589,7 +1589,7 @@ begin
   if FEnabled and (FZooming or do_now) then
   begin
     FZooming := false;
-    ZoomStartTime := GetTickCount;
+    FZoomStartTime := GetTickCount64;
     if (FItemCount <= 0) or do_now then
     begin
       ZoomItemSizeDiff := 0;
@@ -1601,17 +1601,18 @@ end;
 // meant to be called from a timer event handler
 procedure TItemManager.ZoomInOut;
 var
-  elapsed: integer;
+  elapsed: QWord;
   doUpdate: boolean;
 begin
   doUpdate := false;
 
   if FZoomItems or (ZoomItemSizeDiff > 0) then
   try
+      elapsed := GetTickCount64 - FZoomStartTime;
+
       if FZooming and (ZoomItemSizeDiff < FBigItemSize - FItemSize) then
       begin
         doUpdate := true;
-        elapsed := abs(GetTickCount - ZoomStartTime);
         if elapsed > FZoomTime then elapsed := FZoomTime;
         ZoomItemSizeDiff := (FBigItemSize - FItemSize) * elapsed div FZoomTime;
       end;
@@ -1619,7 +1620,6 @@ begin
       if not FZooming and (ZoomItemSizeDiff > 0) then
       begin
         doUpdate := true;
-        elapsed := abs(GetTickCount - ZoomStartTime);
         if elapsed > FZoomTime then elapsed := FZoomTime;
         ZoomItemSizeDiff := FBigItemSize - FItemSize - (FBigItemSize - FItemSize) * elapsed div FZoomTime;
       end;
@@ -1814,7 +1814,7 @@ begin
     GetCursorPos(pt);
     SetDropPlaceFromPoint(pt);
 
-    DragInst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    DragInst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
 
     // delete //
     if (FDropPlace < 0) or (FDropPlace >= FItemCount) then
@@ -1829,7 +1829,7 @@ begin
     end else
     // combine with existing item //
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[FDropPlaceEx].h, GWL_USERDATA));
       // shortcut to stack //
       if (DragInst is TShortcutItem) and (Inst is TStackItem) then
       begin
@@ -1856,7 +1856,7 @@ begin
           if NewItemWnd <> THandle(0) then
           begin
             FItemArray[FDropPlace].h := NewItemWnd;
-            NewInst := TCustomItem(GetWindowLong(NewItemWnd, GWL_USERDATA));
+            NewInst := TCustomItem(GetWindowLongPtr(NewItemWnd, GWL_USERDATA));
             TStackItem(NewInst).AddSubitem(TShortcutItem(Inst).ToString);
             TStackItem(NewInst).AddSubitem(TShortcutItem(DragInst).ToString);
             DragInst.Delete;
@@ -1906,7 +1906,7 @@ begin
         break;
       end;
 
-      Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.cmd(icIsItem, PtrInt(wnd));
       if result <> 0 then break;
       inc(idx);
@@ -1927,7 +1927,7 @@ begin
     wndItem := IsItem(wndItem);
     if wndItem <> THandle(0) then
     begin
-      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(wndItem, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.DropFile(wndChild, pt, filename);
     end;
   except
@@ -1947,7 +1947,7 @@ begin
     wndItem := IsItem(wndItem);
     if wndItem <> THandle(0) then
     begin
-      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(wndItem, GWL_USERDATA));
       if Inst is TCustomItem then
         for idx := 0 to files.Count - 1 do
           result := result or Inst.DropFile(wndChild, pt, files.strings[idx]);
@@ -1963,7 +1963,7 @@ var
 begin
   try
     result := 0;
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.cmd(id, param);
   except
     on e: Exception do err('ItemManager.ItemCmd', e);
@@ -1981,7 +1981,7 @@ begin
     item := 0;
     while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then result := Inst.cmd(id, param);
       inc(item);
     end;
@@ -1999,7 +1999,7 @@ begin
     item := 0;
     while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then Inst.Timer;
       inc(item);
     end;
@@ -2018,7 +2018,7 @@ begin
     item := 0;
     while item < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[item].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[item].h, GWL_USERDATA));
       if Inst is TCustomItem then Inst.SetFont(Value);
       inc(item);
     end;
@@ -2033,7 +2033,7 @@ var
 begin
   try
     result := '';
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TPluginItem then result := TPluginItem(Inst).Filename;
   except
     on e: Exception do err('ItemManager.GetPluginFile', e);
@@ -2045,7 +2045,7 @@ var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateImage(lpImageNew, AutoDelete);
   except
     on e: Exception do err('ItemManager.SetPluginImage', e);
@@ -2057,7 +2057,7 @@ var
   Inst: TCustomItem;
 begin
   try
-    if wnd <> 0 then Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    if wnd <> 0 then Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TPluginItem then TPluginItem(Inst).UpdateOverlay(lpOverlayNew, AutoDelete);
   except
     on e: Exception do err('ItemManager.SetPluginOverlay', e);
@@ -2069,7 +2069,7 @@ var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if (Inst is TCustomItem) and (FItemAnimation > 0) then Inst.Animate;
   except
     on e: Exception do err('ItemManager.PluginAnimate', e);
@@ -2081,7 +2081,7 @@ var
   Inst: TCustomItem;
 begin
   try
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then Inst.Caption := NewCaption;
   except
     on e: Exception do err('ItemManager.SetPluginCaption', e);
@@ -2094,7 +2094,7 @@ var
 begin
   try
     result := '';
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Caption;
   except
     on e: Exception do err('ItemManager.GetPluginCaption', e);
@@ -2108,7 +2108,7 @@ begin
   try
     result := Visible;
     r := classes.Rect(0, 0, 0, 0);
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then r := Inst.ScreenRect;
   except
     on e: Exception do err('ItemManager.GetPluginRect', e);
@@ -2121,7 +2121,7 @@ var
 begin
   try
     result := false;
-    Inst := TCustomItem(GetWindowLong(wnd, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
     if Inst is TCustomItem then result := Inst.Floating;
   except
     on e: Exception do err('ItemManager.IsPluginUndocked', e);
@@ -2131,7 +2131,7 @@ end;
 function TItemManager.IsSeparator(wnd: HWND): boolean;
 begin
   try
-    result := TCustomItem(GetWindowLong(wnd, GWL_USERDATA)) is TSeparatorItem;
+    result := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA)) is TSeparatorItem;
   except
     on e: Exception do err('ItemManager.IsSeparator', e);
   end;
@@ -2157,7 +2157,7 @@ begin
       index := 0;
       while index < FItemCount do
       begin
-        Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
+        Inst := TCustomItem(GetWindowLongPtr(FItemArray[index].h, GWL_USERDATA));
         if Inst is TTaskItem then TTaskItem(Inst).RemoveNonExisting;
         inc(index);
       end;
@@ -2178,7 +2178,7 @@ begin
     index := FItemCount - 1;
     while index >= 0 do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
         if TTaskItem(Inst).IsEmpty then TTaskItem(Inst).Delete else TTaskItem(Inst).UpdateItem;
       dec(index);
@@ -2207,7 +2207,7 @@ begin
     index := 0;
     while index < FItemCount do
     begin
-      Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(FItemArray[index].h, GWL_USERDATA));
       if Inst is TTaskItem then
         if TTaskItem(Inst).WindowInList(HWndTask) then
         begin
@@ -2228,7 +2228,7 @@ begin
       begin
         while index < FItemCount do
 	      begin
-	        Inst := TCustomItem(GetWindowLong(FItemArray[index].h, GWL_USERDATA));
+	        Inst := TCustomItem(GetWindowLongPtr(FItemArray[index].h, GWL_USERDATA));
 	        if not (Inst is TTaskItem) then break;
 	        inc(index);
 	      end;
@@ -2237,7 +2237,7 @@ begin
 
 			SetDropPlace(index);
       wndItem := AddItem(TTaskItem.Make, true);
-      Inst := TCustomItem(GetWindowLong(wndItem, GWL_USERDATA));
+      Inst := TCustomItem(GetWindowLongPtr(wndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;
   except
@@ -2253,7 +2253,7 @@ begin
   idx := FItemCount - 1;
   while idx >= 0 do
   begin
-    Inst := TCustomItem(GetWindowLong(FItemArray[idx].h, GWL_USERDATA));
+    Inst := TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA));
     if Inst is TTaskItem then Inst.Delete;
     dec(idx);
   end;

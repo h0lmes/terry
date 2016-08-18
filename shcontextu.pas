@@ -34,7 +34,7 @@ begin
     WM_MEASUREITEM,
     WM_INITMENUPOPUP:
       begin
-        CM2 := IContextMenu2(GetWindowLong(Wnd, GWL_USERDATA));
+        CM2 := IContextMenu2(GetWindowLongPtr(Wnd, GWL_USERDATA));
         if CM2 = nil then messagebox(wnd, 'Null CM2 menu pointer', 'Terry', 0)
         else CM2.HandleMenuMsg(Msg, wParam, lParam);
         if msg = WM_INITMENUPOPUP then result := 0 else result := 1;

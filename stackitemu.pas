@@ -93,7 +93,7 @@ type
     procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
 
-    constructor Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
     procedure SetFont(var Value: TDFontData); override;
@@ -127,7 +127,7 @@ type
 implementation
 uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(AData: string; wndParent: HWND; AParams: TDItemCreateParams);
+constructor TStackItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
@@ -832,13 +832,16 @@ begin
     upd := FUpdating;
     try
       FUpdating := true;
-      items[FItemCount - 1].item := TShortcutSubitem.Create(data, FHWnd, MakeICP);
+      items[FItemCount - 1].item := TShortcutSubitem.Create(FHWnd, MakeICP);
       if items[FItemCount - 1].item.Freed then
       begin
         DeleteSubitem(FItemCount - 1);
         dec(FItemCount);
       end
-      else items[FItemCount - 1].wnd := items[FItemCount - 1].item.Handle;
+      else begin
+        items[FItemCount - 1].wnd := items[FItemCount - 1].item.Handle;
+        items[FItemCount - 1].item.FromString(data);
+      end;
     finally
       FUpdating := upd;
     end;

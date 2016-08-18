@@ -125,7 +125,7 @@ begin
   try
     if szImage <> nil then
     begin
-      imagefile := UnzipPath(strpas(szImage));
+      imagefile := toolu.UnzipPath(strpas(szImage));
       {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', strpas(szImage)); {$endif}
       GdipCreateBitmapFromFile(PWideChar(imagefile), result);
     end;

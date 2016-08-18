@@ -1621,7 +1621,7 @@ procedure Tfrmmain.SetWorkarea(rect: windows.TRect);
 	  while h <> 0 do
 	  begin
       // exclude hidden and tool windows
-      if IsWindowVisible(h) and (GetWindowLong(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
+      if IsWindowVisible(h) and (GetWindowLongPtr(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
       begin
           // only maximized windows
           GetWindowPlacement(h, wp);
@@ -1938,7 +1938,7 @@ begin
     begin
       if IsWindowVisible(wnd) and not DWM.IsWindowCloaked(wnd) then
       begin
-        if GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0 then
+        if GetWindowLongPtr(wnd, GWL_STYLE) and WS_CAPTION = 0 then
         begin
           GetWindowRect(wnd, rc);
           if (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
@@ -1987,7 +1987,7 @@ begin
 		if IsWindowVisible(Wnd) then
     begin
         GetWindowRect(wnd, rc);
-        if (GetWindowLong(wnd, GWL_STYLE) and WS_CAPTION = 0) and
+        if (GetWindowLongPtr(wnd, GWL_STYLE) and WS_CAPTION = 0) and
           (rc.Left <= rMonitor.Left) and (rc.Top <= rMonitor.Top) and (rc.Right >= rMonitor.Right) and (rc.Bottom >= rMonitor.Bottom) then
         begin
           result := result + 'HWnd = ' + inttostr(wnd) + LineEnding;

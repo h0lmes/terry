@@ -121,7 +121,7 @@ type
     function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
     procedure LButtonDown(pt: windows.TPoint);
     procedure LButtonUp(pt: windows.TPoint);
-    procedure MouseMove(pt: windows.TPoint);
+    procedure MouseMove;
     procedure WMTimer(wParam: WPARAM);
   end;
 
@@ -1056,56 +1056,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.Timer;
-var
-  delta: integer;
-begin
-  if FActive and not FActivating then
-  try
-    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) or (FAlpha <> FAlphaTarget) then
-    begin
-      delta := abs(FXTarget - Fx) div 4;
-      if delta < 2 then delta := 2;
-      if abs(Fx - FXTarget) <= delta then Fx := FXTarget;
-      if Fx > FXTarget then Dec(Fx, delta);
-      if Fx < FXTarget then Inc(Fx, delta);
-
-      delta := abs(FYTarget - Fy) div 4;
-      if delta < 2 then delta := 2;
-      if abs(Fy - FYTarget) <= delta then Fy := FYTarget;
-      if Fy > FYTarget then Dec(Fy, delta);
-      if Fy < FYTarget then Inc(Fy, delta);
-
-      delta := abs(FWTarget - FWidth) div 4;
-      if delta < 2 then delta := 2;
-      if abs(FWidth - FWTarget) <= delta then FWidth := FWTarget;
-      if FWidth > FWTarget then Dec(FWidth, delta);
-      if FWidth < FWTarget then Inc(FWidth, delta);
-
-      delta := abs(FHTarget - FHeight) div 4;
-      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
-      if delta < 2 then delta := 2;
-      if FHeight > FHTarget then Dec(FHeight, delta);
-      if FHeight < FHTarget then Inc(FHeight, delta);
-
-      delta := abs(FAlphaTarget - FAlpha) div 4;
-      if abs(FAlpha - FAlphaTarget) <= delta then FAlpha := FAlphaTarget;
-      if delta < 1 then delta := 1;
-      if FAlpha > FAlphaTarget then Dec(FAlpha, delta);
-      if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
-
-      Paint;
-
-      if (FState = apwsClose) and (Fx = FXTarget) and (Fy = FYTarget) then
-      begin
-        CloseAPWindowInt;
-      end;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.Timer', e);
-  end;
-end;
-//------------------------------------------------------------------------------
 function TAeroPeekWindow.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
 var
   pt: windows.TPoint;
@@ -1116,7 +1066,7 @@ begin
     pt.y := TSmallPoint(DWORD(lParam)).y;
     if message = WM_LBUTTONDOWN then LButtonDown(pt)
     else if message = WM_LBUTTONUP then LButtonUp(pt)
-    else if message = WM_MOUSEMOVE then MouseMove(pt)
+    else if message = WM_MOUSEMOVE then MouseMove
     else if message = WM_TIMER then WMTimer(wParam)
     else Result := DefWindowProc(wnd, message, wParam, lParam);
   except
@@ -1175,12 +1125,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.MouseMove(pt: windows.TPoint);
+procedure TAeroPeekWindow.MouseMove;
 var
   index: integer;
   hovered: boolean;
+  pt: windows.TPoint;
 begin
   try
+    GetCursorPos(pt);
+    dec(pt.x, Fx);
+    dec(pt.y, Fy);
     hovered := false;
     for index := 0 to FItemCount - 1 do
     begin
@@ -1192,7 +1146,8 @@ begin
           begin
             FHoverIndex := index;
             Paint;
-            DWM.InvokeAeroPeek(1, items[FHoverIndex].hwnd, FHWnd);
+            if (FState = apwsOpen) and (Fx = FXTarget) and (Fy = FYTarget) then
+              DWM.InvokeAeroPeek(1, items[FHoverIndex].hwnd, FHWnd);
           end;
         end;
     end;
@@ -1218,6 +1173,56 @@ begin
     if wParam = ID_TIMER_SLOW then UpdateTitles;
   except
     on e: Exception do err('AeroPeekWindow.WMTimer', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.Timer;
+var
+  delta: integer;
+begin
+  if FActive and not FActivating then
+  try
+    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) or (FAlpha <> FAlphaTarget) then
+    begin
+      delta := abs(FXTarget - Fx) div 4;
+      if delta < 2 then delta := 2;
+      if abs(Fx - FXTarget) <= delta then Fx := FXTarget;
+      if Fx > FXTarget then Dec(Fx, delta);
+      if Fx < FXTarget then Inc(Fx, delta);
+
+      delta := abs(FYTarget - Fy) div 4;
+      if delta < 2 then delta := 2;
+      if abs(Fy - FYTarget) <= delta then Fy := FYTarget;
+      if Fy > FYTarget then Dec(Fy, delta);
+      if Fy < FYTarget then Inc(Fy, delta);
+
+      delta := abs(FWTarget - FWidth) div 4;
+      if delta < 2 then delta := 2;
+      if abs(FWidth - FWTarget) <= delta then FWidth := FWTarget;
+      if FWidth > FWTarget then Dec(FWidth, delta);
+      if FWidth < FWTarget then Inc(FWidth, delta);
+
+      delta := abs(FHTarget - FHeight) div 4;
+      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
+      if delta < 2 then delta := 2;
+      if FHeight > FHTarget then Dec(FHeight, delta);
+      if FHeight < FHTarget then Inc(FHeight, delta);
+
+      delta := abs(FAlphaTarget - FAlpha) div 4;
+      if abs(FAlpha - FAlphaTarget) <= delta then FAlpha := FAlphaTarget;
+      if delta < 1 then delta := 1;
+      if FAlpha > FAlphaTarget then Dec(FAlpha, delta);
+      if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
+
+      Paint;
+
+      if (FState = apwsClose) and (Fx = FXTarget) and (Fy = FYTarget) then
+      begin
+        CloseAPWindowInt;
+      end;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.Timer', e);
   end;
 end;
 //------------------------------------------------------------------------------
