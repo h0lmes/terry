@@ -89,13 +89,12 @@ type
     function ZOrderItems(InsertAfter: HWND): HWND;
   public
     property ItemCount: integer read FItemCount;
-
-    procedure UpdateItem(AData: string);
     function ToStringFullCopy: string;
-
-    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; var AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure Init; override;
+    procedure FromIni(IniFile, IniSection: string);
+    procedure FromParameter(value: string);
     procedure SetFont(var Value: TDFontData); override;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -107,13 +106,7 @@ type
     procedure Configure; override;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(ini, section: string); override;
-
-    class function Make(wnd: HWND; ACaption: WideString; AImage: string; ASpecialFolder: string = '';
-      color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
-      AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
-      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
-
+    //
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
     function GetSubitemCaption(index: integer): WideString;
@@ -127,14 +120,16 @@ type
 implementation
 uses themeu, frmstackpropu;
 //------------------------------------------------------------------------------
-constructor TStackItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
+constructor TStackItem.Create(wndParent: HWND; var AParams: TDItemCreateParams);
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
   FOpenAnimation := AParams.StackAnimationEnabled;
   OnBeforeDraw := BeforeDraw;
   OnDrawOverlay := DrawOverlay;
-  UpdateItem(AData);
+
+  if AParams.IniFile <> '' then FromIni(AParams.IniFile, AParams.IniSection)
+  else FromParameter(Aparams.Parameter);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.Init;
@@ -173,11 +168,55 @@ begin
   inherited;
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.UpdateItem(AData: string);
+procedure TStackItem.FromIni(IniFile, IniSection: string);
 var
-  IniFile, IniSection: string;
   idx: integer;
-  data: WideString;
+  data: string;
+begin
+  if not FFreed then
+  try
+    try
+      FUpdating := true;
+
+      if (length(IniFile) > 0) and (length(IniSection) > 0) then
+      begin
+        Caption    := GetIniStringW(IniFile, IniSection, 'caption', '');
+        FImageFile := GetIniStringW(IniFile, IniSection, 'image', '');
+        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
+
+        FMode            := SetRange(GetIniIntW(IniFile, IniSection, 'mode', 0), 0, 1000);
+        FOffset          := SetRange(GetIniIntW(IniFile, IniSection, 'offset', 0), -20, 50);
+        FAnimationSpeed  := SetRange(GetIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED), 1, 10);
+        FDistort         := SetRange(GetIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT), -10, 10);
+        FPreview         := SetRange(GetIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW), 0, 2);
+        FSpecialFolder   := GetIniStringW(IniFile, IniSection, 'special_folder', '');
+        UpdateSpecialFolder;
+        FShowBackground  := GetIniBoolW(IniFile, IniSection, 'background', false);
+        FBackgroundBlur  := GetIniBoolW(IniFile, IniSection, 'background_blur', true);
+        FBackgroundColor := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
+
+        idx := 1;
+        repeat
+          data := GetIniStringW(IniFile, IniSection, WideString('subitem' + inttostr(idx)), '');
+          if data <> '' then AddSubitem(data);
+          inc(idx);
+        until (data = '') or (idx > MAX_SUBITEMS);
+
+        FUpdating:= false;
+        UpdateItemInternal;
+      end;
+
+    finally
+      FUpdating:= false;
+    end;
+  except
+    on e: Exception do raise Exception.Create('StackItem.FromIni ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.FromParameter(value: string);
+var
+  idx: integer;
   list: TStrings;
 begin
   if FFreed then exit;
@@ -186,98 +225,60 @@ begin
     try
       FUpdating := true;
 
-      IniFile := FetchValue(AData, 'inifile="', '";');
-      IniSection := FetchValue(AData, 'inisection="', '";');
+      list := TStringList.Create;
+      list.AddText(value);
+      if list.count > 1 then value := list.strings[0];
 
-      if (length(IniFile) > 0) and (length(IniSection) > 0) then
+      caption := FetchValue(AData, 'caption="', '";');
+      FImageFile := FetchValue(AData, 'image="', '";');
+      FColorData := DEF_COLOR_DATA;
+      FMode := 0;
+      FOffset := 0;
+      FAnimationSpeed := DEFAULT_ANIM_SPEED;
+      FDistort := DEFAULT_DISTORT;
+      FSpecialFolder := '';
+      FShowBackground := false;
+      FBackgroundBlur := true;
+      FBackgroundColor := DEF_STACK_BGCOLOR;
+      try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
+      except end;
+      try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
+      except end;
+      try FOffset := strtoint(FetchValue(AData, 'offset="', '";'));
+      except end;
+      try FAnimationSpeed := strtoint(FetchValue(AData, 'animation_speed="', '";'));
+      except end;
+      try FDistort := strtoint(FetchValue(AData, 'distort="', '";'));
+      except end;
+      FPreview := DEF_STACK_PREVIEW;
+      try FPreview := strtoint(FetchValue(AData, 'preview="', '";'));
+      except end;
+      FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
+      UpdateSpecialFolder;
+      try FShowBackground := boolean(strtoint(FetchValue(AData, 'background="', '";')));
+      except end;
+      try FBackgroundBlur := boolean(strtoint(FetchValue(AData, 'background_blur="', '";')));
+      except end;
+      try FBackgroundColor := strtoint(FetchValue(AData, 'background_color="', '";'));
+      except end;
+
+      if list.count > 1 then
       begin
-        Caption :=    GetIniStringW(IniFile, IniSection, 'caption', '');
-        FImageFile := GetIniStringW(IniFile, IniSection, 'image', '');
-        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
-
-        try FMode :=           SetRange(GetIniIntW(IniFile, IniSection, 'mode', 0), 0, 1000);
-        except end;
-        try FOffset :=         SetRange(GetIniIntW(IniFile, IniSection, 'offset', 0), -20, 50);
-        except end;
-        try FAnimationSpeed := SetRange(GetIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED), 1, 10);
-        except end;
-        try FDistort :=        SetRange(GetIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT), -10, 10);
-        except end;
-        FPreview := DEF_STACK_PREVIEW;
-        try FPreview :=        SetRange(GetIniIntW(IniFile, IniSection, 'preview', FPreview), 0, 2);
-        except end;
-        FSpecialFolder :=      GetIniStringW(IniFile, IniSection, 'special_folder', '');
-        UpdateSpecialFolder;
-        try FShowBackground := GetIniBoolW(IniFile, IniSection, 'background', false);
-        except end;
-        try FBackgroundBlur := GetIniBoolW(IniFile, IniSection, 'background_blur', true);
-        except end;
-        FBackgroundColor :=    toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
-
         idx := 1;
-        repeat
-          data := GetIniStringW(IniFile, IniSection, WideString('subitem' + inttostr(idx)), '');
-          if data <> '' then AddSubitem(data);
-          inc(idx);
-        until (data = '') or (idx > MAX_SUBITEMS);
-      end
-      else
-      begin
-        list := TStringList.Create;
-        list.AddText(AData);
-        if list.count > 1 then AData := list.strings[0];
-
-        caption := FetchValue(AData, 'caption="', '";');
-        FImageFile := FetchValue(AData, 'image="', '";');
-        FColorData := DEF_COLOR_DATA;
-        FMode := 0;
-        FOffset := 0;
-        FAnimationSpeed := DEFAULT_ANIM_SPEED;
-        FDistort := DEFAULT_DISTORT;
-        FSpecialFolder := '';
-        FShowBackground := false;
-        FBackgroundBlur := true;
-        FBackgroundColor := DEF_STACK_BGCOLOR;
-        try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
-        except end;
-        try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
-        except end;
-        try FOffset := strtoint(FetchValue(AData, 'offset="', '";'));
-        except end;
-        try FAnimationSpeed := strtoint(FetchValue(AData, 'animation_speed="', '";'));
-        except end;
-        try FDistort := strtoint(FetchValue(AData, 'distort="', '";'));
-        except end;
-        FPreview := DEF_STACK_PREVIEW;
-        try FPreview := strtoint(FetchValue(AData, 'preview="', '";'));
-        except end;
-        FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
-        UpdateSpecialFolder;
-        try FShowBackground := boolean(strtoint(FetchValue(AData, 'background="', '";')));
-        except end;
-        try FBackgroundBlur := boolean(strtoint(FetchValue(AData, 'background_blur="', '";')));
-        except end;
-        try FBackgroundColor := strtoint(FetchValue(AData, 'background_color="', '";'));
-        except end;
-
-        if list.count > 1 then
+        while idx < list.Count do
         begin
-          idx := 1;
-          while idx < list.Count do
-          begin
-            if list.strings[idx] <> '' then AddSubitem(list.strings[idx]);
-            inc(idx);
-          end;
+          if list.strings[idx] <> '' then AddSubitem(list.strings[idx]);
+          inc(idx);
         end;
-
-        list.free
       end;
+
+      list.free;
 
     finally
       FUpdating:= false;
     end;
   except
-    on e: Exception do raise Exception.Create('StackItem.UpdateItem ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('StackItem.FromParameter ' + LineEnding + e.message);
   end;
 
   UpdateItemInternal;

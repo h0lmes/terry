@@ -33,15 +33,17 @@ type
     OnConfigure: _OnConfigure;
     OnWndMessage: _OnProcessMessage;
     function ContextMenu(pt: Windows.TPoint): boolean;
-    procedure CreatePlugin(AData: string);
+    procedure LoadPlugin;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
   public
     property Filename: string read FPluginFile;
-    procedure CallCreate;
+    constructor Create(wndParent: HWND; var AParams: TDItemCreateParams); override;
+    destructor Destroy; override;
+    procedure FromIni(IniFile, IniSection: string);
+    procedure FromParameter(value: string);
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
-    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
-    destructor Destroy; override;
+    procedure CallCreate;
     function ToString: string; override;
     function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -56,11 +58,10 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TPluginItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
+constructor TPluginItem.Create(wndParent: HWND; var AParams: TDItemCreateParams);
 begin
   FFreed := true;
   inherited;
-  FFreed := false;
   FNeedMouseWheel := true;
   OnDrawOverlay := DrawOverlay;
 
@@ -70,27 +71,37 @@ begin
   FImage2 := nil;
 
   lpData := nil;
-  //CreatePlugin(AData);
+
+  // window to speed up drawing //
+  hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, TDITEM_WCLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
+
+  if AParams.IniFile <> '' then FromIni(AParams.IniFile, AParams.IniSection)
+  else FromParameter(Aparams.Parameter);
 end;
 //------------------------------------------------------------------------------
-procedure TPluginItem.CreatePlugin(AData: string);
+procedure TPluginItem.FromIni(IniFile, IniSection: string);
+begin
+  FIniFile := IniFile;
+  FIniSection := IniSection;
+  if (length(IniFile) > 0) and (length(IniSection) > 0) then
+  begin
+    FPluginFile := toolu.UnzipPath(GetIniStringW(FIniFile, FIniSection, 'file', ''));
+    LoadPlugin;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TPluginItem.FromParameter(value: string);
+begin
+  FIniFile := '';
+  FIniSection := '';
+  FPluginFile := toolu.UnzipPath(value);
+  LoadPlugin;
+end;
+//------------------------------------------------------------------------------
+procedure TPluginItem.LoadPlugin;
 begin
   try
-    // window to speed up drawing //
-    hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, TDITEM_WCLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
-
     FFreed := true;
-    // get library path //
-    FIniFile := FetchValue(AData, 'inifile="', '";');
-    FIniSection := FetchValue(AData, 'inisection="', '";');
-    if (length(FIniFile) > 0) and (length(FIniSection) > 0) then
-    begin
-      FPluginFile := toolu.UnzipPath(GetIniStringW(FIniFile, FIniSection, 'file', ''));
-    end else begin
-      FPluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
-    end;
-
-    // load library //
     SetCurrentDir(ExtractFilePath(FPluginFile));
     hLib := LoadLibrary(FPluginFile);
     if hLib = 0 then
@@ -113,7 +124,7 @@ begin
     end;
     FFreed := false;
   except
-    on e: Exception do raise Exception.Create('PluginItem.CreatePlugin ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('PluginItem.LoadPlugin ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

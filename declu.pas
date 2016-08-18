@@ -107,7 +107,7 @@ type
     italic: boolean;
   end;
 
-  TDItemCreateParams = packed record
+  TDItemCreateParams = record
     ItemSize: integer;
     BigItemSize: integer;
     ItemSpacing: integer;
@@ -126,6 +126,9 @@ type
     TaskThumbSize: integer;
     TaskGrouping: boolean;
     Font: TDFontData;
+    IniFile: string;
+    IniSection: string;
+    Parameter: string;
   end;
 
   // for copying data from AppSearch //

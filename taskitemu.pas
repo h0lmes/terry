@@ -39,7 +39,7 @@ type
     procedure RemoveNonExisting;
     procedure UpdateItem;
 
-    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); override;
+    constructor Create(wndParent: HWND; var AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     function cmd(id: TDParam; param: PtrInt): PtrInt; override;
     procedure Timer; override;
@@ -54,7 +54,7 @@ type
 
 implementation
 //------------------------------------------------------------------------------
-constructor TTaskItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
+constructor TTaskItem.Create(wndParent: HWND; var AParams: TDItemCreateParams);
 begin
   inherited;
   FTaskGrouping := AParams.TaskGrouping;

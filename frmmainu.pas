@@ -1824,7 +1824,7 @@ procedure Tfrmmain.DropFiles(files: TStrings);
 var
   idx: integer;
 begin
-  for idx := 0 to files.Count - 1 do files.strings[idx] := TShortcutItem.FromFile(files.strings[idx]);
+  for idx := 0 to files.Count - 1 do files.strings[idx] := TShortcutItem.FromParameter(files.strings[idx]);
   ItemMgr.InsertItems(files);
 end;
 //------------------------------------------------------------------------------
@@ -1861,8 +1861,7 @@ end;
 procedure Tfrmmain.AddFile(Filename: string);
 begin
   if assigned(ItemMgr) then
-    ItemMgr.InsertItem(TShortcutItem.Make(0, ChangeFileExt(ExtractFilename(Filename), ''),
-      toolu.ZipPath(Filename), '', toolu.ZipPath(ExtractFilePath(Filename)), '', 1));
+    ItemMgr.InsertItem(Filename);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NewDock;

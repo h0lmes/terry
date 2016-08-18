@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   DefaultTranslator, Dialogs, StdCtrls, ExtCtrls, ComCtrls, Menus, GDIPAPI,
-  gfx, customitemu;
+  gfx;
 
 type
   { TfrmItemProp }
@@ -75,7 +75,16 @@ type
 		procedure FormShow(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
   private
-    cancelData: TDShortcutData;
+    savedCaption: WideString;
+    savedColorData: integer;
+    savedCommand: string;
+    savedParams: string;
+    savedDir: string;
+    savedImageFile: string;
+    savedImageFile2: string;
+    savedShowCmd: integer;
+    savedHide: boolean;
+    //
     color_data: integer;
     ItemHWnd: THandle;
     FChanged: boolean;
@@ -96,7 +105,7 @@ var
 
 {$t+}
 implementation
-uses declu, PIDL, toolu, frmmainu;
+uses declu, scitemu, stacksubitemu, PIDL, toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmItemProp.Open(itemWnd: HWND);
@@ -134,7 +143,9 @@ end;
 //------------------------------------------------------------------------------
 function TfrmItemProp.SetData(itemWnd: HWND): boolean;
 var
-  Inst: TBaseItem;
+  Inst: TObject = nil;
+  sci: TShortcutItem = nil;
+  scs: TShortcutSubitem = nil;
 begin
   // checks
 
@@ -143,27 +154,53 @@ begin
   if FChanged then
     if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
 
-  Inst := TBaseItem(GetWindowLongPtr(itemWnd, GWL_USERDATA));
-  if not (Inst is TBaseItem) then exit;
+  Inst := TObject(GetWindowLongPtr(itemWnd, GWL_USERDATA));
+  if not (Inst is TShortcutItem) and not (Inst is TShortcutSubitem) then exit;
 
   result := true;
+  if Inst is TShortcutItem then sci := Inst;
+  if Inst is TShortcutSubitem then scs := Inst;
 
   // read item data
 
   ItemHWnd := itemWnd;
-  Inst.GetShortcutData(cancelData);
+  if sci <> nil then
+  begin
+    savedCaption    := sci.Caption;
+    savedCommand    := sci.Command;
+    savedParams     := sci.Params;
+    savedDir        := sci.Dir;
+    savedImageFile  := sci.ImageFile;
+    savedImageFile2 := sci.ImageFile2;
+    savedShowCmd    := sci.ShowCmd;
+    savedColorData  := sci.ColorData;
+    savedHide       := sci.Hide;
+  end
+  else
+  if scs <> nil then
+  begin
+    savedCaption    := scs.Caption;
+    savedCommand    := scs.Command;
+    savedParams     := scs.Params;
+    savedDir        := scs.Dir;
+    savedImageFile  := scs.ImageFile;
+    savedImageFile2 := '';
+    savedShowCmd    := scs.ShowCmd;
+    savedColorData  := scs.ColorData;
+    savedHide       := scs.Hide;
+  end;
   pages.ActivePageIndex := 0;
 
   // show parameters //
 
-  edCaption.Text := UTF8Encode(cancelData.Caption);
-  edCmd.Text := AnsiToUTF8(cancelData.Command);
-  edParams.Text := AnsiToUTF8(cancelData.Params);
-  edDir.Text := AnsiToUTF8(cancelData.Dir);
-  edImage.text := cancelData.ImageFile + ';' + cancelData.ImageFile2;
-  chbHide.Checked := cancelData.Hide;
+  edCaption.Text := UTF8Encode(savedCaption);
+  edCmd.Text := AnsiToUTF8(savedCommand);
+  edParams.Text := AnsiToUTF8(savedParams);
+  edDir.Text := AnsiToUTF8(savedDir);
+  edImage.text := savedImageFile + ';' + savedImageFile2;
+  chbHide.Checked := savedHide;
   //
-  color_data := cancelData.ColorData;
+  color_data := savedColorData;
   tbHue.OnChange := nil;
   tbSat.OnChange := nil;
   tbBr.OnChange := nil;
@@ -178,8 +215,8 @@ begin
   tbCont.OnChange := tbHueChange;
   //
   cboWindow.ItemIndex := 0;
-  if cancelData.ShowCmd = sw_showminimized then cboWindow.ItemIndex := 1
-  else if cancelData.ShowCmd = sw_showmaximized then cboWindow.ItemIndex := 2;
+  if savedShowCmd = sw_showminimized then cboWindow.ItemIndex := 1
+  else if savedShowCmd = sw_showmaximized then cboWindow.ItemIndex := 2;
 
   Draw;
   iPic.OnPaint := iPicPaint;
@@ -196,12 +233,41 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnCancelClick(Sender: TObject);
 var
-  Inst: TBaseItem;
+  Inst: TObject = nil;
+  sci: TShortcutItem = nil;
+  scs: TShortcutSubitem = nil;
 begin
   if FChanged then
   begin
-    Inst := TBaseItem(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
-    if Inst is TBaseItem then Inst.SetShortcutData(cancelData);
+    Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
+    if Inst is TShortcutItem then sci := Inst;
+    if Inst is TShortcutSubitem then scs := Inst;
+    if sci <> nil then
+    begin
+      sci.Caption    := savedCaption;
+      sci.Command    := savedCommand;
+      sci.Params     := savedParams;
+      sci.Dir        := savedDir;
+      sci.ImageFile  := savedImageFile;
+      sci.ImageFile2 := savedImageFile2;
+      sci.ShowCmd    := savedShowCmd;
+      sci.ColorData  := savedColorData;
+      sci.Hide       := savedHide;
+      scs.Update;
+    end
+    else
+    if scs <> nil then
+    begin
+      scs.Caption    := savedCaption;
+      scs.Command    := savedCommand;
+      scs.Params     := savedParams;
+      scs.Dir        := savedDir;
+      scs.ImageFile  := savedImageFile;
+      scs.ShowCmd    := savedShowCmd;
+      scs.ColorData  := savedColorData;
+      scs.Hide       := savedHide;
+      scs.Update;
+    end;
   end;
   FChanged := false;
   Close;
@@ -217,26 +283,47 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnApplyClick(Sender: TObject);
 var
-  data: TDShortcutData;
-  Inst: TBaseItem;
+  Inst: TObject = nil;
+  sci: TShortcutItem = nil;
+  scs: TShortcutSubitem = nil;
+  ShowCmd: integer;
 begin
   try
-    Inst := TBaseItem(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
-    if Inst is TBaseItem then
+    Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
+    if Inst is TShortcutItem then sci := Inst;
+    if Inst is TShortcutSubitem then scs := Inst;
+
+    if cboWindow.ItemIndex = 0 then ShowCmd := sw_shownormal
+    else if cboWindow.ItemIndex = 1 then ShowCmd := sw_showminimized
+    else ShowCmd := sw_showmaximized;
+
+    if sci <> nil then
     begin
-      data.Caption    := UTF8Decode(edCaption.Text);
-      data.Command    := UTF8ToAnsi(edCmd.Text);
-      data.Params     := UTF8ToAnsi(edParams.Text);
-      data.Dir        := UTF8ToAnsi(edDir.Text);
-      data.ImageFile  := UTF8ToAnsi(edImage.Text);
-      data.ImageFile2 := cutafter(data.ImageFile, ';');
-      data.ImageFile  := cut(data.ImageFile, ';');
-      if cboWindow.ItemIndex = 0 then data.ShowCmd := sw_shownormal
-      else if cboWindow.ItemIndex = 1 then data.ShowCmd := sw_showminimized
-      else data.ShowCmd := sw_showmaximized;
-      data.ColorData  := color_data;
-      data.Hide       := chbHide.Checked;
-      Inst.SetShortcutData(data);
+      sci.Caption    := UTF8Decode(edCaption.Text);
+      sci.Command    := UTF8ToAnsi(edCmd.Text);
+      sci.Params     := UTF8ToAnsi(edParams.Text);
+      sci.Dir        := UTF8ToAnsi(edDir.Text);
+      sci.ImageFile  := UTF8ToAnsi(edImage.Text);
+      sci.ImageFile2 := cutafter(sci.ImageFile, ';');
+      sci.ImageFile  := cut(sci.ImageFile, ';');
+      sci.ShowCmd    := ShowCmd;
+      sci.ColorData  := color_data;
+      sci.Hide       := chbHide.Checked;
+      sci.Update;
+      FChanged := false;
+    end
+    else
+    if scs <> nil then
+    begin
+      scs.Caption    := UTF8Decode(edCaption.Text);
+      scs.Command    := UTF8ToAnsi(edCmd.Text);
+      scs.Params     := UTF8ToAnsi(edParams.Text);
+      scs.Dir        := UTF8ToAnsi(edDir.Text);
+      scs.ImageFile  := UTF8ToAnsi(edImage.Text);
+      scs.ShowCmd    := ShowCmd;
+      scs.ColorData  := color_data;
+      scs.Hide       := chbHide.Checked;
+      scs.Update;
       FChanged := false;
     end;
   except
@@ -251,7 +338,6 @@ begin
   FImage := nil;
   action := cafree;
   frmItemProp := nil;
-  //SetActiveWindow(frmmain.handle);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);

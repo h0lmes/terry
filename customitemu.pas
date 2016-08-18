@@ -17,28 +17,8 @@ type
   TOnBeforeMouseHover = procedure(param: boolean) of object;
   TOnBeforeUndock = procedure of object;
 
-  { TDShortcutData }
-  TDShortcutData = record
-    Caption: string;
-    Command: string;
-    Params: string;
-    Dir: string;
-    ImageFile: string;
-    ImageFile2: string;
-    ShowCmd: integer;
-    ColorData: integer;
-    Hide: boolean;
-  end;
-
-  { TBaseItem is an abstract class }
-  TBaseItem = class
-    public
-      procedure GetShortcutData(var data: TDShortcutData); virtual; abstract;
-      procedure SetShortcutData(var data: TDShortcutData); virtual; abstract;
-  end;
-
   { TCustomItem is an abstract class }
-  TCustomItem = class(TBaseItem)
+  TCustomItem = class
   private
     FHover: boolean;
   protected
@@ -47,6 +27,7 @@ type
     FHWndParent: HWND;
     FHMenu: THandle;
     FCaption: WideString;
+    FColorData: integer;
     FX: integer;
     FY: integer;
     FSize: integer;
@@ -63,7 +44,6 @@ type
     FUpdating: boolean;
     FFloating: boolean;
     FSelected: boolean;
-    FColorData: integer;
     FDropIndicator: integer;
     FReflection: boolean;
     FReflectionSize: integer;
@@ -115,13 +95,14 @@ type
     property Floating: boolean read FFloating;
     property Handle: HWND read FHWnd;
     property Caption: WideString read FCaption write SetCaption;
+    property ColorData: integer read FColorData write FColorData;
     property X: integer read FX;
     property Y: integer read FY;
     property Size: integer read FSize;
     property Rect: windows.TRect read GetClientRect;
     property ScreenRect: windows.TRect read GetScreenRect;
 
-    constructor Create(wndParent: HWND; AParams: TDItemCreateParams); virtual;
+    constructor Create(wndParent: HWND; var AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure SetFont(var Value: TDFontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); virtual; abstract;
@@ -163,7 +144,7 @@ begin
     result := DefWindowProc(wnd, message, wParam, lParam);
 end;
 //------------------------------------------------------------------------------
-constructor TCustomItem.Create(wndParent: HWND; AParams: TDItemCreateParams);
+constructor TCustomItem.Create(wndParent: HWND; var AParams: TDItemCreateParams);
 begin
   inherited Create;
   Init;

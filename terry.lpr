@@ -364,7 +364,7 @@ begin
   try
     if assigned(frmmain) then
       if assigned(frmmain.ItemMgr) then
-        result := frmmain.ItemMgr.CreateItem(data);
+        result := frmmain.ItemMgr.CreateItemFromIni(data);
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('DockCreateItem', e);
   end;

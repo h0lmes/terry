@@ -13,7 +13,7 @@ const
 type
 
   { TCustomSubitem is an abstract class }
-  TCustomSubitem = class(TBaseItem)
+  TCustomSubitem = class
   protected
     FFreed: boolean;
     FHWnd: HWND;
@@ -61,7 +61,7 @@ type
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
     procedure CloseStack;
-    procedure UpdateItemMeasureCaption;
+    procedure UpdateCaptionExtent;
     procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
@@ -116,21 +116,25 @@ type
     FShowCmd: integer;
     FHide: boolean;
     FColorData: integer;
+    //
     FUseShellContextMenus: boolean;
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
     FLastMouseUp: PtrUInt;
-    procedure UpdateItemI;
-    procedure UpdateItemRunningState;
+    procedure Update;
+    procedure UpdateRunning;
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure DrawNumberOverlay(dst: pointer; x, y, size, number: integer);
   public
-    // TBaseItem
-    procedure GetShortcutData(var data: TDShortcutData); override;
-    procedure SetShortcutData(var data: TDShortcutData); override;
-    //
+    property Command: string read FCommand write FCommand;
+    property Params: string read FParams write FParams;
+    property Dir: string read FDir write FDir;
+    property ImageFile: string read FImageFile write FImageFile;
+    property ShowCmd: integer read FShowCmd write FShowCmd;
+    property Hide: boolean read FHide write FHide;
+
     constructor Create(wndParent: HWND; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure FromString(data: string); override;
@@ -205,12 +209,12 @@ begin
           end;
         end;
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpShowHint: UpdateItemMeasureCaption; //UpdateItemI;
+      gpShowHint: UpdateCaptionExtent; //Update;
       gpSite: if FRunning then Redraw;
       tcThemeChanged: if FRunning then Redraw;
 
       // commands //
-      icUpdateRunning: UpdateItemRunningState;
+      icUpdateRunning: UpdateRunning;
     end;
 
   except
@@ -221,55 +225,30 @@ end;
 procedure TShortcutSubitem.FromString(data: string);
 begin
   try
-      if data <> '' then
-      begin
-        FCaption := FetchValue(data, 'caption="', '";');
-        FCommand := FetchValue(data, 'command="', '";');
-        FParams := FetchValue(data, 'params="', '";');
-        FDir := FetchValue(data, 'dir="', '";');
-        FImageFile := FetchValue(data, 'image="', '";');
-        FHide := false;
-        FColorData := DEF_COLOR_DATA;
-        FShowCmd := 1;
-        try FHide := boolean(strtoint(FetchValue(data, 'hide="', '";')));
-        except end;
-        try FColorData := strtoint(FetchValue(data, 'color_data="', '";'));
-        except end;
-        try FShowCmd := strtoint(FetchValue(data, 'showcmd="', '";'));
-        except end;
-        UpdateItemI;
-      end;
+    if data <> '' then
+    begin
+      FCaption       := FetchValue(data, 'caption="', '";');
+      FCommand       := FetchValue(data, 'command="', '";');
+      FParams        := FetchValue(data, 'params="', '";');
+      FDir           := FetchValue(data, 'dir="', '";');
+      FImageFile     := FetchValue(data, 'image="', '";');
+      FHide          := false;
+      FColorData     := DEF_COLOR_DATA;
+      FShowCmd       := 1;
+      try FHide      := boolean(strtoint(FetchValue(data, 'hide="', '";')));
+      except end;
+      try FColorData := strtoint(FetchValue(data, 'color_data="', '";'));
+      except end;
+      try FShowCmd   := strtoint(FetchValue(data, 'showcmd="', '";'));
+      except end;
+      Update;
+    end;
   except
     on e: Exception do raise Exception.Create('ShortcutItem.FromString ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.GetShortcutData(var data: TDShortcutData);
-begin
-  data.Caption   := FCaption;
-  data.Command   := FCommand;
-  data.Params    := FParams;
-  data.Dir       := FDir;
-  data.ImageFile := FImageFile;
-  data.ShowCmd   := FShowCmd;
-  data.ColorData := FColorData;
-  data.Hide      := FHide;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.SetShortcutData(var data: TDShortcutData);
-begin
-  FCaption    := data.Caption;
-  FCommand    := data.Command;
-  FParams     := data.Params;
-  FDir        := data.Dir;
-  FImageFile  := data.ImageFile;
-  FShowCmd    := data.ShowCmd;
-  FColorData  := data.ColorData;
-  FHide       := data.Hide;
-  UpdateItemI;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateItemI;
+procedure TShortcutSubitem.Update;
 var
   sfi: TSHFileInfoW;
   pidFolder: PItemIDList;
@@ -334,7 +313,7 @@ begin
       end;
 
       // measure caption and adjust border size //
-      UpdateItemMeasureCaption;
+      UpdateCaptionExtent;
     finally
       FUpdating:= false;
     end;
@@ -342,11 +321,11 @@ begin
     Redraw;
     sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
-    on e: Exception do raise Exception.Create('StackSubitem.UpdateItemInternal ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('StackSubitem.Update ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutSubitem.UpdateItemRunningState;
+procedure TShortcutSubitem.UpdateRunning;
 begin
   if FExecutable <> '' then FProcessWindowsCount := ProcessHelper.GetProcessWindowsCount(FExecutable);
   if (FProcessWindowsCount > 0) <> FRunning then
@@ -805,7 +784,7 @@ begin
     begin
       FImageFile := toolu.ZipPath(filename);
       FColorData := DEF_COLOR_DATA;
-      UpdateItemI;
+      Update;
     end
     else
     begin
@@ -1122,10 +1101,10 @@ end;
 procedure TCustomSubitem.SetFont(var Value: TDFontData);
 begin
   CopyFontData(Value, FFont);
-  UpdateItemMeasureCaption;
+  UpdateCaptionExtent;
 end;
 //------------------------------------------------------------------------------
-procedure TCustomSubitem.UpdateItemMeasureCaption;
+procedure TCustomSubitem.UpdateCaptionExtent;
 var
   hgdip, hfont, hfontfamily: Pointer;
   rect: TRectF;
@@ -1137,15 +1116,15 @@ begin
   if FShowHint and (length(FCaption) > 0) then
   begin
     dc := CreateCompatibleDC(0);
-    if dc = 0 then raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateCompatibleDC failed');
+    if dc = 0 then raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateCompatibleDC failed');
     try
       GdipCreateFromHDC(dc, hgdip);
       try
         if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
-          raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFontFamily failed');
+          raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateFontFamily failed');
         try
           if Ok <> GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont) then
-            raise Exception.Create('CustomSubitem.UpdateItemMeasureCaption.CreateFont failed');
+            raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateFont failed');
           try
             rect.x := 0;
             rect.y := 0;
