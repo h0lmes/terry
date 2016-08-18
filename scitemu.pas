@@ -13,11 +13,11 @@ type
 
   TShortcutItem = class(TCustomDrawItem)
   private
-    FCommand: WideString;
-    FParams: WideString;
-    FDir: WideString;
-    FImageFile: WideString;
-    FImageFile2: WideString;
+    FCommand: string;
+    FParams: string;
+    FDir: string;
+    FImageFile: string;
+    FImageFile2: string;
     FShowCmd: integer;
     FHide: boolean;
     FUseShellContextMenus: boolean;
@@ -68,10 +68,10 @@ type
     procedure OpenFolder; override;
     function RegisterProgram: string; override;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
-    procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    procedure Save(ini, section: string); override;
     //
     class function Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
+      AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
     class function FromFile(filename: string): string;
   end;
 
@@ -138,7 +138,7 @@ begin
       FImageFile2 := cutafter(FImageFile, ';');
       FImageFile := cut(FImageFile, ';');
       FHide :=      GetIniBoolW(IniFile, IniSection, 'hide', false);
-      FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
+      FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
       FShowCmd :=   GetIniIntW(IniFile, IniSection, 'showcmd', sw_shownormal);
     end
     else
@@ -151,7 +151,7 @@ begin
       FImageFile2 := cutafter(FImageFile, ';');
       FImageFile := cut(FImageFile, ';');
       FHide := false;
-      FColorData := DEFAULT_COLOR_DATA;
+      FColorData := DEF_COLOR_DATA;
       FShowCmd := 1;
       try FHide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
       except end;
@@ -496,7 +496,7 @@ procedure TShortcutItem.Exec(action: TExecuteAction);
   procedure Run;
   begin
     if FHide then dockh.DockExecute(FHWnd, '/hide', '', '', 0) else DockletDoAttensionAnimation(FHWnd);
-    DockExecuteW(FHWnd, pwchar(FCommand), pwchar(FParams), pwchar(FDir), FShowCmd);
+    DockExecute(FHWnd, pchar(FCommand), pchar(FParams), pchar(FDir), FShowCmd);
   end;
 begin
   if FIsPIDL then Run
@@ -760,7 +760,7 @@ begin
     if (ext = '.png') or (ext = '.ico') then
     begin
       FImageFile := toolu.ZipPath(filename);
-      FColorData := DEFAULT_COLOR_DATA;
+      FColorData := DEF_COLOR_DATA;
       UpdateItemI;
     end
     else
@@ -770,31 +770,27 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.Save(szIni: pchar; szIniGroup: pchar);
+procedure TShortcutItem.Save(ini, section: string);
 var
-  img: WideString;
-  section, ini: WideString;
+  img: string;
 begin
-  if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
-
-  section := strpas(szIniGroup);
-  ini := strpas(szIni);
-  WritePrivateProfileString(szIniGroup, nil, nil, szIni);
-  WritePrivateProfileString(szIniGroup, 'class', 'shortcut', szIni);
+  if FFreed or (ini = '') or (section = '') then exit;
+  WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
+  WritePrivateProfileString(pchar(section), 'class', 'shortcut', pchar(ini));
   if not FDynObject then
-    if caption <> '' then WriteIniStringW(ini, section, 'caption', Caption);
-  if FCommand <> '' then  WriteIniStringW(ini, section, 'command', FCommand);
-  if FParams <> '' then   WriteIniStringW(ini, section, 'params', FParams);
-  if FDir <> '' then      WriteIniStringW(ini, section, 'dir', FDir);
+    if caption <> '' then              WriteIniStringW(ini, section, 'caption', Caption);
+  if FCommand <> '' then               WriteIniStringW(ini, section, 'command', FCommand);
+  if FParams <> '' then                WriteIniStringW(ini, section, 'params', FParams);
+  if FDir <> '' then                   WriteIniStringW(ini, section, 'dir', FDir);
   if FImageFile <> '' then
   begin
     img := FImageFile;
     if FImageFile2 <> '' then img := img + ';' + FImageFile2;
     WriteIniStringW(ini, section, 'image', img);
   end;
-  if FShowCmd <> sw_shownormal then        WriteIniStringW(ini, section, 'showcmd', inttostr(FShowCmd));
-  if FColorData <> DEFAULT_COLOR_DATA then WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
-  if FHide then                            WriteIniStringW(ini, section, 'hide', '1');
+  if FShowCmd <> sw_shownormal then    WriteIniStringW(ini, section, 'showcmd', inttostr(FShowCmd));
+  if FColorData <> DEF_COLOR_DATA then WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
+  if FHide then                        WriteIniStringW(ini, section, 'hide', '1');
 end;
 //------------------------------------------------------------------------------
 //
@@ -802,7 +798,7 @@ end;
 //
 //------------------------------------------------------------------------------
 class function TShortcutItem.Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
+  AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   result := result + 'hwnd="' + inttostr(wnd) + '";';
@@ -812,7 +808,7 @@ begin
   if ADir <> '' then result := result + 'dir="' + ADir + '";';
   if AImage <> '' then result := result + 'image="' + AImage + '";';
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
-  if AColorData <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
+  if AColorData <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
   if AHide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------

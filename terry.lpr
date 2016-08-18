@@ -37,7 +37,7 @@ uses
 {$ifdef DEBUG_EXPORTS}
 procedure inf(where, data: string);
 begin
-  frmterry.notify(where + ':   ' + data);
+  AddLog(where + ':   ' + data);
 end;
 {$endif}
 //------------------------------------------------------------------------------
@@ -119,15 +119,15 @@ end;
 //------------------------------------------------------------------------------
 function DockletLoadGDIPlusImage(szImage: pchar): Pointer; stdcall;
 var
-  imagefile: string;
+  imagefile: WideString;
 begin
   result := nil;
   try
     if szImage <> nil then
     begin
       imagefile := UnzipPath(strpas(szImage));
-      {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', imagefile); {$endif}
-      GdipCreateBitmapFromFile(PWideChar(WideString(imagefile)), result);
+      {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', strpas(szImage)); {$endif}
+      GdipCreateBitmapFromFile(PWideChar(imagefile), result);
     end;
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('DockletLoadGDIPlusImage', e);
@@ -224,7 +224,9 @@ begin
   {$ifdef DEBUG_EXPORTS} inf('DockletGetRelativeFolder1', inttostr(id)); {$endif}
   try
     rel := frmmain.ItemMgr.GetPluginFile(id);
+    {$ifdef DEBUG_EXPORTS} inf('GetPluginFile', inttostr(id) + ', ' + rel); {$endif}
     rel := IncludeTrailingPathDelimiter(extractfilepath(rel));
+    {$ifdef DEBUG_EXPORTS} inf('extractfilepath', inttostr(id) + ', ' + rel); {$endif}
     rel := cutafter(rel, UnzipPath('%pp%\'));
     if assigned(szFolder) then StrLCopy(szFolder, pchar(rel), length(rel));
   except
@@ -330,15 +332,6 @@ procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer); 
 begin
   try
     if assigned(frmmain) then frmmain.mexecute(exename, params, dir, showcmd, id);
-  except
-    on e: Exception do if assigned(frmmain) then frmmain.err('DockExecute', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer); stdcall;
-begin
-  try
-    if assigned(frmmain) then frmmain.mexecute(WideString(exename), WideString(params), WideString(dir), showcmd, id);
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('DockExecute', e);
   end;

@@ -14,7 +14,7 @@ const
   DEFAULT_ANIM_SPEED = 8;
   MID_ANIM_SPEED = 4;
   DEFAULT_DISTORT = 1;
-  DEFAULT_STACK_PREVIEW = 1;
+  DEF_STACK_PREVIEW = 1;
 
 type
   TStackState = (stsClosed, stsOpening, stsOpen, stsClosing);
@@ -38,7 +38,7 @@ type
   TStackItem = class(TCustomDrawItem)
   private
     FUseShellContextMenus: boolean;
-    FImageFile: WideString;
+    FImageFile: string;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
     FItemCount: integer;
     FState: TStackState;
@@ -49,7 +49,7 @@ type
     FOpenAnimation: boolean;
     FDistort: integer;
     FDragOver: boolean;
-    FSpecialFolder: WideString;
+    FSpecialFolder: string;
     FPreview: integer; // 0 - none, 1 - four, 2 - nine
     FPreviewImage: pointer;
     FPreviewImageW: uint;
@@ -106,13 +106,13 @@ type
     procedure Timer; override;
     procedure Configure; override;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
-    procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    procedure Save(ini, section: string); override;
 
-    class function Make(wnd: HWND; ACaption, AImage: WideString; ASpecialFolder: WideString = '';
-      color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
+    class function Make(wnd: HWND; ACaption: WideString; AImage: string; ASpecialFolder: string = '';
+      color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
-      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEFAULT_STACK_BGCOLOR): string;
+      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
+      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
 
     procedure AddSubitemDefault;
     procedure AddSubitem(data: string);
@@ -152,12 +152,12 @@ begin
   FDistort := DEFAULT_DISTORT;
   FDragOver := false;
   FSpecialFolder := '';
-  FPreview := DEFAULT_STACK_PREVIEW;
+  FPreview := DEF_STACK_PREVIEW;
   FPreviewImage := nil;
   FBackgroundWindow := 0;
   FShowBackground := false;
   FBackgroundBlur := true;
-  FBackgroundColor := DEFAULT_STACK_BGCOLOR;
+  FBackgroundColor := DEF_STACK_BGCOLOR;
   FWindowCount := 0;
 end;
 //------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ begin
       begin
         Caption :=    GetIniStringW(IniFile, IniSection, 'caption', '');
         FImageFile := GetIniStringW(IniFile, IniSection, 'image', '');
-        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEFAULT_COLOR_DATA)));
+        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
 
         try FMode :=           SetRange(GetIniIntW(IniFile, IniSection, 'mode', 0), 0, 1000);
         except end;
@@ -203,7 +203,7 @@ begin
         except end;
         try FDistort :=        SetRange(GetIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT), -10, 10);
         except end;
-        FPreview := DEFAULT_STACK_PREVIEW;
+        FPreview := DEF_STACK_PREVIEW;
         try FPreview :=        SetRange(GetIniIntW(IniFile, IniSection, 'preview', FPreview), 0, 2);
         except end;
         FSpecialFolder :=      GetIniStringW(IniFile, IniSection, 'special_folder', '');
@@ -212,7 +212,7 @@ begin
         except end;
         try FBackgroundBlur := GetIniBoolW(IniFile, IniSection, 'background_blur', true);
         except end;
-        FBackgroundColor :=    toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEFAULT_STACK_BGCOLOR)));
+        FBackgroundColor :=    toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
 
         idx := 1;
         repeat
@@ -229,7 +229,7 @@ begin
 
         caption := FetchValue(AData, 'caption="', '";');
         FImageFile := FetchValue(AData, 'image="', '";');
-        FColorData := DEFAULT_COLOR_DATA;
+        FColorData := DEF_COLOR_DATA;
         FMode := 0;
         FOffset := 0;
         FAnimationSpeed := DEFAULT_ANIM_SPEED;
@@ -237,7 +237,7 @@ begin
         FSpecialFolder := '';
         FShowBackground := false;
         FBackgroundBlur := true;
-        FBackgroundColor := DEFAULT_STACK_BGCOLOR;
+        FBackgroundColor := DEF_STACK_BGCOLOR;
         try FColorData := strtoint(FetchValue(AData, 'color_data="', '";'));
         except end;
         try FMode := strtoint(FetchValue(AData, 'mode="', '";'));
@@ -248,7 +248,7 @@ begin
         except end;
         try FDistort := strtoint(FetchValue(AData, 'distort="', '";'));
         except end;
-        FPreview := DEFAULT_STACK_PREVIEW;
+        FPreview := DEF_STACK_PREVIEW;
         try FPreview := strtoint(FetchValue(AData, 'preview="', '";'));
         except end;
         FSpecialFolder := FetchValue(AData, 'special_folder="', '";');
@@ -623,7 +623,7 @@ begin
   if (ext = '.png') or (ext = '.ico') then
   begin
     FImageFile := toolu.ZipPath(filename);
-    FColorData := DEFAULT_COLOR_DATA;
+    FColorData := DEF_COLOR_DATA;
     UpdateItemInternal;
     exit;
   end;
@@ -637,57 +637,53 @@ begin
   AddSubitem(TShortcutSubitem.FromFile(filename));
 end;
 //------------------------------------------------------------------------------
-procedure TStackItem.Save(szIni: pchar; szIniGroup: pchar);
+procedure TStackItem.Save(ini, section: string);
 var
   idx: integer;
-  section, ini: WideString;
 begin
-  if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
-
-  section := strpas(szIniGroup);
-  ini := strpas(szIni);
-  WritePrivateProfileString(szIniGroup, nil, nil, szIni);
-  WritePrivateProfileString(szIniGroup, 'class', 'stack', szIni);
-  if caption <> '' then WriteIniStringW(ini, section, 'caption', Caption);
-  if FImageFile <> '' then WriteIniStringW(ini, section, 'image', FImageFile);
-  if FColorData <> DEFAULT_COLOR_DATA then WritePrivateProfileString(szIniGroup, 'color_data', pchar(toolu.ColorToString(FColorData)), szIni);
-  if FMode <> 0 then WritePrivateProfileString(szIniGroup, 'mode', pchar(inttostr(FMode)), szIni);
-  if FOffset <> 0 then WritePrivateProfileString(szIniGroup, 'offset', pchar(inttostr(FOffset)), szIni);
-  WritePrivateProfileString(szIniGroup, 'animation_speed', pchar(inttostr(FAnimationSpeed)), szIni);
-  WritePrivateProfileString(szIniGroup, 'distort', pchar(inttostr(FDistort)), szIni);
-  WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
-  if FPreview <> DEFAULT_STACK_PREVIEW then WritePrivateProfileString(szIniGroup, 'preview', pchar(inttostr(FPreview)), szIni);
-  if FShowBackground then WritePrivateProfileString(szIniGroup, 'background', '1', szIni);
-  if FShowBackground then WritePrivateProfileString(szIniGroup, 'background_blur', '1', szIni);
-  if FBackgroundColor <> DEFAULT_STACK_BGCOLOR then
-    WritePrivateProfileString(szIniGroup, 'background_color', pchar(toolu.ColorToString(FBackgroundColor)), szIni);
+  if FFreed or (ini = '') or (section = '') then exit;
+  WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
+  WritePrivateProfileString(pchar(section), 'class', 'stack', pchar(ini));
+  if caption <> '' then                 WriteIniStringW(ini, section, 'caption', Caption);
+  if FImageFile <> '' then              WriteIniStringW(ini, section, 'image', FImageFile);
+  if FColorData <> DEF_COLOR_DATA then  WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
+  if FMode <> 0 then                    WriteIniStringW(ini, section, 'mode', inttostr(FMode));
+  if FOffset <> 0 then                  WriteIniStringW(ini, section, 'offset', inttostr(FOffset));
+  WriteIniStringW(ini, section, 'animation_speed', inttostr(FAnimationSpeed));
+  WriteIniStringW(ini, section, 'distort', inttostr(FDistort));
+  if FSpecialFolder <> '' then          WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
+  if FPreview <> DEF_STACK_PREVIEW then WriteIniStringW(ini, section, 'preview', inttostr(FPreview));
+  if FShowBackground then               WriteIniStringW(ini, section, 'background', '1');
+  if FShowBackground and FBackgroundBlur then
+                                        WriteIniStringW(ini, section, 'background_blur', '1');
+  if FBackgroundColor <> DEF_STACK_BGCOLOR then
+                                        WriteIniStringW(ini, section, 'background_color', toolu.ColorToString(FBackgroundColor));
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
-    for idx := 0 to FItemCount - 1 do
-      WritePrivateProfileString(szIniGroup, pchar('subitem' + inttostr(idx + 1)), pchar(items[idx].item.SaveToString), szIni);
+    for idx := 0 to FItemCount - 1 do   WriteIniStringW(ini, section, 'subitem' + inttostr(idx + 1), items[idx].item.SaveToString);
   end;
 end;
 //------------------------------------------------------------------------------
-class function TStackItem.Make(wnd: HWND; ACaption, AImage: WideString; ASpecialFolder: WideString = '';
-  color_data: integer = DEFAULT_COLOR_DATA; AMode: integer = 0;
+class function TStackItem.Make(wnd: HWND; ACaption: WideString; AImage: string; ASpecialFolder: string = '';
+  color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
   AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-  ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEFAULT_STACK_PREVIEW;
-  AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEFAULT_STACK_BGCOLOR): string;
+  ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
+  AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
 begin
   result := 'class="stack";';
   result := result + 'hwnd="' + inttostr(wnd) + '";';
   if ACaption <> '' then result := result + 'caption="' + AnsiString(ACaption) + '";';
-  if AImage <> '' then result := result + 'image="' + AnsiString(AImage) + '";';
-  if ASpecialFolder <> '' then result := result + 'special_folder="' + AnsiString(ASpecialFolder) + '";';
-  if color_data <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
+  if AImage <> '' then result := result + 'image="' + AImage + '";';
+  if ASpecialFolder <> '' then result := result + 'special_folder="' + ASpecialFolder + '";';
+  if color_data <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(color_data) + '";';
   if AMode <> 0 then result := result + 'mode="' + inttostr(AMode) + '";';
   if AOffset <> 0 then result := result + 'offset="' + inttostr(AOffset) + '";';
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
-  if APreview <> DEFAULT_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
+  if APreview <> DEF_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
   if AShowBackground then result := result + 'background="1";';
   if ABackgroundBlur then result := result + 'background_blur="1";';
-  if ABackgroundColor <> DEFAULT_STACK_BGCOLOR then result := result + 'background_color="' + toolu.ColorToString(ABackgroundColor) + '";';
+  if ABackgroundColor <> DEF_STACK_BGCOLOR then result := result + 'background_color="' + toolu.ColorToString(ABackgroundColor) + '";';
 end;
 //------------------------------------------------------------------------------
 //

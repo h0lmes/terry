@@ -1,6 +1,6 @@
 unit aeropeeku;
 
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 interface
 
@@ -477,7 +477,7 @@ end;
 procedure TAeroPeekWindow.CloseAPWindowInt;
 begin
   try
-    DWM.InvokeAeroPeek(0, 0, 0);
+    if assigned(DWM) then DWM.InvokeAeroPeek(0, 0, 0);
     KillTimer(FHWnd, ID_TIMER_SLOW);
     KillTimer(FHWnd, ID_TIMER);
     UnRegisterThumbnails;

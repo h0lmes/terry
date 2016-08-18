@@ -1,8 +1,8 @@
 unit plgitemu;
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, Dialogs, IniFiles,
-  GDIPAPI, gfx, math, dynlibs, declu, DockH, customitemu, customdrawitemu, toolu;
+uses Windows, Messages, SysUtils, Controls, Classes, Dialogs, GDIPAPI,
+  gfx, math, dynlibs, declu, DockH, customitemu, customdrawitemu, toolu, iniproc;
 
 type
 
@@ -18,7 +18,7 @@ type
     FIW2: cardinal;
     FIH2: cardinal;
     hwnd2: HWND; // to speed up gdiplus drawing //
-    PluginFile: string;
+    FPluginFile: string;
     FIniFile: string;
     FIniSection: string;
     // plugin lib vars
@@ -36,7 +36,7 @@ type
     procedure CreatePlugin(AData: string);
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
   public
-    property Filename: string read PluginFile;
+    property Filename: string read FPluginFile;
     procedure CallCreate;
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
@@ -51,7 +51,7 @@ type
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     procedure Timer; override;
     procedure Configure; override;
-    procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    procedure Save(ini, section: string); override;
   end;
 
 implementation
@@ -74,8 +74,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.CreatePlugin(AData: string);
-var
-  ini: TIniFile;
 begin
   try
     // window to speed up drawing //
@@ -87,19 +85,17 @@ begin
     FIniSection := FetchValue(AData, 'inisection="', '";');
     if (length(FIniFile) > 0) and (length(FIniSection) > 0) then
     begin
-      ini := TIniFile.Create(FIniFile);
-      PluginFile := toolu.UnzipPath(ini.ReadString(FIniSection, 'file', ''));
-      ini.free;
+      FPluginFile := toolu.UnzipPath(GetIniStringW(FIniFile, FIniSection, 'file', ''));
     end else begin
-      PluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
+      FPluginFile := toolu.UnzipPath(FetchValue(AData, 'file="', '";'));
     end;
 
     // load library //
-    SetCurrentDir(ExtractFilePath(PluginFile));
-    hLib := LoadLibrary(PluginFile);
+    SetCurrentDir(ExtractFilePath(FPluginFile));
+    hLib := LoadLibrary(FPluginFile);
     if hLib = 0 then
     begin
-      MessageBox(FHWnd, pchar('LoadLibrary(' + PluginFile + ') failed'), 'CreatePlugin', 0);
+      MessageBox(FHWnd, pchar('LoadLibrary(' + FPluginFile + ') failed'), 'CreatePlugin', 0);
       exit;
     end;
     @OnCreate := GetProcAddress(hLib, 'OnCreate');
@@ -112,7 +108,7 @@ begin
     @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
     if not assigned(OnCreate) then
     begin
-      MessageBox(FHWnd, pchar('OnCreate(' + PluginFile + ') is NULL'), 'CreatePlugin', 0);
+      MessageBox(FHWnd, pchar('OnCreate(' + FPluginFile + ') is NULL'), 'CreatePlugin', 0);
       exit;
     end;
     FFreed := false;
@@ -227,7 +223,7 @@ begin
   if not FFreed then
   begin
     result := result + '';
-    result := 'class="plugin";hwnd="' + inttostr(FHWnd) + '";file="' + toolu.ZipPath(PluginFile) + '";caption="' + FCaption + '";';
+    result := 'class="plugin";hwnd="' + inttostr(FHWnd) + '";file="' + toolu.ZipPath(FPluginFile) + '";caption="' + FCaption + '";';
   end;
 end;
 //------------------------------------------------------------------------------
@@ -343,16 +339,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TPluginItem.Save(szIni: pchar; szIniGroup: pchar);
+procedure TPluginItem.Save(ini, section: string);
 begin
-  if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
   try
-    WritePrivateProfileString(szIniGroup, nil, nil, szIni);
-    WritePrivateProfileString(szIniGroup, 'class', 'plugin', szIni);
-    WritePrivateProfileString(szIniGroup, 'file', pchar(toolu.ZipPath(PluginFile)), szIni);
-    if assigned(OnSave) then OnSave(lpData, szIni, szIniGroup, false);
+    if FFreed or (ini = '') or (section = '') then exit;
+    WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
+    WritePrivateProfileString(pchar(section), 'class', 'plugin', pchar(ini));
+    WriteIniStringW(ini, section, 'file', toolu.ZipPath(FPluginFile));
+    if assigned(OnSave) then OnSave(lpData, pchar(ini), pchar(section), false);
   except
-    on E: Exception do raise Exception.Create('PluginItem.Save ' + LineEnding + 'Plugin DLL: ' + PluginFile + LineEnding + e.message);
+    on E: Exception do raise Exception.Create('PluginItem.Save ' + LineEnding + 'Plugin DLL: ' + FPluginFile + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

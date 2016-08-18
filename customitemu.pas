@@ -121,7 +121,7 @@ type
     procedure OpenFolder; virtual;
     function RegisterProgram: string; virtual;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
-    procedure Save(szIni: pchar; szIniGroup: pchar); virtual; abstract;
+    procedure Save(ini, section: string); virtual; abstract;
 
     function HitTest(Ax, Ay: integer): boolean;
     function ScreenHitTest(Ax, Ay: integer): boolean;
@@ -216,7 +216,7 @@ begin
   FUpdating := false;
   FFloating := false;
   FSelected := false;
-  FColorData := DEFAULT_COLOR_DATA;
+  FColorData := DEF_COLOR_DATA;
   FDropIndicator := 0;
   FReflection := false;
   FReflectionSize := 16;

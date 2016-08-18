@@ -47,7 +47,7 @@ type
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
-    procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    procedure Save(ini, section: string); override;
     //
     class function Make: string;
   end;
@@ -425,7 +425,7 @@ begin
     end;
 end;
 //------------------------------------------------------------------------------
-procedure TTaskItem.Save(szIni: pchar; szIniGroup: pchar);
+procedure TTaskItem.Save(ini, section: string);
 begin
   // not saveable
 end;

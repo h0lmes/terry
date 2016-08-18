@@ -19,7 +19,7 @@ object frmItemProp: TfrmItemProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.6.0.4'
   object btnOK: TButton
     Left = 10
     Height = 31
@@ -148,9 +148,9 @@ object frmItemProp: TfrmItemProp
       end
       object chbHide: TCheckBox
         Left = 145
-        Height = 23
+        Height = 19
         Top = 228
-        Width = 181
+        Width = 177
         Caption = 'Hide Terry when application runs'
         TabOrder = 9
       end

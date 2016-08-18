@@ -1,6 +1,6 @@
 unit frmmainu;
 
-{$define EXT_DEBUG}
+{$undef EXT_DEBUG}
 
 interface
 uses
@@ -13,9 +13,9 @@ type
   PRunData = ^TRunData;
   TRunData = packed record
     Handle: THandle;
-    exename: array [0..1023] of char;
-    params: array [0..1023] of char;
-    dir: array [0..1023] of char;
+    exename: array [0..1023] of wchar;
+    params: array [0..1023] of wchar;
+    dir: array [0..1023] of wchar;
     showcmd: integer;
   end;
 
@@ -2230,16 +2230,11 @@ end;
 function RunThread(p: pointer): PtrInt;
 var
   Data: PRunData absolute p;
-  params, dir: pchar;
   hostHandle: THandle;
 begin
   result := 0;
   hostHandle := Data.handle;
-  params := nil;
-  dir := nil;
-  if pchar(@Data.params) <> '' then params := PChar(@Data.params);
-  if pchar(@Data.dir) <> '' then dir := PChar(@Data.dir);
-  shellexecute(hostHandle, nil, pchar(@Data.exename), params, dir, Data.showcmd);
+  shellexecute(hostHandle, nil, pwchar(@Data.exename), pwchar(@Data.params), pwchar(@Data.dir), Data.showcmd);
   Dispose(Data);
   // request main form to close thread handle
   postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
@@ -2249,9 +2244,9 @@ end;
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   Data: PRunData;
-  pparams, pdir: pchar;
+  wexename, wparams, wdir: WideString;
   shell: string;
-  sei: TShellExecuteInfoA;
+  sei: TShellExecuteInfoW;
   aPIDL: PItemIDList;
 begin
   try
@@ -2284,30 +2279,30 @@ begin
 	    sei.lpParameters := nil;
 	    sei.lpDirectory := nil;
 	    sei.fMask := SEE_MASK_IDLIST;
-	    ShellExecuteExA(@sei);
+	    ShellExecuteExW(@sei);
       PIDL_Free(aPIDL);
       exit;
 		end;
+
+    wexename := exename;
+    wparams := params;
+    wdir := dir;
 
     if sets.container.RunInThread then
     begin
 	    New(Data);
 	    Data.handle := Handle;
-	    strcopy(pchar(@Data.exename), pchar(exename));
-	    strcopy(pchar(@Data.params), pchar(params));
-	    strcopy(pchar(@Data.dir), pchar(dir));
+	    strcopy(pwchar(@Data.exename), pwchar(wexename));
+	    strcopy(pwchar(@Data.params), pwchar(wparams));
+	    strcopy(pwchar(@Data.dir), pwchar(wdir));
 	    Data.showcmd := showcmd;
 	    if BeginThread(RunThread, Data) = 0 then
         notify(WideString('Run.BeginThread failed' + LineEnding +
           'cmd=' + exename + LineEnding +
-          'params=' + params + LineEnding +
-          'dir=' + dir));
-    end else begin
-      pparams := nil;
-      pdir := nil;
-      if params <> '' then pparams := PChar(params);
-      if dir <> '' then pdir := PChar(dir);
-      shellexecute(Handle, nil, pchar(exename), pparams, pdir, showcmd);
+          'params=' + params + LineEnding + 'dir=' + dir));
+    end else
+    begin
+      shellexecutew(Handle, nil, PWChar(wexename), PWChar(wparams), PWChar(wdir), showcmd);
     end;
   except
     on e: Exception do err('Base.Run', e);

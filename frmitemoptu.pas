@@ -164,7 +164,7 @@ begin
   except
   end;
 
-  color_data := DEFAULT_COLOR_DATA;
+  color_data := DEF_COLOR_DATA;
   try color_data := toolu.StringToColor(FetchValue(AData, 'color_data="', '";'));
   except
   end;
@@ -399,7 +399,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnDefaultColorClick(Sender: TObject);
 begin
-  color_data := DEFAULT_COLOR_DATA;
+  color_data := DEF_COLOR_DATA;
 
   tbHue.OnChange:= nil;
   tbSat.OnChange:= nil;

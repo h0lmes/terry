@@ -144,10 +144,10 @@ type
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
 
-    class function Make(wnd: HWND; ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
-    class function SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
+    class function Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+      AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
+    class function SaveMake(ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+      AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
     class function FromFile(filename: string): string;
   end;
 
@@ -164,7 +164,7 @@ begin
   FParams := '';
   FDir := '';
   FImageFile := '';
-  FColorData := DEFAULT_COLOR_DATA;
+  FColorData := DEF_COLOR_DATA;
   FShowCmd := 0;
   FHide := false;
 
@@ -224,7 +224,7 @@ begin
     FDir := FetchValue(AData, 'dir="', '";');
     FImageFile := FetchValue(AData, 'image="', '";');
     FHide := false;
-    FColorData := DEFAULT_COLOR_DATA;
+    FColorData := DEF_COLOR_DATA;
     FShowCmd := 1;
     try FHide := boolean(strtoint(FetchValue(AData, 'hide="', '";')));
     except end;
@@ -581,14 +581,14 @@ var
 begin
   try
     hattr := nil;
-    if FColorData <> DEFAULT_COLOR_DATA then
+    if FColorData <> DEF_COLOR_DATA then
     begin
       CreateColorMatrix(FColorData, matrix);
       GdipCreateImageAttributes(hattr);
       GdipSetImageAttributesColorMatrix(hattr, ColorAdjustTypeBitmap, true, @matrix, nil, ColorMatrixFlagsDefault);
     end;
     GdipDrawImageRectRectI(graphics, FImage, Ax, Ay, ASize, ASize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if FColorData <> DEFAULT_COLOR_DATA then GdipDisposeImageAttributes(hattr);
+    if FColorData <> DEF_COLOR_DATA then GdipDisposeImageAttributes(hattr);
   except
     on e: Exception do raise Exception.Create('StackSubitem.DrawPreview ' + LineEnding + e.message);
   end;
@@ -596,12 +596,12 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.ToString: string;
 begin
-  result := Make(FHWnd, AnsiString(FCaption), FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  result := Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.SaveToString: string;
 begin
-  result := SaveMake(AnsiString(FCaption), FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  result := SaveMake(FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.HitTest(Ax, Ay: integer): boolean;
@@ -778,7 +778,7 @@ begin
     if (ext = '.png') or (ext = '.ico') then
     begin
       FImageFile := toolu.ZipPath(filename);
-      FColorData := DEFAULT_COLOR_DATA;
+      FColorData := DEF_COLOR_DATA;
       UpdateItemI;
     end
     else
@@ -788,8 +788,8 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.Make(wnd: HWND; ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
+class function TShortcutSubitem.Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+  AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
   result := result + 'hwnd="' + inttostr(wnd) + '";';
@@ -799,21 +799,21 @@ begin
   if ADir <> '' then result := result + 'dir="' + ADir + '";';
   if AImage <> '' then result := result + 'image="' + AImage + '";';
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
-  if AColorData <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
+  if AColorData <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
   if AHide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.SaveMake(ACaption, ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; AColorData: integer = DEFAULT_COLOR_DATA; AHide: boolean = false): string;
+class function TShortcutSubitem.SaveMake(ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+  AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
 begin
-  result := 'class="shortcut";';
+  result := '';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
   if ACommand <> '' then result := result + 'command="' + ACommand + '";';
   if AParams <> '' then result := result + 'params="' + AParams + '";';
   if ADir <> '' then result := result + 'dir="' + ADir + '";';
   if AImage <> '' then result := result + 'image="' + AImage + '";';
   if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
-  if AColorData <> DEFAULT_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
+  if AColorData <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
   if AHide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------

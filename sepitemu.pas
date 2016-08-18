@@ -24,7 +24,7 @@ type
     procedure WndMessage(var msg: TMessage); override;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); override;
     function cmd(id: TDParam; param: PtrInt): PtrInt; override;
-    procedure Save(szIni: pchar; szIniGroup: pchar); override;
+    procedure Save(ini, section: string); override;
     class function Make: string;
 end;
 
@@ -275,15 +275,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TSeparatorItem.Save(szIni: pchar; szIniGroup: pchar);
+procedure TSeparatorItem.Save(ini, section: string);
 begin
-  if FFreed or (szIni = nil) or (szIniGroup = nil) then exit;
-  try
-    WritePrivateProfileString(szIniGroup, nil, nil, szIni);
-    WritePrivateProfileString(szIniGroup, 'class', 'separator', szIni);
-  except
-    on e: Exception do raise Exception.Create('SeparatorItem.Save ' + LineEnding + e.message);
-  end;
+  if FFreed or (ini = '') or (section = '') then exit;
+  WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
+  WritePrivateProfileString(pchar(section), 'class', 'separator', pchar(ini));
 end;
 //------------------------------------------------------------------------------
 class function TSeparatorItem.Make: string;

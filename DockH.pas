@@ -42,7 +42,6 @@ function DockletSetDockAlign(id: HWND; Offset: integer): integer;
 function DockColorDialog(color: puint): bool;
 function DockGetRect: TRect;
 procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer);
-procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer);
 function DockAddMenu(hMenu: THandle): THandle;
 function EdgeFromSDK(edge: integer): integer;
 function EdgeToSDK(edge: integer): integer;
@@ -254,15 +253,6 @@ var
   proc: dtype;
 begin
 	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockExecute');
-	if assigned(proc) then proc(id, exename, params, dir, showcmd);
-end;
-//------------------------------------------------------------------------------
-procedure DockExecuteW(id: HWND; exename, params, dir: pwchar; showcmd: integer);
-type dtype = procedure(id: HWND; exename, params, dir: pwchar; showcmd: integer); stdcall;
-var
-  proc: dtype;
-begin
-	@proc:= GetProcAddress(GetModuleHandle(nil), 'DockExecuteW');
 	if assigned(proc) then proc(id, exename, params, dir, showcmd);
 end;
 //------------------------------------------------------------------------------

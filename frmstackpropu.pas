@@ -178,7 +178,7 @@ begin
   edImage.Text := FetchValue(AData, 'image="', '";');
 
   try
-    color_data := DEFAULT_COLOR_DATA;
+    color_data := DEF_COLOR_DATA;
     color_data := toolu.StringToColor(FetchValue(AData, 'color_data="', '";'));
   except end;
   tbHue.OnChange := nil;
@@ -218,7 +218,7 @@ begin
   try chbBackgroundBlur.checked := FetchValue(AData, 'background_blur="', '";') = '1';
   except end;
   try
-    background_color := DEFAULT_STACK_BGCOLOR;
+    background_color := DEF_STACK_BGCOLOR;
     background_color := toolu.StringToColor(FetchValue(AData, 'background_color="', '";'));
   except end;
   tbBackgroundAlpha.Position := (background_color and $ff000000 shr 24) * 100 div 255;
@@ -427,7 +427,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnDefaultColorClick(Sender: TObject);
 begin
-  color_data := DEFAULT_COLOR_DATA;
+  color_data := DEF_COLOR_DATA;
 
   tbHue.OnChange:= nil;
   tbSat.OnChange:= nil;

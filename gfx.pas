@@ -7,8 +7,8 @@ const
   HLSMAX    = 240;
   RGBMAX    = 255;
   UNDEFINED = (HLSMAX * 2) div 3;
-  DEFAULT_COLOR_DATA   = $3c803c00; // contrast, brightness, saturation, color_offset //
-  DEFAULT_STACK_BGCOLOR = $50000000;
+  DEF_COLOR_DATA   = $3c803c00; // contrast, brightness, saturation, color_offset //
+  DEF_STACK_BGCOLOR = $50000000;
   DEFAULT_COLOR_OFFSET = $00;
   DEFAULT_SATURATION   = $3c;
   DEFAULT_BRIGHTNESS   = $80;
@@ -497,7 +497,7 @@ begin
       brightness := max(byte(ColorData shr 16) - $10, 0);
       tmpColorData := (ColorData and $ff00ffff) + brightness shl 16;
     end;
-    if tmpColorData <> DEFAULT_COLOR_DATA then
+    if tmpColorData <> DEF_COLOR_DATA then
     begin
       CreateColorMatrix(tmpColorData, lMatrix);
       GdipCreateImageAttributes(attr);
