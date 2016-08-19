@@ -1171,7 +1171,7 @@ begin
   len := length(ch);
   while i > 0 do
   begin
-    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    if LowerCase(copy(itext, i, len)) = LowerCase(ch) then
     begin
       Result := copy(itext, 1, i - 1);
       exit;
@@ -1194,7 +1194,7 @@ begin
   len := length(ch);
   while i > 0 do
   begin
-    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    if LowerCase(copy(itext, i, len)) = LowerCase(ch) then
     begin
       Result := copy(itext, i + len, ilen);
       exit;

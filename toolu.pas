@@ -216,7 +216,7 @@ function cut(itext, ch: string): string;
 var
   ipos: integer;
 begin
-  ipos := pos(AnsiLowerCase(ch), AnsiLowerCase(itext));
+  ipos := pos(LowerCase(ch), LowerCase(itext));
   if ipos > 0 then
     Result := copy(itext, 1, ipos - 1)
   else
@@ -227,7 +227,7 @@ function cutafter(itext, ch: string): string;
 var
   ipos: integer;
 begin
-  ipos := pos(AnsiLowerCase(ch), AnsiLowerCase(itext));
+  ipos := pos(LowerCase(ch), LowerCase(itext));
   if ipos > 0 then
     Result := copy(itext, ipos + length(ch), length(itext))
   else
@@ -238,7 +238,7 @@ procedure split(itext, ch: string; var str1, str2: string);
 var
   ipos: integer;
 begin
-  ipos := pos(AnsiLowerCase(ch), AnsiLowerCase(itext));
+  ipos := pos(LowerCase(ch), LowerCase(itext));
   if ipos > 0 then
   begin
     str1 := copy(itext, 1, ipos - 1);
@@ -293,11 +293,11 @@ function ReplaceEx(strSrc, strWhat, strWith: string): string;
 var
   ipos: integer;
 begin
-  ipos := pos(AnsiLowerCase(strWhat), AnsiLowerCase(strSrc));
+  ipos := pos(LowerCase(strWhat), LowerCase(strSrc));
   while ipos > 0 do
   begin
     strSrc := copy(strSrc, 1, ipos - 1) + strWith + copy(strSrc, ipos + length(strWhat), length(strSrc));
-    ipos := pos(AnsiLowerCase(strWhat), AnsiLowerCase(strSrc));
+    ipos := pos(LowerCase(strWhat), LowerCase(strSrc));
   end;
   Result := strSrc;
 end;
@@ -306,7 +306,7 @@ function fetch(var itext: string; delim: string; adelete: boolean = False): stri
 var
   ipos: integer;
 begin
-  ipos := pos(AnsiLowerCase(delim), AnsiLowerCase(itext));
+  ipos := pos(LowerCase(delim), LowerCase(itext));
   if ipos > 0 then
   begin
     Result := system.copy(itext, 1, ipos - 1);
@@ -324,7 +324,7 @@ function FetchValue(itext: string; Value, delim: string): string;
 var
   ipos, ipos2: integer;
 begin
-  ipos := pos(AnsiLowerCase(Value), AnsiLowerCase(itext));
+  ipos := pos(LowerCase(Value), LowerCase(itext));
   if ipos > 0 then
   begin
     ipos2 := posex(delim, itext, ipos + length(Value));
@@ -341,8 +341,8 @@ begin
 
   while Result <= length(atext) do
   begin
-    if AnsiLowerCase(atext[Result]) = AnsiLowerCase(Value[1]) then
-      if AnsiLowerCase(copy(atext, Result, length(Value))) = AnsiLowerCase(Value) then
+    if LowerCase(atext[Result]) = LowerCase(Value[1]) then
+      if LowerCase(copy(atext, Result, length(Value))) = LowerCase(Value) then
         exit;
     Inc(Result);
   end;
@@ -360,7 +360,7 @@ begin
   len := length(ch);
   while i > 0 do
   begin
-    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    if LowerCase(copy(itext, i, len)) = LowerCase(ch) then
     begin
       Result := copy(itext, 1, i - 1);
       exit;
@@ -383,7 +383,7 @@ begin
   len := length(ch);
   while i > 0 do
   begin
-    if AnsiLowerCase(copy(itext, i, len)) = AnsiLowerCase(ch) then
+    if LowerCase(copy(itext, i, len)) = LowerCase(ch) then
     begin
       Result := copy(itext, i + len, ilen);
       exit;
@@ -707,7 +707,7 @@ begin
   // search evironment vars //
   PathVar := GetEnvVar('path');
   HaveExt := ExtractFileExt(filename) <> '';
-  if not HaveExt then ExtVar := AnsiLowerCase(GetEnvVar('pathext'));
+  if not HaveExt then ExtVar := LowerCase(GetEnvVar('pathext'));
   while PathVar <> '' do
   begin
     Path := IncludeTrailingPathDelimiter(fetch(PathVar, ';', True));

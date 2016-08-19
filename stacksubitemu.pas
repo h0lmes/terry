@@ -66,7 +66,7 @@ type
   public
     property Freed: boolean read FFreed write FFreed;
     property Handle: HWND read FHWnd;
-    property Caption: WideString read FCaption;
+    property Caption: WideString read FCaption write FCaption;
     property X: integer read Fx;
     property Y: integer read Fy;
     property Size: integer read FSize;
@@ -90,7 +90,6 @@ type
     function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
     function ToString: string; virtual;
-    function SaveToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure MouseHeld(button: TMouseButton); virtual;
@@ -121,7 +120,6 @@ type
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
     FLastMouseUp: PtrUInt;
-    procedure Update;
     procedure UpdateRunning;
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
@@ -133,16 +131,17 @@ type
     property Dir: string read FDir write FDir;
     property ImageFile: string read FImageFile write FImageFile;
     property ShowCmd: integer read FShowCmd write FShowCmd;
+    property ColorData: integer read FColorData write FColorData;
     property Hide: boolean read FHide write FHide;
 
     constructor Create(wndParent: HWND; AParams: TDItemCreateParams); overload; override;
     destructor Destroy; override;
     procedure FromString(data: string); override;
+    procedure Update;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; AHintBackground, AForce: boolean); override;
     function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
     function ToString: string; override;
-    function SaveToString: string; override;
     function HitTest(Ax, Ay: integer): boolean; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); override;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; override;
@@ -154,11 +153,10 @@ type
     procedure OpenFolder; override;
     function DropFile(pt: windows.TPoint; filename: string): boolean; override;
 
-    class function Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+    class function Make(ACaption: WideString = '';
+      ACommand: string = ''; AParams: string = ''; ADir: string = ''; AImage: string = '';
       AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
-    class function SaveMake(ACaption: WideString; ACommand, AParams, ADir, AImage: string;
-      AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
-    class function FromFile(filename: string): string;
+    class function MakeFromFilename(value: string): string;
   end;
 
 implementation
@@ -605,12 +603,7 @@ end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.ToString: string;
 begin
-  result := Make(FHWnd, FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
-end;
-//------------------------------------------------------------------------------
-function TShortcutSubitem.SaveToString: string;
-begin
-  result := SaveMake(FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
+  result := Make(FCaption, FCommand, FParams, FDir, FImageFile, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 function TShortcutSubitem.HitTest(Ax, Ay: integer): boolean;
@@ -779,7 +772,7 @@ begin
   result := not FFreed;
   if result then
   begin
-    ext := AnsiLowerCase(ExtractFileExt(filename));
+    ext := LowerCase(ExtractFileExt(filename));
     if (ext = '.png') or (ext = '.ico') then
     begin
       FImageFile := toolu.ZipPath(filename);
@@ -793,11 +786,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.Make(wnd: HWND; ACaption: WideString; ACommand, AParams, ADir, AImage: string;
+class function TShortcutSubitem.Make(ACaption: WideString = '';
+  ACommand: string = ''; AParams: string = ''; ADir: string = ''; AImage: string = '';
   AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
 begin
   result := 'class="shortcut";';
-  result := result + 'hwnd="' + inttostr(wnd) + '";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
   if ACommand <> '' then result := result + 'command="' + ACommand + '";';
   if AParams <> '' then result := result + 'params="' + AParams + '";';
@@ -808,41 +801,24 @@ begin
   if AHide then result := result + 'hide="1";';
 end;
 //------------------------------------------------------------------------------
-class function TShortcutSubitem.SaveMake(ACaption: WideString; ACommand, AParams, ADir, AImage: string;
-  AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
-begin
-  result := '';
-  if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
-  if ACommand <> '' then result := result + 'command="' + ACommand + '";';
-  if AParams <> '' then result := result + 'params="' + AParams + '";';
-  if ADir <> '' then result := result + 'dir="' + ADir + '";';
-  if AImage <> '' then result := result + 'image="' + AImage + '";';
-  if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
-  if AColorData <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
-  if AHide then result := result + 'hide="1";';
-end;
-//------------------------------------------------------------------------------
-class function TShortcutSubitem.FromFile(filename: string): string;
+class function TShortcutSubitem.MakeFromFilename(value: string): string;
 var
-  fcaption, fparams, fdir, ficon, ext: string;
+  Caption: WideString;
+  Dir: string = '';
 begin
-  result := '';
-  if IsGUID(filename) or IsPIDLString(filename) then
+  if IsGUID(value) or IsPIDLString(value) then
   begin
-    result := TShortcutSubitem.Make(0, '::::', filename, '', '', '', 1);
-    exit
+    result := Make('::::', value, '', '', '', 1);
+  end
+  else
+  begin
+    if DirectoryExists(value) then
+      Caption  := value
+    else
+      Caption  := ChangeFileExt(ExtractFilename(value), '');
+    if LowerCase(ExtractFileExt(value)) = '.exe' then Dir := ZipPath(ExcludeTrailingPathDelimiter(ExtractFilePath(value)));
+    result := Make(Caption, ZipPath(value), '', Dir, '', 1);
   end;
-
-  fparams := '';
-  fdir := '';
-  ficon := '';
-  ext := AnsiLowerCase(ExtractFileExt(filename));
-
-  if DirectoryExists(filename) then fcaption := filename
-  else fcaption := ChangeFileExt(ExtractFilename(filename), '');
-  if ext = '.exe' then fdir := ExcludeTrailingPathDelimiter(ExtractFilePath(filename));
-
-  result := TShortcutSubitem.Make(0, fcaption, ZipPath(filename), ZipPath(fparams), ZipPath(fdir), ZipPath(ficon));
 end;
 //------------------------------------------------------------------------------
 //

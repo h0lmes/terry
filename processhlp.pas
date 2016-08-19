@@ -222,12 +222,12 @@ begin
     {$ifdef EXT_DEBUG} AddLog('___Process32First'); {$endif}
     while flag do
     begin
-      {$ifdef EXT_DEBUG} AddLog('___Process = ' + AnsiLowerCase(processEntry.szExeFile)); {$endif}
-      listProcess.AddObject(AnsiLowerCase(processEntry.szExeFile), TObject(processEntry.th32ProcessID));
+      {$ifdef EXT_DEBUG} AddLog('___Process = ' + LowerCase(processEntry.szExeFile)); {$endif}
+      listProcess.AddObject(LowerCase(processEntry.szExeFile), TObject(processEntry.th32ProcessID));
       if listProcessFullName.IndexOfObject(tobject(processEntry.th32ProcessID)) < 0 then
       begin
         hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, processEntry.th32ProcessID);
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByHProcess(hProcess)), TObject(processEntry.th32ProcessID));
+        listProcessFullName.AddObject(LowerCase(GetFullNameByHProcess(hProcess)), TObject(processEntry.th32ProcessID));
         CloseHandle(hProcess);
       end;
       flag := Process32Next(snapshotHandle, processEntry);
@@ -294,9 +294,9 @@ begin
     if EnumProcessModules(hProcess, @hMod, sizeof(hMod), cbNeeded) then
     begin
       GetModuleBaseName(hProcess, hMod, @szProcessName, sizeof(szProcessName) div sizeof(TCHAR));
-      listProcess.AddObject(AnsiLowerCase(strpas(szProcessName)), TObject(processId));
+      listProcess.AddObject(LowerCase(strpas(szProcessName)), TObject(processId));
       if listProcessFullName.IndexOfObject(tobject(processId)) < 0 then
-        listProcessFullName.AddObject(AnsiLowerCase(GetFullNameByHProcess(hProcess)), TObject(processId));
+        listProcessFullName.AddObject(LowerCase(GetFullNameByHProcess(hProcess)), TObject(processId));
     end;
     CloseHandle(hProcess);
   end;
@@ -491,7 +491,7 @@ var
   index, found: integer;
   fullyQualified: boolean;
 begin
-  Name := AnsiLowerCase(Name);
+  Name := LowerCase(Name);
   fullyQualified := ExtractFilePath(Name) <> '';
   found := 0;
 
@@ -748,7 +748,7 @@ begin
     while idx < listAppWindows.count do
     begin
       wnd := THandle(listAppWindows.items[idx]);
-      if GetWindowProcessName(wnd) = AnsiLowerCase(ProcessName) then wlist.Add(pointer(wnd));
+      if GetWindowProcessName(wnd) = LowerCase(ProcessName) then wlist.Add(pointer(wnd));
       inc(idx);
     end;
     result := wlist.Count > 0;

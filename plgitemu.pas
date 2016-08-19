@@ -40,7 +40,7 @@ type
     constructor Create(wndParent: HWND; var AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure FromIni(IniFile, IniSection: string);
-    procedure FromParameter(value: string);
+    procedure FromString(value: string);
     procedure UpdateImage(AImage: Pointer; AutoDelete: boolean);
     procedure UpdateOverlay(AOverlay: Pointer; AutoDelete: boolean);
     procedure CallCreate;
@@ -54,6 +54,8 @@ type
     procedure Timer; override;
     procedure Configure; override;
     procedure Save(ini, section: string); override;
+    //
+    class function Make(AFile: string): string;
   end;
 
 implementation
@@ -76,7 +78,7 @@ begin
   hwnd2 := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_noactivate, TDITEM_WCLASS, nil, ws_popup, -100, -100, 32, 32, 0, 0, hInstance, nil);
 
   if AParams.IniFile <> '' then FromIni(AParams.IniFile, AParams.IniSection)
-  else FromParameter(Aparams.Parameter);
+  else FromString(Aparams.Parameter);
 end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.FromIni(IniFile, IniSection: string);
@@ -90,11 +92,11 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TPluginItem.FromParameter(value: string);
+procedure TPluginItem.FromString(value: string);
 begin
   FIniFile := '';
   FIniSection := '';
-  FPluginFile := toolu.UnzipPath(value);
+  FPluginFile := toolu.UnzipPath(FetchValue(value, 'file="', '";'));
   LoadPlugin;
 end;
 //------------------------------------------------------------------------------
@@ -132,7 +134,8 @@ procedure TPluginItem.CallCreate;
 var
   szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
 begin
-  lpData := nil;
+  if assigned(lpData) then exit;
+
   if (FIniFile <> '') and (FIniSection <> '') then
   begin
     try
@@ -354,6 +357,18 @@ begin
   except
     on E: Exception do raise Exception.Create('PluginItem.Save ' + LineEnding + 'Plugin DLL: ' + FPluginFile + LineEnding + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//
+//
+//------------------------------------------------------------------------------
+class function TPluginItem.Make(AFile: string): string;
+begin
+  result := 'class="plugin";';
+  if AFile <> '' then result := result + 'file="' + AFile + '";';
 end;
 //------------------------------------------------------------------------------
 end.

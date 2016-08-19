@@ -90,25 +90,36 @@ type
     procedure tbHueChange(Sender: TObject);
     procedure tbOffsetChange(Sender: TObject);
   private
-    cancel_data: string;
-    UpdateItemProc: _uproc;
+    savedCaption: WideString;
+    savedImageFile: string;
+    savedSpecialFolder: string;
+    savedColorData: integer;
+    savedMode: integer;
+    savedOffset: integer;
+    savedAnimationSpeed: integer;
+    savedDistort: integer;
+    savedPreview: integer;
+    savedShowBackground: boolean;
+    savedBackgroundBlur: boolean;
+    savedBackgroundColor: integer;
+    //
     color_data: uint;
     background_color: uint;
     SpecialFolder: string;
     ItemHWnd: HWND;
+    Item: TStackItem;
     FChanged: boolean;
-    item: TStackItem;
     FImage: Pointer;
     FIW: cardinal;
     FIH: cardinal;
-    function SetData(AData: string): boolean;
+    function SetData(wnd: HWND): boolean;
     procedure ReadSubitems;
     procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
     procedure Draw;
     procedure DrawFit;
   public
-    class procedure Open(AData: string; uproc: _uproc; AItem: TStackItem);
+    class procedure Open(wnd: HWND);
   end;
 
 var
@@ -119,15 +130,12 @@ implementation
 uses declu, toolu, frmmainu, stackmodeu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure TfrmStackProp.Open(AData: string; uproc: _uproc; AItem: TStackItem);
+class procedure TfrmStackProp.Open(wnd: HWND);
 begin
-  if AData <> '' then
   try
     if not assigned(frmStackProp) then Application.CreateForm(self, frmStackProp);
-    if frmStackProp.SetData(AData) then
+    if frmStackProp.SetData(wnd) then
     begin
-      frmStackProp.UpdateItemProc := uproc;
-      frmStackProp.item := AItem;
       frmStackProp.ReadSubitems;
       frmStackProp.Show;
       frmStackProp.edCaption.SetFocus;
@@ -160,70 +168,69 @@ begin
   constraints.minwidth := Width;
 end;
 //------------------------------------------------------------------------------
-function TfrmStackProp.SetData(AData: string): boolean;
+function TfrmStackProp.SetData(wnd: HWND): boolean;
 begin
+  Item := nil;
   result := false;
+
   if FChanged then
     if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
-  result := true;
 
-  cancel_data := AData;
-  try ItemHWnd := strtoint(FetchValue(AData, 'hwnd="', '";'));
-  except end;
+  Item := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+  if not (Item is TStackItem) then exit;
+
+  result := true;
   pages.ActivePageIndex := 0;
+
+  ItemHWnd                   := wnd;
+  savedCaption               := Item.Caption;
+  savedImageFile             := Item.ImageFile;
+  savedSpecialFolder         := Item.SpecialFolder;
+  savedColorData             := Item.ColorData;
+  savedMode                  := Item.Mode;
+  savedOffset                := Item.Offset;
+  savedAnimationSpeed        := Item.AnimationSpeed;
+  savedDistort               := Item.Distort;
+  savedPreview               := Item.Preview;
+  savedShowBackground        := Item.ShowBackground;
+  savedBackgroundBlur        := Item.BackgroundBlur;
+  savedBackgroundColor       := Item.BackgroundColor;
 
   // show parameters //
 
-  edCaption.Text := AnsiToUTF8(FetchValue(AData, 'caption="', '";'));
-  edImage.Text := FetchValue(AData, 'image="', '";');
+  edCaption.Text             := AnsiToUTF8(savedCaption);
+  edImage.Text               := AnsiToUTF8(savedImageFile);
+  SpecialFolder              := savedSpecialFolder;
 
-  try
-    color_data := DEF_COLOR_DATA;
-    color_data := toolu.StringToColor(FetchValue(AData, 'color_data="', '";'));
-  except end;
-  tbHue.OnChange := nil;
-  tbSat.OnChange := nil;
-  tbBr.OnChange := nil;
-  tbCont.OnChange := nil;
-  tbHue.position := byte(color_data);
-  tbSat.position := byte(color_data shr 8);
-  tbBr.position := byte(color_data shr 16);
-  tbCont.position := byte(color_data shr 24);
-  tbHue.OnChange := tbHueChange;
-  tbSat.OnChange := tbHueChange;
-  tbBr.OnChange := tbHueChange;
-  tbCont.OnChange := tbHueChange;
+  color_data                 := savedColorData;
+  tbHue.OnChange             := nil;
+  tbSat.OnChange             := nil;
+  tbBr.OnChange              := nil;
+  tbCont.OnChange            := nil;
+  tbHue.position             := byte(color_data);
+  tbSat.position             := byte(color_data shr 8);
+  tbBr.position              := byte(color_data shr 16);
+  tbCont.position            := byte(color_data shr 24);
+  tbHue.OnChange             := tbHueChange;
+  tbSat.OnChange             := tbHueChange;
+  tbBr.OnChange              := tbHueChange;
+  tbCont.OnChange            := tbHueChange;
 
+  tbOffset.Position          := -1;
+  tbOffset.Position          := 0;
+  tbAnimationSpeed.Position  := tbAnimationSpeed.Min;
+  tbDistort.Position         := -1;
+  tbDistort.Position         := 0;
 
-  cboMode.ItemIndex := 0;
-  try cboMode.ItemIndex := strtoint(FetchValue(AData, 'mode="', '";'));
-  except end;
-
-  tbOffset.Position := -1;
-  tbOffset.Position := 0;
-  tbAnimationSpeed.Position := tbAnimationSpeed.Min;
-  tbDistort.Position := -1;
-  tbDistort.Position := 0;
-  try tbOffset.Position := strtoint(FetchValue(AData, 'offset="', '";'));
-  except end;
-  try tbAnimationSpeed.Position := strtoint(FetchValue(AData, 'animation_speed="', '";'));
-  except end;
-  try tbDistort.Position := strtoint(FetchValue(AData, 'distort="', '";'));
-  except end;
-  cboPreview.ItemIndex := 1;
-  try cboPreview.ItemIndex := strtoint(FetchValue(AData, 'preview="', '";'));
-  except end;
-  try chbBackground.checked := FetchValue(AData, 'background="', '";') = '1';
-  except end;
-  try chbBackgroundBlur.checked := FetchValue(AData, 'background_blur="', '";') = '1';
-  except end;
-  try
-    background_color := DEF_STACK_BGCOLOR;
-    background_color := toolu.StringToColor(FetchValue(AData, 'background_color="', '";'));
-  except end;
+  cboMode.ItemIndex          := savedMode;
+  tbOffset.Position          := savedOffset;
+  tbAnimationSpeed.Position  := savedAnimationSpeed;
+  tbDistort.Position         := savedDistort;
+  cboPreview.ItemIndex       := savedPreview;
+  chbBackground.checked      := savedShowBackground;
+  chbBackgroundBlur.checked  := savedBackgroundBlur;
+  background_color           := savedBackgroundColor;
   tbBackgroundAlpha.Position := (background_color and $ff000000 shr 24) * 100 div 255;
-
-  SpecialFolder := FetchValue(AData, 'special_folder="', '";');
 
   Draw;
 
@@ -241,7 +248,7 @@ begin
   list.Clear;
   if item.ItemCount > 0 then
     for idx := 0 to item.ItemCount - 1 do
-      list.Items.Add(AnsiToUTF8(item.GetSubitemCaption(idx)));
+      list.Items.Add(AnsiToUTF8(Item.GetSubitemCaption(idx)));
   list.Items.EndUpdate;
 end;
 //------------------------------------------------------------------------------
@@ -250,7 +257,7 @@ var
   idx: integer;
 begin
   idx := list.ItemIndex;
-  item.SubitemMoveUp(idx);
+  Item.SubitemMoveUp(idx);
   ReadSubitems;
   if idx > 0 then dec(idx);
   list.ItemIndex := idx;
@@ -261,7 +268,7 @@ var
   idx: integer;
 begin
   idx := list.ItemIndex;
-  item.SubitemMoveDown(idx);
+  Item.SubitemMoveDown(idx);
   ReadSubitems;
   if idx < list.Items.Count - 1 then inc(idx);
   list.ItemIndex := idx;
@@ -269,19 +276,19 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbAddIconClick(Sender: TObject);
 begin
-  item.AddSubitemDefault;
+  Item.AddSubitemDefault;
   ReadSubitems;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbDelIconClick(Sender: TObject);
 begin
-  item.DeleteSubitem(list.ItemIndex);
+  Item.DeleteSubitem(list.ItemIndex);
   ReadSubitems;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbEditIconClick(Sender: TObject);
 begin
-  item.SubitemConfigure(list.ItemIndex);
+  Item.SubitemConfigure(list.ItemIndex);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.listDblClick(Sender: TObject);
@@ -298,7 +305,21 @@ end;
 procedure TfrmStackProp.btnCancelClick(Sender: TObject);
 begin
   if FChanged then
-    if assigned(UpdateItemProc) then UpdateItemProc(cancel_data);
+  begin
+    Item.Caption               := savedCaption;
+    Item.ImageFile             := savedImageFile;
+    Item.SpecialFolder         := savedSpecialFolder;
+    Item.ColorData             := savedColorData;
+    Item.Mode                  := savedMode;
+    Item.Offset                := savedOffset;
+    Item.AnimationSpeed        := savedAnimationSpeed;
+    Item.Distort               := savedDistort;
+    Item.Preview               := savedPreview;
+    Item.ShowBackground        := savedShowBackground;
+    Item.BackgroundBlur        := savedBackgroundBlur;
+    Item.BackgroundColor       := savedBackgroundColor;
+    Item.Update;
+  end;
   FChanged := false;
   Close;
 end;
@@ -316,11 +337,20 @@ var
   str: string;
 begin
   try
+    Item.Caption               := UTF8ToAnsi(edCaption.Text);
+    Item.ImageFile             := UTF8ToAnsi(edImage.Text);
+    Item.SpecialFolder         := SpecialFolder;
+    Item.ColorData             := color_data;
+    Item.Mode                  := cboMode.ItemIndex;
+    Item.Offset                := tbOffset.Position;
+    Item.AnimationSpeed        := tbAnimationSpeed.Position;
+    Item.Distort               := tbDistort.Position;
+    Item.Preview               := cboPreview.ItemIndex;
+    Item.ShowBackground        := chbBackground.Checked;
+    Item.BackgroundBlur        := chbBackgroundBlur.Checked;
+    Item.BackgroundColor       := background_color;
+    Item.Update;
     FChanged := false;
-    str := TStackItem.Make(ItemHWnd, UTF8ToAnsi(edCaption.Text), UTF8ToAnsi(edImage.Text), SpecialFolder,
-      color_data, cboMode.ItemIndex, tbOffset.Position, tbAnimationSpeed.Position, tbDistort.Position, cboPreview.ItemIndex,
-      chbBackground.Checked, chbBackgroundBlur.Checked, background_color);
-    if assigned(UpdateItemProc) then UpdateItemProc(str);
   except
     on e: Exception do frmmain.err('frmStackProp.btnApplyClick', e);
   end;

@@ -104,7 +104,6 @@ type
     procedure SetDropPlace(index: integer);
     procedure SetDropPlaceEx(index: integer);
 
-    procedure DockAdd(wnd: HWND);
     procedure  AllItemTimer;
     procedure PluginCallCreate(wnd: HWND);
     function  IsSeparator(wnd: HWND): boolean;
@@ -175,10 +174,11 @@ type
     procedure CheckDeleted;
     function  ZOrder(InsertAfter: THandle): THandle;
     function  ItemIndex(HWnd: THandle): integer;
-    procedure InsertItems(list: TStrings);
+    procedure InsertFiles(list: TStrings);
+    procedure InsertFile(Filename: string);
     procedure InsertItem(AData: string);
     function  CreateItemFromIni(IniFile, IniSection: string): THandle;
-    function  CreateItemFromParameter(ClassName, Parameter: string): THandle;
+    function  CreateItemFromString(value: string): THandle;
     procedure DeleteItem(HWnd: THandle);
 
     // mouse effects //
@@ -402,13 +402,13 @@ begin
     if cmd = 'clear' then Clear;
     if cmd = 'load' then
       if params <> '' then Load(params);
-    if cmd = 'shortcut' then AddItem(CreateItemFromParameter('shortcut', ''), true);
-    if cmd = 'separator' then AddItem(CreateItemFromParameter('separator', ''), true);
-    if cmd = 'plugin' then AddItem(CreateItemFromParameter('plugin', params), true);
+    if cmd = 'shortcut' then AddItem(CreateItemFromString(TShortcutItem.Make), true);
+    if cmd = 'separator' then AddItem(CreateItemFromString(TSeparatorItem.Make), true);
+    if cmd = 'plugin' then AddItem(CreateItemFromString(TPluginItem.Make(params)), true);
     if cmd = 'stack' then
     begin
-      if params <> '' then params := 'caption="::::";special_folder="' + params + '";';
-      AddItem(CreateItemFromParameter('stack', data), true);
+      if params = '' then AddItem(CreateItemFromString(TStackItem.Make), true)
+      else AddItem(CreateItemFromString(TStackItem.Make('::::', '', params)), true);
     end;
   except
     on e: Exception do err('ItemManager.Command::' + cmd + '(' + params + ')', e);
@@ -423,133 +423,7 @@ end;
 //
 //
 //
-//   LOAD AND SAVE
 //
-//
-//
-//------------------------------------------------------------------------------
-procedure TItemManager.Load(fsets: string);
-var
-  idx: integer;
-  ini: TIniFile;
-  list: TStrings;
-  stack: TStackItem;
-  wnd: HWND;
-begin
-  if fsets = '' then exit;
-  FDraggingItem := false;
-  FDraggingFile := false;
-  FDragHWnd := 0;
-
-  try
-    FSetsFilename := fsets;
-    ini := TIniFile.Create(FSetsFilename);
-    list := TStringList.Create;
-    ini.ReadSections(list);
-  except
-    on e: Exception do err('ItemManager.Load.ReadIni', e, true);
-  end;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadIni'); {$endif}
-
-  // read FItemArray //
-  try
-    idx := 0;
-    while idx < list.count do
-    begin
-      if pos('item', list.strings[idx]) = 1 then AddItem(CreateItemFromIni(FSetsFilename, list.strings[idx]), false);
-      inc(idx);
-    end;
-    ini.free;
-  except
-    on e: Exception do err('ItemManager.Load.ReadItems', e, true);
-  end;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadItems'); {$endif}
-
-  // create default FItemArray if nothing loaded //
-  try
-    if FItemCount = 0 then
-    begin
-      // "end session" stack //
-      wnd := AddItem(CreateItemFromParameter('stack', 'caption="End session";'));
-      stack := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-      if stack is TStackItem then
-      begin
-        {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack is TStackItem'); {$endif}
-        stack.AddSubitem(TShortcutItem.Make(0, 'Shutdown', '/shutdown', '', '', 'images\default\shutdown.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Reboot', '/reboot', '', '', 'images\default\reboot.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Suspend', '/suspend', '', '', 'images\default\suspend.png'));
-        stack.AddSubitem(TShortcutItem.Make(0, 'Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
-      end;
-      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack'); {$endif}
-      // basic FItemArray //
-      AddItem(TShortcutItem.Make(UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png'));
-      AddItem(TShortcutItem.Make('Computer', 'CSIDL_DRIVES', '', '', ''));
-      AddItem(TShortcutItem.Make('Control panel', 'CSIDL_CONTROLS', '', '', ''));
-      AddItem(TShortcutItem.Make('Parameters', 'ms-settings:', '', '', '%sysdir%\shell32.dll,315'));
-      AddItem(TShortcutItem.Make('Documents', '%doc%', '', '', ''));
-      AddItem(TShortcutItem.Make('Recycle bin', 'CSIDL_BITBUCKET', '', '', ''));
-      AddItem(TShortcutItem.Make('Dock settings', '/sets', '', '', 'images\default\settings.png'));
-      AddItem(TShortcutItem.Make('Theme', '/theme', '', '', 'images\default\theme.png'));
-      AddItem(CreateItemFromParameter('separator', ''));
-      AddItem(TShortcutItem.Make('Tray', '/tray', '', '', 'images\default\tray.png'));
-      AddItem(TShortcutItem.Make('', '', '', '', 'images\default\{LANGID}.png'));
-      //AddItem(TShortcutItem.Make('', '/networks', '', '', 'images\default\network-{NETWORK}.png'));
-      AddItem(TShortcutItem.Make('', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png'));
-      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.basic FItemArray'); {$endif}
-    end;
-  except
-    on e: Exception do err('ItemManager.Load.Default', e);
-  end;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default'); {$endif}
-
-  ItemsChanged;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ItemsChanged'); {$endif}
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.Save(fsets: string);
-begin
-  try
-    if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
-    SaveItems;
-  except
-    on e: Exception do err('ItemManager.Save', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.SaveItems;
-var
-  idx: integer;
-begin
-  if FEnabled and (FItemCount > 0) then
-  try
-    for idx := 0 to FItemCount - 1 do
-    begin
-      if FItemArray[idx].h <> 0 then
-        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
-    end;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.SaveItem(wnd: HWND);
-var
-  index: integer;
-  Inst: TCustomItem;
-begin
-  try
-    index := ItemIndex(wnd);
-    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
-  except
-    on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
-//   ITEMS
 //
 //
 //
@@ -607,9 +481,8 @@ begin
     // restore most recent deleted item //
     if _itemsDeleted.Count > 0 then
     begin
-      DockAdd(THandle(_itemsDeleted.Items[_itemsDeleted.Count - 1]));
+      AddItem(HWND(_itemsDeleted.Items[_itemsDeleted.Count - 1]));
       _itemsDeleted.Delete(_itemsDeleted.Count - 1);
-      ItemsChanged;
     end;
   except
     on e: Exception do err('ItemManager.UnDelete', e);
@@ -665,6 +538,373 @@ begin
   result := 0;
   if (index >= 0) and (index < FItemCount) then result := FItemArray[index].h;
 end;
+//------------------------------------------------------------------------------
+procedure TItemManager.Load(fsets: string);
+var
+  idx: integer;
+  ini: TIniFile;
+  list: TStrings;
+  stack: TStackItem;
+  wnd: HWND;
+begin
+  if fsets = '' then exit;
+  FDraggingItem := false;
+  FDraggingFile := false;
+  FDragHWnd := 0;
+
+  try
+    FSetsFilename := fsets;
+    ini := TIniFile.Create(FSetsFilename);
+    list := TStringList.Create;
+    ini.ReadSections(list);
+  except
+    on e: Exception do err('ItemManager.Load.ReadIni', e, true);
+  end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadIni'); {$endif}
+
+  // read FItemArray //
+  try
+    idx := 0;
+    while idx < list.count do
+    begin
+      if pos('item', list.strings[idx]) = 1 then AddItem(CreateItemFromIni(FSetsFilename, list.strings[idx]), false);
+      inc(idx);
+    end;
+    ini.free;
+  except
+    on e: Exception do err('ItemManager.Load.ReadItems', e, true);
+  end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadItems'); {$endif}
+
+  // create default FItemArray if nothing loaded //
+  try
+    if FItemCount = 0 then
+    begin
+      // "end session" stack //
+      wnd := AddItem(CreateItemFromString(TStackItem.Make('End session')));
+      stack := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+      if stack is TStackItem then
+      begin
+        {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack is TStackItem'); {$endif}
+        stack.AddSubitem(TShortcutItem.Make('Shutdown', '/shutdown', '', '', 'images\default\shutdown.png'));
+        stack.AddSubitem(TShortcutItem.Make('Reboot', '/reboot', '', '', 'images\default\reboot.png'));
+        stack.AddSubitem(TShortcutItem.Make('Suspend', '/suspend', '', '', 'images\default\suspend.png'));
+        stack.AddSubitem(TShortcutItem.Make('Hibernate', '/hibernate', '', '', 'images\default\hibernate.png'));
+      end;
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack'); {$endif}
+      // basic FItemArray //
+      AddItem(CreateItemFromString(TShortcutItem.Make(UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Computer', 'CSIDL_DRIVES', '', '', '')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Control panel', 'CSIDL_CONTROLS', '', '', '')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Parameters', 'ms-settings:', '', '', '%sysdir%\shell32.dll,315')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Documents', '%doc%', '', '', '')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Recycle bin', 'CSIDL_BITBUCKET', '', '', '')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Dock settings', '/sets', '', '', 'images\default\settings.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Theme', '/theme', '', '', 'images\default\theme.png')));
+      AddItem(CreateItemFromString(TSeparatorItem.Make));
+      AddItem(CreateItemFromString(TShortcutItem.Make('Tray', '/tray', '', '', 'images\default\tray.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('', '', '', '', 'images\default\{LANGID}.png')));
+      //AddItem(CreateItemFromString(TShortcutItem.Make('', '/networks', '', '', 'images\default\network-{NETWORK}.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png')));
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.basic FItemArray'); {$endif}
+    end;
+  except
+    on e: Exception do err('ItemManager.Load.Default', e);
+  end;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default'); {$endif}
+
+  ItemsChanged;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ItemsChanged'); {$endif}
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.Save(fsets: string);
+begin
+  try
+    if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
+    SaveItems;
+  except
+    on e: Exception do err('ItemManager.Save', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.SaveItems;
+var
+  idx: integer;
+begin
+  if FEnabled and (FItemCount > 0) then
+  try
+    for idx := 0 to FItemCount - 1 do
+    begin
+      if FItemArray[idx].h <> 0 then
+        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
+    end;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.SaveItem(wnd: HWND);
+var
+  index: integer;
+  Inst: TCustomItem;
+begin
+  try
+    index := ItemIndex(wnd);
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+    if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
+  except
+    on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+// insert a list of Files at DropPlace position
+// if DropPlace not exists, then insert at the end of the items array
+procedure TItemManager.InsertFiles(list: TStrings);
+var
+  i, dplace: integer;
+begin
+  if not FEnabled then exit;
+
+  dplace := FDropPlace;
+  for i := 0 to list.Count - 1 do
+  begin
+    InsertFile(list.strings[i]);
+    if dplace <> NOT_AN_ITEM then
+      if i < list.Count - 1 then
+      begin
+        inc(dplace);
+        SetDropPlace(dplace);
+        SetDropPlaceEx(dplace);
+      end;
+  end;
+end;
+//------------------------------------------------------------------------------
+// insert a File at current DropPlace
+// or at the end of array if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
+procedure TItemManager.InsertFile(Filename: string);
+begin
+  if FEnabled then InsertItem(TShortcutItem.MakeFromFilename(Filename));
+end;
+//------------------------------------------------------------------------------
+// insert item at current DropPlace
+// or at the end of array if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
+procedure TItemManager.InsertItem(AData: string);
+begin
+  if FEnabled then AddItem(CreateItemFromString(AData), true);
+end;
+//------------------------------------------------------------------------------
+// put an Item onto dock
+function TItemManager.AddItem(wnd: HWND; Update: boolean = false): THandle;
+begin
+  AllItemCmd(icHover, 0); // hide hint //
+  AllItemCmd(icSelect, 0);
+
+  result := wnd;
+  if wnd <> THandle(0) then
+  begin
+    if (FDropPlace < 0) or (FDropPlace >= FItemCount) then SetDropPlace(FItemCount);
+    AddToRegisteredPrograms(wnd);
+    FItemArray[FDropPlace].h := wnd;
+    FItemArray[FDropPlace].s := FItemSize;
+    ItemCmd(wnd, icFree, 0); // enable item
+    ItemCmd(wnd, icUndock, 0);
+    SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
+    SetDropPlaceEx(NOT_AN_ITEM);
+    SetDropPlace(NOT_AN_ITEM);
+    //
+    PluginCallCreate(wnd);
+  end;
+  if Update then ItemsChanged(true);
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.PluginCallCreate(wnd: HWND);
+var
+  Inst: TCustomItem;
+begin
+  try
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+    if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TItemManager.CreateItemFromIni(IniFile, IniSection: string): THandle;
+var
+  ClassName: string;
+  icp: TDItemCreateParams;
+  Inst: TCustomItem;
+begin
+  result := 0;
+  Inst := nil;
+  if FItemCount > MAX_ITEM_COUNT then exit;
+  try
+    icp.ItemSize := FItemSize;
+    icp.BigItemSize := FBigItemSize;
+    icp.ItemSpacing := FItemSpacing;
+    icp.LaunchInterval := FLaunchInterval;
+    icp.ActivateRunning := FActivateRunning;
+    icp.UseShellContextMenus := FUseShellContextMenus;
+    icp.Site := integer(FSite);
+    icp.Reflection := FReflection;
+    icp.ReflectionSize := FReflectionSize;
+    icp.ShowHint := FShowHint;
+    icp.AnimationType := FItemAnimation;
+    icp.LockDragging := FLockDragging;
+    icp.StackAnimationEnabled := FStackAnimationEnabled;
+    icp.SeparatorAlpha := FSeparatorAlpha;
+    icp.TaskLivePreviews := FTaskLivePreviews;
+    icp.TaskThumbSize := FTaskThumbSize;
+    icp.TaskGrouping := FTaskGrouping;
+    CopyFontData(FFont, icp.Font);
+    icp.IniFile := IniFile;
+    icp.IniSection := IniSection;
+    icp.Parameter := '';
+
+    ClassName := LowerCase(GetIniStringW(IniFile, IniSection, 'class', 'shortcut'));
+    if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.' + ClassName + LineEnding + e.message);
+  end;
+
+  try
+    if assigned(Inst) then
+      if Inst.Freed then FreeAndNil(Inst) else result := Inst.Handle;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.Fin ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TItemManager.CreateItemFromString(value: string): THandle;
+var
+  ClassName: string;
+  icp: TDItemCreateParams;
+  Inst: TCustomItem;
+begin
+  result := 0;
+  Inst := nil;
+  if FItemCount > MAX_ITEM_COUNT then exit;
+  try
+    icp.ItemSize := FItemSize;
+    icp.BigItemSize := FBigItemSize;
+    icp.ItemSpacing := FItemSpacing;
+    icp.LaunchInterval := FLaunchInterval;
+    icp.ActivateRunning := FActivateRunning;
+    icp.UseShellContextMenus := FUseShellContextMenus;
+    icp.Site := integer(FSite);
+    icp.Reflection := FReflection;
+    icp.ReflectionSize := FReflectionSize;
+    icp.ShowHint := FShowHint;
+    icp.AnimationType := FItemAnimation;
+    icp.LockDragging := FLockDragging;
+    icp.StackAnimationEnabled := FStackAnimationEnabled;
+    icp.SeparatorAlpha := FSeparatorAlpha;
+    icp.TaskLivePreviews := FTaskLivePreviews;
+    icp.TaskThumbSize := FTaskThumbSize;
+    icp.TaskGrouping := FTaskGrouping;
+    CopyFontData(FFont, icp.Font);
+    icp.IniFile := '';
+    icp.IniSection := '';
+    icp.Parameter := value;
+
+    ClassName := LowerCase(FetchValue(value, 'class="', '";'));
+    if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp)
+    else
+    if ClassName = 'task' then Inst := TTaskItem.Create(FParentHWnd, icp);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromString.' + ClassName + LineEnding + e.message);
+  end;
+
+  try
+    if assigned(Inst) then
+      if Inst.Freed then FreeAndNil(Inst) else result := Inst.Handle;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromString.Fin ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+// do not call directly !!!
+// items call this using DockH.DockDeleteItem
+// use TCustomItem.Delete instead
+procedure TItemManager.DeleteItem(HWnd: THandle);
+var
+  index: integer;
+begin
+  if FEnabled then
+  try
+    index := ItemIndex(HWnd);
+    _itemsDeleted.Add(Pointer(HWnd)); // add to "deleted" list
+
+    // erase it from "FItemArray" list //
+    if index <> NOT_AN_ITEM then
+    begin
+      while index < FItemCount - 1 do
+      begin
+        FItemArray[index].h := FItemArray[index + 1].h;
+        FItemArray[index].x := FItemArray[index + 1].x;
+        FItemArray[index].y := FItemArray[index + 1].y;
+        FItemArray[index].s := FItemArray[index + 1].s;
+        inc(index);
+      end;
+      dec(FItemCount);
+    end;
+
+    DeleteFromRegisteredPrograms(HWnd);
+
+    // update dock //
+    ItemsChanged;
+  except
+    on e: Exception do raise Exception.Create('ItemManager.DeleteItem ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.AddToRegisteredPrograms(HWnd: THandle);
+var
+  Inst: TCustomItem;
+  str: string;
+begin
+  try
+    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
+    str := Inst.RegisterProgram;
+    if str <> '' then _registeredPrograms.Add(LowerCase(str));
+  except
+    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.DeleteFromRegisteredPrograms(HWnd: THandle);
+var
+  Inst: TCustomItem;
+  rpIndex: integer;
+begin
+  try
+    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
+    rpIndex := _registeredPrograms.IndexOf(LowerCase(Inst.RegisterProgram));
+    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//
+//
+//
+//
 //------------------------------------------------------------------------------
 function TItemManager.ZOrder(InsertAfter: THandle): THandle;
 var
@@ -1047,245 +1287,6 @@ begin
     EndDeferWindowPos(wpi);
   except
     on e: Exception do err('ItemManager.SetItems2', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-// insert the list of items at DropPlace position
-// if DropPlace not exists, then insert at the end of the items array
-procedure TItemManager.InsertItems(list: TStrings);
-var
-  i, dplace: integer;
-begin
-  if not FEnabled then exit;
-
-  dplace := FDropPlace;
-  for i := 0 to list.Count - 1 do
-  begin
-    InsertItem(list.strings[i]);
-    if dplace <> NOT_AN_ITEM then
-      if i < list.Count - 1 then
-      begin
-        inc(dplace);
-        SetDropPlace(dplace);
-        SetDropPlaceEx(dplace);
-      end;
-  end;
-end;
-//------------------------------------------------------------------------------
-// insert item at current DropPlace
-// or at the end of array if DropPlace not exists (e.g. DropPlace = NOT_AN_ITEM)
-procedure TItemManager.InsertItem(AData: string);
-begin
-  if FEnabled then AddItem(AData, true);
-end;
-//------------------------------------------------------------------------------
-// create an item and put it onto dock
-function TItemManager.AddItem(wnd: HWND; Update: boolean = false): THandle;
-begin
-  AllItemCmd(icHover, 0); // hide hint //
-  AllItemCmd(icSelect, 0);
-
-  result := wnd;
-  if wnd <> THandle(0) then
-  begin
-    DockAdd(wnd);
-    PluginCallCreate(wnd);
-  end;
-  if Update then ItemsChanged(true);
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.PluginCallCreate(wnd: HWND);
-var
-  Inst: TCustomItem;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-function TItemManager.CreateItemFromIni(IniFile, IniSection: string): THandle;
-var
-  ClassName: string;
-  Inst: TCustomItem;
-  icp: TDItemCreateParams;
-begin
-  result := 0;
-  Inst := nil;
-  if FItemCount > MAX_ITEM_COUNT then exit;
-  try
-    ClassName := LowerCase(GetIniStringW(IniFile, IniSection, 'class', 'shortcut'));
-
-    icp.ItemSize := FItemSize;
-    icp.BigItemSize := FBigItemSize;
-    icp.ItemSpacing := FItemSpacing;
-    icp.LaunchInterval := FLaunchInterval;
-    icp.ActivateRunning := FActivateRunning;
-    icp.UseShellContextMenus := FUseShellContextMenus;
-    icp.Site := integer(FSite);
-    icp.Reflection := FReflection;
-    icp.ReflectionSize := FReflectionSize;
-    icp.ShowHint := FShowHint;
-    icp.AnimationType := FItemAnimation;
-    icp.LockDragging := FLockDragging;
-    icp.StackAnimationEnabled := FStackAnimationEnabled;
-    icp.SeparatorAlpha := FSeparatorAlpha;
-    icp.TaskLivePreviews := FTaskLivePreviews;
-    icp.TaskThumbSize := FTaskThumbSize;
-    icp.TaskGrouping := FTaskGrouping;
-    CopyFontData(FFont, icp.Font);
-    icp.IniFile := IniFile;
-    icp.IniSection := IniSection;
-    icp.Parameter := '';
-
-    if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp);
-  except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.' + ClassName + LineEnding + e.message);
-  end;
-
-  try
-    if assigned(Inst) then
-      if Inst.Freed then // if something went wrong
-      begin
-        FreeAndNil(Inst);
-      end else // if everything is okay
-      begin
-        result := Inst.Handle;
-        AddToRegisteredPrograms(result);
-      end;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.Fin ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-function TItemManager.CreateItemFromParameter(ClassName, Parameter: string): THandle;
-var
-  Inst: TCustomItem;
-  icp: TDItemCreateParams;
-begin
-  result := 0;
-  Inst := nil;
-  if FItemCount > MAX_ITEM_COUNT then exit;
-  try
-    icp.ItemSize := FItemSize;
-    icp.BigItemSize := FBigItemSize;
-    icp.ItemSpacing := FItemSpacing;
-    icp.LaunchInterval := FLaunchInterval;
-    icp.ActivateRunning := FActivateRunning;
-    icp.UseShellContextMenus := FUseShellContextMenus;
-    icp.Site := integer(FSite);
-    icp.Reflection := FReflection;
-    icp.ReflectionSize := FReflectionSize;
-    icp.ShowHint := FShowHint;
-    icp.AnimationType := FItemAnimation;
-    icp.LockDragging := FLockDragging;
-    icp.StackAnimationEnabled := FStackAnimationEnabled;
-    icp.SeparatorAlpha := FSeparatorAlpha;
-    icp.TaskLivePreviews := FTaskLivePreviews;
-    icp.TaskThumbSize := FTaskThumbSize;
-    icp.TaskGrouping := FTaskGrouping;
-    CopyFontData(FFont, icp.Font);
-    icp.IniFile := '';
-    icp.IniSection := '';
-    icp.Parameter := Parameter;
-
-    if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'task' then Inst := TTaskItem.Create(FParentHWnd, icp);
-  except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromClass.' + ClassName + LineEnding + e.message);
-  end;
-
-  try
-    if assigned(Inst) then
-    begin
-      if Inst.Freed then // if something went wrong
-      begin
-        FreeAndNil(Inst);
-      end else // if everything is okay
-      begin
-        result := Inst.Handle;
-        AddToRegisteredPrograms(result);
-      end;
-    end;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromClass.Fin ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-// do not call directly !!!
-// items call this using DockH.DockDeleteItem
-// use TCustomItem.Delete instead
-procedure TItemManager.DeleteItem(HWnd: THandle);
-var
-  index: integer;
-begin
-  if FEnabled then
-  try
-    index := ItemIndex(HWnd);
-    _itemsDeleted.Add(Pointer(HWnd)); // add to "deleted" list
-    DeleteFromRegisteredPrograms(HWnd);
-
-    // erase it from "FItemArray" list //
-    if index <> NOT_AN_ITEM then
-    begin
-      while index < FItemCount - 1 do
-      begin
-        FItemArray[index].h := FItemArray[index + 1].h;
-        FItemArray[index].x := FItemArray[index + 1].x;
-        FItemArray[index].y := FItemArray[index + 1].y;
-        FItemArray[index].s := FItemArray[index + 1].s;
-        inc(index);
-      end;
-      dec(FItemCount);
-    end;
-
-    // update dock //
-    ItemsChanged;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.DeleteItem ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.AddToRegisteredPrograms(HWnd: THandle);
-var
-  Inst: TCustomItem;
-  str: string;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
-    str := Inst.RegisterProgram;
-    if str <> '' then _registeredPrograms.Add(AnsiLowerCase(str));
-  except
-    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.DeleteFromRegisteredPrograms(HWnd: THandle);
-var
-  Inst: TCustomItem;
-  rpIndex: integer;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
-    rpIndex := _registeredPrograms.IndexOf(AnsiLowerCase(Inst.RegisterProgram));
-    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
-  except
-    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1820,22 +1821,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// add new item to dock
-// if there is a DropPlace, then put item there
-// if DropPlace not exists, then put item at the end of the items array
-procedure TItemManager.DockAdd(wnd: HWND);
-begin
-  if (FDropPlace < 0) or (FDropPlace >= FItemCount) then SetDropPlace(FItemCount);
-  FItemArray[FDropPlace].h := wnd;
-  FItemArray[FDropPlace].s := FItemSize;
-  ItemCmd(wnd, icFree, 0); // enable item
-  ItemCmd(wnd, icUndock, 0);
-  SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
-  SetDropPlaceEx(NOT_AN_ITEM);
-  SetDropPlace(NOT_AN_ITEM);
-  ItemsChanged;
-end;
-//------------------------------------------------------------------------------
 // put the item to dock
 // if necessary create a new stack or put into existing one
 procedure TItemManager.Dock(wnd: HWND);
@@ -1890,7 +1875,7 @@ begin
       begin
         if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
         begin
-          NewItemWnd := CreateItemFromParameter('stack', '');
+          NewItemWnd := CreateItemFromString(TStackItem.Make);
           if NewItemWnd <> THandle(0) then
           begin
             FItemArray[FDropPlace].h := NewItemWnd;
@@ -2235,7 +2220,7 @@ var
 begin
   try
     // do not add registered programs, so check for it
-    str := AnsiLowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
+    str := LowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
     index := _registeredPrograms.IndexOf(str);
     if index < 0 then index := _registeredPrograms.IndexOf(ExtractFileName(str));
     if index >= 0 then exit;
@@ -2274,7 +2259,7 @@ begin
 			end;
 
 			SetDropPlace(index);
-      wndItem := AddItem(CreateItemFromParameter('task', ''), true);
+      wndItem := AddItem(CreateItemFromString(TTaskItem.Make), true);
       Inst := TCustomItem(GetWindowLongPtr(wndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;

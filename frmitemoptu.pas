@@ -158,8 +158,9 @@ begin
   if not (Inst is TShortcutItem) and not (Inst is TShortcutSubitem) then exit;
 
   result := true;
-  if Inst is TShortcutItem then sci := Inst;
-  if Inst is TShortcutSubitem then scs := Inst;
+  pages.ActivePageIndex := 0;
+  if Inst is TShortcutItem then sci := TShortcutItem(Inst);
+  if Inst is TShortcutSubitem then scs := TShortcutSubitem(Inst);
 
   // read item data
 
@@ -189,7 +190,6 @@ begin
     savedColorData  := scs.ColorData;
     savedHide       := scs.Hide;
   end;
-  pages.ActivePageIndex := 0;
 
   // show parameters //
 
@@ -197,7 +197,8 @@ begin
   edCmd.Text := AnsiToUTF8(savedCommand);
   edParams.Text := AnsiToUTF8(savedParams);
   edDir.Text := AnsiToUTF8(savedDir);
-  edImage.text := savedImageFile + ';' + savedImageFile2;
+  edImage.text := savedImageFile;
+  if savedImageFile2 <> '' then edImage.text := edImage.text + ';' + savedImageFile2;
   chbHide.Checked := savedHide;
   //
   color_data := savedColorData;
@@ -240,8 +241,8 @@ begin
   if FChanged then
   begin
     Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
-    if Inst is TShortcutItem then sci := Inst;
-    if Inst is TShortcutSubitem then scs := Inst;
+    if Inst is TShortcutItem then sci := TShortcutItem(Inst);
+    if Inst is TShortcutSubitem then scs := TShortcutSubitem(Inst);
     if sci <> nil then
     begin
       sci.Caption    := savedCaption;
@@ -253,7 +254,7 @@ begin
       sci.ShowCmd    := savedShowCmd;
       sci.ColorData  := savedColorData;
       sci.Hide       := savedHide;
-      scs.Update;
+      sci.Update;
     end
     else
     if scs <> nil then
@@ -290,8 +291,8 @@ var
 begin
   try
     Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
-    if Inst is TShortcutItem then sci := Inst;
-    if Inst is TShortcutSubitem then scs := Inst;
+    if Inst is TShortcutItem then sci := TShortcutItem(Inst);
+    if Inst is TShortcutSubitem then scs := TShortcutSubitem(Inst);
 
     if cboWindow.ItemIndex = 0 then ShowCmd := sw_shownormal
     else if cboWindow.ItemIndex = 1 then ShowCmd := sw_showminimized

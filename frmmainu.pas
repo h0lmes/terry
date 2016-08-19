@@ -1821,11 +1821,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.DropFiles(files: TStrings);
-var
-  idx: integer;
 begin
-  for idx := 0 to files.Count - 1 do files.strings[idx] := TShortcutItem.FromParameter(files.strings[idx]);
-  ItemMgr.InsertItems(files);
+  ItemMgr.InsertFiles(files);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMCopyData(var Message: TMessage);
@@ -1845,7 +1842,7 @@ begin
       exit;
     end;
     ppd := PTDProgramData(pcds^.lpData);
-    ItemMgr.InsertItem(TShortcutItem.Make(0, pchar(ppd^.Name), ZipPath(pchar(ppd^.Filename)), '', '', '', SW_SHOWNORMAL));
+    ItemMgr.InsertItem(TShortcutItem.Make(pchar(ppd^.Name), ZipPath(pchar(ppd^.Filename)), '', '', '', SW_SHOWNORMAL));
   end;
 end;
 //------------------------------------------------------------------------------

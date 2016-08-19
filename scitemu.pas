@@ -64,7 +64,7 @@ type
     constructor Create(AWndParent: HWND; var AParams: TDItemCreateParams); override;
     destructor Destroy; override;
     procedure FromIni(IniFile, IniSection: string);
-    procedure FromParameter(value: string);
+    procedure FromString(value: string);
     procedure Update;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -79,6 +79,11 @@ type
     function RegisterProgram: string; override;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(ini, section: string); override;
+    //
+    class function Make(ACaption: WideString = '';
+      ACommand: string = ''; AParams: string = ''; ADir: string = ''; AImage: string = '';
+      AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
+    class function MakeFromFilename(value: string): string;
   end;
 
 implementation
@@ -109,7 +114,7 @@ begin
   OnDrawOverlay := DrawOverlay;
 
   if AParams.IniFile <> '' then FromIni(AParams.IniFile, AParams.IniSection)
-  else FromParameter(Aparams.Parameter);
+  else FromString(Aparams.Parameter);
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutItem.Destroy;
@@ -127,10 +132,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.FromIni(IniFile, IniSection: string);
 begin
-  if FFreed then exit;
-
+  if not FFreed then
   try
-    if (length(IniFile) > 0) and (length(IniSection) > 0) then
+    if (IniFile <> '') and (IniSection <> '') then
     begin
       Caption     := GetIniStringW(IniFile, IniSection, 'caption', '');
       FCommand    := GetIniStringW(IniFile, IniSection, 'command', '');
@@ -149,38 +153,30 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TShortcutItem.FromParameter(value: string);
-var
-  data: TDShortcutData;
+procedure TShortcutItem.FromString(value: string);
 begin
-  if IsGUID(value) or IsPIDLString(value) then
-  begin
-    Caption    := '::::';
-    FCommand    := value;
-    FParams     := '';
-    FDir        := '';
-    FImageFile  := '';
-    FImageFile2 := '';
-    FShowCmd    := 1;
-    FHide       := false;
-    FColorData  := DEF_COLOR_DATA;
-  end else begin
-    if DirectoryExists(value) then
-      Caption  := value
-    else
-      Caption  := ChangeFileExt(ExtractFilename(value), '');
-    FCommand    := ZipPath(value);
-    FParams     := '';
-    FDir        := '';
-    if LowerCase(ExtractFileExt(value)) = '.exe' then
-      FDir      := ZipPath(ExcludeTrailingPathDelimiter(ExtractFilePath(value)));
-    FImageFile  := '';
-    FImageFile2 := '';
-    FShowCmd    := 1;
-    FHide       := false;
-    FColorData  := DEF_COLOR_DATA;
+  if not FFreed then
+  try
+    Caption        := FetchValue(value, 'caption="', '";');
+    FCommand       := FetchValue(value, 'command="', '";');
+    FParams        := FetchValue(value, 'params="', '";');
+    FDir           := FetchValue(value, 'dir="', '";');
+    FImageFile     := FetchValue(value, 'image="', '";');
+    FImageFile2    := cutafter(FImageFile, ';');
+    FImageFile     := cut(FImageFile, ';');
+    FHide          := false;
+    FColorData     := DEF_COLOR_DATA;
+    FShowCmd       := 1;
+    try FHide      := boolean(strtoint(FetchValue(value, 'hide="', '";')));
+    except end;
+    try FColorData := strtoint(FetchValue(value, 'color_data="', '";'));
+    except end;
+    try FShowCmd   := strtoint(FetchValue(value, 'showcmd="', '";'));
+    except end;
+    Update;
+  except
+    on e: Exception do raise Exception.Create('ShortcutItem.FromString ' + LineEnding + e.message);
   end;
-  Update;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Update;
@@ -472,7 +468,7 @@ var
 begin
   img := FImageFile;
   if FImageFile2 <> '' then img := img + ';' + FImageFile2;
-  result:= Make(FHWnd, FCaption, FCommand, FParams, FDir, img, FShowCmd, FColorData, FHide);
+  result := Make(FCaption, FCommand, FParams, FDir, img, FShowCmd, FColorData, FHide);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer);
@@ -770,7 +766,7 @@ begin
   result := not FFreed;
   if result then
   begin
-    ext := AnsiLowerCase(ExtractFileExt(filename));
+    ext := LowerCase(ExtractFileExt(filename));
     if (ext = '.png') or (ext = '.ico') then
     begin
       FImageFile := toolu.ZipPath(filename);
@@ -805,6 +801,49 @@ begin
   if FShowCmd <> sw_shownormal then    WriteIniStringW(ini, section, 'showcmd', inttostr(FShowCmd));
   if FColorData <> DEF_COLOR_DATA then WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
   if FHide then                        WriteIniStringW(ini, section, 'hide', '1');
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//
+//
+//
+//
+//------------------------------------------------------------------------------
+class function TShortcutItem.Make(ACaption: WideString = '';
+  ACommand: string = ''; AParams: string = ''; ADir: string = ''; AImage: string = '';
+  AShowCmd: integer = 1; AColorData: integer = DEF_COLOR_DATA; AHide: boolean = false): string;
+begin
+  result := 'class="shortcut";';
+  if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
+  if ACommand <> '' then result := result + 'command="' + ACommand + '";';
+  if AParams <> '' then result := result + 'params="' + AParams + '";';
+  if ADir <> '' then result := result + 'dir="' + ADir + '";';
+  if AImage <> '' then result := result + 'image="' + AImage + '";';
+  if AShowCmd <> 1 then result := result + 'showcmd="' + inttostr(AShowCmd) + '";';
+  if AColorData <> DEF_COLOR_DATA then result := result + 'color_data="' + toolu.ColorToString(AColorData) + '";';
+  if AHide then result := result + 'hide="1";';
+end;
+//------------------------------------------------------------------------------
+class function TShortcutItem.MakeFromFilename(value: string): string;
+var
+  Caption: WideString;
+  Dir: string = '';
+begin
+  if IsGUID(value) or IsPIDLString(value) then
+  begin
+    result := Make('::::', value, '', '', '', 1);
+  end
+  else
+  begin
+    if DirectoryExists(value) then
+      Caption  := value
+    else
+      Caption  := ChangeFileExt(ExtractFilename(value), '');
+    if LowerCase(ExtractFileExt(value)) = '.exe' then Dir := ZipPath(ExcludeTrailingPathDelimiter(ExtractFilePath(value)));
+    result := Make(Caption, ZipPath(value), '', Dir, '', 1);
+  end;
 end;
 //------------------------------------------------------------------------------
 end.

@@ -197,9 +197,9 @@ begin
       icon := pchar(item.icon);
 
       if strlcomp(pchar(item.classname), 'stack', 5) = 0 then
-        strItem := TStackItem.Make(0, name, icon, cmd)
+        strItem := TStackItem.Make(name, icon, cmd)
       else
-        strItem := TShortcutItem.Make(0, name, cmd, params, '', icon, 1);
+        strItem := TShortcutItem.Make(name, cmd, params, '', icon, 1);
 
       frmmain.ItemMgr.InsertItem(strItem);
     end;
