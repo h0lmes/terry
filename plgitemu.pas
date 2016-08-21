@@ -111,14 +111,14 @@ begin
       MessageBox(FHWnd, pchar('LoadLibrary(' + FPluginFile + ') failed'), 'CreatePlugin', 0);
       exit;
     end;
-    @OnCreate := GetProcAddress(hLib, 'OnCreate');
-    @OnSave := GetProcAddress(hLib, 'OnSave');
-    @OnDestroy := GetProcAddress(hLib, 'OnDestroy');
-    @OnLeftButtonClick := GetProcAddress(hLib, 'OnLeftButtonClick');
-    @OnDoubleClick := GetProcAddress(hLib, 'OnDoubleClick');
+    @OnCreate           := GetProcAddress(hLib, 'OnCreate');
+    @OnSave             := GetProcAddress(hLib, 'OnSave');
+    @OnDestroy          := GetProcAddress(hLib, 'OnDestroy');
+    @OnLeftButtonClick  := GetProcAddress(hLib, 'OnLeftButtonClick');
+    @OnDoubleClick      := GetProcAddress(hLib, 'OnDoubleClick');
     @OnRightButtonClick := GetProcAddress(hLib, 'OnRightButtonClick');
-    @OnConfigure := GetProcAddress(hLib, 'OnConfigure');
-    @OnWndMessage := GetProcAddress(hLib, 'OnProcessMessage');
+    @OnConfigure        := GetProcAddress(hLib, 'OnConfigure');
+    @OnWndMessage       := GetProcAddress(hLib, 'OnProcessMessage');
     if not assigned(OnCreate) then
     begin
       MessageBox(FHWnd, pchar('OnCreate(' + FPluginFile + ') is NULL'), 'CreatePlugin', 0);

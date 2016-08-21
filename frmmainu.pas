@@ -47,6 +47,7 @@ type
     FOldBaseImageRect: GDIPAPI.TRect;
     FLastMouseHookPoint: Windows.TPoint;
     FMouseOver: boolean;
+    FMouseOverEdge: boolean;
     FInitDone: boolean;
     //FHook: THandle;
     FPrevWndProc: Pointer;
@@ -187,6 +188,8 @@ begin
     LockList := TList.Create;
     crsection := TCriticalSection.Create;
     FBlurWindow := 0;
+    FMouseOver := false;
+    FMouseOverEdge := false;
 
     // workaround for Windows message handling in LCL //
     SetWindowLongPtr(Handle, GWL_USERDATA, PtrUInt(self));
@@ -737,7 +740,7 @@ procedure Tfrmmain.WHMouseMove(LParam: LParam);
 var
   pt: Windows.Tpoint;
   monitorRect, itemMgrRect: Windows.TRect;
-  oldMouseOver: boolean;
+  oldMouseOver, oldMouseOverEdge: boolean;
 begin
   if not IsMouseEffectLocked and assigned(ItemMgr) and not FProgramIsClosing then
     if ItemMgr.Visible then
@@ -751,6 +754,7 @@ begin
 
         // detect mouse enter/leave //
         oldMouseOver := FMouseOver;
+        oldMouseOverEdge := FMouseOverEdge;
         monitorRect := ItemMgr.FMonitorRect;
         itemMgrRect := ItemMgr.Rect;
         if sets.container.site = bsBottom then
@@ -761,8 +765,9 @@ begin
           FMouseOver := (pt.x <= monitorRect.Left) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom)
         else if sets.container.site = bsRight then
           FMouseOver := (pt.x >= monitorRect.Right - 1) and (pt.y >= itemMgrRect.Top) and (pt.y <= itemMgrRect.Bottom);
+        FMouseOverEdge := FMouseOver;
         FMouseOver := FMouseOver or ItemMgr.CheckMouseOn or ItemMgr.FDraggingItem;
-        if FMouseOver and not oldMouseOver then OnMouseEnter;
+        if (FMouseOver and not oldMouseOver) or (FMouseOverEdge and not oldMouseOverEdge) then OnMouseEnter;
         if not FMouseOver and oldMouseOver then OnMouseLeave;
       end;
     end;

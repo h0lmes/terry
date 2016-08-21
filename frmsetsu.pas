@@ -376,7 +376,12 @@ begin
     constraints.MaxWidth := Width;
     lv.ItemIndex := PageIndex;
     toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
-    lblTitle.Caption:= PROGRAM_NAME + '  ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
+    lblTitle.Caption := PROGRAM_NAME + ' ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
+    {$ifdef CPU64}
+    lblTitle.Caption := lblTitle.Caption + ' (64 bit)';
+    {$else}
+    lblTitle.Caption := lblTitle.Caption + ' (32 bit)';
+    {$endif}
   except
     on e: Exception do frmmain.err('frmSets.Show', e);
   end;

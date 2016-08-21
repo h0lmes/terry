@@ -1131,8 +1131,8 @@ begin
   wr.left += FSize div 2;
   wr.top += FSize div 2;
 
-  Xmin := 9999;
-  Ymin := 9999;
+  Xmin := $FFFF;
+  Ymin := $FFFF;
   Xmax := 0;
   Ymax := 0;
 

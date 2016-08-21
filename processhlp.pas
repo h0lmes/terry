@@ -190,11 +190,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc;
 begin
-  {$ifdef CPU64}
-  if FWin10 then EnumProc32 else EnumProc64;
-  {$else CPU64}
-  if FWin10 then EnumProc32 else EnumProc64;
-  {$endif CPU64}
+  EnumProc64;
 end;
 //------------------------------------------------------------------------------
 procedure TProcessHelper.EnumProc32;
@@ -305,11 +301,7 @@ end;
 function TProcessHelper.GetFullNameByHProcess(hProcess: THandle): string;
 var
   size: dword;
-  {$ifdef CPU64}
   buff: array [0..MAX_PATH - 1] of WideChar;
-  {$else CPU64}
-  buff: array [0..MAX_PATH - 1] of AnsiChar;
-  {$endif CPU64}
 begin
   result := '';
   size := MAX_PATH;
@@ -318,24 +310,14 @@ begin
   if assigned(QueryFullProcessImageName) then
   begin
       QueryFullProcessImageName(hProcess, 0, buff, size);
-      {$ifdef CPU64}
       GetLongPathNameW(buff, buff, MAX_PATH);
-      result := AnsiString(strpas(pwchar(@buff)));
-      {$else CPU64}
-      GetLongPathNameA(buff, buff, MAX_PATH);
-      result := strpas(pchar(@buff));
-      {$endif CPU64}
+      result := strpas(pwchar(@buff));
   end;
 
   if result = '' then
   begin
-    {$ifdef CPU64}
     GetModuleFileNameExW(hProcess, 0, buff, MAX_PATH);
-    result := AnsiString(strpas(pwchar(@buff)));
-    {$else CPU64}
-    GetModuleFileNameExA(hProcess, 0, buff, MAX_PATH);
-    result := strpas(pchar(@buff));
-    {$endif CPU64}
+    result := strpas(pwchar(@buff));
   end;
 end;
 //------------------------------------------------------------------------------
