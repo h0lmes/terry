@@ -136,16 +136,16 @@ begin
   try
     if (IniFile <> '') and (IniSection <> '') then
     begin
-      Caption     := GetIniStringW(IniFile, IniSection, 'caption', '');
-      FCommand    := GetIniStringW(IniFile, IniSection, 'command', '');
-      FParams     := GetIniStringW(IniFile, IniSection, 'params', '');
-      FDir        := GetIniStringW(IniFile, IniSection, 'dir', '');
-      FImageFile  := GetIniStringW(IniFile, IniSection, 'image', '');
+      Caption     := ReadIniStringW(IniFile, IniSection, 'caption', '');
+      FCommand    := ReadIniStringW(IniFile, IniSection, 'command', '');
+      FParams     := ReadIniStringW(IniFile, IniSection, 'params', '');
+      FDir        := ReadIniStringW(IniFile, IniSection, 'dir', '');
+      FImageFile  := ReadIniStringW(IniFile, IniSection, 'image', '');
       FImageFile2 := cutafter(FImageFile, ';');
       FImageFile  := cut(FImageFile, ';');
-      FHide       := GetIniBoolW(IniFile, IniSection, 'hide', false);
-      FColorData  := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
-      FShowCmd    := GetIniIntW(IniFile, IniSection, 'showcmd', sw_shownormal);
+      FHide       := ReadIniBoolW(IniFile, IniSection, 'hide', false);
+      FColorData  := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
+      FShowCmd    := ReadIniIntW(IniFile, IniSection, 'showcmd', sw_shownormal);
       Update;
     end;
   except
@@ -275,19 +275,19 @@ begin
     begin
       imagefile := ReplaceEx(imagefile, '{LANGID}', GetLangIDString(FDynObjectState));
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      FCaption := GetLangIDName(FDynObjectState);
+      Caption := GetLangIDName(FDynObjectState);
     end;
     if pos('{VOLUME}', imagefile) > 0 then
     begin
       imagefile := ReplaceEx(imagefile, '{VOLUME}', Mixer.StateString);
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      FCaption := Mixer.Description;
+      Caption := Mixer.Description;
     end;
     if pos('{NETWORK}', imagefile) > 0 then
     begin
       imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      FCaption := TNetworks.CDescription;
+      Caption := TNetworks.CDescription;
     end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage ' + LineEnding + e.message);
@@ -320,22 +320,22 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DynObjectUpdate;
 var
-  tempState: integer = 0;
+  newDynObjectState: integer = 0;
 begin
   // if this is a dynamic object
   if FDynObject then
   begin
-    if pos('{LANGID}', FImageFile) > 0 then tempState := GetLangID;
-    if pos('{VOLUME}', FImageFile) > 0 then tempState := TMixer.CUpdate;
-    if pos('{NETWORK}', FImageFile) > 0 then tempState := TNetworks.CUpdate;
+    if pos('{LANGID}', FImageFile) > 0 then newDynObjectState := GetLangID;
+    if pos('{VOLUME}', FImageFile) > 0 then newDynObjectState := TMixer.CUpdate;
+    if pos('{NETWORK}', FImageFile) > 0 then newDynObjectState := TNetworks.CUpdate;
   end
   // if this is a Recycle Bin
-  else if FDynObjectRecycleBin then tempState := GetRecycleBinState;
+  else if FDynObjectRecycleBin then newDynObjectState := GetRecycleBinState;
 
   // if 'state' changed
-  if FDynObjectState <> tempState then
+  if FDynObjectState <> newDynObjectState then
   begin
-    FDynObjectState := tempState;
+    FDynObjectState := newDynObjectState;
     LoadImageI;
     Redraw;
   end;

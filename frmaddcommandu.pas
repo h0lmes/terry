@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  gettext, DefaultTranslator, ComCtrls, ExtCtrls, StdCtrls, IniFiles;
+  gettext, DefaultTranslator, ComCtrls, ExtCtrls, StdCtrls, IniFiles, iniproc;
 
 type
   TItem = record
@@ -111,17 +111,17 @@ begin
     groupIdx := 1;
     repeat
       group := 'group' + inttostr(groupIdx);
-      groupName := ini.ReadString(group, 'groupname', '');
+      groupName := ReadIniStringW(Filename, group, 'groupname', '');
       if groupName <> '' then node := AddGroup(groupName);
 
       itemIdx := 1;
       repeat
-        classname := ini.ReadString(group, 'class' + inttostr(itemIdx), 'shortcut');
-        name := ini.ReadString(group, 'name' + inttostr(itemIdx), '');
-        command := ini.ReadString(group, 'command' + inttostr(itemIdx), '');
-        params := ini.ReadString(group, 'params' + inttostr(itemIdx), '');
-        icon := ini.ReadString(group, 'icon' + inttostr(itemIdx), '');
-        description := ini.ReadString(group, 'description' + inttostr(itemIdx), '');
+        classname   := ReadIniStringW(Filename, group, 'class' + inttostr(itemIdx), 'shortcut');
+        name        := ReadIniStringW(Filename, group, 'name' + inttostr(itemIdx), '');
+        command     := ReadIniStringW(Filename, group, 'command' + inttostr(itemIdx), '');
+        params      := ReadIniStringW(Filename, group, 'params' + inttostr(itemIdx), '');
+        icon        := ReadIniStringW(Filename, group, 'icon' + inttostr(itemIdx), '');
+        description := ReadIniStringW(Filename, group, 'description' + inttostr(itemIdx), '');
         if name <> '' then AddItem(node, classname, name, command, params, icon, description);
         inc(itemIdx);
       until name = '';

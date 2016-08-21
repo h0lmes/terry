@@ -5,14 +5,15 @@ unit iniproc;
 interface
 uses Windows, Classes, SysUtils;
 
-function GetIniStringW(ini, section, key, default: WideString): WideString;
-function GetIniIntW(ini, section, key: WideString; default: integer): integer;
-function GetIniBoolW(ini, section, key: WideString; default: boolean): boolean;
+function  ReadIniStringW(ini, section, key, default: WideString): WideString;
+function  ReadIniIntW(ini, section, key: WideString; default: integer): integer; overload;
+function  ReadIniIntW(ini, section, key: WideString; default, min, max: integer): integer; overload;
+function  ReadIniBoolW(ini, section, key: WideString; default: boolean): boolean;
 procedure WriteIniStringW(ini, section, key, value: WideString);
 
 implementation
 //------------------------------------------------------------------------------
-function GetIniStringW(ini, section, key, default: WideString): WideString;
+function ReadIniStringW(ini, section, key, default: WideString): WideString;
 var
   buf: array [0..2048] of WCHAR;
 begin
@@ -21,14 +22,21 @@ begin
   result := strpas(pwchar(@buf));
 end;
 //------------------------------------------------------------------------------
-function GetIniIntW(ini, section, key: WideString; default: integer): integer;
+function ReadIniIntW(ini, section, key: WideString; default: integer): integer; overload;
 begin
-  result := StrToInt(GetIniStringW(ini, section, key, inttostr(default)));
+  result := StrToInt(ReadIniStringW(ini, section, key, inttostr(default)));
 end;
 //------------------------------------------------------------------------------
-function GetIniBoolW(ini, section, key: WideString; default: boolean): boolean;
+function ReadIniIntW(ini, section, key: WideString; default, min, max: integer): integer; overload;
 begin
-  result := not (GetIniStringW(ini, section, key, inttostr(integer(default))) = '0');
+  result := StrToInt(ReadIniStringW(ini, section, key, inttostr(default)));
+  if result < min then result := min;
+  if result > max then result := max;
+end;
+//------------------------------------------------------------------------------
+function ReadIniBoolW(ini, section, key: WideString; default: boolean): boolean;
+begin
+  result := not (ReadIniStringW(ini, section, key, inttostr(integer(default))) = '0');
 end;
 //------------------------------------------------------------------------------
 procedure WriteIniStringW(ini, section, key, value: WideString);

@@ -59,6 +59,8 @@ begin
 end;
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
 
+// this source has been altered
+
 interface
 
 uses
@@ -73,8 +75,7 @@ function GetCPUCount: Integer;
 // Call it to obtain the % of usage for given CPU
 function GetCPUUsage(Index: Integer): Double;
 
-// For Win9x only: call it to stop CPU usage monitoring and free system resources
-procedure ReleaseCPUData;
+function getError: integer;
 
 implementation
 
@@ -133,8 +134,8 @@ type
         ObjectHelpTitle : LPWSTR;
         DetailLevel : DWORD;
         NumCounters : DWORD;
-        DefaultCounter : Longint;
-        NumInstances : Longint;
+        DefaultCounter : DWORD;
+        NumInstances : DWORD;
         CodePage : DWORD;
         PerfTime : TInt64;
         PerfFreq : TInt64;
@@ -168,7 +169,7 @@ type
         ByteLength : DWORD;
         ParentObjectTitleIndex : DWORD;
         ParentObjectInstance : DWORD;
-        UniqueID : Longint;
+        UniqueID : DWORD;
         NameOffset : DWORD;
         NameLength : DWORD;
     end;
@@ -176,12 +177,6 @@ type
     PPERF_INSTANCE_DEFINITION = ^TPERF_INSTANCE_DEFINITION;
 
 //------------------------------------------------------------------------------
-{$ifdef ver130}
-{$L-}         // The L+ causes internal error in Delphi 5 compiler
-{$O-}         // The O+ causes internal error in Delphi 5 compiler
-{$Y-}         // The Y+ causes internal error in Delphi 5 compiler
-{$endif}
-
 {$ifndef ver110}
 type
     TInt64F = TInt64;
@@ -244,167 +239,111 @@ var
     _PrevCounters: PAInt64F;
     _SysTime: TInt64F;
     _PrevSysTime: TInt64F;
-    _IsWinNT: Boolean;
-
-    _W9xCollecting: Boolean;
-    _W9xCpuUsage: DWORD;
-    _W9xCpuKey: HKEY;
+    _Error: integer;
 
 
 //------------------------------------------------------------------------------
 function GetCPUCount: Integer;
 begin
-    if _IsWinNT then
-    begin
-        if _ProcessorsCount < 0 then CollectCPUData;
-        result:=_ProcessorsCount;
-    end else
-    begin
-        result:=1;
-    end;
-
+    if _ProcessorsCount < 0 then CollectCPUData;
+    result:=_ProcessorsCount;
 end;
-
-//------------------------------------------------------------------------------
-procedure ReleaseCPUData;
-var H: HKEY;
-    R: DWORD;
-    dwDataSize, dwType: DWORD;
-begin
-    if _IsWinNT then exit;
-    if not _W9xCollecting then exit;
-    _W9xCollecting:=False;
-
-    RegCloseKey(_W9xCpuKey);
-
-    R:=RegOpenKeyEx( HKEY_DYN_DATA, 'PerfStats\StopStat', 0, KEY_ALL_ACCESS, H );
-
-    if R <> ERROR_SUCCESS then exit;
-
-    dwDataSize:=sizeof(DWORD);
-
-    RegQueryValueEx ( H, 'KERNEL\CPUUsage', nil, @dwType, PBYTE(@_W9xCpuUsage), @dwDataSize);
-
-    RegCloseKey(H);
-
-end;
-
 //------------------------------------------------------------------------------
 function GetCPUUsage(Index: Integer): Double;
 begin
-    if _IsWinNT then
-    begin
-        if _ProcessorsCount < 0 then CollectCPUData;
-        if (Index >= _ProcessorsCount) or (Index < 0) then
-            raise Exception.Create('CPU index out of bounds');
-        if _PrevSysTime = _SysTime then result:=0 else
-        result:=1-(_Counters[index] - _PrevCounters[index])/(_SysTime-_PrevSysTime);
-    end else
-    begin
-        if Index <> 0 then
-            raise Exception.Create('CPU index out of bounds');
-        if not _W9xCollecting then CollectCPUData;
-        result:=_W9xCpuUsage / 100;
-    end;
+    if _ProcessorsCount < 0 then CollectCPUData;
+
+    if (Index >= _ProcessorsCount) or (Index < 0) then
+        raise Exception.Create('CPU index out of bounds');
+
+    if _PrevSysTime = _SysTime then
+        result := 0
+    else
+        result := 1 - (_Counters[index] - _PrevCounters[index]) / (_SysTime - _PrevSysTime);
+end;
+//------------------------------------------------------------------------------
+function getError: integer;
+begin
+    result := _Error;
 end;
 
-var VI: TOSVERSIONINFO;
-
-//------------------------------------------------------------------------------
 procedure CollectCPUData;
-var BS: integer;
+var
+    BS: DWORD;
     i: Integer;
     _PCB_Instance: PPERF_COUNTER_BLOCK;
     _PID_Instance: PPERF_INSTANCE_DEFINITION;
     ST: TFileTime;
-
-var H: HKEY;
-    R: DWORD;
-    dwDataSize, dwType: DWORD;
 begin
-    if _IsWinNT then
+    _Error := 0;
+
+    BS := _BufferSize;
+    while RegQueryValueExW( HKEY_PERFORMANCE_DATA, '238', nil, nil, PByte(_PerfData), @BS ) = ERROR_MORE_DATA do
     begin
-        BS:=_BufferSize;
-        while RegQueryValueEx( HKEY_PERFORMANCE_DATA, Processor_IDX_Str, nil, nil,
-                PByte(_PerfData), @BS ) = ERROR_MORE_DATA do
-        begin
-            // Get a buffer that is big enough.
-            INC(_BufferSize,$1000);
-            BS:=_BufferSize;
-            ReallocMem( _PerfData, _BufferSize );
-        end;
-
-        // Locate the performance object
-        _POT := PPERF_OBJECT_TYPE(DWORD(_PerfData) + _PerfData.HeaderLength);
-        for i := 1 to _PerfData.NumObjectTypes do
-        begin
-            if _POT.ObjectNameTitleIndex = Processor_IDX then Break;
-            _POT := PPERF_OBJECT_TYPE(DWORD(_POT) + _POT.TotalByteLength);
-        end;
-
-        // Check for success
-        if _POT.ObjectNameTitleIndex <> Processor_IDX then
-            raise Exception.Create('Unable to locate the "Processor" performance object');
-
-        if _ProcessorsCount < 0 then
-        begin
-            _ProcessorsCount:=_POT.NumInstances;
-            GetMem(_Counters,_ProcessorsCount*SizeOf(TInt64));
-            GetMem(_PrevCounters,_ProcessorsCount*SizeOf(TInt64));
-        end;
-
-        // Locate the "% CPU usage" counter definition
-        _PCD := PPERF_Counter_DEFINITION(DWORD(_POT) + _POT.HeaderLength);
-        for i := 1 to _POT.NumCounters do
-        begin
-            if _PCD.CounterNameTitleIndex = CPUUsageIDX then break;
-            _PCD := PPERF_COUNTER_DEFINITION(DWORD(_PCD) + _PCD.ByteLength);
-        end;
-
-        // Check for success
-        if _PCD.CounterNameTitleIndex <> CPUUsageIDX then
-            raise Exception.Create('Unable to locate the "% of CPU usage" performance counter');
-
-        // Collecting coutners
-        _PID_Instance := PPERF_INSTANCE_DEFINITION(DWORD(_POT) + _POT.DefinitionLength);
-        for i := 0 to _ProcessorsCount-1 do
-        begin
-            _PCB_Instance := PPERF_COUNTER_BLOCK(DWORD(_PID_Instance) + _PID_Instance.ByteLength );
-
-            _PrevCounters[i]:=_Counters[i];
-            _Counters[i]:=FInt64(PInt64(DWORD(_PCB_Instance) + _PCD.CounterOffset)^);
-
-            _PID_Instance := PPERF_INSTANCE_DEFINITION(DWORD(_PCB_Instance) + _PCB_Instance.ByteLength);
-        end;
-
-        _PrevSysTime:=_SysTime;
-        SystemTimeToFileTime(_PerfData.SystemTime, ST);
-        _SysTime:=FInt64(TInt64(ST));
-    end else
-    begin
-        if not _W9xCollecting then
-        begin
-            R:=RegOpenKeyEx( HKEY_DYN_DATA, 'PerfStats\StartStat', 0, KEY_ALL_ACCESS, H );
-            if R <> ERROR_SUCCESS then
-                raise Exception.Create('Unable to start performance monitoring');
-
-            dwDataSize:=sizeof(DWORD);
-
-            RegQueryValueEx( H, 'KERNEL\CPUUsage', nil, @dwType, PBYTE(@_W9xCpuUsage), @dwDataSize );
-
-            RegCloseKey(H);
-
-            R:=RegOpenKeyEx( HKEY_DYN_DATA, 'PerfStats\StatData', 0,KEY_READ, _W9xCpuKey );
-
-            if R <> ERROR_SUCCESS then
-                raise Exception.Create('Unable to read performance data');
-
-            _W9xCollecting:=True;
-        end;
-
-        dwDataSize:=sizeof(DWORD);
-        RegQueryValueEx( _W9xCpuKey, 'KERNEL\CPUUsage', nil,@dwType, PBYTE(@_W9xCpuUsage), @dwDataSize );
+        // Get a buffer that is big enough.
+        inc(_BufferSize, $1000);
+        BS := _BufferSize;
+        ReallocMem( _PerfData, _BufferSize );
     end;
+    _Error := 1;
+
+    // Locate the performance object
+    _POT := PPERF_OBJECT_TYPE(PtrUInt(_PerfData) + _PerfData.HeaderLength);
+    for i := 1 to _PerfData.NumObjectTypes do
+    begin
+        if _POT.ObjectNameTitleIndex = Processor_IDX then Break;
+        _POT := PPERF_OBJECT_TYPE(PtrUInt(_POT) + _POT.TotalByteLength);
+    end;
+    _Error := 2;
+
+    // Check for success
+    if _POT.ObjectNameTitleIndex <> Processor_IDX then
+    begin
+        _Error := 3;
+        raise Exception.Create('Unable to locate the "Processor" performance object');
+    end;
+
+    if _ProcessorsCount < 0 then
+    begin
+        _ProcessorsCount:=_POT.NumInstances;
+        GetMem(_Counters,     _ProcessorsCount * SizeOf(TInt64));
+        GetMem(_PrevCounters, _ProcessorsCount * SizeOf(TInt64));
+    end;
+    _Error := 4;
+
+    // Locate the "% CPU usage" counter definition
+    _PCD := PPERF_COUNTER_DEFINITION(PtrUInt(_POT) + _POT.HeaderLength);
+    for i := 1 to _POT.NumCounters do
+    begin
+        if _PCD.CounterNameTitleIndex = CPUUsageIDX then break;
+        _PCD := PPERF_COUNTER_DEFINITION(PtrUInt(_PCD) + _PCD.ByteLength);
+    end;
+    _Error := 5;
+
+    // Check for success
+    if _PCD.CounterNameTitleIndex <> CPUUsageIDX then
+    begin
+        _Error := 6;
+        raise Exception.Create('Unable to locate the "% of CPU usage" performance counter');
+    end;
+
+    // Collecting coutners
+    _PID_Instance := PPERF_INSTANCE_DEFINITION(PtrUInt(_POT) + _POT.DefinitionLength);
+    for i := 0 to _ProcessorsCount-1 do
+    begin
+        _PCB_Instance    := PPERF_COUNTER_BLOCK(PtrUInt(_PID_Instance) + _PID_Instance.ByteLength );
+
+        _PrevCounters[i] :=_Counters[i];
+        _Counters[i]     := FInt64(PInt64(PtrUInt(_PCB_Instance) + _PCD.CounterOffset)^);
+
+        _PID_Instance    := PPERF_INSTANCE_DEFINITION(PtrUInt(_PCB_Instance) + _PCB_Instance.ByteLength);
+    end;
+    _Error := 7;
+
+    _PrevSysTime := _SysTime;
+    SystemTimeToFileTime(_PerfData.SystemTime, ST);
+    _SysTime := FInt64(TInt64(ST));
+    _Error := 8;
 end;
 
 
@@ -412,13 +351,7 @@ initialization
     _ProcessorsCount:= -1;
     _BufferSize:= $2000;
     _PerfData := AllocMem(_BufferSize);
-
-    VI.dwOSVersionInfoSize:=SizeOf(VI);
-    if not GetVersionEx(VI) then raise Exception.Create('Can''t get the Windows version');
-
-    _IsWinNT := VI.dwPlatformId = VER_PLATFORM_WIN32_NT;
 finalization
-    ReleaseCPUData;
     FreeMem(_PerfData);
 end.
 

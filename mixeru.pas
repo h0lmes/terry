@@ -16,12 +16,12 @@ type
     FmmEndpoint: IMMAudioEndpointVolume;
     FVolume: integer;
     FMute: boolean;
-    FDescription: string;
+    FDescription: WideString;
     function IsReady: boolean;
     function getState: integer;
     function getStateString: string;
   public
-    property Description: string read FDescription;
+    property Description: WideString read FDescription;
     property State: integer read getState;
     property StateString: string read getStateString;
     class function CUpdate: integer;
@@ -124,7 +124,7 @@ begin
     if FVolume >= 0 then FDescription := inttostr(FVolume) + '%';
     if SUCCEEDED(FmmDev.OpenPropertyStore(STGM_READ, props)) then
       if SUCCEEDED(props.GetValue(@PKEY_Device_DeviceDesc, prop)) then
-        FDescription := string(PWideChar(prop.pwszVal)) + ': ' + FDescription;
+        FDescription := strpas(PWideChar(prop.pwszVal)) + ': ' + FDescription;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -4,79 +4,25 @@
     <PathDelim Value="\"/>
     <Version Value="9"/>
     <BuildModes Active="Default"/>
-    <Units Count="3">
+    <Units Count="2">
       <Unit0>
         <Filename Value="sysmeters.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="sysmeters"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="283"/>
-        <CursorPos X="30" Y="284"/>
-        <UsageCount Value="30"/>
+        <TopLine Value="190"/>
+        <CursorPos X="50" Y="203"/>
+        <UsageCount Value="33"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="cibufferu.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cibufferu"/>
-        <EditorIndex Value="1"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="19"/>
-        <CursorPos X="17" Y="23"/>
-        <UsageCount Value="30"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="20" Y="28"/>
+        <UsageCount Value="33"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
-      <Unit2>
-        <Filename Value="GDIPAPI.pas"/>
-        <UnitName Value="GDIPAPI"/>
-        <WindowIndex Value="0"/>
-        <TopLine Value="5139"/>
-        <CursorPos X="23" Y="5156"/>
-        <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
-      </Unit2>
     </Units>
-    <General>
-      <ActiveWindowIndexAtStart Value="0"/>
-    </General>
-    <JumpHistory Count="8" HistoryIndex="7">
-      <Position1>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="241" Column="50" TopLine="229"/>
-      </Position1>
-      <Position2>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="160" Column="60" TopLine="145"/>
-      </Position2>
-      <Position3>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="135" Column="74" TopLine="109"/>
-      </Position3>
-      <Position4>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="164" Column="41" TopLine="149"/>
-      </Position4>
-      <Position5>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="281" Column="34" TopLine="272"/>
-      </Position5>
-      <Position6>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="137" Column="23" TopLine="102"/>
-      </Position6>
-      <Position7>
-        <Filename Value="cibufferu.pas"/>
-        <Caret Line="17" Column="9" TopLine="1"/>
-      </Position7>
-      <Position8>
-        <Filename Value="sysmeters.lpr"/>
-        <Caret Line="301" Column="70" TopLine="265"/>
-      </Position8>
-    </JumpHistory>
   </ProjectSession>
-  <EditorMacros Count="0"/>
 </CONFIG>

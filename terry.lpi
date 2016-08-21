@@ -22,6 +22,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="84"/>
+      <RevisionNr Value="1"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -45,7 +46,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="44">
+    <Units Count="45">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -261,6 +262,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit43>
+      <Unit44>
+        <Filename Value="iniproc.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit44>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -301,7 +306,8 @@
     </Linking>
     <Other>
       <ExecuteAfter>
-        <CompileReasons Compile="False" Build="False" Run="False"/>
+        <Command Value="copy.bat"/>
+        <CompileReasons Run="False"/>
       </ExecuteAfter>
     </Other>
   </CompilerOptions>

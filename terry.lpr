@@ -11,20 +11,20 @@ uses
   Interfaces,
   interfacebase,
   Forms,
-  ShellAPI,
   Dialogs,
+  ShellAPI,
   declu,
   DockH,
   frmmainu {frmterry},
-  frmsetsu in 'frmsetsu.pas' {frmsets},
-  frmitemoptu in 'frmitemoptu.pas' {frmShortcutOptions},
-  frmcmdu in 'frmcmdu.pas' {frmcmd},
+  frmsetsu {frmsets},
+  frmitemoptu {frmShortcutOptions},
+  frmcmdu {frmcmd},
   frmthemeeditoru {frmLayersEditor},
-  frmColorU in 'frmColorU.pas' {frmColor},
-  frmDebugU in 'frmDebugU.pas' {frmDebug},
+  frmColorU {frmColor},
+  frmDebugU {frmDebug},
   themeu, setsu, GDIPAPI, gfx, toolu, itemmgru, customitemu, scitemu, sepitemu,
   plgitemu, stackitemu, stacksubitemu, hintu, droptgtu, shcontextu, notifieru,
-  PIDL, dwm_unit, EColor, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
+  PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
   processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu,
   MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu, iniproc;
 
@@ -102,6 +102,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 function DockletSetLabel(id: HWND; szCaption: pchar): integer; stdcall;
+var
+  pw: array [0..255] of wchar;
 begin
   {$ifdef DEBUG_EXPORTS} inf('DockletSetLabel', inttostr(id) + ', ' + strpas(szCaption)); {$endif}
   result := 0;
@@ -109,8 +111,8 @@ begin
     if assigned(frmmain) then
       if assigned(frmmain.ItemMgr) then
       begin
-        frmmain.ItemMgr.SetPluginCaption(id, strpas(szCaption));
-        result := length(frmmain.ItemMgr.GetPluginCaption(id)) + 1;
+        MultiByteToWideChar(CP_ACP, 0, pchar(szCaption), length(szCaption) + 1, pw, 255);
+        result := frmmain.ItemMgr.SetPluginCaption(id, strpas(pwchar(@pw))) + 1;
       end;
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('DockletSetLabel', e);

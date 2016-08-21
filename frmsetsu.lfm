@@ -23,9 +23,9 @@ object frmsets: Tfrmsets
     Height = 500
     Top = 15
     Width = 515
-    ActivePage = tsSystem
+    ActivePage = tsGeneral
     ShowTabs = False
-    TabIndex = 4
+    TabIndex = 0
     TabOrder = 1
     object tsGeneral: TTabSheet
       Caption = 'General'

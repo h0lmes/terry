@@ -207,17 +207,18 @@ type
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
   private
+    PageIndex: integer;
     AutorunListChanged: boolean;
     FFont: TDFontData;
     function FontPreview: boolean;
-  public
-    PageIndex: integer;
-    class procedure Open(APageIndex: integer = 0);
+    procedure UpdateReserveScreenEdgePercentLabel;
     procedure UpdateLblCenterOffsetPercent;
     procedure UpdateItemSizeLabels;
     procedure ReadAutorun;
     procedure SaveAutorun;
     procedure ApplyFont(Sender: TObject);
+  public
+    class procedure Open(APageIndex: integer = 0);
   end;
 
 var
@@ -231,16 +232,6 @@ procedure err(s: string);
 begin
   messagebox(frmmain.handle, pchar(s), PROGRAM_NAME, MB_ICONERROR);
 end;
-//------------------------------------------------------------------------------
-{
-insert the following into function ShortCutToText of unit LCLProc
-$6A: Name := 'Num *';
-$6B: Name := 'Num +';
-$6D: Name := 'Num -';
-$6E: Name := 'Num Del';
-$6F: Name := 'Num /';
-$C0: Name := '`';
-}
 //------------------------------------------------------------------------------
 class procedure Tfrmsets.Open(APageIndex: integer);
 begin
@@ -395,6 +386,7 @@ begin
     SetInitValue(cbHideTaskBar, sets.container.HideSystemTaskbar);
     SetInitValue(chbReserveScreenEdge, sets.container.ReserveScreenEdge);
     SetInitValue(tbReserveScreenEdgePercent, sets.container.ReserveScreenEdgePercent);
+    UpdateReserveScreenEdgePercentLabel;
     SetInitValue(cbActivateOnMouse, sets.container.ActivateOnMouse);
     SetInitValue(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
     SetInitValue(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
@@ -731,6 +723,11 @@ end;
 procedure Tfrmsets.tbReserveScreenEdgePercentChange(Sender: TObject);
 begin
   frmmain.SetParam(gpReserveScreenEdgePercent, tbReserveScreenEdgePercent.Position);
+  UpdateReserveScreenEdgePercentLabel;
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.UpdateReserveScreenEdgePercentLabel;
+begin
   chbReserveScreenEdge.Caption := format(XLabelReserveScreenEdgePercent, [sets.container.ReserveScreenEdgePercent]);
 end;
 //------------------------------------------------------------------------------

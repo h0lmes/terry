@@ -87,7 +87,7 @@ begin
   FIniSection := IniSection;
   if (length(IniFile) > 0) and (length(IniSection) > 0) then
   begin
-    FPluginFile := toolu.UnzipPath(GetIniStringW(FIniFile, FIniSection, 'file', ''));
+    FPluginFile := toolu.UnzipPath(ReadIniStringW(FIniFile, FIniSection, 'file', ''));
     LoadPlugin;
   end;
 end;
@@ -237,7 +237,7 @@ begin
   if not FFreed then
   begin
     result := result + '';
-    result := 'class="plugin";hwnd="' + inttostr(FHWnd) + '";file="' + toolu.ZipPath(FPluginFile) + '";caption="' + FCaption + '";';
+    result := 'class="plugin";file="' + toolu.ZipPath(FPluginFile) + '";caption="' + FCaption + '";';
   end;
 end;
 //------------------------------------------------------------------------------

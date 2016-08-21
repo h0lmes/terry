@@ -4,8 +4,8 @@ unit stackitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, ComObj, ShlObj,
-  Math, IniFiles, GDIPAPI, PIDL,
-  gfx, declu, toolu, customdrawitemu, stacksubitemu, stackmodeu, dwm_unit, iniproc;
+  Math, GDIPAPI, PIDL, gfx, declu, toolu, customdrawitemu, stacksubitemu,
+  stackmodeu, dwm_unit, iniproc;
 
 const
   MAX_SUBITEMS = 64;
@@ -199,24 +199,23 @@ begin
 
       if (length(IniFile) > 0) and (length(IniSection) > 0) then
       begin
-        Caption    := GetIniStringW(IniFile, IniSection, 'caption', '');
-        FImageFile := GetIniStringW(IniFile, IniSection, 'image', '');
-        FColorData := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
+        Caption          := ReadIniStringW(IniFile, IniSection, 'caption', '');
+        FImageFile       := ReadIniStringW(IniFile, IniSection, 'image', '');
+        FColorData       := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
 
-        FMode            := SetRange(GetIniIntW(IniFile, IniSection, 'mode', 0), 0, 1000);
-        FOffset          := SetRange(GetIniIntW(IniFile, IniSection, 'offset', 0), -20, 50);
-        FAnimationSpeed  := SetRange(GetIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED), 1, 10);
-        FDistort         := SetRange(GetIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT), -10, 10);
-        FPreview         := SetRange(GetIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW), 0, 2);
-        FSpecialFolder   := GetIniStringW(IniFile, IniSection, 'special_folder', '');
-        UpdateSpecialFolder;
-        FShowBackground  := GetIniBoolW(IniFile, IniSection, 'background', false);
-        FBackgroundBlur  := GetIniBoolW(IniFile, IniSection, 'background_blur', true);
-        FBackgroundColor := toolu.StringToColor(GetIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
+        FMode            := ReadIniIntW(IniFile, IniSection, 'mode', 0, 0, 1000);
+        FOffset          := ReadIniIntW(IniFile, IniSection, 'offset', 0, -20, 50);
+        FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED, 1, 10);
+        FDistort         := ReadIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT, -10, 10);
+        FPreview         := ReadIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW, 0, 2);
+        FSpecialFolder   := ReadIniStringW(IniFile, IniSection, 'special_folder', '');
+        FShowBackground  := ReadIniBoolW(IniFile, IniSection, 'background', false);
+        FBackgroundBlur  := ReadIniBoolW(IniFile, IniSection, 'background_blur', true);
+        FBackgroundColor := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
 
         idx := 1;
         repeat
-          data := GetIniStringW(IniFile, IniSection, WideString('subitem' + inttostr(idx)), '');
+          data := ReadIniStringW(IniFile, IniSection, WideString('subitem' + inttostr(idx)), '');
           if data <> '' then AddSubitem(data);
           inc(idx);
         until (data = '') or (idx > MAX_SUBITEMS);
@@ -272,7 +271,6 @@ begin
       try FPreview         := strtoint(FetchValue(value, 'preview="', '";'));
       except end;
       FSpecialFolder       := FetchValue(value, 'special_folder="', '";');
-      UpdateSpecialFolder;
       try FShowBackground  := boolean(strtoint(FetchValue(value, 'background="', '";')));
       except end;
       try FBackgroundBlur  := boolean(strtoint(FetchValue(value, 'background_blur="', '";')));
@@ -320,6 +318,7 @@ begin
       FUpdating:= false;
     end;
 
+    UpdateSpecialFolder;
     UpdatePreview;
   except
     on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal ' + LineEnding + e.message);
@@ -713,7 +712,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TStackItem.AddSpecialFolder(csidl: integer);
 var
-  sfi: TSHFileInfoA;
+  sfi: TSHFileInfoW;
   psfDesktop: IShellFolder;
   psfFolder: IShellFolder;
   pidFolder: PITEMIDLIST;
@@ -731,8 +730,9 @@ begin
     OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
     if FCaption = '::::' then
     begin
-      SHGetFileInfoA(pchar(pidFolder), 0, @sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
-      FCaption := sfi.szDisplayName;
+      FillChar(sfi, sizeof(sfi), 0);
+      SHGetFileInfoW(pwchar(pidFolder), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME);
+      FCaption := strpas(pwchar(sfi.szDisplayName));
     end;
 
     while pEnumList.Next(1, pidChild, celtFetched) = NOERROR do
@@ -1018,12 +1018,12 @@ procedure TStackItem.OpenStack;
 begin
   if not FFreed and (FItemCount > 0) and ((FState = stsClosed) or (FState = stsClosing)) then
   begin
-    try
+    {try
       FUpdating := true;
       UpdateSpecialFolder;
     finally
       FUpdating := false;
-    end;
+    end;}
     FStateProgress := 0;
     FState := stsOpening; // further progress is being done by timer //
     FHideHint := true;

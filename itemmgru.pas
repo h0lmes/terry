@@ -202,7 +202,7 @@ type
     procedure SetPluginImage(wnd: HWND; lpImageNew: Pointer; AutoDelete: boolean);
     procedure SetPluginOverlay(wnd: HWND; lpOverlayNew: Pointer; AutoDelete: boolean);
     procedure PluginAnimate(wnd: HWND);
-    procedure SetPluginCaption(wnd: HWND; NewCaption: string);
+    function  SetPluginCaption(wnd: HWND; NewCaption: string): integer;
     function  GetPluginCaption(wnd: HWND): string;
     function  GetPluginRect(wnd: HWND; var r: windows.TRect): boolean;
     function  IsPluginUndocked(wnd: HWND): boolean;
@@ -761,7 +761,7 @@ begin
     icp.IniSection := IniSection;
     icp.Parameter := '';
 
-    ClassName := LowerCase(GetIniStringW(IniFile, IniSection, 'class', 'shortcut'));
+    ClassName := LowerCase(ReadIniStringW(IniFile, IniSection, 'class', 'shortcut'));
     if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
     else
     if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
@@ -2099,13 +2099,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetPluginCaption(wnd: HWND; NewCaption: string);
+function TItemManager.SetPluginCaption(wnd: HWND; NewCaption: string): integer;
 var
   Inst: TCustomItem;
 begin
+  result := 0;
   try
     Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.Caption := NewCaption;
+    if Inst is TCustomItem then
+    begin
+      Inst.Caption := NewCaption;
+      result := length(Inst.Caption);
+    end;
   except
     on e: Exception do err('ItemManager.SetPluginCaption', e);
   end;

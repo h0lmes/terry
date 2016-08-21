@@ -64,10 +64,14 @@ end;
 //------------------------------------------------------------------------------
 procedure getCpu(var loadPercent: integer);
 begin
+  loadPercent := -1;
   CollectCPUData;
-  loadPercent := round(GetCPUUsage(GetCPUCount - 1) * 100);
-  if loadPercent < 0 then loadPercent := 0;
-  if loadPercent > 100 then loadPercent := 100;
+  if GetCPUCount > 0 then
+  begin
+    loadPercent := round(GetCPUUsage(GetCPUCount - 1) * 100);
+    if loadPercent < 0 then loadPercent := 0;
+    if loadPercent > 100 then loadPercent := 100;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure getBattery(var percent, lifetimeH, lifetimeM: integer; var online, charging, noBattery: boolean);
@@ -196,7 +200,8 @@ begin
   getCpu(percent);
   CIBuffer_Put(data.buf, percent);
 
-  caption := 'CPU usage ' + inttostr(percent) + '%';
+  if percent < 0 then caption := 'No CPU data' //+ inttostr(adCpuUsage.getError)
+  else caption := 'CPU usage ' + inttostr(percent) + '%';
   if data.caption <> caption then
   begin
     data.caption := caption;
@@ -205,7 +210,8 @@ begin
 
   NewBitmap(overlay, g);
   DrawGraph(g, data.buf);
-  DrawText(g, false, inttostr(percent) + '%');
+  if percent < 0 then DrawText(g, false, 'N/A')
+  else DrawText(g, false, inttostr(percent) + '%');
   GdipDeleteGraphics(g);
   DockletSetImageOverlay(data.hwnd, overlay, true);
 end;
@@ -300,9 +306,14 @@ begin
   KillTimer(data.hWnd, ID_TIMER);
   data.mode := mode;
 
-  if mode = mmCPU then getCpu(tmp); // exclude first reading, it always returns 100%
   CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
-  Work(data); // update immediately
+  try
+    if mode = mmCPU then getCpu(tmp); // exclude first reading, it always returns 100%
+    CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
+    Work(data); // update immediately
+  except
+    messagebox(data.hwnd, pchar(SysErrorMessage(GetLastError)), PLUGIN_NAME, mb_iconexclamation);
+  end;
 
   interval := 1000;
   if data.mode = mmBattery then interval := 5000
