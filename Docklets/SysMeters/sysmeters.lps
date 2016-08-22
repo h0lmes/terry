@@ -8,10 +8,9 @@
       <Unit0>
         <Filename Value="sysmeters.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <TopLine Value="190"/>
-        <CursorPos X="50" Y="203"/>
-        <UsageCount Value="33"/>
+        <TopLine Value="40"/>
+        <CursorPos X="11" Y="65"/>
+        <UsageCount Value="34"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
@@ -20,7 +19,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="20" Y="28"/>
-        <UsageCount Value="33"/>
+        <UsageCount Value="34"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
     </Units>

@@ -1,5 +1,7 @@
 unit adCpuUsage;
 
+// This source has been altered.
+
 {* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 CPU Usage Measurement routines for Delphi and C++ Builder
 
@@ -58,8 +60,6 @@ begin
         MInfo.Lines[i]:=Format('CPU #%d - %5.2f%%',[i,GetCPUUsage(i)*100]);
 end;
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *}
-
-// this source has been altered
 
 interface
 
@@ -262,11 +262,6 @@ begin
         result := 1 - (_Counters[index] - _PrevCounters[index]) / (_SysTime - _PrevSysTime);
 end;
 //------------------------------------------------------------------------------
-function getError: integer;
-begin
-    result := _Error;
-end;
-
 procedure CollectCPUData;
 var
     BS: DWORD;
@@ -345,8 +340,12 @@ begin
     _SysTime := FInt64(TInt64(ST));
     _Error := 8;
 end;
-
-
+//------------------------------------------------------------------------------
+function getError: integer;
+begin
+    result := _Error;
+end;
+//------------------------------------------------------------------------------
 initialization
     _ProcessorsCount:= -1;
     _BufferSize:= $2000;
