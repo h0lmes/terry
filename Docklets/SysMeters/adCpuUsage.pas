@@ -141,9 +141,17 @@ begin
         BS := _BufferSize;
         ReallocMem( _PerfData, _BufferSize );
     end;
-    Addlog('_PerfData.NumObjectTypes = ' + inttostr(_PerfData.NumObjectTypes));
-    Addlog('_PerfData.HeaderLength = ' + inttostr(_PerfData.HeaderLength));
     Addlog('_PerfData.TotalByteLength = ' + inttostr(_PerfData.TotalByteLength));
+    Addlog('_PerfData.HeaderLength = ' + inttostr(_PerfData.HeaderLength));
+    Addlog('_PerfData.NumObjectTypes = ' + inttostr(_PerfData.NumObjectTypes));
+    Addlog('_PerfData.DefaultObject = ' + inttostr(_PerfData.DefaultObject));
+    //Addlog('_PerfData.SystemTime = ' + inttostr(int64(_PerfData.SystemTime)));
+    //Addlog('_PerfData.PerfTime = ' + inttostr(int64(_PerfData.PerfTime)));
+    //Addlog('_PerfData.PerfFreq = ' + inttostr(int64(_PerfData.PerfFreq)));
+    //Addlog('_PerfData.PerfTime100nSec = ' + inttostr(_PerfData.PerfTime100nSec));
+    Addlog('_PerfData.SystemNameLength = ' + inttostr(_PerfData.SystemNameLength));
+    Addlog('_PerfData.SystemNameOffset = ' + inttostr(_PerfData.SystemNameOffset));
+    AddLogBlob(_PerfData, _PerfData.TotalByteLength);
 
     // Locate the performance object
     _POT := PPERF_OBJECT_TYPE(PtrUInt(_PerfData) + _PerfData.HeaderLength);
@@ -161,7 +169,6 @@ begin
         raise Exception.Create('Unable to locate the "Processor" performance object');
     end;
 
-    AddLogBlob(_POT, _POT.TotalByteLength);
     if _ProcessorsCount < 0 then
     begin
         _ProcessorsCount := _POT.NumInstances;

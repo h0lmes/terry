@@ -7,6 +7,7 @@ uses Windows, SysUtils, Classes;
 procedure SetLogFileName(LogFile: string);
 procedure AddLog(LogString: string);
 procedure AddLogBlob(Data: Pointer; Length: integer);
+procedure AddLogClob(Data: Pointer; Length: integer);
 procedure TruncLog(fs: TFileStream);
 
 var
@@ -30,6 +31,21 @@ begin
       if i mod 16 = 0 then str := str + LineEnding;
       bt := pbyte(PtrUInt(Data) + i)^;
       str := str + inttohex(bt, 2) + ' ';
+  end;
+  Addlog(str);
+end;
+//------------------------------------------------------------------------------
+procedure AddLogClob(Data: Pointer; Length: integer);
+var
+  i: integer;
+  bt: byte;
+  str: string;
+begin
+  for i := 0 to Length do
+  begin
+      if i mod 32 = 0 then str := str + LineEnding;
+      bt := pbyte(PtrUInt(Data) + i)^;
+      str := str + chr(bt);
   end;
   Addlog(str);
 end;
