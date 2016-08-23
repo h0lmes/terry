@@ -64,7 +64,7 @@ end;
 interface
 
 uses
-    Windows, SysUtils;
+    Windows, SysUtils, jwawinperf;
 
 // Call CollectCPUData to refresh information about CPU usage
 procedure CollectCPUData;
@@ -79,145 +79,12 @@ function getError: integer;
 
 implementation
 
-{$ifndef ver110}
-
-    {$ifndef ver90}
-    {$ifndef ver100}
-    {$define UseInt64}
-    {$endif}
-    {$endif}
-
-
-    {$ifdef UseInt64}
-    type TInt64 = Int64;
-    {$else}
-    type TInt64 = Comp;
-    {$endif}
-
-{$else}
-
-    type TInt64 = TLargeInteger;
-
-{$endif}
-
 type
+    TInt64 = Int64;
     PInt64 = ^TInt64;
-
-type
-    TPERF_DATA_BLOCK = record
-        Signature : array[0..4 - 1] of WCHAR;
-        LittleEndian : DWORD;
-        Version : DWORD;
-        Revision : DWORD;
-        TotalByteLength : DWORD;
-        HeaderLength : DWORD;
-        NumObjectTypes : DWORD;
-        DefaultObject : Longint;
-        SystemTime : TSystemTime;
-        Reserved: DWORD;
-        PerfTime : TInt64;
-        PerfFreq : TInt64;
-        PerfTime100nSec : TInt64;
-        SystemNameLength : DWORD;
-        SystemNameOffset : DWORD;
-    end;
-
-    PPERF_DATA_BLOCK = ^TPERF_DATA_BLOCK;
-
-    TPERF_OBJECT_TYPE = record
-        TotalByteLength : DWORD;
-        DefinitionLength : DWORD;
-        HeaderLength : DWORD;
-        ObjectNameTitleIndex : DWORD;
-        ObjectNameTitle : LPWSTR;
-        ObjectHelpTitleIndex : DWORD;
-        ObjectHelpTitle : LPWSTR;
-        DetailLevel : DWORD;
-        NumCounters : DWORD;
-        DefaultCounter : DWORD;
-        NumInstances : DWORD;
-        CodePage : DWORD;
-        PerfTime : TInt64;
-        PerfFreq : TInt64;
-    end;
-
-    PPERF_OBJECT_TYPE = ^TPERF_OBJECT_TYPE;
-
-type
-    TPERF_COUNTER_DEFINITION = record
-        ByteLength : DWORD;
-        CounterNameTitleIndex : DWORD;
-        CounterNameTitle : LPWSTR;
-        CounterHelpTitleIndex : DWORD;
-        CounterHelpTitle : LPWSTR;
-        DefaultScale : Longint;
-        DetailLevel : DWORD;
-        CounterType : DWORD;
-        CounterSize : DWORD;
-        CounterOffset : DWORD;
-    end;
-
-    PPERF_COUNTER_DEFINITION = ^TPERF_COUNTER_DEFINITION;
-
-    TPERF_COUNTER_BLOCK = record
-        ByteLength : DWORD;
-    end;
-
-    PPERF_COUNTER_BLOCK = ^TPERF_COUNTER_BLOCK;
-
-    TPERF_INSTANCE_DEFINITION = record
-        ByteLength : DWORD;
-        ParentObjectTitleIndex : DWORD;
-        ParentObjectInstance : DWORD;
-        UniqueID : DWORD;
-        NameOffset : DWORD;
-        NameLength : DWORD;
-    end;
-
-    PPERF_INSTANCE_DEFINITION = ^TPERF_INSTANCE_DEFINITION;
-
-//------------------------------------------------------------------------------
-{$ifndef ver110}
-type
     TInt64F = TInt64;
-{$else}
-type
-    TInt64F = Extended;
-{$endif}
-
-{$ifdef ver110}
-function FInt64(Value: TInt64): TInt64F;
-function Int64D(Value: DWORD): TInt64;
-{$else}
-type
     FInt64 = TInt64F;
     Int64D = TInt64;
-{$endif}
-
-{$ifdef ver110}
-function FInt64(Value: TInt64): TInt64F;
-var V: TInt64;
-begin
-    if (Value.HighPart and $80000000) = 0 then // positive value
-    begin
-        result:=Value.HighPart;
-        result:=result*$10000*$10000;
-        result:=result+Value.LowPart;
-    end else
-    begin
-        V.HighPart:=Value.HighPart xor $FFFFFFFF;
-        V.LowPart:=Value.LowPart xor $FFFFFFFF;
-        result:= -1 - FInt64(V);
-    end;
-end;
-
-function Int64D(Value: DWORD): TInt64;
-begin
-    result.LowPart:=Value;
-    result.HighPart := 0; // positive only
-end;
-{$endif}
-
 //------------------------------------------------------------------------------
 
 const
@@ -273,7 +140,7 @@ begin
     _Error := 0;
 
     BS := _BufferSize;
-    while RegQueryValueExW( HKEY_PERFORMANCE_DATA, '238', nil, nil, PByte(_PerfData), @BS ) = ERROR_MORE_DATA do
+    while RegQueryValueExW( HKEY_PERFORMANCE_DATA, Processor_IDX_Str, nil, nil, PByte(_PerfData), @BS ) = ERROR_MORE_DATA do
     begin
         // Get a buffer that is big enough.
         inc(_BufferSize, $1000);
