@@ -1,7 +1,10 @@
 terry
 =====
 
-This project is a desktop dock panel written in Lazarus (object pascal).
+This project is a desktop dock panel written in Lazarus (Free Pascal).
+
+Operating systems: Win Vista and later.
+Can be compiled for x86/x64.
 
 =====
 

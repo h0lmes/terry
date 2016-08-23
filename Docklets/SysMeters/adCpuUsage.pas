@@ -64,7 +64,7 @@ end;
 interface
 
 uses
-    Windows, SysUtils, jwawinperf;
+    Windows, SysUtils, jwawinperf, loggeru;
 
 // Call CollectCPUData to refresh information about CPU usage
 procedure CollectCPUData;
@@ -74,8 +74,6 @@ function GetCPUCount: Integer;
 
 // Call it to obtain the % of usage for given CPU
 function GetCPUUsage(Index: Integer): Double;
-
-function getError: integer;
 
 implementation
 
@@ -106,7 +104,6 @@ var
     _PrevCounters: PAInt64F;
     _SysTime: TInt64F;
     _PrevSysTime: TInt64F;
-    _Error: integer;
 
 
 //------------------------------------------------------------------------------
@@ -119,14 +116,9 @@ end;
 function GetCPUUsage(Index: Integer): Double;
 begin
     if _ProcessorsCount < 0 then CollectCPUData;
-
-    if (Index >= _ProcessorsCount) or (Index < 0) then
-        raise Exception.Create('CPU index out of bounds');
-
-    if _PrevSysTime = _SysTime then
-        result := 0
-    else
-        result := 1 - (_Counters[index] - _PrevCounters[index]) / (_SysTime - _PrevSysTime);
+    if (Index >= _ProcessorsCount) or (Index < 0) then raise Exception.Create('CPU index out of bounds');
+    if _PrevSysTime = _SysTime then result := 0
+    else result := 1 - (_Counters[index] - _PrevCounters[index]) / (_SysTime - _PrevSysTime);
 end;
 //------------------------------------------------------------------------------
 procedure CollectCPUData;
@@ -136,9 +128,11 @@ var
     _PCB_Instance: PPERF_COUNTER_BLOCK;
     _PID_Instance: PPERF_INSTANCE_DEFINITION;
     ST: TFileTime;
+    //
+    bt: byte;
+    str: string;
 begin
-    _Error := 0;
-
+    Addlog('---------------------------------------------');
     BS := _BufferSize;
     while RegQueryValueExW( HKEY_PERFORMANCE_DATA, Processor_IDX_Str, nil, nil, PByte(_PerfData), @BS ) = ERROR_MORE_DATA do
     begin
@@ -147,7 +141,9 @@ begin
         BS := _BufferSize;
         ReallocMem( _PerfData, _BufferSize );
     end;
-    _Error := 1;
+    Addlog('_PerfData.NumObjectTypes = ' + inttostr(_PerfData.NumObjectTypes));
+    Addlog('_PerfData.HeaderLength = ' + inttostr(_PerfData.HeaderLength));
+    Addlog('_PerfData.TotalByteLength = ' + inttostr(_PerfData.TotalByteLength));
 
     // Locate the performance object
     _POT := PPERF_OBJECT_TYPE(PtrUInt(_PerfData) + _PerfData.HeaderLength);
@@ -156,22 +152,24 @@ begin
         if _POT.ObjectNameTitleIndex = Processor_IDX then Break;
         _POT := PPERF_OBJECT_TYPE(PtrUInt(_POT) + _POT.TotalByteLength);
     end;
-    _Error := 2;
+    Addlog('Done Locate the performance object');
 
     // Check for success
     if _POT.ObjectNameTitleIndex <> Processor_IDX then
     begin
-        _Error := 3;
+        Addlog('Unable to locate the "Processor" performance object');
         raise Exception.Create('Unable to locate the "Processor" performance object');
     end;
 
+    AddLogBlob(_POT, _POT.TotalByteLength);
     if _ProcessorsCount < 0 then
     begin
-        _ProcessorsCount:=_POT.NumInstances;
+        _ProcessorsCount := _POT.NumInstances;
         GetMem(_Counters,     _ProcessorsCount * SizeOf(TInt64));
         GetMem(_PrevCounters, _ProcessorsCount * SizeOf(TInt64));
     end;
-    _Error := 4;
+    Addlog('_ProcessorsCount < 0');
+    Addlog('_ProcessorsCount = ' + inttostr(_ProcessorsCount));
 
     // Locate the "% CPU usage" counter definition
     _PCD := PPERF_COUNTER_DEFINITION(PtrUInt(_POT) + _POT.HeaderLength);
@@ -180,12 +178,12 @@ begin
         if _PCD.CounterNameTitleIndex = CPUUsageIDX then break;
         _PCD := PPERF_COUNTER_DEFINITION(PtrUInt(_PCD) + _PCD.ByteLength);
     end;
-    _Error := 5;
+    Addlog('Done Locate the "% CPU usage" counter definition');
 
     // Check for success
     if _PCD.CounterNameTitleIndex <> CPUUsageIDX then
     begin
-        _Error := 6;
+        Addlog('Unable to locate the "% of CPU usage" performance counter');
         raise Exception.Create('Unable to locate the "% of CPU usage" performance counter');
     end;
 
@@ -200,17 +198,12 @@ begin
 
         _PID_Instance    := PPERF_INSTANCE_DEFINITION(PtrUInt(_PCB_Instance) + _PCB_Instance.ByteLength);
     end;
-    _Error := 7;
+    Addlog('Done Collecting coutners');
 
     _PrevSysTime := _SysTime;
     SystemTimeToFileTime(_PerfData.SystemTime, ST);
     _SysTime := FInt64(TInt64(ST));
-    _Error := 8;
-end;
-//------------------------------------------------------------------------------
-function getError: integer;
-begin
-    result := _Error;
+    Addlog('Done');
 end;
 //------------------------------------------------------------------------------
 initialization

@@ -8,7 +8,9 @@ uses
   Math,
   DockH in '..\..\DockH.pas',
   GDIPAPI,
-  adCpuUsage, cibufferu;
+  loggeru,
+  adCpuUsage,
+  cibufferu;
 
 const
   PLUGIN_NAME = 'SysMeters';
@@ -200,7 +202,7 @@ begin
   getCpu(percent);
   CIBuffer_Put(data.buf, percent);
 
-  if percent < 0 then caption := 'No CPU data' //+ inttostr(adCpuUsage.getError)
+  if percent < 0 then caption := 'No CPU data'
   else caption := 'CPU usage ' + inttostr(percent) + '%';
   if data.caption <> caption then
   begin
@@ -350,11 +352,18 @@ begin
     strcat(@Instance.PluginRoot, @szRet);
     SetBackground(Instance);
 
+    //FillChar(szRet, MAX_PATH, 0);
+    //strcat(@szRet, @Instance.PluginRoot);
+    //strcat(@szRet, pchar('log.log'));
+    //loggeru.SetLogFileName(strpas(pchar(@szRet)));
+
     if (szIni <> nil) and (szIniGroup <> nil) then
     begin
+      FillChar(szRet, MAX_PATH, 0);
       GetPrivateProfileString(szIniGroup, 'mode', pchar(inttostr(integer(mmCPU))), @szRet, MAX_PATH, szIni);
       try Instance.mode := TMeterMode(strtoint(strpas(@szRet)));
       except end;
+      FillChar(szRet, MAX_PATH, 0);
       GetPrivateProfileString(szIniGroup, 'letter', 'C', @szRet, MAX_PATH, szIni);
       Instance.letter := szRet[0];
     end;
