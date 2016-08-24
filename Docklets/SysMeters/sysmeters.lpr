@@ -13,7 +13,7 @@ uses
 const
   PLUGIN_NAME = 'SysMeters';
   PLUGIN_AUTHOR = '';
-  PLUGIN_VERSION = 400;
+  PLUGIN_VERSION = 410;
   PLUGIN_NOTES = 'System performance monitor';
   GRAPH_COLOR = $c0ffffff;
   BUF_SIZE = 28;

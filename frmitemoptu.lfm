@@ -150,8 +150,8 @@ object frmItemProp: TfrmItemProp
         Left = 145
         Height = 19
         Top = 228
-        Width = 177
-        Caption = 'Hide Terry when application runs'
+        Width = 173
+        Caption = 'Hide dock when application runs'
         TabOrder = 9
       end
       object lblTip: TLabel
@@ -225,6 +225,17 @@ object frmItemProp: TfrmItemProp
         Anchors = [akTop, akLeft, akRight]
         OnChange = edImageChange
         TabOrder = 7
+      end
+      object btnImage: TButton
+        Tag = 10
+        Left = 494
+        Height = 21
+        Top = 155
+        Width = 26
+        Anchors = [akTop, akRight]
+        Caption = '...'
+        OnClick = btnBrowseImage1Click
+        TabOrder = 10
       end
     end
     object tsColor: TTabSheet

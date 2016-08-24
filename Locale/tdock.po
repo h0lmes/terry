@@ -579,6 +579,11 @@ msgctxt "TFRMITEMPROP.BTNFILE.CAPTION"
 msgid "..."
 msgstr ""
 
+#: tfrmitemprop.btnimage.caption
+msgctxt "TFRMITEMPROP.BTNIMAGE.CAPTION"
+msgid "..."
+msgstr ""
+
 #: tfrmitemprop.btnok.caption
 msgctxt "TFRMITEMPROP.BTNOK.CAPTION"
 msgid "OK"
@@ -605,7 +610,7 @@ msgid "Properties"
 msgstr ""
 
 #: tfrmitemprop.chbhide.caption
-msgid "Hide Terry when application runs"
+msgid "Hide dock when application runs"
 msgstr ""
 
 #: tfrmitemprop.label2.caption

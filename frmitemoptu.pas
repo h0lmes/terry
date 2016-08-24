@@ -15,6 +15,7 @@ type
     btnClearImage: TButton;
     btnDefaultColor: TButton;
     btnDir: TButton;
+    btnImage: TButton;
     btnFile: TButton;
     btnOK: TButton;
     btnApply: TButton;
@@ -304,14 +305,12 @@ begin
       sci.Command    := UTF8ToAnsi(edCmd.Text);
       sci.Params     := UTF8ToAnsi(edParams.Text);
       sci.Dir        := UTF8ToAnsi(edDir.Text);
-      sci.ImageFile  := UTF8ToAnsi(edImage.Text);
-      sci.ImageFile2 := cutafter(sci.ImageFile, ';');
-      sci.ImageFile  := cut(sci.ImageFile, ';');
+      sci.ImageFile  := cut(UTF8ToAnsi(edImage.Text), ';');
+      sci.ImageFile2 := cutafter(UTF8ToAnsi(edImage.Text), ';');
       sci.ShowCmd    := ShowCmd;
       sci.ColorData  := color_data;
       sci.Hide       := chbHide.Checked;
       sci.Update;
-      FChanged := false;
     end
     else
     if scs <> nil then
@@ -325,8 +324,8 @@ begin
       scs.ColorData  := color_data;
       scs.Hide       := chbHide.Checked;
       scs.Update;
-      FChanged := false;
     end;
+    FChanged := false;
   except
     on e: Exception do frmmain.err('TfrmItemProp.btnApplyClick', e);
   end;
@@ -337,6 +336,7 @@ begin
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   FImage := nil;
+  ItemHWnd := 0;
   action := cafree;
   frmItemProp := nil;
 end;

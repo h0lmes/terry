@@ -57,7 +57,7 @@ type
     property Params: string read FParams write FParams;
     property Dir: string read FDir write FDir;
     property ImageFile: string read FImageFile write FImageFile;
-    property ImageFile2: string read FImageFile write FImageFile;
+    property ImageFile2: string read FImageFile2 write FImageFile2;
     property ShowCmd: integer read FShowCmd write FShowCmd;
     property Hide: boolean read FHide write FHide;
 
