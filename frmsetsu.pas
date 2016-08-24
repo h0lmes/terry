@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, SysUtils, Variants, Classes, Graphics, Controls, Forms, DefaultTranslator,
-  Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc,
-  declu, toolu, gfx, GDIPAPI, dwm_unit, DividerBevel;
+  Dialogs, StdCtrls, ComCtrls, Menus, ExtCtrls, Buttons, Math, LCLType, LCLProc, DividerBevel,
+  declu, toolu, gfx, GDIPAPI, dwm_unit, loggeru;
 
 type
 

@@ -176,9 +176,6 @@ function confirm(handle: HWND; Text: string = ''): boolean;
 function FindWinamp: HWND;
 function LaunchWinamp(sw: integer = sw_shownormal): boolean;
 function wacmd(cmd: HANDLE): boolean;
-procedure AddLog(LogString: string);
-procedure TruncLog(fs: TFileStream);
-procedure LogWindow(handle: HWND);
 procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);
 function IsIdenticalStreams(Source, Destination: TStream): boolean;
 procedure SendShift(hwnd: HWnd; Down: Boolean);
@@ -1142,123 +1139,6 @@ begin
     sendmessage(wahwnd, wm_command, cmd, 0);
     Result := True;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure AddLog(LogString: string);
-var
-  LogFileName: string;
-  faccess: dword;
-  PStr: PChar;
-  LengthLogString: integer;
-  fs: TFileStream;
-begin
-  try
-    // prepare log string
-    LogString := formatdatetime('yyMMdd-hhnnss', now) + '  ' + LogString + LineEnding;
-    LengthLogString := Length(LogString);
-    PStr := StrAlloc(LengthLogString + 1);
-    StrPCopy(PStr, LogString);
-
-    // open log
-    LogFileName := UnzipPath('%pp%\log.log');
-    if FileExists(LogFileName) then faccess := fmOpenReadWrite else faccess := fmCreate;
-    fs := TFileStream.Create(LogFileName, faccess);
-    fs.Position := fs.Size;
-
-    // write string
-    fs.Write(PStr^, LengthLogString);
-    StrDispose(PStr);
-
-    // truncate file if needed
-    TruncLog(fs);
-
-    fs.Free;
-  except
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TruncLog(fs: TFileStream);
-const
-  LOG_SIZE_MAX = 1024 * 30; // 30 KB
-var
-  buf: char;
-  TruncBy: integer;
-  ms: TMemoryStream;
-begin
-  try
-    // how many bytes to delete from the beginning of the stream
-    TruncBy := fs.Size - LOG_SIZE_MAX;
-
-    if TruncBy > 0 then
-    begin
-      // skip TruncBy bytes
-      fs.Position := TruncBy;
-
-      // skip bytes until end-of-line found
-      fs.Read(buf, 1);
-      inc(TruncBy);
-      fs.Position := TruncBy;
-      while (TruncBy < fs.Size) and (buf <> #10) and (buf <> #13) do
-      begin
-        fs.Read(buf, 1);
-        inc(TruncBy);
-        fs.Position := TruncBy;
-      end;
-      inc(TruncBy);
-      fs.Position := TruncBy;
-      TruncBy := fs.Size - TruncBy;
-
-      // copy data to buffer stream
-      ms := TMemoryStream.Create;
-      ms.Size := TruncBy;
-      ms.Position := 0;
-      ms.CopyFrom(fs, TruncBy);
-      ms.Position := 0;
-
-      // copy buffer back to file
-      fs.Size := TruncBy;
-      fs.Position := 0;
-      fs.CopyFrom(ms, TruncBy);
-
-      ms.free;
-    end;
-  except
-  end;
-end;
-//------------------------------------------------------------------------------
-function EnumPropProc(hwnd: HWND; lpszString: LPSTR; hData: THandle; dwData: ULONG_PTR): BOOL; stdcall;
-begin
-  result := false;
-  if hData <> 0 then
-  begin
-    AddLog(lpszString + ' = ' + inttohex(hData, 8));
-    result := true;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure LogWindow(handle: HWND);
-var
-  rc: windows.TRect;
-  cls: array [0..MAX_PATH - 1] of char;
-begin
-  AddLog('-');
-  AddLog('Handle = ' + inttohex(handle, 8));
-  FillChar(cls, MAX_PATH, #0);
-  GetClassName(handle, cls, MAX_PATH);
-  AddLog('Class = ' + strpas(@cls));
-  FillChar(cls, MAX_PATH, #0);
-  GetWindowText(handle, cls, MAX_PATH);
-  AddLog('Text = ' + strpas(@cls));
-  GetWindowRect(handle, rc);
-  AddLog('Rect = ' + inttostr(rc.Left) + ', ' + inttostr(rc.Top) + ', ' + inttostr(rc.Right) + ', ' + inttostr(rc.Bottom));
-  FillChar(cls, MAX_PATH, #0);
-  GetWindowModuleFileName(handle, cls, MAX_PATH);
-  AddLog('Module = ' + strpas(@cls));
-  AddLog('Props:');
-  try jwaWindows.EnumPropsEx(handle, @EnumPropProc, 0);
-  except on e: Exception do AddLog(e.message);
-  end;
-  AddLog('-');
 end;
 //------------------------------------------------------------------------------
 procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);

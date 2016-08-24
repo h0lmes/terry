@@ -2,7 +2,8 @@ unit notifieru;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, declu, toolu, GDIPAPI, gfx, dwm_unit;
+uses Windows, Messages, Classes, SysUtils, Forms,
+  declu, toolu, GDIPAPI, gfx, dwm_unit, loggeru;
 
 const
   NOTIFIER_FONT_NAME = 'Lucida Console';

@@ -5,7 +5,7 @@ unit aeropeeku;
 interface
 
 uses Windows, Messages, Classes, SysUtils, Forms, lazutf8,
-  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp;
+  declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp, loggeru;
 
 const
   TITLE_PART = 63;

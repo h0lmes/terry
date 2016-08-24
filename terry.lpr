@@ -3,8 +3,8 @@ program terry;
 {$MODE Delphi}
 
 uses
-  Windows,
   jwaWindows,
+  Windows,
   Messages,
   Classes,
   SysUtils,
@@ -24,9 +24,9 @@ uses
   frmDebugU {frmDebug},
   themeu, setsu, GDIPAPI, gfx, toolu, itemmgru, customitemu, scitemu, sepitemu,
   plgitemu, stackitemu, stacksubitemu, hintu, droptgtu, shcontextu, notifieru,
-  PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
-  processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu,
-  MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu, iniproc;
+  PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu, processhlp,
+  taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu, MMDevApi_tlb,
+  mixeru, networksu, customdrawitemu, frmrestoreu, iniproc, loggeru;
 
 {$R *.res}
 
@@ -127,7 +127,7 @@ begin
   try
     if szImage <> nil then
     begin
-      imagefile := toolu.UnzipPath(strpas(szImage));
+      imagefile := UnzipPath(strpas(szImage));
       {$ifdef DEBUG_EXPORTS} inf('DockletLoadGDIPlusImage.szImage', strpas(szImage)); {$endif}
       GdipCreateBitmapFromFile(PWideChar(imagefile), result);
     end;
@@ -487,6 +487,8 @@ var
   hMutex: THandle;
   h: THandle;
 begin
+  loggeru.SetLogFileName(ChangeFileExt(ParamStr(0), '.log'));
+
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
   AddLog('>>> TDock app start');

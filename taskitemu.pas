@@ -4,7 +4,7 @@ unit taskitemu;
 
 interface
 uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gfx, declu, dockh, toolu, customdrawitemu, processhlp, aeropeeku;
+  GDIPAPI, gfx, declu, dockh, toolu, customdrawitemu, processhlp, aeropeeku, loggeru;
 
 type
 

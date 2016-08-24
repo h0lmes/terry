@@ -2,7 +2,7 @@ unit setsu;
 
 interface
 uses Windows, Controls, Forms, Classes, SysUtils, Dialogs,
-      Menus, StdCtrls, IniFiles, gfx, declu, toolu, dockh;
+      Menus, StdCtrls, IniFiles, gfx, declu, toolu, dockh, loggeru;
 
 type
 

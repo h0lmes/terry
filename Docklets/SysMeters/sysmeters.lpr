@@ -8,8 +8,6 @@ uses
   Math,
   DockH in '..\..\DockH.pas',
   GDIPAPI,
-  loggeru,
-  adCpuUsage,
   cibufferu;
 
 const
@@ -29,10 +27,17 @@ type
     hWnd: HANDLE;
     mode: TMeterMode;
     letter: char;
+    // for CPU mode //
+    idle  : int64;
+    kernel: int64;
+    user  : int64;
+    //
     caption: string;
     buf: TCIBuffer;
     PluginRoot: array [0..MAX_PATH - 1] of char;
   end;
+
+  function GetSystemTimes(lpIdleTime, lpKernelTime, lpUserTime: LPFILETIME): BOOL; stdcall; external 'kernel32.dll' name 'GetSystemTimes';
 
 //------------------------------------------------------------------------------
 procedure getDrive(letter: char; var loadPercent: integer; var freeGB: extended);
@@ -64,15 +69,22 @@ begin
   freeMB := status.dwAvailPhys shr 20 and $fffffff;
 end;
 //------------------------------------------------------------------------------
-procedure getCpu(var loadPercent: integer);
+procedure getCpu(data: PData; var loadPercent: integer);
+var
+  idleTime, kernelTime, userTime: FILETIME;
+  idle, kernel, user: int64;
 begin
   loadPercent := -1;
-  CollectCPUData;
-  if GetCPUCount > 0 then
+  if GetSystemTimes(@idleTime, @kernelTime, @userTime) then
   begin
-    loadPercent := round(GetCPUUsage(GetCPUCount - 1) * 100);
-    if loadPercent < 0 then loadPercent := 0;
+    idle        := LARGE_INTEGER(idleTime).QuadPart - data.idle;
+    kernel      := LARGE_INTEGER(kernelTime).QuadPart - data.kernel;
+    user        := LARGE_INTEGER(userTime).QuadPart - data.user;
+    loadPercent := integer(round((kernel - idle + user) / (kernel + user) * 100));
     if loadPercent > 100 then loadPercent := 100;
+    data.idle   := LARGE_INTEGER(idleTime).QuadPart;
+    data.kernel := LARGE_INTEGER(kernelTime).QuadPart;
+    data.user   := LARGE_INTEGER(userTime).QuadPart;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -199,7 +211,7 @@ var
   caption: string;
   overlay, g: pointer;
 begin
-  getCpu(percent);
+  getCpu(data, percent);
   CIBuffer_Put(data.buf, percent);
 
   if percent < 0 then caption := 'No CPU data'
@@ -303,14 +315,11 @@ end;
 procedure SetMode(data: PData; mode: TMeterMode);
 var
   interval: cardinal;
-  tmp: integer;
 begin
   KillTimer(data.hWnd, ID_TIMER);
   data.mode := mode;
 
-  CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
   try
-    if mode = mmCPU then getCpu(tmp); // exclude first reading, it always returns 100%
     CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
     Work(data); // update immediately
   except
@@ -318,8 +327,7 @@ begin
   end;
 
   interval := 1000;
-  if data.mode = mmBattery then interval := 5000
-  else if data.mode = mmDrive then interval := 5000;
+  if (data.mode = mmBattery) or (data.mode = mmDrive) then interval := 5000;
   SetTimer(data.hWnd, ID_TIMER, interval, nil);
 end;
 //------------------------------------------------------------------------------
@@ -351,11 +359,6 @@ begin
     DockletGetRelativeFolder(hWnd, @szRet);
     strcat(@Instance.PluginRoot, @szRet);
     SetBackground(Instance);
-
-    //FillChar(szRet, MAX_PATH, 0);
-    //strcat(@szRet, @Instance.PluginRoot);
-    //strcat(@szRet, pchar('log.log'));
-    //loggeru.SetLogFileName(strpas(pchar(@szRet)));
 
     if (szIni <> nil) and (szIniGroup <> nil) then
     begin

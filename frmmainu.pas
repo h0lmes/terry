@@ -7,7 +7,7 @@ uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
-  DropTgtU, setsu, trayu, startmenu, aeropeeku;
+  DropTgtU, setsu, trayu, startmenu, aeropeeku, loggeru;
 
 type
   PRunData = ^TRunData;
@@ -1461,7 +1461,7 @@ begin
       if assigned(AHint) then AHint.ActivateHint(hwnd, ACaption, x, y, monitor, sets.container.Site);
     end;
   except
-    on e: Exception do toolu.AddLog('frmmain.ActivateHint' + LineEnding + e.message);
+    on e: Exception do AddLog('frmmain.ActivateHint' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

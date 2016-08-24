@@ -4,7 +4,7 @@ unit stacksubitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, ShlObj,
-  GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp;
+  GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp, loggeru;
 
 const
   MAX_CAPTION_WIDTH = 150;

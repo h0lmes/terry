@@ -5,7 +5,8 @@ unit processhlp;
 
 interface
 
-uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs, declu, dwm_unit, toolu;
+uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs,
+  declu, dwm_unit, toolu, loggeru;
 
 type
   {TProcessHelper}
