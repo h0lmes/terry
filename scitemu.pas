@@ -36,6 +36,8 @@ type
     FDynObject: boolean;
     FDynObjectRecycleBin: boolean;
     FDynObjectState: integer;
+    procedure FromIni(IniFile, IniSection: string);
+    procedure FromString(value: string);
     procedure BeforeUndock;
     procedure UpdateRunning;
     procedure LoadImageI;
@@ -63,8 +65,6 @@ type
 
     constructor Create(AWndParent: HWND; var AParams: TDItemCreateParams); override;
     destructor Destroy; override;
-    procedure FromIni(IniFile, IniSection: string);
-    procedure FromString(value: string);
     procedure Update;
     function ToString: string; override;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); override;
@@ -102,6 +102,7 @@ begin
   FParams:= '';
   FDir:= '';
   FImageFile:= '';
+  FImageFile2:= '';
   FShowCmd:= 0;
   FHide:= false;
   FRunning:= false;
@@ -120,9 +121,9 @@ end;
 destructor TShortcutItem.Destroy;
 begin
   FFreed := true;
-  if FIsOpen then TAeroPeekWindow.Close(0);
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
-  try GdipDisposeImage(FImage);
+  if FIsOpen then TAeroPeekWindow.Close(0);
+  try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   try if FIsPIDL then PIDL_Free(FPIDL);
   except end;
@@ -283,12 +284,12 @@ begin
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       Caption := Mixer.Description;
     end;
-    if pos('{NETWORK}', imagefile) > 0 then
-    begin
-      imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
-      LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-      Caption := TNetworks.CDescription;
-    end;
+    //if pos('{NETWORK}', imagefile) > 0 then
+    //begin
+    //  imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
+    //  LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
+    //  Caption := TNetworks.CDescription;
+    //end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage ' + LineEnding + e.message);
   end;
@@ -298,6 +299,7 @@ procedure TShortcutItem.CheckIfDynObject;
 var
   pidFolder: PItemIDList;
 begin
+  if FFreed then exit;
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
 
   FDynObjectState := 0;
@@ -329,7 +331,7 @@ begin
   begin
     if pos('{LANGID}', FImageFile) > 0 then newDynObjectState := GetLangID;
     if pos('{VOLUME}', FImageFile) > 0 then newDynObjectState := TMixer.CUpdate;
-    if pos('{NETWORK}', FImageFile) > 0 then newDynObjectState := TNetworks.CUpdate;
+    //if pos('{NETWORK}', FImageFile) > 0 then newDynObjectState := TNetworks.CUpdate;
   end
   // if this is a Recycle Bin
   else if FDynObjectRecycleBin then newDynObjectState := GetRecycleBinState;
@@ -378,7 +380,7 @@ begin
         if FAppList.Count > 0 then // log every window info
         begin
           AddLog('---------- ShortcutItem.WindowsInfo');
-          AddLog('Caption = ' + AnsiString(FCaption));
+          AddLog('Caption = ' + Caption);
           for idx := 0 to FAppList.Count - 1 do LogWindow(THandle(FAppList.Items[idx]));
         end;
 

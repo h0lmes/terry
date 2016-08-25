@@ -888,8 +888,6 @@ procedure TStackItem.DeleteSubitems;
 var
   idx: integer;
 begin
-  if FFreed then exit;
-
   if FItemCount > 0 then
   try
     for idx := 0 to FItemCount - 1 do
@@ -900,7 +898,7 @@ begin
     end;
     FItemCount := 0;
 
-    UpdatePreview;
+    if not FFreed then UpdatePreview;
   except
     on e: Exception do raise Exception.Create('StackItem.DeleteSubitems ' + LineEnding + e.message);
   end;

@@ -464,10 +464,10 @@ begin
     for idx := 0 to _itemsDeleted.Count - 1 do
     begin
       Inst := TCustomItem(GetWindowLongPtr(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
-      if Inst is TCustomItem then
+      if assigned(Inst) then
       begin
         Inst.Freed := true;
-        FreeAndNil(Inst);
+        Inst.Free;
       end;
     end;
     _itemsDeleted.Clear;
@@ -628,7 +628,6 @@ procedure TItemManager.Save(fsets: string);
 begin
   try
     if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
-    AllItemCmd(icFree, 0);
     SaveItems;
   except
     on e: Exception do err('ItemManager.Save', e);
@@ -644,10 +643,10 @@ begin
     for idx := 0 to FItemCount - 1 do
     begin
       if FItemArray[idx].h <> 0 then
-        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Save(pchar(FSetsFilename), pchar('item' + inttostr(idx + 1)));
+        TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA)).Save(FSetsFilename, 'item' + inttostr(idx + 1));
     end;
   except
-    on e: Exception do raise Exception.Create('ItemManager.AllItemsSave::' + inttostr(idx) + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.SaveItems::' + inttostr(idx) + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -659,9 +658,9 @@ begin
   try
     index := ItemIndex(wnd);
     Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.Save(pchar(FSetsFilename), pchar('item' + inttostr(index + 1)));
+    if Inst is TCustomItem then Inst.Save(FSetsFilename, 'item' + inttostr(index + 1));
   except
-    on e: Exception do raise Exception.Create('ItemManager.ItemSave::' + inttostr(index) + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.SaveItem::' + inttostr(index) + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
