@@ -624,7 +624,6 @@ msgid "..."
 msgstr "..."
 
 #: tfrmitemprop.btnimage.caption
-#, fuzzy
 msgctxt "tfrmitemprop.btnimage.caption"
 msgid "..."
 msgstr "..."
@@ -655,11 +654,10 @@ msgid "Properties"
 msgstr "Свойства"
 
 #: tfrmitemprop.chbhide.caption
-#, fuzzy
 #| msgid "Hide Terry when application runs"
 msgctxt "tfrmitemprop.chbhide.caption"
 msgid "Hide dock when application runs"
-msgstr "Прятать Терри при запуске приложения"
+msgstr "Прятать док при запуске приложения"
 
 #: tfrmitemprop.label2.caption
 msgctxt "TFRMITEMPROP.LABEL2.CAPTION"

@@ -145,8 +145,6 @@ procedure searchfiles(path, mask: string; list: TStrings);
 procedure searchfolders(path: string; list: TStrings);
 procedure searchfilesrecursive(path, mask: string; list: TStrings;
   level: cardinal = 0; maxlevel: cardinal = 255; maxcount: integer = $7fffffff);
-function ReadIniString(IniFile, IniSection, KeyName, Default: string): string;
-function ReadIniInteger(IniFile, IniSection, KeyName: string; Default: integer): integer;
 function CheckAutoRun: boolean;
 procedure SetAutoRun(enable: boolean);
 procedure GetFileVersion(filename: string; var maj, min, Release, build: integer);
@@ -587,24 +585,6 @@ begin
   if not (fhandle = INVALID_HANDLE_VALUE) then Windows.FindClose(fhandle);
 end;
 //------------------------------------------------------------------------------
-function ReadIniString(IniFile, IniSection, KeyName, Default: string): string;
-var
-  buf: array [0..1023] of char;
-begin
-  GetPrivateProfileString(pchar(IniSection), pchar(KeyName), pchar(Default), pchar(@buf), 1024, pchar(IniFile));
-  result:= strpas(pchar(@buf));
-end;
-//------------------------------------------------------------------------------
-function ReadIniInteger(IniFile, IniSection, KeyName: string; Default: integer): integer;
-var
-  buf: array [0..15] of char;
-begin
-  result:= Default;
-  GetPrivateProfileString(pchar(IniSection), pchar(KeyName), pchar(inttostr(Default)), pchar(@buf), 16, pchar(IniFile));
-  try result:= strtoint(strpas(pchar(@buf)));
-  except end;
-end;
-//------------------------------------------------------------------------------
 function CheckAutorun: boolean;
 var
   reg: TRegistry;
@@ -636,8 +616,6 @@ begin
     begin
       if enable then reg.WriteString(UTF8ToAnsi(PROGRAM_REGKEY), ParamStr(0))
       else reg.WriteString(UTF8ToAnsi(PROGRAM_REGKEY), '');
-        //if not reg.DeleteValue(UTF8ToAnsi(PROGRAM_REGKEY)) then
-           //raise Exception.Create('SetAutorun.DeleteValue failed');
     end else begin
       raise Exception.Create('SetAutorun.OpenKey failed');
     end;

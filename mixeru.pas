@@ -25,6 +25,7 @@ type
     property State: integer read getState;
     property StateString: string read getStateString;
     class function CUpdate: integer;
+    class procedure Cleanup;
     class function CInc(value: integer): integer;
     constructor Create;
     procedure Update;
@@ -43,6 +44,12 @@ begin
     Mixer.Update;
     result := Mixer.State;
   end;
+end;
+//------------------------------------------------------------------------------
+class procedure TMixer.Cleanup;
+begin
+  if assigned(Mixer) then Mixer.Free;
+  Mixer := nil;
 end;
 //------------------------------------------------------------------------------
 class function TMixer.CInc(value: integer): integer;

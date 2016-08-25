@@ -308,6 +308,7 @@ begin
         if FIsPIDL then LoadImageFromPIDL(FPIDL, FItemSize, true, true, FImage, FIW, FIH)
         else
           LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
+
       end;
 
       // measure caption and adjust border size //

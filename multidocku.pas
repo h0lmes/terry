@@ -29,8 +29,8 @@ type
     property FreeSite: TBaseSite read FFreeSite;
     property ThisDockRemovalScheduled: boolean read FRemoveThisDock;
 
-    class procedure Create_;
-    class procedure Destroy_;
+    class procedure CCreate;
+    class procedure CDestroy;
 
     constructor Create;
     destructor Destroy; override;
@@ -47,12 +47,12 @@ var
 implementation
 uses toolu;
 //------------------------------------------------------------------------------
-class procedure TMultiDock.Create_;
+class procedure TMultiDock.CCreate;
 begin
   if not assigned(docks) then docks := TMultiDock.Create;
 end;
 //------------------------------------------------------------------------------
-class procedure TMultiDock.Destroy_;
+class procedure TMultiDock.CDestroy;
 begin
   if assigned(docks) then docks.Free;
 end;

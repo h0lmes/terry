@@ -320,11 +320,10 @@ begin
     FWndOffset := 0;
     DoRollDown;
 
+    UpdateRunning;
     if sets.container.Hello then TfrmHello.Open;
     FInitDone := True;
-
-    UpdateRunning;
-    {$ifdef EXT_DEBUG} AddLog('UpdateRunning'); {$endif}
+    AddLog('InitDone');
   except
     on e: Exception do err('Base.Init', e);
   end;
@@ -401,15 +400,20 @@ begin
   try
     crsection.Acquire;
     FProgramIsClosing := true;
-    AddLog('CloseQueryI begin');
-    if FEdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
-    HideTaskbar(false);
-    BaseCmd(tcSaveSets, 0);
+    AddLog('CloseQueryI.begin');
     try
       KillTimer(handle, ID_TIMER);
       KillTimer(handle, ID_TIMER_SLOW);
       KillTimer(handle, ID_TIMER_FSA);
-      TAeroPeekWindow.Cleanup;
+
+      DeregisterShellHookWindow(Handle);
+      SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc)); // reset window proc
+
+      BaseCmd(tcSaveSets, 0);
+
+      if FEdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
+      HideTaskbar(false);
+
       if assigned(DropMgr) then DropMgr.Destroy;
       DropMgr := nil;
       if assigned(ItemMgr) then ItemMgr.Free;
@@ -420,20 +424,21 @@ begin
       theme := nil;
       if assigned(sets) then sets.Free;
       sets := nil;
-      TProcessHelper.Cleanup;
-      TNotifier.Cleanup;
-      LockList.free;
+      if assigned(Tray) then Tray.Free;
+      Tray := nil;
+      if assigned(StartMenu) then StartMenu.Free;
+      StartMenu := nil;
 
+      TProcessHelper.Cleanup;
+      TAeroPeekWindow.Cleanup;
+      LockList.free;
       DestroyBlurWindow;
-      DeregisterShellHookWindow(Handle);
-      // reset window proc
-      SetWindowLongPtr(Handle, GWL_WNDPROC, PtrInt(FPrevWndProc));
       // close other instances
       if not docks.ThisDockRemovalScheduled then docks.CloseOtherDocks;
     except
       on e: Exception do messagebox(handle, PChar(e.message), 'Base.Close.Free', mb_iconexclamation);
     end;
-    AddLog('CloseQueryI done');
+    AddLog('CloseQueryI.done');
     result := 1;
   finally
     crsection.Leave;
@@ -490,7 +495,7 @@ procedure Tfrmmain.SaveSets;
 begin
   if FSavingSettings then
   begin
-    AddLog('SaveSettings.exit_save');
+    AddLog('SaveSets.exit');
     exit;
   end;
   if assigned(ItemMgr) then
@@ -504,7 +509,7 @@ begin
       FSavingSettings := false;
       crsection.Leave;
     end;
-    AddLog('SavedSettings');
+    AddLog('SaveSets.done');
   except
     on e: Exception do err('Base.BaseSaveSettings', e);
   end;

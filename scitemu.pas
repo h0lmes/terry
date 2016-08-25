@@ -4,7 +4,7 @@ unit scitemu;
 
 interface
 uses Windows, Messages, SysUtils, Controls, Classes, Math, ShellAPI, ComObj, ShlObj,
-  IniFiles, GDIPAPI, gfx, PIDL, ShContextU,
+  GDIPAPI, gfx, PIDL, ShContextU,
   declu, dockh, customitemu, customdrawitemu,
   toolu, processhlp, aeropeeku, mixeru, networksu, iniproc, loggeru;
 
@@ -39,7 +39,7 @@ type
     procedure BeforeUndock;
     procedure UpdateRunning;
     procedure LoadImageI;
-    procedure LoadDynObjectImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+    procedure LoadDynObjectImage(imagefile: string; MaxSize: integer; exact, default: boolean; var image: pointer; var srcwidth, srcheight: uint);
     procedure CheckIfDynObject;
     procedure DynObjectUpdate;
     procedure AfterDraw;
@@ -268,7 +268,7 @@ begin
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure TShortcutItem.LoadDynObjectImage(imagefile: string; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure TShortcutItem.LoadDynObjectImage(imagefile: string; MaxSize: integer; exact, default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 begin
   try
     if pos('{LANGID}', imagefile) > 0 then

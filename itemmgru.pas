@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, Classes, SysUtils, Forms, IniFiles, Math,
   declu, DockH, toolu, gfx, GDIPAPI, processhlp, iniproc,
-  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu;
+  customitemu, scitemu, sepitemu, plgitemu, stackitemu, taskitemu, loggeru;
 
 const
   MAX_ITEM_COUNT = 128;
@@ -80,6 +80,7 @@ type
     procedure SetWndOffset(value: integer);
 
     // load/save //
+    procedure LoadDefault;
     procedure SaveItems;
     procedure SaveItem(wnd: HWND);
 
@@ -554,7 +555,7 @@ begin
 
   try
     FSetsFilename := fsets;
-    ini := TIniFile.Create(FSetsFilename);
+    ini  := TIniFile.Create(FSetsFilename);
     list := TStringList.Create;
     ini.ReadSections(list);
   except
@@ -568,6 +569,7 @@ begin
     while idx < list.count do
     begin
       if pos('item', list.strings[idx]) = 1 then AddItem(CreateItemFromIni(FSetsFilename, list.strings[idx]), false);
+      {$ifdef EXT_DEBUG} AddLog(list.strings[idx]); {$endif}
       inc(idx);
     end;
     ini.free;
@@ -576,10 +578,18 @@ begin
   end;
   {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ReadItems'); {$endif}
 
-  // create default FItemArray if nothing loaded //
+  if FItemCount = 0 then LoadDefault; // create default FItemArray if nothing loaded //
+
+  ItemsChanged;
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ItemsChanged'); {$endif}
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.LoadDefault;
+var
+  stack: TStackItem;
+  wnd: HWND;
+begin
   try
-    if FItemCount = 0 then
-    begin
       // "end session" stack //
       wnd := AddItem(CreateItemFromString(TStackItem.Make('End session')));
       stack := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
@@ -607,14 +617,10 @@ begin
       //AddItem(CreateItemFromString(TShortcutItem.Make('', '/networks', '', '', 'images\default\network-{NETWORK}.png')));
       AddItem(CreateItemFromString(TShortcutItem.Make('', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png')));
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.basic FItemArray'); {$endif}
-    end;
   except
-    on e: Exception do err('ItemManager.Load.Default', e);
+      on e: Exception do err('ItemManager.LoadDefault', e);
   end;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default'); {$endif}
-
-  ItemsChanged;
-  {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.ItemsChanged'); {$endif}
+  {$ifdef EXT_DEBUG} AddLog('TItemManager.LoadDefault.done'); {$endif}
 end;
 //------------------------------------------------------------------------------
 procedure TItemManager.Save(fsets: string);

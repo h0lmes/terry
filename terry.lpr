@@ -502,14 +502,16 @@ begin
   gfx.bIsWindowsVista := toolu.bIsWindowsVista;
   // running on win64
   w64 := false;
+  {$ifndef CPU64}
   IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
   if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, w64);
+  {$endif}
   toolu.bIsWow64 := w64;
   {$ifdef EXT_DEBUG} AddLog('version'); {$endif}
 
   // multi-dock support //
 
-  TMultiDock.Create_();
+  TMultiDock.CCreate();
   // read sets filename from params
   ProgramPath := IncludeTrailingPathDelimiter(ExtractFilePath(Paramstr(0)));
   SetsFilename := '';
@@ -589,6 +591,8 @@ begin
   Application.Run;
 
   CloseHandle(hMutex);
-  TMultiDock.Destroy_;
+  TMixer.Cleanup;
+  TNotifier.Cleanup;
+  TMultiDock.CDestroy;
   AddLog('>>> End');
 end.
