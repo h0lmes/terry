@@ -337,7 +337,7 @@ begin
   except end;
   FImage := nil;
   ItemHWnd := 0;
-  action := cafree;
+  action := caFree;
   frmItemProp := nil;
 end;
 //------------------------------------------------------------------------------

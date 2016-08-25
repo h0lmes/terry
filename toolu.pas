@@ -854,7 +854,9 @@ function GetLangID: integer;
 var
   procID: dword;
 begin
-  result := $ffff and GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), @procID));
+  result := 0;
+  try result := $ffff and GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), @procID));
+  except end;
 end;
 //------------------------------------------------------------------------------
 function GetLangIDString(id: integer): string;

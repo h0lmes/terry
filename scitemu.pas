@@ -298,6 +298,8 @@ procedure TShortcutItem.CheckIfDynObject;
 var
   pidFolder: PItemIDList;
 begin
+  KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
+
   FDynObjectState := 0;
   FDynObject := (pos('{LANGID}', FImageFile) > 0) or (pos('{VOLUME}', FImageFile) > 0) or (pos('{NETWORK}', FImageFile) > 0);
   FDynObjectRecycleBin := false;
@@ -313,15 +315,15 @@ begin
   // setup update timer
   if FDynObject then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 500, nil)
   else
-  if FDynObjectRecycleBin then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 1000, nil)
-  else
-    KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
+  if FDynObjectRecycleBin then SetTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT, 1000, nil);
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DynObjectUpdate;
 var
   newDynObjectState: integer = 0;
 begin
+  if FFreed then exit;
+
   // if this is a dynamic object
   if FDynObject then
   begin
@@ -784,23 +786,22 @@ procedure TShortcutItem.Save(ini, section: string);
 var
   img: string;
 begin
-  if FFreed or (ini = '') or (section = '') then exit;
+  if (ini = '') or (section = '') then exit;
   WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
   WritePrivateProfileString(pchar(section), 'class', 'shortcut', pchar(ini));
-  if not FDynObject then
-    if caption <> '' then              WriteIniStringW(ini, section, 'caption', Caption);
-  if FCommand <> '' then               WriteIniStringW(ini, section, 'command', FCommand);
-  if FParams <> '' then                WriteIniStringW(ini, section, 'params', FParams);
-  if FDir <> '' then                   WriteIniStringW(ini, section, 'dir', FDir);
+  if not FDynObject and (Caption <> '') then WriteIniStringW(ini, section, 'caption', Caption);
+  if FCommand <> '' then                     WriteIniStringW(ini, section, 'command', FCommand);
+  if FParams <> '' then                      WriteIniStringW(ini, section, 'params', FParams);
+  if FDir <> '' then                         WriteIniStringW(ini, section, 'dir', FDir);
   if FImageFile <> '' then
   begin
     img := FImageFile;
     if FImageFile2 <> '' then img := img + ';' + FImageFile2;
     WriteIniStringW(ini, section, 'image', img);
   end;
-  if FShowCmd <> sw_shownormal then    WriteIniStringW(ini, section, 'showcmd', inttostr(FShowCmd));
-  if FColorData <> DEF_COLOR_DATA then WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
-  if FHide then                        WriteIniStringW(ini, section, 'hide', '1');
+  if FShowCmd <> sw_shownormal then          WriteIniStringW(ini, section, 'showcmd', inttostr(FShowCmd));
+  if FColorData <> DEF_COLOR_DATA then       WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
+  if FHide then                              WriteIniStringW(ini, section, 'hide', '1');
 end;
 //------------------------------------------------------------------------------
 //

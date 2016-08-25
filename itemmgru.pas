@@ -440,8 +440,11 @@ begin
     for idx := 0 to FItemCount - 1 do
     begin
       Inst := TCustomItem(GetWindowLongPtr(FItemArray[idx].h, GWL_USERDATA));
-      Inst.Freed := true;
-      FreeAndNil(Inst);
+      if assigned(Inst) then
+      begin
+        Inst.Freed := true;
+        Inst.Free;
+      end;
       FItemArray[idx].h := 0;
     end;
     FItemCount := 0;
@@ -545,8 +548,6 @@ var
   idx: integer;
   ini: TIniFile;
   list: TStrings;
-  stack: TStackItem;
-  wnd: HWND;
 begin
   if fsets = '' then exit;
   FDraggingItem := false;
@@ -627,6 +628,7 @@ procedure TItemManager.Save(fsets: string);
 begin
   try
     if fsets <> '' then FSetsFilename := toolu.UnzipPath(fsets);
+    AllItemCmd(icFree, 0);
     SaveItems;
   except
     on e: Exception do err('ItemManager.Save', e);

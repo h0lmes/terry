@@ -479,8 +479,9 @@ end;
 //------------------------------------------------------------------------------
 var
   VerInfo: TOSVersioninfo;
+  {$ifndef CPU64}
   IsWow64Process: function(Handle: THandle; var Res: boolean): boolean; stdcall;
-  w64: boolean;
+  {$endif}
   idx: integer;
   setsFiles: TStrings;
   SetsFilename, ProgramPath: string;
@@ -488,25 +489,24 @@ var
   h: THandle;
 begin
   loggeru.SetLogFileName(ChangeFileExt(ParamStr(0), '.log'));
+  AddLog('>>> TDock app start');
 
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
-  AddLog('>>> TDock app start');
-  toolu.ScalingFactor := 100;
 
-  // set global vars, though this is not a good practice
   // os version
   VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   GetVersionEx(@VerInfo);
   toolu.bIsWindowsVista := VerInfo.dwMajorVersion >= 6;
   gfx.bIsWindowsVista := toolu.bIsWindowsVista;
+
+  toolu.ScalingFactor := 100;
   // running on win64
-  w64 := false;
+  toolu.bIsWow64 := false;
   {$ifndef CPU64}
   IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
-  if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, w64);
+  if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, toolu.bIsWow64);
   {$endif}
-  toolu.bIsWow64 := w64;
   {$ifdef EXT_DEBUG} AddLog('version'); {$endif}
 
   // multi-dock support //

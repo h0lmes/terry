@@ -276,7 +276,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TSeparatorItem.Save(ini, section: string);
 begin
-  if FFreed or (ini = '') or (section = '') then exit;
+  if (ini = '') or (section = '') then exit;
   WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
   WritePrivateProfileString(pchar(section), 'class', 'separator', pchar(ini));
 end;

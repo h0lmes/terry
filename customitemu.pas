@@ -178,6 +178,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TCustomItem.Destroy;
 begin
+  SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUint(0));
   if IsWindow(FHWnd) then DestroyWindow(FHWnd);
   FHWnd := 0;
   inherited;

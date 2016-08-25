@@ -349,7 +349,7 @@ end;
 procedure TPluginItem.Save(ini, section: string);
 begin
   try
-    if FFreed or (ini = '') or (section = '') then exit;
+    if (ini = '') or (section = '') then exit;
     WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
     WritePrivateProfileString(pchar(section), 'class', 'plugin', pchar(ini));
     WriteIniStringW(ini, section, 'file', toolu.ZipPath(FPluginFile));

@@ -11,9 +11,9 @@ const
   MAX_SUBITEMS = 64;
   STATE_PROGRESS_MIN = 0.0;
   STATE_PROGRESS_MAX = 1.0;
-  DEFAULT_ANIM_SPEED = 8;
+  DEF_ANIM_SPEED = 8;
   MID_ANIM_SPEED = 4;
-  DEFAULT_DISTORT = 1;
+  DEF_DISTORT = 1;
   DEF_STACK_PREVIEW = 1;
 
 type
@@ -131,8 +131,8 @@ type
     //
     class function Make(ACaption: WideString = ''; AImage: string = ''; ASpecialFolder: string = '';
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
-      AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
+      AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
+      ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
       AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
   end;
 
@@ -161,9 +161,9 @@ begin
   FStateProgress := STATE_PROGRESS_MIN;
   FMode := 0;
   FOffset := 0;
-  FAnimationSpeed := DEFAULT_ANIM_SPEED;
+  FAnimationSpeed := DEF_ANIM_SPEED;
   FOpenAnimation := true;
-  FDistort := DEFAULT_DISTORT;
+  FDistort := DEF_DISTORT;
   FDragOver := false;
   FSpecialFolder := '';
   FPreview := DEF_STACK_PREVIEW;
@@ -205,8 +205,8 @@ begin
 
         FMode            := ReadIniIntW(IniFile, IniSection, 'mode', 0, 0, 1000);
         FOffset          := ReadIniIntW(IniFile, IniSection, 'offset', 0, -20, 50);
-        FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEFAULT_ANIM_SPEED, 1, 10);
-        FDistort         := ReadIniIntW(IniFile, IniSection, 'distort', DEFAULT_DISTORT, -10, 10);
+        FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEF_ANIM_SPEED, 1, 10);
+        FDistort         := ReadIniIntW(IniFile, IniSection, 'distort', DEF_DISTORT, -10, 10);
         FPreview         := ReadIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW, 0, 2);
         FSpecialFolder   := ReadIniStringW(IniFile, IniSection, 'special_folder', '');
         FShowBackground  := ReadIniBoolW(IniFile, IniSection, 'background', false);
@@ -251,8 +251,8 @@ begin
       FColorData           := DEF_COLOR_DATA;
       FMode                := 0;
       FOffset              := 0;
-      FAnimationSpeed      := DEFAULT_ANIM_SPEED;
-      FDistort             := DEFAULT_DISTORT;
+      FAnimationSpeed      := DEF_ANIM_SPEED;
+      FDistort             := DEF_DISTORT;
       FSpecialFolder       := '';
       FShowBackground      := false;
       FBackgroundBlur      := true;
@@ -658,23 +658,21 @@ procedure TStackItem.Save(ini, section: string);
 var
   idx: integer;
 begin
-  if FFreed or (ini = '') or (section = '') then exit;
+  if (ini = '') or (section = '') then exit;
   WritePrivateProfileString(pchar(section), nil, nil, pchar(ini));
   WritePrivateProfileString(pchar(section), 'class', 'stack', pchar(ini));
-  if caption <> '' then                 WriteIniStringW(ini, section, 'caption', Caption);
-  if FImageFile <> '' then              WriteIniStringW(ini, section, 'image', FImageFile);
-  if FColorData <> DEF_COLOR_DATA then  WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
-  if FMode <> 0 then                    WriteIniStringW(ini, section, 'mode', inttostr(FMode));
-  if FOffset <> 0 then                  WriteIniStringW(ini, section, 'offset', inttostr(FOffset));
-  WriteIniStringW(ini, section, 'animation_speed', inttostr(FAnimationSpeed));
-  WriteIniStringW(ini, section, 'distort', inttostr(FDistort));
-  if FSpecialFolder <> '' then          WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
-  if FPreview <> DEF_STACK_PREVIEW then WriteIniStringW(ini, section, 'preview', inttostr(FPreview));
-  if FShowBackground then               WriteIniStringW(ini, section, 'background', '1');
-  if FShowBackground and FBackgroundBlur then
-                                        WriteIniStringW(ini, section, 'background_blur', '1');
-  if FBackgroundColor <> DEF_STACK_BGCOLOR then
-                                        WriteIniStringW(ini, section, 'background_color', toolu.ColorToString(FBackgroundColor));
+  if Caption <> '' then                         WriteIniStringW(ini, section, 'caption', Caption);
+  if FImageFile <> '' then                      WriteIniStringW(ini, section, 'image', FImageFile);
+  if FColorData <> DEF_COLOR_DATA then          WriteIniStringW(ini, section, 'color_data', toolu.ColorToString(FColorData));
+  if FMode <> 0 then                            WriteIniStringW(ini, section, 'mode', inttostr(FMode));
+  if FOffset <> 0 then                          WriteIniStringW(ini, section, 'offset', inttostr(FOffset));
+  if FAnimationSpeed <> DEF_ANIM_SPEED then     WriteIniStringW(ini, section, 'animation_speed', inttostr(FAnimationSpeed));
+  if FDistort <> DEF_DISTORT then               WriteIniStringW(ini, section, 'distort', inttostr(FDistort));
+  if FSpecialFolder <> '' then                  WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
+  if FPreview <> DEF_STACK_PREVIEW then         WriteIniStringW(ini, section, 'preview', inttostr(FPreview));
+  if FShowBackground then                       WriteIniStringW(ini, section, 'background', '1');
+  if FShowBackground and FBackgroundBlur then   WriteIniStringW(ini, section, 'background_blur', '1');
+  if FBackgroundColor <> DEF_STACK_BGCOLOR then WriteIniStringW(ini, section, 'background_color', toolu.ColorToString(FBackgroundColor));
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for idx := 0 to FItemCount - 1 do   WriteIniStringW(ini, section, 'subitem' + inttostr(idx + 1), items[idx].item.ToString);
@@ -1277,8 +1275,8 @@ end;
 //------------------------------------------------------------------------------
 class function TStackItem.Make(ACaption: WideString = ''; AImage: string = ''; ASpecialFolder: string = '';
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
-      AOffset: integer = 0; AAnimationSpeed: integer = DEFAULT_ANIM_SPEED;
-      ADistort: integer = DEFAULT_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
+      AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
+      ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
       AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
 begin
   result := 'class="stack";';
