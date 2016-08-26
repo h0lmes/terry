@@ -120,6 +120,7 @@ type
     FIsPIDL: boolean;
     FPIDL: PITEMIDLIST;
     FLastMouseUp: PtrUInt;
+    procedure LoadImageI;
     procedure UpdateRunning;
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow: boolean;
@@ -261,7 +262,7 @@ begin
     try
       FUpdating := true;
 
-      // convert CSIDL to path //
+      // if FCommand is a CSIDL convert it to GUID or path //
       csidl := CSIDL_ToInt(FCommand);
       if csidl > -1 then
       begin
@@ -269,7 +270,7 @@ begin
         if PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255) then FCommand := strpas(pszName);
         PIDL_Free(pidFolder);
         if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
-        else FCaption := '::::';  // assuming it is a PIDL
+        else FCaption := '::::'; // assuming this is a PIDL
       end;
 
       // create PIDL from GUID //
@@ -277,7 +278,7 @@ begin
       if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
       if not assigned(FPIDL) then
         if not FileExists(toolu.UnzipPath(FCommand)) then
-          FPIDL := PIDL_GetFromPath(pchar(FCommand));
+          if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
@@ -298,18 +299,7 @@ begin
         if not FileExists(FExecutable) and not FIsExecutable then FExecutable := '';
       end;
 
-      // load images //
-      try if FImage <> nil then GdipDisposeImage(FImage);
-      except end;
-      FImage := nil;
-      if FImageFile <> '' then LoadImage(UnzipPath(FImageFile), FItemSize, true, true, FImage, FIW, FIH)
-      else
-      begin
-        if FIsPIDL then LoadImageFromPIDL(FPIDL, FItemSize, true, true, FImage, FIW, FIH)
-        else
-          LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
-
-      end;
+      LoadImageI;
 
       // measure caption and adjust border size //
       UpdateCaptionExtent;
@@ -321,6 +311,23 @@ begin
     sendmessage(FHWndParent, WM_APP_UPDATE_PREVIEW, 0, 0); // notify parent stack item
   except
     on e: Exception do raise Exception.Create('StackSubitem.Update ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutSubitem.LoadImageI;
+begin
+  try if assigned(FImage) then GdipDisposeImage(FImage);
+  except end;
+  FImage := nil;
+
+  if FImageFile <> '' then // if custom image file specified
+  begin
+    LoadImage(UnzipPath(FImageFile), FItemSize, true, true, FImage, FIW, FIH)
+  end
+  else // if no custom image set - load from object itself (PIDL or File)
+  begin
+    if FIsPIDL then LoadImageFromPIDL(FPIDL, FItemSize, true, true, FImage, FIW, FIH)
+    else LoadImage(UnzipPath(FCommand), FItemSize, true, true, FImage, FIW, FIH);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1050,7 +1057,7 @@ begin
       GetCursorPos(pt);
       Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
       SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
-      Inst.cmd(icUndock, 0);
+      Inst.Dock;
       Inst.Delete;
     end;
   end;
@@ -1071,7 +1078,7 @@ begin
     GetCursorPos(pt);
     Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
     SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
-    Inst.cmd(icUndock, 1);
+    Inst.Undock;
   end;
   Delete(false);
   dockh.Undock(wnd);

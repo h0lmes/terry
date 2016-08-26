@@ -42,7 +42,7 @@ type
 
     FEnabled: boolean;
     FUpdating: boolean;
-    FFloating: boolean;
+    FUndocked: boolean;
     FSelected: boolean;
     FDropIndicator: integer;
     FReflection: boolean;
@@ -92,7 +92,7 @@ type
     procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
-    property Floating: boolean read FFloating;
+    property Floating: boolean read FUndocked;
     property Handle: HWND read FHWnd;
     property Caption: WideString read FCaption write SetCaption;
     property ColorData: integer read FColorData write FColorData;
@@ -123,6 +123,8 @@ type
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(ini, section: string); virtual; abstract;
 
+    procedure Undock;
+    procedure Dock;
     function HitTest(Ax, Ay: integer): boolean;
     function ScreenHitTest(Ax, Ay: integer): boolean;
     procedure Animate;
@@ -215,7 +217,7 @@ begin
   FSize := 32;
   FCaption := '';
   FUpdating := false;
-  FFloating := false;
+  FUndocked := false;
   FSelected := false;
   FColorData := DEF_COLOR_DATA;
   FDropIndicator := 0;
@@ -244,8 +246,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.cmd(id: TDParam; param: PtrInt): PtrInt;
-var
-  wRect: windows.TRect;
 begin
   result:= 0;
   try
@@ -304,28 +304,6 @@ begin
           Redraw;
         end;
 
-      icUndock:
-        if FFloating <> boolean(param) then
-        begin
-          FFloating := boolean(param);
-          if FFloating then
-          begin
-            FHover := false;
-            FSelected := false;
-          end;
-          need_dock := not FFloating;
-          if need_dock then
-          begin
-            wRect := ScreenRect;
-            FxDockFrom := wRect.Left;
-            FyDockFrom := wRect.Top;
-            FXDocking := FxDockFrom;
-            FYDocking := FyDockFrom;
-            FDockingProgress := 0;
-          end;
-          Redraw;
-        end;
-
       icDropIndicator:
         if FDropIndicator <> param then
         begin
@@ -344,6 +322,36 @@ begin
 
   except
     on e: Exception do raise Exception.Create('CustomItem.Cmd ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.Undock;
+begin
+  if not FUndocked then
+  begin
+    FUndocked := true;
+    FHover := false;
+    FSelected := false;
+    need_dock := false;
+    Redraw;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomItem.Dock;
+var
+  wRect: windows.TRect;
+begin
+  if FUndocked then
+  begin
+    FUndocked := false;
+    need_dock := true;
+    wRect := ScreenRect;
+    FxDockFrom := wRect.Left;
+    FyDockFrom := wRect.Top;
+    FXDocking := FxDockFrom;
+    FYDocking := FyDockFrom;
+    FDockingProgress := 0;
+    Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -418,7 +426,7 @@ begin
   if button = mbLeft then
   begin
     if assigned(OnBeforeUndock) then OnBeforeUndock;
-    cmd(icUndock, 1); // undock
+    Undock; // do not undock actually, just make item semitransparent
   end;
 end;
 //------------------------------------------------------------------------------
@@ -472,7 +480,7 @@ var
 begin
   if not FFreed then
   try
-    do_show := FShowHint and FHover and not FHideHint and not FFloating and not FLockMouseEffect and (trim(FCaption) <> '');
+    do_show := FShowHint and FHover and not FHideHint and not FUndocked and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
       if FHintVisible then dockh.DeactivateHint(FHWnd);
@@ -650,7 +658,7 @@ begin
         end
         else if message = wm_lbuttonup then
         begin
-              cmd(icUndock, 0);
+              Dock;
               if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
               else sendmessage(FHWndParent, message, wParam, lParam);
         end
@@ -674,12 +682,12 @@ begin
         end
         else if message = wm_mousemove then
         begin
-              // undock item (the only place to undock) //
-              if (not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FFloating then
+              // actually undock item (the only place to undock) //
+              if (not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FUndocked then
               begin
                 if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then
                 begin
-                  cmd(icUndock, 1);
+                  Undock;
                   dockh.Undock(FHWnd);
                   SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE + SWP_NOMOVE + SWP_NOREPOSITION + SWP_NOSENDCHANGING);
                   ReleaseCapture;
@@ -687,16 +695,16 @@ begin
                 end;
               end;
               // just in case - dock item //
-              if FFloating and (wParam and MK_LBUTTON = 0) then
+              if FUndocked and (wParam and MK_LBUTTON = 0) then
               begin
-                cmd(icUndock, 0);
+                Dock;
                 dockh.Dock(FHWnd);
               end;
         end
         else if message = wm_exitsizemove then
         begin
               // dock item (the only place to dock) //
-              cmd(icUndock, 0);
+              Dock;
               dockh.Dock(FHWnd);
         end
         else if message = wm_command then

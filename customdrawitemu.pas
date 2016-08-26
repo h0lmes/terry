@@ -47,7 +47,7 @@ var
   button: boolean;
 begin
   try
-    if FFreed or not FEnabled or FUpdating or (FFloating and not AForce)
+    if FFreed or not FEnabled or FUpdating or (FUndocked and not AForce)
        or ((FX = Ax) and (FY = Ay) and (FSize = ASize) and (FShowItem = AShowItem) and not AForce and not need_dock) then exit;
 
     // OnBeforeDraw
@@ -201,11 +201,11 @@ begin
     if FAnimationProgress > 0 then GdipResetWorldTransform(dst);
     if not button then
     begin
-      if FReflection and (FReflectionSize > 0) and not FFloating then
+      if FReflection and (FReflectionSize > 0) and not FUndocked then
         BitmapReflection(bmp, ItemRect.Left, ItemRect.Top, FSize, FReflectionSize, FSite);
-      if FRunning and not FFloating then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
+      if FRunning and not FUndocked then theme.DrawIndicator(dst, ItemRect.Left, ItemRect.Top, FSize, FSite);
     end;
-    UpdateLWindow(FHWnd, bmp, ifthen(FFloating, 127, 255));
+    UpdateLWindow(FHWnd, bmp, ifthen(FUndocked, 127, 255));
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
     // OnAfterDraw

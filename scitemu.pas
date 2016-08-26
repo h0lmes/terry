@@ -38,9 +38,8 @@ type
     FDynObjectState: integer;
     procedure FromIni(IniFile, IniSection: string);
     procedure FromString(value: string);
-    procedure BeforeUndock;
-    procedure UpdateRunning;
     procedure LoadImageI;
+    procedure UpdateRunning;
     procedure LoadDynObjectImage(imagefile: string; MaxSize: integer; exact, default: boolean; var image: pointer; var srcwidth, srcheight: uint);
     procedure CheckIfDynObject;
     procedure DynObjectUpdate;
@@ -50,6 +49,7 @@ type
     procedure MouseHover(AHover: boolean);
     procedure Exec(action: TExecuteAction);
     function ActivateProcessMainWindow(group: boolean): boolean;
+    procedure BeforeUndock;
     function ContextMenu(pt: Windows.TPoint): boolean;
     procedure ClosePeekWindow(Timeout: cardinal = 0);
     procedure ShowPeekWindow(Timeout: cardinal = 0);
@@ -195,7 +195,7 @@ begin
     try
       FUpdating := true;
 
-      // convert CSIDL to GUID or path //
+      // if FCommand is a CSIDL convert it to GUID or path //
       csidl := CSIDL_ToInt(FCommand);
       if csidl > -1 then
       begin
@@ -211,7 +211,7 @@ begin
       if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
       if not assigned(FPIDL) then
         if not FileExists(toolu.UnzipPath(FCommand)) then
-          FPIDL := PIDL_GetFromPath(pchar(FCommand));
+          if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
       FIsPIDL := assigned(FPIDL);
       if FIsPIDL and (FCaption = '::::') then
       begin
@@ -253,6 +253,12 @@ begin
   except end;
   FImage := nil;
 
+  if FDynObjectRecycleBin and (FImageFile <> '') then // the recycle bin
+  begin
+    if FDynObjectState = 0 then LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH)
+    else LoadImage(UnzipPath(FImageFile2), FBigItemSize, false, true, FImage, FIW, FIH);
+  end
+  else
   if FDynObject then // if a dynamic state object
   begin
     LoadDynObjectImage(FImageFile, FBigItemSize, false, true, FImage, FIW, FIH);

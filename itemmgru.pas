@@ -197,6 +197,7 @@ type
     function  ItemDropFile(wndItem: HWND; pt: windows.TPoint; filename: string): boolean;
     function  ItemDropFiles(wndItem: HWND; pt: windows.TPoint; files: TStrings): boolean;
     function  ItemCmd(wnd: HWND; id: TDParam; param: PtrInt): PtrInt;
+    procedure ItemDock(wnd: HWND);
     function  AllItemCmd(id: TDParam; param: PtrInt): PtrInt;
     procedure SetFont(var Value: TDFontData);
     function  GetPluginFile(wnd: HWND): string;
@@ -714,7 +715,7 @@ begin
     FItemArray[FDropPlace].h := wnd;
     FItemArray[FDropPlace].s := FItemSize;
     ItemCmd(wnd, icFree, 0); // enable item
-    ItemCmd(wnd, icUndock, 0);
+    ItemDock(wnd);
     SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
@@ -1824,7 +1825,7 @@ begin
       end;
     except end;
   except
-    on e: Exception do err('ItemManager.UndockWindowItem', e);
+    on e: Exception do err('ItemManager.Undock', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1855,7 +1856,7 @@ begin
     if FDropPlace = FDropPlaceEx then
     begin
       FItemArray[FDropPlace].h := wnd;
-      ItemCmd(wnd, icUndock, 0);
+      ItemDock(wnd);
     end else
     // combine with existing item //
     begin
@@ -1898,7 +1899,7 @@ begin
           if (FDropPlace >= 0) and (FDropPlace < FItemCount) then
           begin
             FItemArray[FDropPlace].h := wnd;
-            ItemCmd(wnd, icUndock, 0);
+            ItemDock(wnd);
           end else begin
             DragInst.Delete;
           end;
@@ -1911,7 +1912,7 @@ begin
     SetDropPlace(NOT_AN_ITEM);
     ItemsChanged;
   except
-    on e: Exception do err('ItemManager.DockWindowItem', e);
+    on e: Exception do err('ItemManager.Dock', e);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -1997,6 +1998,18 @@ begin
     if Inst is TCustomItem then result := Inst.cmd(id, param);
   except
     on e: Exception do err('ItemManager.ItemCmd', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TItemManager.ItemDock(wnd: HWND);
+var
+  Inst: TCustomItem;
+begin
+  try
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+    if Inst is TCustomItem then Inst.Dock;
+  except
+    on e: Exception do err('ItemManager.ItemDock', e);
   end;
 end;
 //------------------------------------------------------------------------------

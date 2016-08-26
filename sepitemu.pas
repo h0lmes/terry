@@ -94,7 +94,7 @@ var
   ItemRect: windows.TRect;
 begin
   try
-    if FFreed or (FFloating and not AForce) then exit;
+    if FFreed or (FUndocked and not AForce) then exit;
 
     // set position //
     try
@@ -178,7 +178,7 @@ begin
           GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
           if FSeparatorAlpha > 0 then
             DrawEx(dst, FImage, FIW, FIH, classes.rect(sepx, sepy, sepw, seph), Margins, ssStretch, FSeparatorAlpha);
-          if FFloating then DrawItemIndicator(dst, DII_MOVE, ItemRect.Left - 10, ItemRect.Top - 10, FSize, FSize);
+          if FUndocked then DrawItemIndicator(dst, DII_MOVE, ItemRect.Left - 10, ItemRect.Top - 10, FSize, FSize);
           UpdateLWindow(FHWnd, bmp, 255);
         finally
           DeleteGraphics(dst);

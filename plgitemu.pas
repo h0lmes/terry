@@ -183,7 +183,7 @@ begin
     except end;
     FImage := AImage;
     AutoDeleteImage := DownscaleImage(FImage, FBigItemSize, false, FIW, FIH, AutoDelete) or AutoDelete;
-    if not FFloating then Redraw;
+    if not FUndocked then Redraw;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ begin
     except end;
     FImage2 := AOverlay;
     AutoDeleteOverlay := DownscaleImage(FImage2, FBigItemSize, false, FIW2, FIH2, AutoDelete) or AutoDelete;
-    if not FFloating then Redraw;
+    if not FUndocked then Redraw;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -83,7 +83,6 @@ type
     // item commands //
     icMin = $2000,
     icSelect, // notify item that user pressed mouse button on it //
-    icUndock, // notify item that user draging this item //
     icFree, // mark item as freed //
     icHover, // mouse over //
     icUpdateRunning, // force item to update it's running indicator //

@@ -22,7 +22,7 @@ procedure PIDL_GetRelative(var pidlFQ, ppidlRoot, ppidlItem: PItemIDList);
 function PIDL_GetAbsolute(var pidlRoot, pidlItem: PItemIDList): PItemIDList;
 function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 function PIDL_GetFileFolder(pidl: PItemIDList; var folder: IShellFolder): boolean;
-procedure PIDL_Free(pidl: PItemIDList);
+procedure PIDL_Free(var pidl: PItemIDList);
 function IsGUID(str: string): boolean;
 function IsUniApp(str: string): boolean;
 function IsPIDLString(str: string): boolean;
@@ -117,7 +117,7 @@ begin
   i := 0;
   while i < size do
   begin
-    pbyte(cardinal(Result) + i)^ := byte(StrToInt('$' + copy(Data, 1 + i * 2, 2)));
+    pbyte(PtrUInt(Result) + i)^ := byte(StrToInt('$' + copy(Data, 1 + i * 2, 2)));
     inc(i);
   end;
 end;
@@ -278,7 +278,7 @@ begin
   Result := not Failed(desk.BindToObject(pidl, nil, IID_IShellFolder, pointer(folder)));
 end;
 //------------------------------------------------------------------------------
-procedure PIDL_Free(pidl: PItemIDList);
+procedure PIDL_Free(var pidl: PItemIDList);
 begin
   if assigned(pidl) then ShellMalloc.Free(pidl);
   pidl := nil;
