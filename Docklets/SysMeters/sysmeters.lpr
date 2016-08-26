@@ -13,7 +13,7 @@ uses
 const
   PLUGIN_NAME = 'SysMeters';
   PLUGIN_AUTHOR = '';
-  PLUGIN_VERSION = 410;
+  PLUGIN_VERSION = 411;
   PLUGIN_NOTES = 'System performance monitor';
   GRAPH_COLOR = $c0ffffff;
   BUF_SIZE = 28;
@@ -26,6 +26,7 @@ type
   TData = object
     hWnd: HANDLE;
     mode: TMeterMode;
+    interval: integer; // in 0.1s
     letter: char;
     // for CPU mode //
     idle  : int64;
@@ -313,22 +314,22 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure SetMode(data: PData; mode: TMeterMode);
-var
-  interval: cardinal;
 begin
   KillTimer(data.hWnd, ID_TIMER);
   data.mode := mode;
-
   try
     CIBuffer_Init(data.buf, BUF_SIZE, -1); // reset buffer
     Work(data); // update immediately
   except
     messagebox(data.hwnd, pchar(SysErrorMessage(GetLastError)), PLUGIN_NAME, mb_iconexclamation);
   end;
-
-  interval := 1000;
-  if (data.mode = mmBattery) or (data.mode = mmDrive) then interval := 5000;
-  SetTimer(data.hWnd, ID_TIMER, interval, nil);
+  SetTimer(data.hWnd, ID_TIMER, data.interval * 100, nil);
+end;
+//------------------------------------------------------------------------------
+procedure SetInterval(data: PData; interval: integer);
+begin
+  data.interval := interval;
+  SetTimer(data.hWnd, ID_TIMER, data.interval * 100, nil);
 end;
 //------------------------------------------------------------------------------
 procedure SetBackground(lpData: PData);
@@ -351,6 +352,7 @@ begin
     New(Instance);
     Instance.hwnd := hwnd;
     Instance.mode := mmCPU;
+    Instance.interval := 10;
     result := Instance;
 
     FillChar(Instance.PluginRoot, MAX_PATH, 0);
@@ -367,6 +369,10 @@ begin
       try Instance.mode := TMeterMode(strtoint(strpas(@szRet)));
       except end;
       FillChar(szRet, MAX_PATH, 0);
+      GetPrivateProfileString(szIniGroup, 'interval', pchar('10'), @szRet, MAX_PATH, szIni);
+      try Instance.interval := strtoint(strpas(@szRet));
+      except end;
+      FillChar(szRet, MAX_PATH, 0);
       GetPrivateProfileString(szIniGroup, 'letter', 'C', @szRet, MAX_PATH, szIni);
       Instance.letter := szRet[0];
     end;
@@ -379,7 +385,7 @@ end;
 //------------------------------------------------------------------------------
 procedure OnDestroy(data: PData; hwnd: HANDLE); stdcall;
 begin
-  KillTimer(hWnd, 1);
+  KillTimer(hWnd, ID_TIMER);
   Dispose(data);
 end;
 //------------------------------------------------------------------------------
@@ -388,6 +394,7 @@ begin
   if (szIni <> nil) and (szIniGroup <> nil) then
   begin
     WritePrivateProfileString(szIniGroup, 'mode', pchar(inttostr(integer(data.mode))), szIni);
+    WritePrivateProfileString(szIniGroup, 'interval', pchar(inttostr(data.interval)), szIni);
     if data.mode = mmDrive then WritePrivateProfileString(szIniGroup, 'letter', @data.letter, szIni);
   end;
 end;
@@ -406,7 +413,7 @@ const
   drives: array [3..26] of char =
     ('C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
 var
-  hMenu, hDiskMenu: HANDLE;
+  hMenu, hDiskMenu, hIntervalMenu: HANDLE;
   cmd, i: integer;
   pt: windows.TPoint;
 begin
@@ -420,25 +427,56 @@ begin
         integer((data.letter = drives[i]) and (data.mode = mmDrive)), $100 + i,
         pchar(string(drives[i]) + ':'));
 
+    hIntervalMenu := CreatePopupMenu;
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 1, 1, 0), $1001, '0.1s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 2, 1, 0), $1002, '0.2s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 3, 1, 0), $1003, '0.3s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 5, 1, 0), $1005, '0.5s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 10, 1, 0), $100a, '1s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 20, 1, 0), $1014, '2s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 30, 1, 0), $101e, '3s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 50, 1, 0), $1032, '5s');
+    AppendMenu(hIntervalMenu, MF_STRING + MF_CHECKED * ifthen(data.interval = 100, 1, 0), $1064, '10s');
 
     hMenu := CreatePopupMenu;
-
 	  AppendMenu(hMenu, MF_STRING + MF_CHECKED * integer(data.mode = mmBattery), 1, 'Battery');
 	  AppendMenu(hMenu, MF_STRING + MF_CHECKED * integer(data.mode = mmCPU), 2, 'CPU');
 	  AppendMenu(hMenu, MF_STRING + MF_CHECKED * integer(data.mode = mmRAM), 3, 'RAM');
     AppendMenu(hMenu, MF_POPUP + MF_CHECKED * integer(data.mode = mmDrive), hDiskMenu, 'Drive');
+    AppendMenu(hMenu, MF_POPUP, hIntervalMenu, 'Interval');
 
     DockletLockMouseEffect(data.hWnd, true);
     cmd := integer(TrackPopupMenuEx(hMenu, TPM_RETURNCMD, pt.x, pt.y, data.hwnd, nil));
     DockletLockMouseEffect(data.hWnd, false);
 
-    if cmd = 1 then SetMode(data, mmBattery);
-    if cmd = 2 then SetMode(data, mmCPU);
-    if cmd = 3 then SetMode(data, mmRAM);
+    if cmd = 1 then
+    begin
+      SetMode(data, mmBattery);
+      SetInterval(data, 50);
+    end
+    else
+    if cmd = 2 then
+    begin
+      SetMode(data, mmCPU);
+      SetInterval(data, 10);
+    end
+    else
+    if cmd = 3 then
+    begin
+      SetMode(data, mmRAM);
+      SetInterval(data, 10);
+    end
+    else
+    if cmd > $1000 then
+    begin
+      SetInterval(data, cmd - $1000);
+    end
+    else
     if cmd > $100 then
     begin
       data.letter := drives[cmd - $100];
       SetMode(data, mmDrive);
+      SetInterval(data, 50);
     end;
   finally
     DestroyMenu(hMenu);
