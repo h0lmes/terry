@@ -1455,7 +1455,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.ActivateHint(hwnd: THandle; ACaption: WideString; x, y: integer);
 var
-  monitor: cardinal;
+  monitor: THandle;
 begin
   try
     if not FProgramIsClosing and not IsHiddenDown

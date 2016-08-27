@@ -1045,7 +1045,7 @@ end;
 //------------------------------------------------------------------------------
 procedure SetClipboard(Text: string);
 var
-  Data: cardinal;
+  Data: HGLOBAL;
   dataPtr: pointer;
   pch: PChar;
 begin
@@ -1066,7 +1066,7 @@ end;
 //------------------------------------------------------------------------------
 function GetClipboard: string;
 var
-  Data: cardinal;
+  Data: HGLOBAL;
   dataptr: pointer;
   pch: PChar;
 begin

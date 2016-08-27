@@ -290,12 +290,12 @@ begin
       LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
       Caption := Mixer.Description;
     end;
-    //if pos('{NETWORK}', imagefile) > 0 then
-    //begin
-    //  imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
-    //  LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
-    //  Caption := TNetworks.CDescription;
-    //end;
+    if pos('{NETWORK}', imagefile) > 0 then
+    begin
+      imagefile := ReplaceEx(imagefile, '{NETWORK}', TNetworks.CStateString);
+      LoadImage(UnzipPath(imagefile), MaxSize, exact, default, image, srcwidth, srcheight);
+      Caption := TNetworks.CDescription;
+    end;
   except
     on e: Exception do raise Exception.Create('LoadDynObjectImage ' + LineEnding + e.message);
   end;
@@ -337,7 +337,7 @@ begin
   begin
     if pos('{LANGID}', FImageFile) > 0 then newDynObjectState := GetLangID;
     if pos('{VOLUME}', FImageFile) > 0 then newDynObjectState := TMixer.CUpdate;
-    //if pos('{NETWORK}', FImageFile) > 0 then newDynObjectState := TNetworks.CUpdate;
+    if pos('{NETWORK}', FImageFile) > 0 then newDynObjectState := TNetworks.CUpdate;
   end
   // if this is a Recycle Bin
   else if FDynObjectRecycleBin then newDynObjectState := GetRecycleBinState;

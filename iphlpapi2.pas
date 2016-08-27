@@ -187,7 +187,7 @@ type
   // imports
   function GetAdaptersInfo(pAdapterInfo: PIP_ADAPTER_INFO; var pOutBufLen: ULONG): DWORD; stdcall; external IPHelper;
   function GetIfTable2(var Table: PMIB_IF_TABLE2): DWORD; stdcall; external IPHelper;
-  procedure FreeMibTable(var Table: PMIB_IF_TABLE2); stdcall; external IPHelper;
+  procedure FreeMibTable(Table: PMIB_IF_TABLE2); stdcall; external IPHelper;
 
   // helper functions
   function MACToStr(Addr: array of Byte; Len: Integer): string;

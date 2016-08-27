@@ -134,7 +134,7 @@ type
     FDraggingFile: boolean; // indicates that file is being dragged //
     FDropPlace: integer; // index of free space //
     FDropPlaceEx: integer; // index of a place to drop to //
-    FParentHWnd: cardinal;
+    FParentHWnd: THandle;
     FBaseCmd: TDBaseCmd;
 
     property Visible: boolean read FVisible write SetVisible;

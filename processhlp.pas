@@ -714,7 +714,8 @@ end;
 function TProcessHelper.ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
 var
   idx, cmd: integer;
-  hMenu, menu_align: cardinal;
+  hMenu: THandle;
+  menu_align: cardinal;
   wnd: THandle;
   wlist: TFPList;
 begin

@@ -23,9 +23,9 @@ type
 
   TTrayController = class
   private
-    FParentHWnd: HWND;
+    FParentHWnd: THandle;
     FSite: TBaseSite;
-    FControlWindow: HWND;
+    FControlWindow: THandle;
     Fx: integer;
     Fy: integer;
     FControl: boolean;
@@ -46,11 +46,11 @@ type
     procedure SwitchAutoTray;
     procedure EnableAutoTray;
     procedure DisableAutoTray;
-    procedure ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
-		procedure ShowActionCenter(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
-    procedure ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
-    procedure ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
-    procedure ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+    procedure ShowTrayOverflow(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
+		procedure ShowActionCenter(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
+    procedure ShowVolumeControl(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
+    procedure ShowNetworks(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
+    procedure ShowBattery(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
     procedure Timer;
   end;
 
@@ -110,9 +110,9 @@ begin
   SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0, SMTO_ABORTIFHUNG, 5000, nil);
 end;
 //------------------------------------------------------------------------------
-procedure TTrayController.ShowTrayOverflow(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TTrayController.ShowTrayOverflow(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
-  HWnd: cardinal;
+  HWnd: THandle;
   hostRect: windows.TRect;
 begin
   if not AutoTrayEnabled then
@@ -148,9 +148,9 @@ begin
 end;
 //------------------------------------------------------------------------------
 // win 10 feature. not yet working. TODO
-procedure TTrayController.ShowActionCenter(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TTrayController.ShowActionCenter(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
-  HWnd: cardinal;
+  HWnd: THandle;
 begin
   FControlWindow := 0;
   FShown := false;
@@ -164,7 +164,7 @@ begin
   SendMessage(hwnd, BM_CLICK, 0, 0); // this for sure does a click but nothing happens
 end;
 //------------------------------------------------------------------------------
-procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TTrayController.ShowVolumeControl(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
   hostRect: windows.TRect;
 begin
@@ -188,7 +188,7 @@ begin
   Run('sndvol.exe', '-f ' + inttostr(FPoint.x + FPoint.y * $10000), '', sw_shownormal);
 end;
 //------------------------------------------------------------------------------
-procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TTrayController.ShowNetworks(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
   hostRect: windows.TRect;
 begin
@@ -219,7 +219,7 @@ begin
 	end;
 end;
 //------------------------------------------------------------------------------
-procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TTrayController.ShowBattery(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
   hostRect: windows.TRect;
 begin

@@ -197,7 +197,7 @@ begin
     i:= 0;
     while i < gsize do
     begin
-      idpath := idpath + inttohex(pbyte(cardinal(p) + i)^, 2);
+      idpath := idpath + inttohex(pbyte(PtrUInt(p) + i)^, 2);
       inc(i);
     end;
     notifier.message('Raw data = ' + idpath);

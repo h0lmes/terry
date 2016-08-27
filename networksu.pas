@@ -15,7 +15,9 @@ unit networksu;
 {$undef EXT_DEBUG}
 
 interface
-uses Windows, Classes, SysUtils, ActiveX, iphlpapi2, networklist_tlb, toolu;
+uses Windows, Classes, SysUtils, ActiveX,
+  iphlpapi2, networklist_tlb {$ifdef EXT_DEBUG},loggeru{$endif}
+  ;
 
 type
 
@@ -100,8 +102,9 @@ var
 begin
   ReadInterfaces;
   {$ifdef EXT_DEBUG} AddLog('Networks.Create.ReadInterfaces'); {$endif}
-  FReady := assigned(FAdapterTypes)
-         and SUCCEEDED(CoCreateInstance(CLASS_NetworkListManager, nil, CLSCTX_ALL, IID_INetworkListManager, FNLM));
+  FReady := assigned(FAdapterTypes);
+  FNLM := CoNetworkListManager.Create;
+  FReady := FReady and assigned(FNLM);
   {$ifdef EXT_DEBUG} AddLog('Networks.Create.get FReady'); {$endif}
 
   if FReady then

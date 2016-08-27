@@ -12,11 +12,11 @@ type
     Fx, FxPic: integer;
     Fy, FyPic: integer;
     FControl, FShown: boolean;
-    FStartMenuWnd: HWND;
-    FDesktopUserPictureWnd: HWND;
+    FStartMenuWnd: THandle;
+    FDesktopUserPictureWnd: THandle;
   public
     constructor Create;
-    procedure Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+    procedure Show(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
     procedure Timer;
   end;
 
@@ -28,7 +28,7 @@ begin
   FControl := false;
 end;
 //------------------------------------------------------------------------------
-procedure TStartMenuController.Show(site: TBaseSite; host_wnd: cardinal; baseRect, monitorRect: windows.TRect);
+procedure TStartMenuController.Show(site: TBaseSite; host_wnd: THandle; baseRect, monitorRect: windows.TRect);
 var
   hostRect: windows.TRect;
 begin

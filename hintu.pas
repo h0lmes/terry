@@ -36,7 +36,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
+    procedure ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y: integer; monitor: THandle; ASite: TBaseSite);
     procedure DeactivateHint(hwndOwner: HWND);
     procedure DeactivateImmediate;
     procedure Timer;
@@ -120,7 +120,7 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
 //------------------------------------------------------------------------------
-procedure THint.ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y, monitor: integer; ASite: TBaseSite);
+procedure THint.ActivateHint(hwndOwner: HWND; ACaption: WideString; x, y: integer; monitor: THandle; ASite: TBaseSite);
 var
   wdc, dc: THandle;
   dst, font, family: Pointer;
