@@ -123,7 +123,6 @@ type
       DwmUpdateThumbnailProperties: function(hThumbnailId: THandle; ptnProperties: P_DWM_THUMBNAIL_PROPERTIES): HRESULT; stdcall;
       DwmQueryThumbnailSourceSize: function(hThumbnailId: THandle; pSize: PSize): HRESULT; stdcall;
       //
-      //DwmInvokeAeroPeek: function(Enable: integer; Target, Caller: THandle; PeekType: integer; p: pointer; x3244: IntPtr): HRESULT; stdcall;
       DwmInvokeAeroPeek: function(Enable: integer; Target, Caller: THandle; PeekType: integer): HRESULT; stdcall;
     public
       constructor Create;
@@ -185,7 +184,7 @@ end;
 //------------------------------------------------------------------------------
 destructor TDWMHelper.Destroy;
 begin
-  FreeLibrary(hDwmLib);
+  if hDwmLib <> 0 then FreeLibrary(hDwmLib);
   hDwmLib := 0;
   inherited;
 end;
@@ -218,19 +217,22 @@ var
 begin
   if IsWin10 then
   begin
-	  ZeroMemory(@accent, sizeof(TAccentPolicy));
-	  ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
-	  accent.AccentState := integer(_ACCENTSTATE.ACCENT_ENABLE_BLURBEHIND);
-	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
-	  data.size := sizeof(TAccentPolicy);
-	  data.data := @accent;
-	  SetWindowCompositionAttribute(AHandle, data);
+      if @SetWindowCompositionAttribute <> nil then
+      begin
+          ZeroMemory(@accent, sizeof(TAccentPolicy));
+	        ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
+	        accent.AccentState := integer(_ACCENTSTATE.ACCENT_ENABLE_BLURBEHIND);
+	        data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
+	        data.size := sizeof(TAccentPolicy);
+	        data.data := @accent;
+	        SetWindowCompositionAttribute(AHandle, data);
 
-    flag := true;
-	  data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
-	  data.size := sizeof(flag);
-	  data.data := @flag;
-	  SetWindowCompositionAttribute(AHandle, data);
+          flag := true;
+	        data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
+	        data.size := sizeof(flag);
+	        data.data := @flag;
+	        SetWindowCompositionAttribute(AHandle, data);
+      end;
   end
   else
   begin
@@ -257,20 +259,23 @@ var
 begin
   if IsWin10 then
   begin
-    SetWindowRgn(AHandle, 0, true);
-    ZeroMemory(@accent, sizeof(TAccentPolicy));
-    ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
-    accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
-    data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
-    data.size := sizeof(TAccentPolicy);
-    data.data := @accent;
-    SetWindowCompositionAttribute(AHandle, data);
+      if @SetWindowCompositionAttribute <> nil then
+      begin
+          SetWindowRgn(AHandle, 0, true);
+          ZeroMemory(@accent, sizeof(TAccentPolicy));
+          ZeroMemory(@data, sizeof(TWindowCompositionAttributeData));
+          accent.AccentState := integer(_ACCENTSTATE.ACCENT_DISABLED);
+          data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_ACCENT_POLICY);
+          data.size := sizeof(TAccentPolicy);
+          data.data := @accent;
+          SetWindowCompositionAttribute(AHandle, data);
 
-    flag := false;
-    data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
-    data.size := sizeof(flag);
-    data.data := @flag;
-    SetWindowCompositionAttribute(AHandle, data);
+          flag := false;
+          data.attribute := THandle(_WINDOWCOMPOSITIONATTRIBUTE.WCA_CLIENTRENDERING_POLICY);
+          data.size := sizeof(flag);
+          data.data := @flag;
+          SetWindowCompositionAttribute(AHandle, data);
+      end;
   end
   else
   begin
@@ -337,7 +342,8 @@ var
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
 begin
   result := false;
-  if IsCompositionEnabled then
+  if IsCompositionEnabled and (@DwmRegisterThumbnail <> nil)
+       and (@DwmUpdateThumbnailProperties <> nil) then
   begin
     result := Succeeded(DwmRegisterThumbnail(hwndDestination, hwndSource, @hThumbnailId));
 
@@ -357,7 +363,7 @@ var
   dstRatio, srcRatio: single;
 begin
   result := false;
-  if IsCompositionEnabled then
+  if IsCompositionEnabled and (@DwmQueryThumbnailSourceSize <> nil) then
   begin
     result := Succeeded(DwmQueryThumbnailSourceSize(hThumbnailId, @Size));
     w := Size.cx;
@@ -375,7 +381,8 @@ var
 begin
   result := false;
   try
-  if IsCompositionEnabled then
+  if IsCompositionEnabled and (@DwmQueryThumbnailSourceSize <> nil)
+       and (@DwmUpdateThumbnailProperties <> nil) then
   begin
       DwmQueryThumbnailSourceSize(hThumbnailId, @Size);
       dstRatio := 1;
@@ -416,7 +423,7 @@ var
   dskThumbProps: _DWM_THUMBNAIL_PROPERTIES;
 begin
   result := false;
-  if IsCompositionEnabled then
+  if IsCompositionEnabled and (@DwmUpdateThumbnailProperties <> nil) then
   begin
       FillChar(dskThumbProps, sizeof(_DWM_THUMBNAIL_PROPERTIES), #0);
       dskThumbProps.dwFlags := DWM_TNP_VISIBLE;
@@ -432,11 +439,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TDWMHelper.InvokeAeroPeek(Enable: integer; Target, Caller: THandle);
-var
-  ip: pinteger;
 begin
-  //ip := pinteger(32);
-  //if assigned(DwmInvokeAeroPeek) then DwmInvokeAeroPeek(Enable, Target, Caller, 1, ip, $3244);
   if assigned(DwmInvokeAeroPeek) then DwmInvokeAeroPeek(Enable, Target, Caller, 1);
 end;
 //------------------------------------------------------------------------------

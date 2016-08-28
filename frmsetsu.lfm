@@ -1,12 +1,12 @@
 object frmsets: Tfrmsets
-  Left = 763
+  Left = 519
   Height = 561
-  Top = 197
-  Width = 629
+  Top = 183
+  Width = 673
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
   ClientHeight = 561
-  ClientWidth = 629
+  ClientWidth = 673
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -19,14 +19,14 @@ object frmsets: Tfrmsets
   Position = poScreenCenter
   LCLVersion = '1.6.0.4'
   object pages: TPageControl
-    Left = 105
+    Left = 150
     Height = 500
-    Top = 15
+    Top = 10
     Width = 515
     ActivePage = tsGeneral
     ShowTabs = False
     TabIndex = 0
-    TabOrder = 1
+    TabOrder = 0
     object tsGeneral: TTabSheet
       Caption = 'General'
       ClientHeight = 492
@@ -1151,55 +1151,52 @@ object frmsets: Tfrmsets
   end
   object btn_ok: TBitBtn
     Left = 380
-    Height = 26
-    Top = 525
-    Width = 111
+    Height = 30
+    Top = 520
+    Width = 135
     Caption = 'OK'
     OnClick = btn_okClick
-    TabOrder = 2
+    TabOrder = 1
   end
   object btn_cancel: TBitBtn
-    Left = 500
-    Height = 26
-    Top = 525
-    Width = 111
+    Left = 520
+    Height = 30
+    Top = 520
+    Width = 135
     Caption = 'Cancel'
     OnClick = btn_cancelClick
-    TabOrder = 3
+    TabOrder = 2
   end
-  object lv: TListView
-    Left = 15
-    Height = 535
-    Top = 15
-    Width = 85
+  object tv: TTreeView
+    Left = 10
+    Height = 482
+    Top = 25
+    Width = 136
+    BackgroundColor = clDefault
     BorderStyle = bsNone
-    Columns = <    
-      item
-        Alignment = taCenter
-        AutoSize = True
-        Width = 10
-      end>
+    DefaultItemHeight = 40
     HideSelection = False
-    IconOptions.AutoArrange = True
-    IconOptions.WrapText = False
-    Items.LazData = {
-      BD0000000700000000000000FFFFFFFFFFFFFFFF000000000700000047656E65
-      72616C01000000FFFFFFFFFFFFFFFF0000000008000000506F736974696F6E02
-      000000FFFFFFFFFFFFFFFF00000000050000005374796C6503000000FFFFFFFF
-      FFFFFFFF000000000500000049636F6E7304000000FFFFFFFFFFFFFFFF000000
-      00040000004D69736306000000FFFFFFFFFFFFFFFF0000000007000000416374
-      696F6E7305000000FFFFFFFFFFFFFFFF000000000500000041626F7574
-    }
-    LargeImages = images
+    Images = images
     ParentColor = True
     ReadOnly = True
+    RowSelect = True
     ScrollBars = ssNone
-    ShowColumnHeaders = False
-    TabOrder = 0
+    ShowButtons = False
+    ShowRoot = False
+    TabOrder = 3
     ToolTips = False
-    ViewStyle = vsIcon
-    OnCustomDrawItem = lvCustomDrawItem
-    OnSelectItem = lvSelectItem
+    OnSelectionChanged = tvSelectionChanged
+    Options = [tvoKeepCollapsedNodes, tvoReadOnly, tvoRowSelect, tvoShowLines, tvoThemedDraw]
+    Items.Data = {
+      F9FFFFFF0200070000000000000000000000FFFFFFFFFFFFFFFF000000000000
+      0000000700000047656E6572616C0100000001000000FFFFFFFFFFFFFFFF0000
+      0000000000000008000000506F736974696F6E0200000002000000FFFFFFFFFF
+      FFFFFF000000000000000000050000005374796C650300000003000000FFFFFF
+      FFFFFFFFFF0000000000000000000500000049636F6E730400000004000000FF
+      FFFFFFFFFFFFFF000000000000000000040000004D6973630600000006000000
+      FFFFFFFFFFFFFFFF00000000000000000007000000416374696F6E7305000000
+      05000000FFFFFFFFFFFFFFFF0000000000000000000500000041626F7574
+    }
   end
   object images: TImageList
     Height = 32

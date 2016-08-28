@@ -28,11 +28,7 @@ type
     hUser32: HMODULE;
     hPowrprofDll: HMODULE;
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
-    {$ifdef CPU64}
     QueryFullProcessImageName: function(hProcess: THandle; dwFlags: dword; lpExeName: PWChar; var lpdwSize: dword): boolean; stdcall;
-    {$else CPU64}
-    QueryFullProcessImageName: function(hProcess: THandle; dwFlags: dword; lpExeName: PAnsiChar; var lpdwSize: dword): boolean; stdcall;
-    {$endif CPU64}
     // processes //
     procedure EnumProc32;
     procedure EnumProc64;

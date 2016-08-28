@@ -1,7 +1,7 @@
 unit gfx;
 
 interface
-uses Windows, Classes, SysUtils, ShellAPI, CommCtrl, GDIPAPI, ActiveX;
+uses Windows, Classes, SysUtils, ShellAPI, CommCtrl, GDIPAPI, ActiveX, loggeru;
 
 const
   HLSMAX    = 240;
@@ -76,26 +76,26 @@ type
   end;
   LPBLENDFUNCTION = ^BLENDFUNCTION;
 
-  SIIGBF = (
-    SIIGBF_RESIZETOFIT    = $0,
-    SIIGBF_BIGGERSIZEOK   = $1,
-    SIIGBF_MEMORYONLY     = $2,
-    SIIGBF_ICONONLY       = $4,
-    SIIGBF_THUMBNAILONLY  = $8,
-    SIIGBF_INCACHEONLY    = $10,
-    SIIGBF_CROPTOSQUARE   = $20,
-    SIIGBF_WIDETHUMBNAILS = $40,
-    SIIGBF_ICONBACKGROUND = $80,
-    SIIGBF_SCALEUP        = $100
-  );
+const
+  SIIGBF_RESIZETOFIT    = $0;
+  SIIGBF_BIGGERSIZEOK   = $1;
+  SIIGBF_MEMORYONLY     = $2;
+  SIIGBF_ICONONLY       = $4;
+  SIIGBF_THUMBNAILONLY  = $8;
+  SIIGBF_INCACHEONLY    = $10;
+  SIIGBF_CROPTOSQUARE   = $20;
+  SIIGBF_WIDETHUMBNAILS = $40;
+  SIIGBF_ICONBACKGROUND = $80;
+  SIIGBF_SCALEUP        = $100;
 
+type
   PIShellItemImageFactory = ^IShellItemImageFactory;
   IShellItemImageFactory = interface(IUnknown)
     ['{bcc18b79-ba16-442f-80c4-8a59c30c463b}']
-    function GetImage(size: SIZE; flags: SIIGBF; out hbm: HBITMAP): HResult; stdcall;
+    function GetImage(size: SIZE; flags: UINT; out hbm: HBITMAP): HResult; stdcall;
   end;
 
-  function SHCreateItemFromParsingName(pszPath: PCWSTR; var pbc: IBindCtx; riid: REFIID; out ppv: IUnknown): HResult; stdcall; external 'shell32.dll' name 'SHCreateItemFromParsingName';
+  function SHCreateItemFromParsingName(pszPath: PCWSTR; pbc: IBindCtx; riid: REFIID; out ppv: IUnknown): HResult; stdcall; external 'shell32.dll' name 'SHCreateItemFromParsingName';
 
   function UpdateLayeredWindow(hWnd: HWND; hdcDst: HDC; pptDst: LPPOINT;
     psize: LPSIZE; hdcSrc: HDC; pptSrc: LPPOINT; crKey: COLORREF;
@@ -127,7 +127,7 @@ procedure DrawItemIndicator(dst: Pointer; iType: integer; X, Y, Width, Height: i
 procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 255);
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-procedure LoadImageFromShellItem(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromShellItem(name: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 function GetIconFromFileSH(aFile: WideString): HICON;
@@ -1062,28 +1062,29 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure LoadImageFromShellItem(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
+procedure LoadImageFromShellItem(name: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 var
   imageFactory: IShellItemImageFactory;
-  hBm: HBitmap;
-  bCtx: IBindCtx;
+  hBm: HBitmap = 0;
   THUMB_SIZE: windows.TSize;
 begin
   try if image <> nil then GdipDisposeImage(image);
   except end;
   image := nil;
-  if not Assigned(pidl) then exit;
+  if name = '' then exit;
 
   try
     THUMB_SIZE.cx := MaxSize;
     THUMB_SIZE.cy := MaxSize;
     srcwidth := MaxSize;
     srcheight := MaxSize;
-    SHCreateItemFromParsingName(pwchar(pidl), bCtx, IID_IShellItemImageFactory, IUnknown(imageFactory));
-    imageFactory.GetImage(THUMB_SIZE, SIIGBF_RESIZETOFIT, hBm);
+    SHCreateItemFromParsingName(pwchar(name), nil, IID_IShellItemImageFactory, IUnknown(imageFactory));
+    imageFactory.GetImage(THUMB_SIZE, SIIGBF_BIGGERSIZEOK or SIIGBF_ICONONLY, hBm);
     GdipCreateBitmapFromHBITMAP(hBm, 0, image);
+    if hBm <> 0 then DeleteObject(hBm);
+    DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
   except
-    on e: Exception do raise Exception.Create('LoadImageFromPIDL ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('LoadImageFromShellItem ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

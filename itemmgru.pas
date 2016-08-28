@@ -287,13 +287,14 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TItemManager.err(where: string; e: Exception; Critical: boolean = false);
+var
+  msg: WideString;
 begin
   if assigned(e) then where := where + ' ' + LineEnding + e.Message else where := where + ' ' + LineEnding + 'Error';
   if Critical then
   begin
-    messagebox(FParentHWnd,
-      pchar(UTF8ToAnsi(XErrorCritical + ' ' + XErrorContactDeveloper) + LineEnding + LineEnding + where),
-      PROGRAM_NAME, MB_ICONERROR);
+    msg := UTF8Decode(XErrorCritical + ' ' + XErrorContactDeveloper) + LineEnding + LineEnding + where;
+    messageboxw(FParentHWnd, pwchar(msg), PROGRAM_NAME, MB_ICONERROR);
     halt;
   end else
     raise Exception.Create(where);

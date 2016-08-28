@@ -8,6 +8,8 @@ uses jwaWindows, Windows, SysUtils, Classes;
 // example: loggeru.SetLogFileName(ChangeFileExt(ParamStr(0), '.log'));
 procedure SetLogFileName(LogFile: string);
 
+function GetLogFileName: string;
+
 // log a string
 procedure AddLog(LogString: string);
 
@@ -33,6 +35,11 @@ implementation
 procedure SetLogFileName(LogFile: string);
 begin
   LogFileName := LogFile;
+end;
+//------------------------------------------------------------------------------
+function GetLogFileName: string;
+begin
+  result := LogFileName;
 end;
 //------------------------------------------------------------------------------
 procedure AddLogBlob(Data: Pointer; Length: integer);

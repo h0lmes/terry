@@ -3,7 +3,7 @@ unit frmDebugU;
 {$mode delphi}
 interface
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, loggeru;
 
 type
   TfrmDebug = class(TForm)
@@ -41,7 +41,7 @@ begin
   memo.lines.add('');
   log := TStringList.Create;
   try
-    log.LoadFromFile(UnzipPath('%pp%\log.log'));
+    log.LoadFromFile(loggeru.GetLogFileName);
     memo.lines.AddText(AnsiToUTF8(log.Text));
   except
     on e: Exception do memo.lines.add('>>> ' + e.message);

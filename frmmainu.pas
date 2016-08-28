@@ -1508,7 +1508,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AppException(Sender: TObject; e: Exception);
 begin
-  notify(WideString('[AppException] ' + LineEnding + Sender.ClassName + LineEnding + e.message));
+  notify('[AppException] ' + LineEnding + Sender.ClassName + LineEnding + e.message);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.AppDeactivate(Sender: TObject);

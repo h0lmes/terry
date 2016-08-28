@@ -82,6 +82,7 @@ type
     btnAutoRunDel: TSpeedButton;
     pbox: TPaintBox;
     stMoveDockHint: TStaticText;
+    tv: TTreeView;
     tsActions: TTabSheet;
     tbAeroPeekThumbSize: TTrackBar;
     tbBaseAlpha: TTrackBar;
@@ -131,7 +132,6 @@ type
     chbShowRunningIndicator: TCheckBox;
     chbActivateRunning: TCheckBox;
     btn_cancel: TBitBtn;
-    lv: TListView;
     images: TImageList;
     udFontSize: TUpDown;
     udFontSize2: TUpDown;
@@ -169,8 +169,6 @@ type
 		procedure hkHideKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure lbThemeDblClick(Sender: TObject);
     procedure lbThemeSelectionChange(Sender: TObject; User: boolean);
-    procedure lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
-    procedure lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
     procedure pboxPaint(Sender: TObject);
     procedure tbAeroPeekThumbSizeChange(Sender: TObject);
     procedure tbBaseAlphaChange(Sender: TObject);
@@ -206,6 +204,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure memAutorunChange(Sender: TObject);
     procedure btnAutoRunAddClick(Sender: TObject);
+    procedure tvSelectionChanged(Sender: TObject);
   private
     PageIndex: integer;
     AutorunListChanged: boolean;
@@ -274,13 +273,13 @@ begin
   lblCredits6.Font.Color := clGray;
   lblCredits7.Font.Color := clGray;
 
-  lv.Items[0].Caption := XPageGeneral;
-  lv.Items[1].Caption := XPagePosition;
-  lv.Items[2].Caption := XPageStyle;
-  lv.Items[3].Caption := XPageIcons;
-  lv.Items[4].Caption := XPageMisc;
-  lv.Items[5].Caption := XPageActions;
-  lv.Items[6].Caption := XPageAbout;
+  tv.Items.Item[0].Text := XPageGeneral;
+  tv.Items.Item[1].Text := XPagePosition;
+  tv.Items.Item[2].Text := XPageStyle;
+  tv.Items.Item[3].Text := XPageIcons;
+  tv.Items.Item[4].Text := XPageMisc;
+  tv.Items.Item[5].Text := XPageActions;
+  tv.Items.Item[6].Text := XPageAbout;
 
   cboBaseSite.Items.Add(XSiteLeft);
   cboBaseSite.Items.Add(XSiteTop);
@@ -296,6 +295,17 @@ begin
   cboItemAnimationType.Items.Add(XAnimationSwing);
   cboItemAnimationType.Items.Add(XAnimationVibrate);
   cboItemAnimationType.Items.Add(XAnimationZoom);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.tvSelectionChanged(Sender: TObject);
+var
+  i: integer = 0;
+begin
+  while i < tv.Items.Count do
+  begin
+    if tv.Items.Item[i].Selected then pages.ActivePageIndex := i;
+    inc(i);
+  end;
 end;
 //------------------------------------------------------------------------------
 // preserves OnChange event
@@ -365,7 +375,7 @@ begin
     constraints.MaxHeight := Height;
     constraints.MinWidth := Width;
     constraints.MaxWidth := Width;
-    lv.ItemIndex := PageIndex;
+    tv.Selected := tv.Items.Item[PageIndex];
     toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
     lblTitle.Caption := PROGRAM_NAME + ' ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);
     {$ifdef CPU64}
@@ -551,31 +561,6 @@ begin
   except
     on e: Exception do frmmain.err('frmSets.Cancel', e);
   end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.lvSelectItem(Sender: TObject; Item: TListItem; Selected: Boolean);
-begin
-  if lv.ItemIndex > -1 then pages.ActivePageIndex := lv.ItemIndex;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.lvCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
-var
-  r: windows.TRect;
-begin
-  DefaultDraw := false;
-  r := item.DisplayRect(drIcon);
-  images.Draw(sender.canvas, r.Left + (r.Right - r.Left - images.Width) div 2, r.Top, Item.ImageIndex);
-
-  if Item.Selected then
-  begin
-    sender.canvas.Font.color := clHighlight;
-    sender.canvas.Font.Underline := true;
-  end;
-  r := item.DisplayRect(drLabel);
-  r.Left := r.Left + (r.Right - r.Left - sender.Canvas.TextWidth(Item.Caption)) div 2;
-  sender.Canvas.TextOut(r.Left, r.Top, Item.Caption);
-  sender.canvas.Font.color := sender.Font.color;
-  sender.canvas.Font.Underline := sender.Font.Underline;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnDebugClick(Sender: TObject);
