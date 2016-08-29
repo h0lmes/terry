@@ -234,6 +234,10 @@ msgctxt "declu.xmonitor"
 msgid "Monitor"
 msgstr "Монитор"
 
+#: declu.xmsgconfirmrestore
+msgid "Confirm restore operation."
+msgstr "Подтвердите операцию восстановления."
+
 #: declu.xmsgnotificationareaicons
 msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
 msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
@@ -265,7 +269,6 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#, fuzzy
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
 msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
@@ -1055,7 +1058,6 @@ msgid "Monitor"
 msgstr "Монитор:"
 
 #: tfrmsets.lblmouseovertip.caption
-#, fuzzy
 #| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
 msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
 msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"

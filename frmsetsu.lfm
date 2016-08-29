@@ -1,11 +1,11 @@
 object frmsets: Tfrmsets
   Left = 519
-  Height = 561
+  Height = 520
   Top = 183
   Width = 673
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
-  ClientHeight = 561
+  ClientHeight = 520
   ClientWidth = 673
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
@@ -1150,26 +1150,26 @@ object frmsets: Tfrmsets
     end
   end
   object btn_ok: TBitBtn
-    Left = 380
+    Left = 10
     Height = 30
-    Top = 520
-    Width = 135
+    Top = 435
+    Width = 130
     Caption = 'OK'
     OnClick = btn_okClick
     TabOrder = 1
   end
   object btn_cancel: TBitBtn
-    Left = 520
+    Left = 10
     Height = 30
-    Top = 520
-    Width = 135
+    Top = 475
+    Width = 130
     Caption = 'Cancel'
     OnClick = btn_cancelClick
     TabOrder = 2
   end
   object tv: TTreeView
     Left = 10
-    Height = 482
+    Height = 387
     Top = 25
     Width = 136
     BackgroundColor = clDefault

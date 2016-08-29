@@ -253,6 +253,7 @@ resourcestring
   XMsgSetsRestored = 'The settings are restored from backup.';
   XMsgRunAgain = 'Run the program again.';
   XMsgRunRestore = 'Run restore operation.';
+  XMsgConfirmRestore = 'Confirm restore operation.';
   XErrorSetsBackupFailed = 'Failed to backup settings.';
   XErrorHelpNotFound = 'Help file not found! Try reinstalling the program.';
   XErrorIn = 'Error in';

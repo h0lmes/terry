@@ -213,6 +213,10 @@ msgctxt "declu.xmonitor"
 msgid "Monitor"
 msgstr ""
 
+#: declu.xmsgconfirmrestore
+msgid "Confirm restore operation."
+msgstr ""
+
 #: declu.xmsgnotificationareaicons
 msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
 msgstr ""

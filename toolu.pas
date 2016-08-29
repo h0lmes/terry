@@ -170,7 +170,7 @@ procedure SetClipboard(Text: string);
 function GetClipboard: string;
 function ColorToString(Color: uint): string;
 function StringToColor(const str: string): uint;
-function confirm(handle: HWND; Text: string = ''): boolean;
+function confirm(handle: HWND; Text: WideString = ''): boolean;
 function FindWinamp: HWND;
 function LaunchWinamp(sw: integer = sw_shownormal): boolean;
 function wacmd(cmd: HANDLE): boolean;
@@ -1107,10 +1107,10 @@ begin
   Result := StrToInt(str);
 end;
 //------------------------------------------------------------------------------
-function confirm(handle: HWND; Text: string = ''): boolean;
+function confirm(handle: HWND; Text: WideString = ''): boolean;
 begin
   if Text = '' then Text := 'Confirm action';
-  Result := messagebox(handle, PChar(Text), 'Confirm', mb_yesno or mb_iconexclamation or mb_defbutton2) = idYes;
+  Result := messageboxw(handle, PWChar(Text), 'Confirm', mb_yesno or mb_iconexclamation or mb_defbutton2) = idYes;
 end;
 //------------------------------------------------------------------------------
 function FindWinamp: HWND;

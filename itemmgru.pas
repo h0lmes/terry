@@ -1279,6 +1279,7 @@ begin
   if FEnabled then
   try
     idx := FItemCount;
+    {$ifdef EXT_DEBUG} AddLog('SetItems2. FItemCount = ' + inttostr(FItemCount)); {$endif}
     wpi := BeginDeferWindowPos(idx);
     show_items := swp_hidewindow;
     if FVisible then show_items := swp_showwindow;
@@ -1294,6 +1295,7 @@ begin
     end;
 
     EndDeferWindowPos(wpi);
+    {$ifdef EXT_DEBUG} AddLog('EndDeferWindowPos'); {$endif}
   except
     on e: Exception do err('ItemManager.SetItems2', e);
   end;

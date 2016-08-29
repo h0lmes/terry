@@ -899,8 +899,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnTimerMain;
-var
-  setsVisible: boolean;
 begin
   if IsWindowVisible(Handle) then
   begin
@@ -911,9 +909,7 @@ begin
 
   OnTimerDoRollUpDown;
 
-  setsVisible := false;
-  if assigned(frmsets) then setsVisible := frmsets.visible;
-  if not setsVisible then DoGlobalHotkeys;
+  if not Tfrmsets.IsVisible then DoGlobalHotkeys;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnTimerSlow;
@@ -1038,6 +1034,7 @@ begin
       end
       else FWndOffset := FWndOffsetTarget;
       if assigned(ItemMgr) then ItemMgr.WndOffset := FWndOffset;
+      {$ifdef EXT_DEBUG} AddLog('OnTimerDoRollUpDown. FWndOffset = ' + inttostr(FWndOffset)); {$endif}
     end;
 end;
 //------------------------------------------------------------------------------
@@ -1333,7 +1330,7 @@ var
   bmp: gfx._SimpleBitmap;
   needRepaint: boolean;
 begin
-  if assigned(ItemMgr) and assigned(theme) and Visible and not FProgramIsClosing then
+  if assigned(ItemMgr) and assigned(theme) and ItemMgr.Visible and not FProgramIsClosing then
   try
     dst := nil;
     needRepaint := flags and 1 = 1;

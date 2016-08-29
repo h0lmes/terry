@@ -13,7 +13,7 @@ object frmRestore: TfrmRestore
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '1.6.0.4'
   object list: TListBox
     Left = 15
     Height = 277

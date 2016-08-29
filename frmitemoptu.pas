@@ -153,7 +153,7 @@ begin
   result := false;
 
   if FChanged then
-    if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
+    if not confirm(Handle, UTF8Decode(XMsgUnsavedIconParams)) then exit;
 
   Inst := TObject(GetWindowLongPtr(itemWnd, GWL_USERDATA));
   if not (Inst is TShortcutItem) and not (Inst is TShortcutSubitem) then exit;

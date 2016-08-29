@@ -217,6 +217,7 @@ type
     procedure SaveAutorun;
     procedure ApplyFont(Sender: TObject);
   public
+    class function  IsVisible: boolean;
     class procedure Open(APageIndex: integer = 0);
   end;
 
@@ -230,6 +231,13 @@ uses setsu, themeu, frmmainu, frmthemeeditoru, frmDebugU;
 procedure err(s: string);
 begin
   messagebox(frmmain.handle, pchar(s), PROGRAM_NAME, MB_ICONERROR);
+end;
+//------------------------------------------------------------------------------
+class function Tfrmsets.IsVisible: boolean;
+begin
+  result := false;
+  try if assigned(frmsets) then result := frmsets.Visible;
+  except end;
 end;
 //------------------------------------------------------------------------------
 class procedure Tfrmsets.Open(APageIndex: integer);

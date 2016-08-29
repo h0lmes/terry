@@ -27,7 +27,7 @@ var
   frmRestore: TfrmRestore;
 
 implementation
-uses frmmainu, toolu;
+uses declu, frmmainu, toolu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmRestore.Open;
@@ -58,8 +58,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmRestore.btnRestoreClick(Sender: TObject);
 begin
-  close;
-  if list.ItemIndex >= 0 then frmmain.Restore(list.Items.Strings[list.ItemIndex]);
+  if list.ItemIndex >= 0 then
+    if confirm(Handle, UTF8Decode(XMsgConfirmRestore)) then
+    begin
+      close;
+      frmmain.Restore(list.Items.Strings[list.ItemIndex]);
+    end;
 end;
 //------------------------------------------------------------------------------
 end.

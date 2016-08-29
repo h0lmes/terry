@@ -1,0 +1,1 @@
+copy .\digital.dll c:\terry\docklets\DigitalClock\digital.dll

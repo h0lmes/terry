@@ -174,7 +174,7 @@ begin
   result := false;
 
   if FChanged then
-    if not confirm(Handle, UTF8ToAnsi(XMsgUnsavedIconParams)) then exit;
+    if not confirm(Handle, UTF8Decode(XMsgUnsavedIconParams)) then exit;
 
   Item := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
   if not (Item is TStackItem) then exit;

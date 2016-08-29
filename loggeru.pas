@@ -144,7 +144,7 @@ begin
   if LogFileName <> '' then
   try
     // prepare log string
-    LogString := formatdatetime('yyMMdd-hhnnss', now) + '  ' + LogString + LineEnding;
+    LogString := formatdatetime('yyMMdd-hhnnss.zzz', now) + '  ' + LogString + LineEnding;
     LengthLogString := Length(LogString);
     PStr := StrAlloc(LengthLogString + 1);
     StrPCopy(PStr, LogString);
