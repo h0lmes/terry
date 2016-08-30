@@ -140,6 +140,11 @@ type
     procedure OpenWith(filename: string);
     function  FullScreenAppActive: boolean;
     function  ListFullScreenApps: string;
+    procedure ThemesMenu;
+    procedure SetTaskSpot(wnd: THandle);
+    procedure ListRegisteredPrograms;
+    procedure ListTasksAndModules;
+    procedure WinampCmd(params: string; showcmd: integer = sw_shownormal);
     procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
     procedure execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
     procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
@@ -226,17 +231,23 @@ begin
     {$ifdef EXT_DEBUG} AddLog('Theme.Load'); {$endif}
 
     // create ItemManager (disabled, invisible, ...) //
-    ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
-      sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
-      sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomEnabled,
-      sets.container.ReflectionEnabled, sets.container.ReflectionSize, sets.container.LaunchInterval,
-      sets.container.ItemAnimationType, sets.container.SeparatorAlpha,
-      sets.container.ActivateRunningApps, sets.container.UseShellContextMenus, sets.container.LockDragging,
-      sets.container.StackAnimationEnabled,
-      sets.container.TaskLivePreviews, sets.container.TaskGrouping,
-      sets.container.TaskThumbSize, sets.container.TaskSpot,
-      sets.container.ShowHint, sets.container.Font);
-    {$ifdef EXT_DEBUG} AddLog('TItemManager.Create'); {$endif}
+    try
+      ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
+          sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
+          sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomEnabled,
+          sets.container.ReflectionEnabled, sets.container.ReflectionSize, sets.container.LaunchInterval,
+          sets.container.ItemAnimationType, sets.container.SeparatorAlpha,
+          sets.container.ActivateRunningApps, sets.container.UseShellContextMenus, sets.container.LockDragging,
+          sets.container.StackAnimationEnabled,
+          sets.container.TaskLivePreviews, sets.container.TaskGrouping,
+          sets.container.TaskThumbSize, sets.container.TaskSpot,
+          sets.container.ShowHint, sets.container.Font);
+      {$ifdef EXT_DEBUG} AddLog('TItemManager.Create'); {$endif}
+    except
+      notify(UTF8Decode(XErrorCritical + ' ' + XErrorContactDeveloper));
+      AddLog('Exception in TItemManager.Create');
+      halt;
+    end;
     SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
@@ -2010,7 +2021,87 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
+// show popup menu to select a theme
+procedure Tfrmmain.ThemesMenu;
+var
+  menu: HMENU;
+  pt: windows.TPoint;
+  ret: integer;
+  mii: TMenuItemInfo;
+  mname: array [0..MAX_PATH - 1] of char;
+begin
+  GetCursorPos(pt);
+  menu := CreatePopupMenu;
+  AppendMenuW(menu, MF_STRING, $f000, pwchar(UTF8Decode(XOpenThemesFolder)));
+  AppendMenuW(menu, MF_SEPARATOR, 0, '-');
+  theme.ThemesMenu(pchar(sets.container.ThemeName), menu);
+  LockMouseEffect(Handle, true);
+  SetForegroundWindow(handle);
+  SetForeground;
+  ret := integer(TrackPopupMenuEx(menu, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
+  LockMouseEffect(Handle, false);
+  if ret = $f000 then execute_cmdline(theme.ThemesFolder)
+  else
+  if ret <> 0 then
+  begin
+    FillChar(mii, sizeof(mii), #0);
+    mii.cbSize := sizeof(mii);
+    mii.dwTypeData := @mname;
+    mii.cch := MAX_PATH;
+    mii.fMask := MIIM_STRING;
+    GetMenuItemInfo(menu, ret, false, @mii);
+    if strlen(pchar(@mname)) > 0 then setTheme(pchar(@mname));
+  end;
+end;
+//------------------------------------------------------------------------------
+// set a position for taskbar icons to be placed on the dock
+procedure Tfrmmain.SetTaskSpot(wnd: THandle);
+var
+  spot: integer;
+begin
+  spot := ItemMgr.ItemIndex(wnd);
+  if spot = ItemMgr.FItemCount - 1 then spot := -1;
+  SetParam(gpTaskSpot, spot);
+end;
+//------------------------------------------------------------------------------
+// show the list of registered programs
+// registered programs - executables from all ShortcutItem's
+procedure Tfrmmain.ListRegisteredPrograms;
+var
+  i: integer;
+begin
+  for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);
+end;
+//------------------------------------------------------------------------------
+// show the list of running tasks (processes) and modules
+procedure Tfrmmain.ListTasksAndModules;
+begin
+  notify('----- tasks -----');
+  notify(WideString(ProcessHelper.Processes));
+  notify('----- modules -----');
+  notify(WideString(ProcessHelper.ProcessesFullName));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.WinampCmd(params: string; showcmd: integer = sw_shownormal);
+begin
+  if SameText(params, 'play') then
+  begin
+    if not boolean(FindWinamp) then LaunchWinamp(showcmd) else wacmd(40045);
+  end
+  else if SameText(params, 'pause') then              wacmd(40046)
+  else if SameText(params, 'stop') then               wacmd(40047)
+  else if SameText(params, 'previous') then           wacmd(40044)
+  else if SameText(params, 'next') then               wacmd(40048)
+  else if SameText(params, 'close') then              wacmd(40001)
+  else if SameText(params, 'preferences') then        wacmd(40012)
+  else if SameText(params, 'open_file') then          wacmd(40029)
+  else if SameText(params, 'stop_after_current') then wacmd(40157)
+  else if SameText(params, 'visualization') then      wacmd(40192)
+  else if SameText(params, 'start_of_playlist') then  wacmd(40154)
+  else if SameText(params, 'end_of_playlist') then    wacmd(40158);
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = SW_SHOWNORMAL; hwnd: cardinal = 0);
 var
   acmd, aparams, adir: string;
 begin
@@ -2046,13 +2137,10 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
 var
-  cmd2: string;
   i, i1, i2, i3, i4: integer;
   str1, str2: string;
   lpsz1, lpsz2: pchar;
   pt: windows.TPoint;
-  mii: TMenuItemInfo;
-  mname: array [0..MAX_PATH - 1] of char;
 begin
   if cmd = '' then exit;
 
@@ -2063,32 +2151,21 @@ begin
   end;
 
   system.Delete(cmd, 1, 1);
-
   params := toolu.UnzipPath(params);
-  cmd2 := cutafter(cmd, '.');
 
-  if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cmd2, params)
+  if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cutafter(cmd, '.'), params)
   else if cmd = 'quit' then         frmmain.CloseProgram
   else if cmd = 'hide' then         frmmain.BaseCmd(tcSetVisible, 0)
-  else if cmd = 'say' then          frmmain.notify(WideString(toolu.UnzipPath(params)))
-  else if cmd = 'alert' then        frmmain.alert(WideString(toolu.UnzipPath(params)))
+  else if cmd = 'say' then          frmmain.notify(toolu.UnzipPath(params))
+  else if cmd = 'alert' then        frmmain.alert(toolu.UnzipPath(params))
   else if cmd = 'visible' then      frmmain.BaseCmd(tcToggleVisible, 0)
   else if cmd = 'systaskbar' then   frmmain.BaseCmd(tcToggleTaskbar, 0)
-  else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
-  else if cmd = 'sets' then
-  begin
-    if not trystrtoint(params, i) then i := 0;
-    Tfrmsets.Open(i);
-  end
+  else if cmd = 'sets' then         Tfrmsets.Open
   else if cmd = 'cmd' then          Tfrmcmd.Open
 	else if cmd = 'cmdna' then        Tfrmcmd.Open(true)
 	else if cmd = 'collection' then   Run('%pp%\images')
-  else if cmd = 'apps' then         Run('%pp%\apps.exe')
   else if cmd = 'taskmgr' then      Run('%sysdir%\taskmgr.exe')
-  else if cmd = 'undelete' then
-  begin
-    if assigned(ItemMgr) then       ItemMgr.UnDelete;
-  end
+  else if cmd = 'undelete' then     ItemMgr.UnDelete
   else if cmd = 'program' then      AddFile
   else if cmd = 'newdock' then      NewDock
   else if cmd = 'removedock' then   RemoveDock
@@ -2105,41 +2182,8 @@ begin
   else if cmd = 'battery' then      Tray.ShowBattery(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'actioncenter' then Tray.ShowActionCenter(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'startmenu' then    StartMenu.Show(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
-  else if cmd = 'theme' then // themes popup menu
-  begin
-    GetCursorPos(pt);
-    i := CreatePopupMenu;
-    AppendMenuW(i, MF_STRING, $f000, pwchar(UTF8Decode(XOpenThemesFolder)));
-    AppendMenuW(i, MF_SEPARATOR, 0, '-');
-    theme.ThemesMenu(pchar(sets.container.ThemeName), i);
-    LockMouseEffect(Handle, true);
-    SetForegroundWindow(handle);
-    SetForeground;
-    i1 := integer(TrackPopupMenuEx(i, TPM_RETURNCMD, pt.x, pt.y, handle, nil));
-    LockMouseEffect(Handle, false);
-    if i1 = $f000 then execute_cmdline(theme.ThemesFolder)
-    else
-    if i1 <> 0 then
-    begin
-      FillChar(mii, sizeof(mii), #0);
-      mii.cbSize := sizeof(mii);
-      mii.dwTypeData := @mname;
-      mii.cch := MAX_PATH;
-      mii.fMask := MIIM_STRING;
-      GetMenuItemInfo(i, i1, false, @mii);
-      str1 := pchar(@mname);
-      if str1 <> '' then setTheme(str1);
-    end;
-  end
-  else if cmd = 'taskspot' then
-  begin
-    if assigned(ItemMgr) then
-    begin
-      i := ItemMgr.ItemIndex(hwndCaller);
-      if i = ItemMgr.FItemCount - 1 then i := -1;
-      SetParam(gpTaskSpot, i);
-    end;
-  end
+  else if cmd = 'theme' then        ThemesMenu
+  else if cmd = 'taskspot' then     SetTaskSpot(hwndCaller)
   else if cmd = 'themeeditor' then  TfrmThemeEditor.Open
   else if cmd = 'lockdragging' then SetParam(gpLockDragging, ifthen(sets.GetParam(gpLockDragging) = 0, 1, 0))
   else if cmd = 'site' then         SetParam(gpSite, integer(StringToSite(params)))
@@ -2151,17 +2195,12 @@ begin
   else if cmd = 'kill' then         ProcessHelper.Kill(params)
   else if cmd = 'displayoff' then   sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'emptybin' then     SHEmptyRecycleBin(Handle, nil, 0)
-  else if cmd = 'regp' then
-  begin
-    for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(WideString(ItemMgr._registeredPrograms.Strings[i]));
-  end
-  else if cmd = 'tasks' then
-  begin
-    notify('----- tasks -----');
-    notify(WideString(ProcessHelper.Processes));
-    notify('----- modules -----');
-    notify(WideString(ProcessHelper.ProcessesFullName));
-  end
+  else if cmd = 'winamp' then       WinampCmd(params, showcmd)
+  else if cmd = 'play' then         sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
+  else if cmd = 'guid' then         SetClipboard(CreateClassId)
+  else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
+  else if cmd = 'regp' then         ListRegisteredPrograms
+  else if cmd = 'tasks' then        ListTasksAndModules
   else if cmd = 'setdisplaymode' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i1) then i1 := 1024;
@@ -2208,25 +2247,7 @@ begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i3) then i3 := 0;
     if not trystrtoint(Trim(fetch(params, ',', true)), i4) then i4 := 0;
     sendmessage(THandle(inta), uint(i2), i3, i4);
-  end
-  else if cmd = 'winamp' then
-  begin
-    if SameText(params, 'play') then
-      if not boolean(FindWinamp) then LaunchWinamp(showcmd) else toolu.wacmd(40045);
-    if SameText(params, 'pause') then toolu.wacmd(40046);
-    if SameText(params, 'stop') then toolu.wacmd(40047);
-    if SameText(params, 'previous') then toolu.wacmd(40044);
-    if SameText(params, 'next') then toolu.wacmd(40048);
-    if SameText(params, 'close') then toolu.wacmd(40001);
-    if SameText(params, 'preferences') then toolu.wacmd(40012);
-    if SameText(params, 'open_file') then toolu.wacmd(40029);
-    if SameText(params, 'stop_after_current') then toolu.wacmd(40157);
-    if SameText(params, 'visualization') then toolu.wacmd(40192);
-    if SameText(params, 'start_of_playlist') then toolu.wacmd(40154);
-    if SameText(params, 'end_of_playlist') then toolu.wacmd(40158);
-  end
-  else if cmd = 'play' then sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
-  else if cmd = 'guid' then SetClipboard(CreateClassId);
+  end;
 end;
 //------------------------------------------------------------------------------
 // thread function
@@ -2273,15 +2294,13 @@ begin
     if IsPIDLString(exename) then aPIDL := PIDL_FromString(exename);
     if assigned(aPIDL) then
     begin
-	    sei.cbSize := sizeof(sei);
+      ZeroMemory(@sei, sizeof(sei));
+      sei.cbSize := sizeof(sei);
 	    sei.lpIDList := aPIDL;
+	    sei.fMask := SEE_MASK_IDLIST;
 	    sei.Wnd := Handle;
 	    sei.nShow := 1;
 	    sei.lpVerb := 'open';
-	    sei.lpFile := nil;
-	    sei.lpParameters := nil;
-	    sei.lpDirectory := nil;
-	    sei.fMask := SEE_MASK_IDLIST;
 	    ShellExecuteExW(@sei);
       PIDL_Free(aPIDL);
       exit;

@@ -321,6 +321,11 @@ msgctxt "declu.xpagestyle"
 msgid "Style"
 msgstr "Стиль"
 
+#: declu.xpagetaskbar
+msgctxt "declu.xpagetaskbar"
+msgid "Taskbar"
+msgstr "Панель задач"
+
 #: declu.xpaste
 msgid "Paste"
 msgstr "Вставить"
@@ -817,9 +822,9 @@ msgid "Settings"
 msgstr "Настройки"
 
 #: tfrmsets.cbactivateonmouse.caption
-#| msgid "Activate dock on mouseover"
-msgid "Activate dock on mouseover after, msec"
-msgstr "Активировать док при наведении мыши через, мс"
+#| msgid "Activate dock on mouseover after, msec"
+msgid "Activate dock on mouseover"
+msgstr "Активировать док при наведении мыши"
 
 #: tfrmsets.cbautohide.caption
 #| msgid "Slide into screen edge when mouse is not over the panel"
@@ -840,8 +845,9 @@ msgid "Show hint (icon name)"
 msgstr "Показывать подсказки (имена значков)"
 
 #: tfrmsets.cbuseshell.caption
-msgid "Use this shell to open local and network folders:"
-msgstr "Использовать этот шелл для открытия локальных и сетевых папок:"
+#| msgid "Use this shell to open local and network folders:"
+msgid "Use this shell to open local and network folders"
+msgstr "Использовать этот шелл для открытия локальных и сетевых папок"
 
 #: tfrmsets.cbzoomitems.caption
 msgid "Zoom icons when mouse is over"
@@ -925,20 +931,6 @@ msgctxt "tfrmsets.chbuseshellcontextmenus.caption"
 msgid "Show Windows Explorer context menus for programs"
 msgstr "Показывать контекстные меню Проводника Windows для программ"
 
-#: tfrmsets.dividerbevel1.caption
-msgctxt "tfrmsets.dividerbevel1.caption"
-msgid "Font"
-msgstr "Шрифт"
-
-#: tfrmsets.dividerbevel2.caption
-msgctxt "tfrmsets.dividerbevel2.caption"
-msgid "Autorun"
-msgstr "Автозапуск"
-
-#: tfrmsets.dividerbevel3.caption
-msgid "Taskbar"
-msgstr "Панель задач"
-
 #: tfrmsets.dividerbevel4.caption
 msgctxt "tfrmsets.dividerbevel4.caption"
 msgid "Global hotkeys"
@@ -947,6 +939,16 @@ msgstr "Глобальные горячие клавиши"
 #: tfrmsets.dividerbevel5.caption
 msgid "Autoslide"
 msgstr "Автослайд"
+
+#: tfrmsets.dividerbevel6.caption
+msgctxt "tfrmsets.dividerbevel6.caption"
+msgid "Autorun"
+msgstr "Автозапуск"
+
+#: tfrmsets.dividerbevel7.caption
+msgctxt "tfrmsets.dividerbevel7.caption"
+msgid "Font"
+msgstr "Шрифт"
 
 #: tfrmsets.edactivateonmouseinterval.text
 msgid "400"
@@ -960,6 +962,14 @@ msgstr "Размер шрифта стека:"
 #| msgid "Do not occupy at the start - end, pixel"
 msgid "Margin at the start / end, px"
 msgstr "Отступ в начале - конце, пиксел"
+
+#: tfrmsets.label3.caption
+msgid "Activation delay"
+msgstr "Задержка активации"
+
+#: tfrmsets.label4.caption
+msgid "Live preview size"
+msgstr "Размер миниатюр"
 
 #: tfrmsets.lblanimateicons.caption
 msgctxt "TFRMSETS.LBLANIMATEICONS.CAPTION"
@@ -1028,9 +1038,10 @@ msgid "Offset from edge"
 msgstr "Смещение от края"
 
 #: tfrmsets.lblhidedelay.caption
+#| msgid "Delay before hide down (in milliseconds)"
 msgctxt "TFRMSETS.LBLHIDEDELAY.CAPTION"
-msgid "Delay before hide down (in milliseconds)"
-msgstr "Задержка перед скрытием (миллисекунд)"
+msgid "Delay before hide down (ms)"
+msgstr "Задержка перед скрытием (мс)"
 
 #: tfrmsets.lbliconsize.caption
 msgid "Icon size"
@@ -1041,36 +1052,31 @@ msgid "Icon spacing"
 msgstr "Расстояние между значками"
 
 #: tfrmsets.lbllaunchinterval.caption
-#| msgid "Minimum time before the next run of the program (in milliseconds):"
+#| msgid "Minimum time before the next run of the program (milliseconds):"
 msgctxt "TFRMSETS.LBLLAUNCHINTERVAL.CAPTION"
-msgid "Minimum time before the next run of the program (milliseconds):"
-msgstr "Минимальное время между запусками программ (миллисекунд):"
+msgid "Minimum time before the next run of the program (ms)"
+msgstr "Минимальное время между запусками программ (мс)"
 
 #: tfrmsets.lbllaunchintervaltip.caption
-#| msgid "(prevent accidental run of multiple copies of program)"
+#| msgid "Prevents accidental run of multiple copies of program"
 msgctxt "TFRMSETS.LBLLAUNCHINTERVALTIP.CAPTION"
-msgid "Prevents accidental run of multiple copies of program"
-msgstr "Позволяет избежать случайного запуска нескольких копий программы"
+msgid "(Prevents accidental run of multiple copies of program)"
+msgstr "(Позволяет избежать случайного запуска нескольких копий программы)"
 
 #: tfrmsets.lblmonitor.caption
 msgctxt "TFRMSETS.LBLMONITOR.CAPTION"
 msgid "Monitor"
 msgstr "Монитор:"
 
-#: tfrmsets.lblmouseovertip.caption
-#| msgid "Move mouse pointer to the edge of screen to bring panel to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foregroundMove mouse pointer to the edge of the screen to put the dock to foreground"
-msgctxt "TFRMSETS.LBLMOUSEOVERTIP.CAPTION"
-msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
-msgstr "Подведите указатель мыши к краю экрана чтобы показать  док"
-
 #: tfrmsets.lblremovedock.caption
 msgid "Caution! This action can not be undone!"
 msgstr "Внимание! Это действие не может быть отменено!"
 
 #: tfrmsets.lblshowdelay.caption
+#| msgid "Delay before show up (in milliseconds)"
 msgctxt "TFRMSETS.LBLSHOWDELAY.CAPTION"
-msgid "Delay before show up (in milliseconds)"
-msgstr "Задержка перед показом (миллисекунд)"
+msgid "Delay before show up (ms)"
+msgstr "Задержка перед показом (мс)"
 
 #: tfrmsets.lbltitle.caption
 #| msgid "Terry"
@@ -1095,6 +1101,10 @@ msgstr "Время увеличения"
 #: tfrmsets.lblzoomwideness.caption
 msgid "Zoom width"
 msgstr "Ширина увеличения"
+
+#: tfrmsets.stmouseovertip.caption
+msgid "(Move mouse pointer to the edge of the screen to put the dock to foreground)"
+msgstr "Переместите указатель мыши к краю экрана чтобы вывести док на передний план"
 
 #: tfrmsets.stmovedockhint.caption
 msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
@@ -1135,6 +1145,11 @@ msgstr "Стиль"
 msgctxt "TFRMSETS.TSSYSTEM.CAPTION"
 msgid "Misc"
 msgstr "Разное"
+
+#: tfrmsets.tstaskbar.caption
+msgctxt "tfrmsets.tstaskbar.caption"
+msgid "Taskbar"
+msgstr "Панель задач"
 
 #: tfrmstackprop.bbaddicon.hint
 msgctxt "tfrmstackprop.bbaddicon.hint"

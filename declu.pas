@@ -302,6 +302,7 @@ resourcestring
   XLabelZoomTime = 'Zoom time: %d ms';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';
   XPageGeneral = 'General';
+  XPageTaskbar = 'Taskbar';
   XPagePosition = 'Position';
   XPageStyle = 'Style';
   XPageIcons = 'Icons';

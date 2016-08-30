@@ -296,6 +296,11 @@ msgctxt "declu.xpagestyle"
 msgid "Style"
 msgstr ""
 
+#: declu.xpagetaskbar
+msgctxt "declu.xpagetaskbar"
+msgid "Taskbar"
+msgstr ""
+
 #: declu.xpaste
 msgid "Paste"
 msgstr ""
@@ -763,7 +768,7 @@ msgid "Settings"
 msgstr ""
 
 #: tfrmsets.cbactivateonmouse.caption
-msgid "Activate dock on mouseover after, msec"
+msgid "Activate dock on mouseover"
 msgstr ""
 
 #: tfrmsets.cbautohide.caption
@@ -783,7 +788,7 @@ msgid "Show hint (icon name)"
 msgstr ""
 
 #: tfrmsets.cbuseshell.caption
-msgid "Use this shell to open local and network folders:"
+msgid "Use this shell to open local and network folders"
 msgstr ""
 
 #: tfrmsets.cbzoomitems.caption
@@ -865,20 +870,6 @@ msgctxt "TFRMSETS.CHBUSESHELLCONTEXTMENUS.CAPTION"
 msgid "Show Windows Explorer context menus for programs"
 msgstr ""
 
-#: tfrmsets.dividerbevel1.caption
-msgctxt "TFRMSETS.DIVIDERBEVEL1.CAPTION"
-msgid "Font"
-msgstr ""
-
-#: tfrmsets.dividerbevel2.caption
-msgctxt "TFRMSETS.DIVIDERBEVEL2.CAPTION"
-msgid "Autorun"
-msgstr ""
-
-#: tfrmsets.dividerbevel3.caption
-msgid "Taskbar"
-msgstr ""
-
 #: tfrmsets.dividerbevel4.caption
 msgctxt "TFRMSETS.DIVIDERBEVEL4.CAPTION"
 msgid "Global hotkeys"
@@ -886,6 +877,16 @@ msgstr ""
 
 #: tfrmsets.dividerbevel5.caption
 msgid "Autoslide"
+msgstr ""
+
+#: tfrmsets.dividerbevel6.caption
+msgctxt "TFRMSETS.DIVIDERBEVEL6.CAPTION"
+msgid "Autorun"
+msgstr ""
+
+#: tfrmsets.dividerbevel7.caption
+msgctxt "TFRMSETS.DIVIDERBEVEL7.CAPTION"
+msgid "Font"
 msgstr ""
 
 #: tfrmsets.edactivateonmouseinterval.text
@@ -898,6 +899,14 @@ msgstr ""
 
 #: tfrmsets.label2.caption
 msgid "Margin at the start / end, px"
+msgstr ""
+
+#: tfrmsets.label3.caption
+msgid "Activation delay"
+msgstr ""
+
+#: tfrmsets.label4.caption
+msgid "Live preview size"
 msgstr ""
 
 #: tfrmsets.lblanimateicons.caption
@@ -961,7 +970,7 @@ msgid "Offset from edge"
 msgstr ""
 
 #: tfrmsets.lblhidedelay.caption
-msgid "Delay before hide down (in milliseconds)"
+msgid "Delay before hide down (ms)"
 msgstr ""
 
 #: tfrmsets.lbliconsize.caption
@@ -973,11 +982,11 @@ msgid "Icon spacing"
 msgstr ""
 
 #: tfrmsets.lbllaunchinterval.caption
-msgid "Minimum time before the next run of the program (milliseconds):"
+msgid "Minimum time before the next run of the program (ms)"
 msgstr ""
 
 #: tfrmsets.lbllaunchintervaltip.caption
-msgid "Prevents accidental run of multiple copies of program"
+msgid "(Prevents accidental run of multiple copies of program)"
 msgstr ""
 
 #: tfrmsets.lblmonitor.caption
@@ -985,16 +994,12 @@ msgctxt "tfrmsets.lblmonitor.caption"
 msgid "Monitor"
 msgstr ""
 
-#: tfrmsets.lblmouseovertip.caption
-msgid "Move mouse pointer to the edge of the screen to put the dock to foreground"
-msgstr ""
-
 #: tfrmsets.lblremovedock.caption
 msgid "Caution! This action can not be undone!"
 msgstr ""
 
 #: tfrmsets.lblshowdelay.caption
-msgid "Delay before show up (in milliseconds)"
+msgid "Delay before show up (ms)"
 msgstr ""
 
 #: tfrmsets.lbltitle.caption
@@ -1015,6 +1020,10 @@ msgstr ""
 
 #: tfrmsets.lblzoomwideness.caption
 msgid "Zoom width"
+msgstr ""
+
+#: tfrmsets.stmouseovertip.caption
+msgid "(Move mouse pointer to the edge of the screen to put the dock to foreground)"
 msgstr ""
 
 #: tfrmsets.stmovedockhint.caption
@@ -1054,6 +1063,11 @@ msgstr ""
 #: tfrmsets.tssystem.caption
 msgctxt "tfrmsets.tssystem.caption"
 msgid "Misc"
+msgstr ""
+
+#: tfrmsets.tstaskbar.caption
+msgctxt "TFRMSETS.TSTASKBAR.CAPTION"
+msgid "Taskbar"
 msgstr ""
 
 #: tfrmstackprop.bbaddicon.hint

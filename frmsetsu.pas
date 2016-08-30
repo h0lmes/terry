@@ -40,11 +40,10 @@ type
     chbTaskbarSameMonitor: TCheckBox;
     chbUseShellContextMenus: TCheckBox;
     chbReflection: TCheckBox;
-    DividerBevel1: TDividerBevel;
-    DividerBevel2: TDividerBevel;
-    DividerBevel3: TDividerBevel;
     DividerBevel4: TDividerBevel;
     DividerBevel5: TDividerBevel;
+    DividerBevel6: TDividerBevel;
+    DividerBevel7: TDividerBevel;
     edAutoHideTime: TEdit;
     edAutoShowTime: TEdit;
     edFontSize: TEdit;
@@ -57,6 +56,8 @@ type
     hkHide: TEdit;
     Label1: TLabel;
     Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
     lblHideDelay: TLabel;
     lblRemoveDock: TLabel;
     lblBackgroundTransparency1: TLabel;
@@ -81,10 +82,12 @@ type
     pages: TPageControl;
     btnAutoRunDel: TSpeedButton;
     pbox: TPaintBox;
+    stMouseOverTip: TStaticText;
     stMoveDockHint: TStaticText;
+    tbAeroPeekThumbSize: TTrackBar;
+    tsTaskbar: TTabSheet;
     tv: TTreeView;
     tsActions: TTabSheet;
-    tbAeroPeekThumbSize: TTrackBar;
     tbBaseAlpha: TTrackBar;
     tbSeparatorAlpha: TTrackBar;
     tbBigIconSize: TTrackBar;
@@ -126,7 +129,6 @@ type
     lblZoomedIconSize: TLabel;
     lblEdgeOffset: TLabel;
     tbEdgeOffset: TTrackBar;
-    lblMouseOverTip: TLabel;
     cbHideTaskBar: TCheckBox;
     chbBlur: TCheckBox;
     chbShowRunningIndicator: TCheckBox;
@@ -270,24 +272,14 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.FormCreate(Sender: TObject);
 begin
-  lblTitle.Font.Size := 18;
-  lblTitle.Font.Color := clGray;
-  lblCredits.Font.Color := clGray;
-  lblCredits1.Font.Color := clGray;
-  lblCredits2.Font.Color := clGray;
-  lblCredits3.Font.Color := clGray;
-  lblCredits4.Font.Color := clGray;
-  lblCredits5.Font.Color := clGray;
-  lblCredits6.Font.Color := clGray;
-  lblCredits7.Font.Color := clGray;
-
   tv.Items.Item[0].Text := XPageGeneral;
-  tv.Items.Item[1].Text := XPagePosition;
-  tv.Items.Item[2].Text := XPageStyle;
-  tv.Items.Item[3].Text := XPageIcons;
-  tv.Items.Item[4].Text := XPageMisc;
-  tv.Items.Item[5].Text := XPageActions;
-  tv.Items.Item[6].Text := XPageAbout;
+  tv.Items.Item[1].Text := XPageTaskbar;
+  tv.Items.Item[2].Text := XPagePosition;
+  tv.Items.Item[3].Text := XPageStyle;
+  tv.Items.Item[4].Text := XPageIcons;
+  tv.Items.Item[5].Text := XPageMisc;
+  tv.Items.Item[6].Text := XPageActions;
+  tv.Items.Item[7].Text := XPageAbout;
 
   cboBaseSite.Items.Add(XSiteLeft);
   cboBaseSite.Items.Add(XSiteTop);
@@ -408,19 +400,26 @@ begin
     SetInitValue(cbActivateOnMouse, sets.container.ActivateOnMouse);
     SetInitValue(edActivateOnMouseInterval, inttostr(sets.container.ActivateOnMouseInterval));
     SetInitValue(chbAutoHideOnFullScreenApp, sets.container.AutoHideOnFullScreenApp);
+    SetInitValue(hkHide, TShortCut(sets.container.GlobalHotkeyValue_Hide));
+    SetInitValue(hkConsole, TShortCut(sets.container.GlobalHotkeyValue_Console));
+    SetInitValue(chbGlobalHide, sets.container.GlobalHotkeyFlag_Hide);
+    SetInitValue(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
+  except
+    on e: Exception do frmmain.err('frmSets.Show.General', e);
+  end;
+
+  //
+  // tsTaskbar //
+  //
+
+  try
     SetInitValue(chbTaskbar, sets.container.Taskbar);
     SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
     SetInitValue(chbTaskbarGrouping, sets.container.TaskGrouping);
     SetInitValue(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
     SetInitValue(tbAeroPeekThumbSize, sets.container.TaskThumbSize);
-    SetInitValue(hkHide, TShortCut(sets.container.GlobalHotkeyValue_Hide));
-    SetInitValue(hkConsole, TShortCut(sets.container.GlobalHotkeyValue_Console));
-    SetInitValue(chbGlobalHide, sets.container.GlobalHotkeyFlag_Hide);
-    SetInitValue(chbGlobalConsole, sets.container.GlobalHotkeyFlag_Console);
-    SetInitValue(cbShowHint, sets.container.ShowHint);
-    SetInitValue(chbHintEffects, sets.container.HintEffects);
   except
-    on e: Exception do frmmain.err('frmSets.Show.General', e);
+    on e: Exception do frmmain.err('frmSets.Show.Taskbar', e);
   end;
 
   //
@@ -500,6 +499,8 @@ begin
   //
 
   try
+    SetInitValue(cbShowHint, sets.container.ShowHint);
+    SetInitValue(chbHintEffects, sets.container.HintEffects);
     SetInitValue(tbIconSize, sets.container.itemsize);
     SetInitValue(tbBigIconSize, sets.container.BigItemSize);
     SetInitValue(tbIconSpacing, sets.container.ItemSpacing);
@@ -598,16 +599,6 @@ end;
 procedure Tfrmsets.cbAutorunChange(Sender: TObject);
 begin
   toolu.setautorun(cbAutorun.checked);
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.cbShowHintChange(Sender: TObject);
-begin
-  frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.chbHintEffectsChange(Sender: TObject);
-begin
-  frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboBaseSiteChange(Sender: TObject);
@@ -928,10 +919,20 @@ end;
 //
 //
 //
-//  GRAPHICS
+//  ICONS
 //
 //
 //
+//------------------------------------------------------------------------------
+procedure Tfrmsets.cbShowHintChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpShowHint, integer(cbShowHint.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbHintEffectsChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpHintEffects, integer(chbHintEffects.Checked));
+end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbIconSizeChange(Sender: TObject);
 begin
@@ -992,6 +993,21 @@ begin
   frmmain.SetParam(gpStackAnimationEnabled, integer(chbStackOpenAnimation.Checked));
 end;
 //------------------------------------------------------------------------------
+procedure Tfrmsets.chbActivateRunningChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpActivateRunning, integer(chbActivateRunning.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbShowRunningIndicatorChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpShowRunningIndicator, integer(chbShowRunningIndicator.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbUseShellContextMenusChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpUseShellContextMenus, integer(chbUseShellContextMenus.checked));
+end;
+//------------------------------------------------------------------------------
 //
 //
 //
@@ -1032,29 +1048,6 @@ var
   value: integer;
 begin
   if trystrtoint(edLaunchInterval.text, value) then frmmain.SetParam(gpLaunchInterval, value);
-end;
-//------------------------------------------------------------------------------
-//
-//
-//
-//  MENU ITEMS
-//
-//
-//
-//------------------------------------------------------------------------------
-procedure Tfrmsets.chbActivateRunningChange(Sender: TObject);
-begin
-  frmmain.SetParam(gpActivateRunning, integer(chbActivateRunning.Checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.chbShowRunningIndicatorChange(Sender: TObject);
-begin
-  frmmain.SetParam(gpShowRunningIndicator, integer(chbShowRunningIndicator.Checked));
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmsets.chbUseShellContextMenusChange(Sender: TObject);
-begin
-  frmmain.SetParam(gpUseShellContextMenus, integer(chbUseShellContextMenus.checked));
 end;
 //------------------------------------------------------------------------------
 //
