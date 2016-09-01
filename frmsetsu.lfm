@@ -1,11 +1,11 @@
 object frmsets: Tfrmsets
   Left = 519
-  Height = 525
+  Height = 565
   Top = 183
   Width = 780
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
-  ClientHeight = 525
+  ClientHeight = 565
   ClientWidth = 780
   Font.CharSet = RUSSIAN_CHARSET
   Font.Color = clWindowText
@@ -23,10 +23,10 @@ object frmsets: Tfrmsets
     Height = 505
     Top = 10
     Width = 615
-    ActivePage = tsSystem
+    ActivePage = tsPosition
     Anchors = [akTop, akLeft, akRight, akBottom]
     ShowTabs = False
-    TabIndex = 5
+    TabIndex = 2
     TabOrder = 0
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -34,36 +34,36 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       object cbActivateOnMouse: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 195
-        Width = 166
+        Width = 156
         Caption = 'Activate dock on mouseover'
         OnChange = cbActivateOnMouseChange
         TabOrder = 4
       end
       object cbAutorun: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 15
-        Width = 126
+        Width = 116
         Caption = 'Start with Windows '
         OnChange = cbAutorunChange
         TabOrder = 0
       end
       object cbHideTaskBar: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 45
-        Width = 136
+        Width = 126
         Caption = 'Hide Windows taskbar'
         OnChange = cbHideTaskBarChange
         TabOrder = 1
       end
       object chbReserveScreenEdge: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 105
-        Width = 132
+        Width = 122
         Caption = 'Reserve screen edge'
         OnChange = chbReserveScreenEdgeChange
         TabOrder = 2
@@ -92,27 +92,27 @@ object frmsets: Tfrmsets
       end
       object chbAutoHideOnFullScreenApp: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 75
-        Width = 354
+        Width = 344
         Caption = 'Hide dock completely while fullscreen application active (game, etc) '
         OnChange = chbAutoHideOnFullScreenAppChange
         TabOrder = 6
       end
       object chbGlobalConsole: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 397
-        Width = 95
+        Width = 85
         Caption = 'Open console'
         OnChange = chbGlobalConsoleChange
         TabOrder = 7
       end
       object chbGlobalHide: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 362
-        Width = 130
+        Width = 120
         Caption = 'Hide dock completely'
         OnChange = chbGlobalHideChange
         TabOrder = 8
@@ -135,7 +135,7 @@ object frmsets: Tfrmsets
       end
       object DividerBevel4: TDividerBevel
         Left = 15
-        Height = 25
+        Height = 15
         Top = 325
         Width = 575
         Caption = 'Global hotkeys'
@@ -167,36 +167,36 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       object chbTaskbar: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 15
-        Width = 214
+        Width = 204
         Caption = 'Show icons for running tasks (taskbar)'
         OnChange = chbTaskbarChange
         TabOrder = 0
       end
       object chbTaskbarGrouping: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 45
-        Width = 119
+        Width = 109
         Caption = 'Group similar tasks'
         OnChange = chbTaskbarGroupingChange
         TabOrder = 1
       end
       object chbTaskbarSameMonitor: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 75
-        Width = 218
+        Width = 208
         Caption = 'Show only tasks from the same monitor'
         OnChange = chbTaskbarSameMonitorChange
         TabOrder = 2
       end
       object chbTaskbarLivePreviews: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 105
-        Width = 203
+        Width = 193
         Caption = 'Show live previews (when available)'
         OnChange = chbTaskbarLivePreviewsChange
         TabOrder = 3
@@ -231,14 +231,14 @@ object frmsets: Tfrmsets
       object lblCenterOffsetPercent: TLabel
         Left = 15
         Height = 13
-        Top = 165
+        Top = 145
         Width = 90
         Alignment = taCenter
         Caption = 'Offset from center'
         ParentColor = False
       end
       object lblEdge: TLabel
-        Left = 290
+        Left = 310
         Height = 13
         Top = 15
         Width = 72
@@ -254,16 +254,16 @@ object frmsets: Tfrmsets
         ParentColor = False
       end
       object lblEdgeOffset: TLabel
-        Left = 290
+        Left = 310
         Height = 13
-        Top = 165
+        Top = 145
         Width = 83
         Alignment = taCenter
         Caption = 'Offset from edge'
         ParentColor = False
       end
       object cboBaseSite: TComboBox
-        Left = 290
+        Left = 310
         Height = 21
         Top = 45
         Width = 250
@@ -275,8 +275,8 @@ object frmsets: Tfrmsets
       object tbCenterOffsetPercent: TTrackBar
         Left = 15
         Height = 31
-        Top = 195
-        Width = 255
+        Top = 175
+        Width = 280
         Frequency = 5
         Max = 100
         OnChange = tbCenterOffsetPercentChange
@@ -296,10 +296,10 @@ object frmsets: Tfrmsets
         TabOrder = 0
       end
       object tbEdgeOffset: TTrackBar
-        Left = 290
+        Left = 310
         Height = 31
-        Top = 195
-        Width = 255
+        Top = 175
+        Width = 280
         Frequency = 10
         Max = 50
         Min = -50
@@ -309,62 +309,52 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         TabOrder = 3
       end
-      object stMoveDockHint: TStaticText
-        Left = 15
-        Height = 75
-        Top = 80
-        Width = 575
-        Caption = 'Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor'
-        Color = clDefault
-        ParentColor = False
-        TabOrder = 4
-      end
       object chbOccupyFullMonitor: TCheckBox
         Left = 15
-        Height = 29
-        Top = 250
-        Width = 209
+        Height = 19
+        Top = 80
+        Width = 199
         Caption = 'Stretch to full monitor width or height'
         OnChange = chbOccupyFullMonitorChange
-        TabOrder = 5
+        TabOrder = 4
       end
       object Label2: TLabel
         Left = 15
         Height = 13
-        Top = 285
+        Top = 115
         Width = 137
         Caption = 'Margin at the start / end, px'
         ParentColor = False
       end
       object edStartOffset: TEdit
-        Left = 415
+        Left = 310
         Height = 21
-        Top = 280
-        Width = 85
+        Top = 110
+        Width = 40
         OnChange = edStartOffsetChange
-        TabOrder = 6
+        TabOrder = 5
       end
       object edEndOffset: TEdit
-        Left = 505
+        Left = 360
         Height = 21
-        Top = 280
-        Width = 85
+        Top = 110
+        Width = 40
         OnChange = edEndOffsetChange
-        TabOrder = 7
+        TabOrder = 6
       end
       object cbAutoHide: TCheckBox
         Left = 15
-        Height = 29
-        Top = 365
-        Width = 296
+        Height = 19
+        Top = 265
+        Width = 286
         Caption = 'Slide into screen edge when mouse is not over the dock'
         OnChange = cbAutoHideChange
-        TabOrder = 8
+        TabOrder = 7
       end
       object lblVisiblePart: TLabel
         Left = 15
         Height = 13
-        Top = 400
+        Top = 300
         Width = 93
         Caption = 'Visible part in pixels'
         ParentColor = False
@@ -372,7 +362,7 @@ object frmsets: Tfrmsets
       object lblShowDelay: TLabel
         Left = 15
         Height = 13
-        Top = 430
+        Top = 330
         Width = 129
         Caption = 'Delay before show up (ms)'
         ParentColor = False
@@ -380,7 +370,7 @@ object frmsets: Tfrmsets
       object lblHideDelay: TLabel
         Left = 15
         Height = 13
-        Top = 460
+        Top = 360
         Width = 138
         Caption = 'Delay before hide down (ms)'
         ParentColor = False
@@ -388,31 +378,31 @@ object frmsets: Tfrmsets
       object edRolledVisiblePixels: TEdit
         Left = 465
         Height = 21
-        Top = 395
+        Top = 295
         Width = 125
         OnChange = edRolledVisiblePixelsChange
-        TabOrder = 9
+        TabOrder = 8
       end
       object edAutoShowTime: TEdit
         Left = 465
         Height = 21
-        Top = 425
+        Top = 325
         Width = 125
         OnChange = edAutoShowTimeChange
-        TabOrder = 10
+        TabOrder = 9
       end
       object edAutoHideTime: TEdit
         Left = 465
         Height = 21
-        Top = 455
+        Top = 355
         Width = 125
         OnChange = edAutoHideTimeChange
-        TabOrder = 11
+        TabOrder = 10
       end
       object DividerBevel5: TDividerBevel
         Left = 15
-        Height = 25
-        Top = 335
+        Height = 15
+        Top = 235
         Width = 575
         Caption = 'Autoslide'
         Anchors = [akTop, akLeft, akRight]
@@ -863,9 +853,9 @@ object frmsets: Tfrmsets
       end
       object cbUseShell: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 135
-        Width = 255
+        Width = 245
         Caption = 'Use this shell to open local and network folders'
         OnChange = cbUseShellChange
         TabOrder = 1
@@ -889,9 +879,9 @@ object frmsets: Tfrmsets
       end
       object chbRunInThread: TCheckBox
         Left = 15
-        Height = 29
+        Height = 19
         Top = 15
-        Width = 205
+        Width = 195
         Caption = 'Run applications in separate threads'
         OnChange = chbRunInThreadChange
         TabOrder = 4
@@ -996,7 +986,7 @@ object frmsets: Tfrmsets
       end
       object DividerBevel6: TDividerBevel
         Left = 15
-        Height = 25
+        Height = 15
         Top = 215
         Width = 575
         Caption = 'Autorun'
@@ -1152,18 +1142,18 @@ object frmsets: Tfrmsets
     end
   end
   object btn_ok: TBitBtn
-    Left = 10
+    Left = 155
     Height = 30
-    Top = 440
+    Top = 525
     Width = 135
     Caption = 'OK'
     OnClick = btn_okClick
     TabOrder = 1
   end
   object btn_cancel: TBitBtn
-    Left = 10
+    Left = 300
     Height = 30
-    Top = 480
+    Top = 525
     Width = 135
     Caption = 'Cancel'
     OnClick = btn_cancelClick
@@ -1171,7 +1161,7 @@ object frmsets: Tfrmsets
   end
   object tv: TTreeView
     Left = 5
-    Height = 407
+    Height = 497
     Top = 15
     Width = 141
     BackgroundColor = clDefault

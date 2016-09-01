@@ -1,0 +1,18 @@
+Press and hold a right mouse button on an icon about a second to see the icon properties.
+
+If dragging of icons is locked you still can do that. Press and hold left mouse button on an icon for a second - the icon will become semitransparent and draggable.
+
+If you have deleted an icon you can restore it by pressing CTRL+Z. You can restore all icons that were deleted since the dock start.
+
+To delete an icon drag and drop it outside the dock. To not to delete an icon by mistake enable "Lock dragging" in the dock menu. This option is especially useful for icons in stacks.
+
+You can create a stack icon by dropping one icon onto another (a "plus" overlay will appear).
+Also, dropping an icon or a stack into another stack does what you expect it to.
+Stack can hold only shortcut items (no separators/plugins).
+
+You can have up to 8 docks simultaneously.
+An icon can not be drag'dropped from one dock to another. To achieve that use copy/paste menu.
+Settings of each dock are stored in a separate settings file, so you can tweak each dock independently.
+If you close one dock - others will be closed too. The startup is simultaneous as well.
+
+While dock is active (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor.

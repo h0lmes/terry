@@ -1470,7 +1470,7 @@ begin
     for y := 0 to biNew.bmiHeader.biWidth - 1 do
       if bmpData[y * biNew.bmiHeader.biWidth + x].A <> 0 then
       begin
-        result := true;
+        Result := true;
         exit;
       end;
 end;
@@ -1508,39 +1508,44 @@ begin
           if 0 <> GetDIBits(dc, ii.hbmColor, 0, biNew.bmiHeader.biHeight, bmpData, bi, DIB_RGB_COLORS) then
           begin
             try
-              hMask := nil;
 
+              hMask := nil;
               try
-                bAlpha := HasAlpha;
-                GdipCreateBitmapFromScan0(biNew.bmiHeader.biWidth,
-                  biNew.bmiHeader.biHeight, 0, PixelFormat32bppPARGB, nil, result);
-                if bAlpha then
-                begin
-                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
-                      with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
-                        GdipBitmapSetPixel(result, xx, yy, MakeColor(A, R, G, B));
-                end
-                else
-                begin
-                  GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
-                  for yy := 0 to biNew.bmiHeader.biHeight - 1 do
-                  begin
-                    for xx := 0 to biNew.bmiHeader.biWidth - 1 do
-                    begin
-                      GdipBitmapGetPixel(hMask, xx, yy, cColor);
-                      if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
-                      with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
-                        GdipBitmapSetPixel(result, xx, yy, MakeColor(Alpha, R, G, B));
-                    end;
+                  bAlpha := HasAlpha;
+                  GdipCreateBitmapFromScan0(biNew.bmiHeader.biWidth,
+                    biNew.bmiHeader.biHeight, 0, PixelFormat32bppPARGB, nil, Result);
+                  try
+                      if bAlpha then
+                      begin
+                        for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                          for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                            with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                              GdipBitmapSetPixel(Result, xx, yy, MakeColor(A, R, G, B));
+                      end
+                      else
+                      begin
+                        GdipCreateBitmapFromHBITMAP(ii.hbmMask, 0, hMask);
+                        for yy := 0 to biNew.bmiHeader.biHeight - 1 do
+                        begin
+                          for xx := 0 to biNew.bmiHeader.biWidth - 1 do
+                          begin
+                            GdipBitmapGetPixel(hMask, xx, yy, cColor);
+                            if cColor = $FFFFFFFF then Alpha := 0 else Alpha := 255;
+                            with bmpData[yy * biNew.bmiHeader.biWidth + xx] do
+                              GdipBitmapSetPixel(Result, xx, yy, MakeColor(Alpha, R, G, B));
+                          end;
+                        end;
+                      end;
+                  except
+                      GdipDisposeImage(Result);
+                      Result := nil;
                   end;
-                end;
               finally
                 GdipDisposeImage(hMask);
               end;
 
             except
-              FreeAndNil(Result);
+              Result := nil;
             end;
           end;
           FreeMem(bmpData);

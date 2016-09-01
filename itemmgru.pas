@@ -94,6 +94,7 @@ type
     // items //
     function  ItemHWnd(index: integer): THandle;
     function  AddItem(wnd: HWND; Update: boolean = false): THandle;
+    function  CreateItem(IniFile, IniSection, Parameter: string): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
     procedure AddToRegisteredPrograms(HWnd: THandle);
     procedure DeleteFromRegisteredPrograms(HWnd: THandle);
@@ -180,6 +181,7 @@ type
     procedure InsertItem(AData: string);
     function  CreateItemFromIni(IniFile, IniSection: string): THandle;
     function  CreateItemFromString(value: string): THandle;
+    function  CreateTaskItem: THandle;
     procedure DeleteItem(HWnd: THandle);
 
     // mouse effects //
@@ -509,7 +511,8 @@ begin
         Inst := TCustomItem(GetWindowLongPtr(THandle(_itemsDeleted.Items[idx]), GWL_USERDATA));
         if Inst is TTaskItem then
         begin
-          FreeAndNil(Inst);
+          Inst.Freed := true;
+          Inst.Free;
           _itemsDeleted.Delete(idx);
         end;
       end;
@@ -617,7 +620,7 @@ begin
       AddItem(CreateItemFromString(TSeparatorItem.Make));
       AddItem(CreateItemFromString(TShortcutItem.Make('Tray', '/tray', '', '', 'images\default\tray.png')));
       AddItem(CreateItemFromString(TShortcutItem.Make('', '', '', '', 'images\default\{LANGID}.png')));
-      //AddItem(CreateItemFromString(TShortcutItem.Make('', '/networks', '', '', 'images\default\network-{NETWORK}.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make('', '/networks', '', '', 'images\default\network-{NETWORK}.png')));
       AddItem(CreateItemFromString(TShortcutItem.Make('', '/volume', '', '', 'images\default\audio-volume-{VOLUME}.png')));
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.basic FItemArray'); {$endif}
   except
@@ -739,58 +742,33 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TItemManager.CreateItemFromIni(IniFile, IniSection: string): THandle;
-var
-  ClassName: string;
-  icp: TDItemCreateParams;
-  Inst: TCustomItem;
 begin
-  result := 0;
-  Inst := nil;
-  if FItemCount > MAX_ITEM_COUNT then exit;
   try
-    icp.ItemSize := FItemSize;
-    icp.BigItemSize := FBigItemSize;
-    icp.ItemSpacing := FItemSpacing;
-    icp.LaunchInterval := FLaunchInterval;
-    icp.ActivateRunning := FActivateRunning;
-    icp.UseShellContextMenus := FUseShellContextMenus;
-    icp.Site := integer(FSite);
-    icp.Reflection := FReflection;
-    icp.ReflectionSize := FReflectionSize;
-    icp.ShowHint := FShowHint;
-    icp.AnimationType := FItemAnimation;
-    icp.LockDragging := FLockDragging;
-    icp.StackAnimationEnabled := FStackAnimationEnabled;
-    icp.SeparatorAlpha := FSeparatorAlpha;
-    icp.TaskLivePreviews := FTaskLivePreviews;
-    icp.TaskThumbSize := FTaskThumbSize;
-    icp.TaskGrouping := FTaskGrouping;
-    CopyFontData(FFont, icp.Font);
-    icp.IniFile := IniFile;
-    icp.IniSection := IniSection;
-    icp.Parameter := '';
-
-    ClassName := LowerCase(ReadIniStringW(IniFile, IniSection, 'class', 'shortcut'));
-    if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
-    else
-    if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp);
+    result := CreateItem(IniFile, IniSection, '');
   except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.' + ClassName + LineEnding + e.message);
-  end;
-
-  try
-    if assigned(Inst) then
-      if Inst.Freed then FreeAndNil(Inst) else result := Inst.Handle;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni.Fin ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromIni ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 function TItemManager.CreateItemFromString(value: string): THandle;
+begin
+  try
+    result := CreateItem('', '', value);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromString ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TItemManager.CreateTaskItem: THandle;
+begin
+  try
+    result := CreateItem('', '', TTaskItem.Make);
+  except
+    on e: Exception do raise Exception.Create('ItemManager.CreateTaskItem ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TItemManager.CreateItem(IniFile, IniSection, Parameter: string): THandle;
 var
   ClassName: string;
   icp: TDItemCreateParams;
@@ -818,11 +796,16 @@ begin
     icp.TaskThumbSize := FTaskThumbSize;
     icp.TaskGrouping := FTaskGrouping;
     CopyFontData(FFont, icp.Font);
-    icp.IniFile := '';
-    icp.IniSection := '';
-    icp.Parameter := value;
+    if IniFile <> '' then
+    begin
+      icp.IniFile := IniFile;
+      icp.IniSection := IniSection;
+      ClassName := LowerCase(ReadIniStringW(IniFile, IniSection, 'class', 'shortcut'));
+    end else begin
+      icp.Parameter := Parameter;
+      ClassName := LowerCase(FetchValue(Parameter, 'class="', '";'));
+    end;
 
-    ClassName := LowerCase(FetchValue(value, 'class="', '";'));
     if ClassName = 'shortcut' then Inst := TShortcutItem.Create(FParentHWnd, icp)
     else
     if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
@@ -833,14 +816,14 @@ begin
     else
     if ClassName = 'task' then Inst := TTaskItem.Create(FParentHWnd, icp);
   except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromString.' + ClassName + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.CreateItem.' + ClassName + LineEnding + e.message);
   end;
 
   try
     if assigned(Inst) then
-      if Inst.Freed then FreeAndNil(Inst) else result := Inst.Handle;
+      if Inst.Freed then Inst.Free else result := Inst.Handle;
   except
-    on e: Exception do raise Exception.Create('ItemManager.CreateItemFromString.Fin ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.CreateItem.Fin ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -2173,7 +2156,7 @@ begin
   try
     result := false;
     Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TCustomItem then result := Inst.Floating;
+    if Inst is TCustomItem then result := Inst.Undocked;
   except
     on e: Exception do err('ItemManager.IsPluginUndocked', e);
   end;
@@ -2287,7 +2270,7 @@ begin
 			end;
 
 			SetDropPlace(index);
-      wndItem := AddItem(CreateItemFromString(TTaskItem.Make), true);
+      wndItem := AddItem(CreateTaskItem, true);
       Inst := TCustomItem(GetWindowLongPtr(wndItem, GWL_USERDATA));
       if Inst is TTaskItem then TTaskItem(Inst).UpdateTaskItem(HWndTask);
     end;

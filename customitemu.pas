@@ -92,7 +92,7 @@ type
     procedure err(where: string; e: Exception);
   public
     property Freed: boolean read FFreed write FFreed;
-    property Floating: boolean read FUndocked;
+    property Undocked: boolean read FUndocked;
     property Handle: HWND read FHWnd;
     property Caption: WideString read FCaption write SetCaption;
     property ColorData: integer read FColorData write FColorData;
@@ -106,31 +106,31 @@ type
     destructor Destroy; override;
     procedure SetFont(var Value: TDFontData); virtual;
     procedure Draw(Ax, Ay, ASize: integer; AForce: boolean; wpi: HDWP; AShowItem: uint); virtual; abstract;
-    function ToString: string; virtual; abstract;
+    function  ToString: string; virtual; abstract;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
-    function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
+    function  MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure MouseClick(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     procedure MouseHeld(button: TMouseButton); virtual;
-    function DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
+    function  DblClick(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure WndMessage(var msg: TMessage); virtual; abstract;
     procedure WMCommand(wParam: WPARAM; lParam: LPARAM; var Result: LRESULT); virtual; abstract;
-    function cmd(id: TDParam; param: PtrInt): PtrInt; virtual;
+    function  cmd(id: TDParam; param: PtrInt): PtrInt; virtual;
     procedure Timer; virtual;
     procedure Configure; virtual;
-    function CanOpenFolder: boolean; virtual;
+    function  CanOpenFolder: boolean; virtual;
     procedure OpenFolder; virtual;
-    function RegisterProgram: string; virtual;
-    function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
+    function  RegisterProgram: string; virtual;
+    function  DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(ini, section: string); virtual; abstract;
 
     procedure Undock;
     procedure Dock;
-    function HitTest(Ax, Ay: integer): boolean;
-    function ScreenHitTest(Ax, Ay: integer): boolean;
+    function  HitTest(Ax, Ay: integer): boolean;
+    function  ScreenHitTest(Ax, Ay: integer): boolean;
     procedure Animate;
     procedure LME(lock: boolean);
     procedure Delete;
-    function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
+    function  WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
   end;
 
 implementation

@@ -81,6 +81,7 @@ type
     FProcessCount: integer;
     FItemCount: integer;
     FSeparatorCount: integer;
+    FHover: boolean;
     FHoverIndex: integer;
     FState: TAPWState;
     items: array of TAeroPeekWindowItem;
@@ -112,7 +113,7 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    procedure RegisterWindowItemClass;
+    procedure RegisterWindowClass;
     function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
     procedure MouseLeave;
@@ -205,12 +206,13 @@ begin
   FFontSize := round(toolu.GetFontSize * 1.6);
   FCloseButtonDownIndex := -1;
   FItemCount := 0;
+  FHover := false;
   FHoverIndex := -1;
 
   // create window //
   FHWnd := 0;
   try
-    RegisterWindowItemClass;
+    RegisterWindowClass;
     FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, AEROPEEK_WCLASS, nil, WS_POPUP, -100, -100, 1, 1, 0, 0, hInstance, nil);
     DWM.ExcludeFromPeek(FHWnd);
     if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
@@ -226,7 +228,7 @@ begin
   FHWnd := 0;
 end;
 //------------------------------------------------------------------------------
-procedure TAeroPeekWindow.RegisterWindowItemClass;
+procedure TAeroPeekWindow.RegisterWindowClass;
 var
   wndClass: windows.TWndClass;
 begin
@@ -449,6 +451,8 @@ end;
 procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
 begin
   try
+    KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+
     if Timeout = 0 then
     begin
         KillTimer(FHWnd, ID_TIMER_CLOSE);
@@ -1047,9 +1051,11 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.MouseLeave;
 begin
-  if FHoverIndex > -1 then
+  if FHover then
   begin
     DWM.InvokeAeroPeek(0, 0, 0);
+    FHover := false;
+    KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
     FHoverIndex := -1;
     Paint;
     CloseAPWindow(500);
@@ -1128,20 +1134,22 @@ end;
 procedure TAeroPeekWindow.MouseMove;
 var
   index: integer;
-  hovered: boolean;
   pt: windows.TPoint;
 begin
   try
+    if not FHover then
+    begin
+      FHover := true;
+      SetTimer(FHWnd, ID_TIMER_TRACKMOUSE, 50, nil);
+    end;
     GetCursorPos(pt);
     dec(pt.x, Fx);
     dec(pt.y, Fy);
-    hovered := false;
     for index := 0 to FItemCount - 1 do
     begin
       if items[index].hwnd <> 0 then
         if PtInRect(items[index].rectSel, pt) then
         begin
-          hovered := true;
           if FHoverIndex <> index then
           begin
             FHoverIndex := index;
@@ -1151,7 +1159,6 @@ begin
           end;
         end;
     end;
-    if not hovered and (FHoverIndex > -1) then MouseLeave;
   except
     on e: Exception do err('AeroPeekWindow.MouseMove', e);
   end;
@@ -1170,7 +1177,13 @@ begin
       if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
     end
     else
-    if wParam = ID_TIMER_SLOW then UpdateTitles;
+    if wParam = ID_TIMER_SLOW then UpdateTitles
+    else
+    if wParam = ID_TIMER_TRACKMOUSE then
+    begin
+      GetCursorPos(pt);
+      if WindowFromPoint(pt) <> FHWnd then MouseLeave;
+    end;
   except
     on e: Exception do err('AeroPeekWindow.WMTimer', e);
   end;

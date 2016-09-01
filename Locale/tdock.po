@@ -148,6 +148,10 @@ msgstr ""
 msgid "Theme object not found"
 msgstr ""
 
+#: declu.xerrortipsnotfound
+msgid "Tips file not found. Try reinstalling the program."
+msgstr ""
+
 #: declu.xexit
 msgid "Exit"
 msgstr ""
@@ -1026,10 +1030,6 @@ msgstr ""
 msgid "(Move mouse pointer to the edge of the screen to put the dock to foreground)"
 msgstr ""
 
-#: tfrmsets.stmovedockhint.caption
-msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
-msgstr ""
-
 #: tfrmsets.tsabout.caption
 msgctxt "tfrmsets.tsabout.caption"
 msgid "About"
@@ -1251,8 +1251,9 @@ msgstr ""
 msgid "Background margins"
 msgstr ""
 
-#: tfrmtip.btnenough.caption
-msgid "Thanks, I learned enough"
+#: tfrmtip.btnclose.caption
+msgctxt "TFRMTIP.BTNCLOSE.CAPTION"
+msgid "Thanks, I have learned enough"
 msgstr ""
 
 #: tfrmtip.btnnext.caption

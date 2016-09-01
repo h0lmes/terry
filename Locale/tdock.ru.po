@@ -157,6 +157,10 @@ msgstr "Не удалось восстановить резервную копи
 msgid "Theme object not found"
 msgstr "Объект темы не найден"
 
+#: declu.xerrortipsnotfound
+msgid "Tips file not found. Try reinstalling the program."
+msgstr "Файл с советами не найден. Переустановите программу."
+
 #: declu.xexit
 msgctxt "declu.xexit"
 msgid "Exit"
@@ -1106,10 +1110,6 @@ msgstr "Ширина увеличения"
 msgid "(Move mouse pointer to the edge of the screen to put the dock to foreground)"
 msgstr "Переместите указатель мыши к краю экрана чтобы вывести док на передний план"
 
-#: tfrmsets.stmovedockhint.caption
-msgid "Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor"
-msgstr "Совет: когда док активирован (например, после клика на нем) используйте <Alt>+стрелки чтобы переместить док к другому краю экрана или на другой монитор"
-
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
 msgid "About"
@@ -1345,9 +1345,9 @@ msgctxt "tfrmthemeeditor.label9.caption"
 msgid "Background margins"
 msgstr "Нерастягиваемые границы фона"
 
-#: tfrmtip.btnenough.caption
-msgctxt "tfrmtip.btnenough.caption"
-msgid "Thanks, I learned enough"
+#: tfrmtip.btnclose.caption
+msgctxt "tfrmtip.btnclose.caption"
+msgid "Thanks, I have learned enough"
 msgstr "Спасибо, я узнал достаточно"
 
 #: tfrmtip.btnnext.caption

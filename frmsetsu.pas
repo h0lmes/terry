@@ -83,7 +83,6 @@ type
     btnAutoRunDel: TSpeedButton;
     pbox: TPaintBox;
     stMouseOverTip: TStaticText;
-    stMoveDockHint: TStaticText;
     tbAeroPeekThumbSize: TTrackBar;
     tsTaskbar: TTabSheet;
     tv: TTreeView;

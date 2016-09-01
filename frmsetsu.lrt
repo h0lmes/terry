@@ -22,7 +22,6 @@ TFRMSETS.LBLCENTEROFFSETPERCENT.CAPTION=Offset from center
 TFRMSETS.LBLEDGE.CAPTION=Edge of screen
 TFRMSETS.LBLMONITOR.CAPTION=Monitor
 TFRMSETS.LBLEDGEOFFSET.CAPTION=Offset from edge
-TFRMSETS.STMOVEDOCKHINT.CAPTION=Hint:  while dock is activated (e.g. after a click on it) use <Alt>+arrows to move dock to another edge or monitor
 TFRMSETS.CHBOCCUPYFULLMONITOR.CAPTION=Stretch to full monitor width or height
 TFRMSETS.LABEL2.CAPTION=Margin at the start / end, px
 TFRMSETS.CBAUTOHIDE.CAPTION=Slide into screen edge when mouse is not over the dock

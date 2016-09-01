@@ -31,10 +31,10 @@ object frmAddCommand: TfrmAddCommand
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object btnAdd: TButton
-    Left = 298
-    Height = 25
-    Top = 25
-    Width = 130
+    Left = 290
+    Height = 30
+    Top = 30
+    Width = 153
     Anchors = [akTop, akRight]
     Caption = 'Add icon'
     OnClick = btnAddClick

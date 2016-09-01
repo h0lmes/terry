@@ -238,6 +238,7 @@ const
   ID_TIMER_DRAGLEAVE        = 9;
   ID_TIMER_FOREGROUND       = 10;
   ID_TIMER_WINDOWCREATED    = 11;
+  ID_TIMER_TRACKMOUSE       = 12;
 
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 
@@ -340,6 +341,8 @@ resourcestring
   XStackPreviewNine = 'nine';
   // frmAddCommand //
   XErrorCommandListNotFound = 'Command list file not found. Try reinstalling the program.';
+  // frmTip //
+  XErrorTipsNotFound = 'Tips file not found. Try reinstalling the program.';
   // trayController //
   XMsgNotificationAreaIcons = 'After you close this message you will see "Notification area icons" window. To use this function uncheck "Always show all icons" at the bottom of the window and set all behaviors to "Only show notifications".';
 

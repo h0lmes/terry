@@ -165,7 +165,6 @@ function GetRecycleBinState: integer;
 procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
 procedure ResolveAppref(wnd: HWND; var Target: string);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
-procedure FreeAndNil(var Obj);
 procedure SetClipboard(Text: string);
 function GetClipboard: string;
 function ColorToString(Color: uint): string;
@@ -913,7 +912,7 @@ begin
     $082C: result := 'AZ'; // az-AZ,  Azerbaijan, Cyrillic
     $042C: result := 'AZ'; // AZ,     Azerbaijan, Latin
     $201A: result := 'BA'; // bs-BA,  Bosnia and Herzegovina, Cyrillic
-    //$044D: result := 'BA'; // BA,     Bosnia and Herzegovina, Latin
+    $141A: result := 'BA'; // BA,     Bosnia and Herzegovina, Latin
     $101A: result := 'BA'; // hr-BA,  Bosnia and Herzegovina, Croatian
     $0C04: result := 'HK'; // zh-HK,  Hong Kong SAR, PRC
     $2801: result := 'SY'; //         Syria
@@ -923,8 +922,8 @@ begin
     $1004: result := 'SG'; //         Singapore
     $4809: result := 'SG'; //         Singapore
     $0411: result := 'JP'; // ja-JP,  Japan
-    $0004: result := 'Hans'; // zh-Hans, Chinese, Simplified
-    $7C04: result := 'Hant'; // zh-Hant, Chinese, Traditional
+    $0004: result := 'zh-Ha'; // zh-Hans, Chinese, Simplified
+    $7C04: result := 'zh-Ha'; // zh-Hant, Chinese, Traditional
   end;
 end;
 //------------------------------------------------------------------------------
@@ -935,7 +934,7 @@ var
   buffer: array [0..MAX_LANG_LEN] of wchar;
 begin
   result := '';
-  if GetLocaleInfoW(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) <> 0 then
+  if GetLocaleInfoW(MAKELCID(id, SORT_DEFAULT), LOCALE_SLANGUAGE, buffer, MAX_LANG_LEN) > 0 then
     result := pwchar(buffer);
 end;
 //------------------------------------------------------------------------------
@@ -1032,15 +1031,6 @@ begin
   end
   else
     Result := default;
-end;
-//------------------------------------------------------------------------------
-procedure FreeAndNil(var Obj);
-var
-  p: TObject;
-begin
-  p := TObject(Obj);
-  TObject(Obj) := nil;
-  p.Free;
 end;
 //------------------------------------------------------------------------------
 procedure SetClipboard(Text: string);
