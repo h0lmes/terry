@@ -136,20 +136,13 @@ begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
   if assigned(AeroPeekWindow) then
-  begin
-    KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
     result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, TaskThumbSize, LivePreviews);
-  end;
 end;
 //------------------------------------------------------------------------------
 // set new position
 class procedure TAeroPeekWindow.SetPosition(AX, AY: integer);
 begin
-  if assigned(AeroPeekWindow) then
-  begin
-    KillTimer(AeroPeekWindow.Handle, ID_TIMER_CLOSE);
-    AeroPeekWindow.SetAPWindowPosition(AX, AY);
-  end;
+  if assigned(AeroPeekWindow) then AeroPeekWindow.SetAPWindowPosition(AX, AY);
 end;
 //------------------------------------------------------------------------------
 // close AeroPeekWindow
@@ -346,6 +339,7 @@ begin
       FTaskThumbSize := TaskThumbSize;
       FState := apwsOpen;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
+      KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
       KillTimer(FHWnd, ID_TIMER);
       KillTimer(FHWnd, ID_TIMER_SLOW);
       UnRegisterThumbnails;
@@ -451,6 +445,7 @@ end;
 procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
 begin
   try
+    FHover := false;
     KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
 
     if Timeout = 0 then
@@ -1018,6 +1013,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.SetAPWindowPosition(AX, AY: integer);
 begin
+  KillTimer(FHWnd, ID_TIMER_CLOSE);
+  KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+
   if FActive and not (FState = apwsClose) then
   begin
     FXTarget := AX - FWTarget div 2;
@@ -1051,6 +1049,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.MouseLeave;
 begin
+  try
   if FHover then
   begin
     DWM.InvokeAeroPeek(0, 0, 0);
@@ -1059,6 +1058,9 @@ begin
     FHoverIndex := -1;
     Paint;
     CloseAPWindow(500);
+  end;
+  except
+    on e: Exception do err('AeroPeekWindow.MouseLeave', e);
   end;
 end;
 //------------------------------------------------------------------------------
