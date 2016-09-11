@@ -32,7 +32,8 @@ type
     FPIDL: PItemIDList;
     FLastMouseUp: PtrUInt;
     FAppList: TFPList;
-    FIsOpen: boolean; // is PeekWindow open or not
+    FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
+    FAeroPeekActive: boolean; // is PeekWindow open or not
     FDynObject: boolean;
     FDynObjectRecycleBin: boolean;
     FDynObjectState: integer;
@@ -93,6 +94,7 @@ constructor TShortcutItem.Create(AWndParent: HWND; var AParams: TDItemCreatePara
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
+  FAeroPeekEnabled := AParams.AeroPeekEnabled;
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
@@ -107,7 +109,7 @@ begin
   FHide:= false;
   FRunning:= false;
   FAppList := TFPList.Create;
-  FIsOpen := false;
+  FAeroPeekActive := false;
   OnBeforeMouseHover := BeforeMouseHover;
   OnMouseHover := MouseHover;
   OnBeforeUndock := BeforeUndock;
@@ -122,7 +124,7 @@ destructor TShortcutItem.Destroy;
 begin
   FFreed := true;
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
-  if FIsOpen then TAeroPeekWindow.Close(0);
+  if FAeroPeekActive then TAeroPeekWindow.Close(0);
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   try if FIsPIDL then PIDL_Free(FPIDL);
@@ -376,12 +378,13 @@ begin
           FRunning := false;
           Redraw;
         end;
-      gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
-      gpTaskThumbSize: FTaskThumbSize := param;
-      gpTaskGrouping: FTaskGrouping := boolean(param);
+      gpAeroPeekEnabled:      FAeroPeekEnabled := boolean(param);
+      gpTaskLivePreviews:     FTaskLivePreviews := boolean(param);
+      gpTaskThumbSize:        FTaskThumbSize := param;
+      gpTaskGrouping:         FTaskGrouping := boolean(param);
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
-      gpSite: if FRunning then Redraw;
-      tcThemeChanged: if FRunning then Redraw;
+      gpSite:                 if FRunning then Redraw;
+      tcThemeChanged:         if FRunning then Redraw;
       tcDebugInfo:
         if FAppList.Count > 0 then // log every window info
         begin
@@ -438,7 +441,7 @@ end;
 // Draw routines ---------------------------------------------------------------
 procedure TShortcutItem.AfterDraw;
 begin
-  if FIsOpen then UpdatePeekWindow;
+  if FAeroPeekActive then UpdatePeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DrawOverlay(dst: pointer; x, y, size: integer);
@@ -547,8 +550,11 @@ begin
     result := true;
     if group then
       ProcessHelper.ActivateWindowList(FAppList)
-		else begin
+		else if FAeroPeekEnabled then
+    begin
       if not TAeroPeekWindow.IsActive then ShowPeekWindow;
+    end else begin
+      ProcessHelper.ActivateProcessMainWindow(FExecutable, Handle, GetScreenRect, FSite);
     end;
 	end;
 end;
@@ -673,7 +679,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseHover(AHover: boolean);
 begin
-  if FAppList.Count > 0 then
+  if (FAppList.Count > 0) and FAeroPeekEnabled then
     if AHover then
     begin
       if TAeroPeekWindow.IsActive then
@@ -712,7 +718,7 @@ begin
   FHideHint := true;
   UpdateHint;
   TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
-  FIsOpen := true;
+  FAeroPeekActive := true;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.ClosePeekWindow(Timeout: cardinal = 0);
@@ -723,9 +729,9 @@ begin
     FHideHint := false;
     UpdateHint;
   end;
-  if FIsOpen then
+  if FAeroPeekActive then
   begin
-    FIsOpen := false;
+    FAeroPeekActive := false;
     TAeroPeekWindow.Close(Timeout);
   end;
 end;

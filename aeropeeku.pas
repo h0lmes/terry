@@ -4,7 +4,7 @@ unit aeropeeku;
 
 interface
 
-uses Windows, Messages, Classes, SysUtils, Forms, lazutf8,
+uses Windows, Messages, Classes, SysUtils, Forms, lazutf8, Syncobjs,
   declu, dwm_unit, GDIPAPI, gfx, toolu, processhlp, loggeru;
 
 const
@@ -83,18 +83,25 @@ type
     FSeparatorCount: integer;
     FHover: boolean;
     FHoverIndex: integer;
+    FAeroPeekIndex: integer;
     FState: TAPWState;
+    crs: TCriticalSection;
     items: array of TAeroPeekWindowItem;
     procedure AddItems(AppList: TFPList);
     procedure ClearImages;
     procedure DeleteItem(index: integer);
+    procedure DoTransition;
     procedure DrawCloseButton(hgdip: pointer; rect: GDIPAPI.TRect; Pressed: boolean);
+    function InTransition: boolean;
+    procedure InvokeAeroPeek(index: integer);
+    procedure MouseEnter;
     procedure Paint;
     function GetMonitorRect(AMonitor: integer): Windows.TRect;
     procedure PositionThumbnails;
     procedure RegisterThumbnails;
     procedure SetItems;
     procedure Timer;
+    procedure TrackMouse;
     procedure UnRegisterThumbnails;
     procedure UpdateTitles;
     procedure err(where: string; e: Exception);
@@ -201,6 +208,8 @@ begin
   FItemCount := 0;
   FHover := false;
   FHoverIndex := -1;
+  FAeroPeekIndex := -1;
+  crs := TCriticalSection.Create;
 
   // create window //
   FHWnd := 0;
@@ -217,8 +226,22 @@ end;
 //------------------------------------------------------------------------------
 destructor TAeroPeekWindow.Destroy;
 begin
+  SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(0));
   DestroyWindow(FHWnd);
   FHWnd := 0;
+  crs.free;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.err(where: string; e: Exception);
+begin
+  if assigned(e) then
+  begin
+    AddLog(where + LineEnding + e.message);
+    messagebox(0, PChar(where + LineEnding + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
+  end else begin
+    AddLog(where);
+    messagebox(0, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.RegisterWindowClass;
@@ -330,9 +353,11 @@ var
   mi: MONITORINFO;
 begin
   result := false;
+  if FActive then MouseLeave;
   if not FActivating then
   try
     try
+      crs.Acquire;
       FActivating := true;
       FHostWnd := HostWnd;
       FSite := Site;
@@ -385,13 +410,13 @@ begin
 
       // add items
       AddItems(AppList);
-      {$ifdef EXT_DEBUG} Addlog('OpenAPWindow.ItemCount=' + inttostr(FItemCount)); {$endif}
       // register thumbnails
       RegisterThumbnails;
       // set items' positions, calulate window size, update workarea
       SetItems;
       FAlphaTarget := 255;
       FAlpha := 255;
+      FHover := false;
       FHoverIndex := -1;
 
       // set starting position
@@ -426,13 +451,14 @@ begin
       // show the window
       Paint;
       // set it as foreground
-      SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate);
+      SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate);
       ShowWindow(FHWnd, SW_SHOW);
-      SetTimer(FHWnd, ID_TIMER, 10, nil);
+      if FAnimate then SetTimer(FHWnd, ID_TIMER, 10, nil);
       SetTimer(FHWnd, ID_TIMER_SLOW, 1000, nil);
       FActive := true;
     finally
       FActivating := false;
+      crs.Leave;
     end;
   except
     on e: Exception do err('AeroPeekWindow.OpenWindow', e);
@@ -445,12 +471,12 @@ end;
 procedure TAeroPeekWindow.CloseAPWindow(Timeout: cardinal = 0);
 begin
   try
-    FHover := false;
+    KillTimer(FHWnd, ID_TIMER_AEROPEEK);
     KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+    KillTimer(FHWnd, ID_TIMER_CLOSE);
 
     if Timeout = 0 then
     begin
-        KillTimer(FHWnd, ID_TIMER_CLOSE);
         // set desired position
         if FAnimate then
         begin
@@ -476,18 +502,346 @@ end;
 procedure TAeroPeekWindow.CloseAPWindowInt;
 begin
   try
-    if assigned(DWM) then DWM.InvokeAeroPeek(0, 0, 0);
+    InvokeAeroPeek(-1);
+    KillTimer(FHWnd, ID_TIMER_AEROPEEK);
+    KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+    KillTimer(FHWnd, ID_TIMER_CLOSE);
     KillTimer(FHWnd, ID_TIMER_SLOW);
     KillTimer(FHWnd, ID_TIMER);
     UnRegisterThumbnails;
     ClearImages;
-    ShowWindow(FHWnd, SW_HIDE);
     FActive := false;
+    ShowWindow(FHWnd, SW_HIDE);
     TAeroPeekWindow.Cleanup;
   except
     on e: Exception do err('AeroPeekWindow.CloseAPWindowInt', e);
   end;
 end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.SetAPWindowPosition(AX, AY: integer);
+begin
+  KillTimer(FHWnd, ID_TIMER_CLOSE);
+  KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+  KillTimer(FHWnd, ID_TIMER_AEROPEEK);
+
+  if FActive and not (FState = apwsClose) then
+  begin
+    FXTarget := AX - FWTarget div 2;
+    FYTarget := AY - FHTarget;
+    if FSite = 1 then // top
+    begin
+      FXTarget := AX - FWTarget div 2;
+      FYTarget := AY;
+    end else if FSite = 0 then // left
+    begin
+      FXTarget := AX;
+      FYTarget := AY - FHTarget div 2;
+    end else if FSite = 2 then // right
+    begin
+      FXTarget := AX - FWTarget;
+      FYTarget := AY - FHTarget div 2;
+    end;
+    // position window inside workarea
+    if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
+    if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
+    if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
+    if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
+
+    Fx := FXTarget;
+    Fy := FYTarget;
+
+    if FCompositionEnabled then UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255)
+    else SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.TrackMouse;
+var
+  pt: windows.TPoint;
+  wnd: THandle;
+begin
+  try
+    GetCursorPos(pt);
+    wnd := WindowFromPoint(pt);
+    if wnd = FHWnd then
+    begin
+      if not FHover then MouseEnter;
+    end else begin
+      if FHover then MouseLeave;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.TrackMouse', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.MouseEnter;
+begin
+  if not FHover then
+  try
+    FHover := true;
+    SetTimer(FHWnd, ID_TIMER_TRACKMOUSE, 150, nil);
+  except
+    on e: Exception do err('AeroPeekWindow.MouseEnter', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.MouseLeave;
+begin
+  try
+    if FHover then
+    begin
+      FHover := false;
+      FHoverIndex := -1;
+      KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+      KillTimer(FHWnd, ID_TIMER_AEROPEEK);
+      InvokeAeroPeek(-1);
+      //Paint;
+      CloseAPWindow(500);
+    end;
+  except
+    //on e: Exception do err('AeroPeekWindow.MouseLeave', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
+var
+  pt: windows.TPoint;
+begin
+  Result := 0;
+  try
+    pt.x := TSmallPoint(DWORD(lParam)).x;
+    pt.y := TSmallPoint(DWORD(lParam)).y;
+    if message = WM_LBUTTONDOWN then LButtonDown(pt)
+    else if message = WM_LBUTTONUP then LButtonUp(pt)
+    else if message = WM_MOUSEMOVE then MouseMove
+    else if message = WM_TIMER then WMTimer(wParam)
+    else Result := DefWindowProc(wnd, message, wParam, lParam);
+  except
+    on e: Exception do err('AeroPeekWindow.WindowProc', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.LButtonDown(pt: windows.TPoint);
+var
+  index: integer;
+begin
+  try
+    for index := 0 to FItemCount - 1 do
+    begin
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
+          if PtInRect(items[index].rectClose, pt) then
+          begin
+            FCloseButtonDownIndex := index;
+            Paint;
+          end;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.LButtonDown', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.LButtonUp(pt: windows.TPoint);
+var
+  index: integer;
+begin
+  try
+    FCloseButtonDownIndex := -1;
+    Paint;
+    for index := 0 to FItemCount - 1 do
+    begin
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
+        begin
+          if PtInRect(items[index].rectClose, pt) then
+          begin
+            ProcessHelper.CloseWindow(items[index].hwnd);
+            if FItemCount < 2 then CloseAPWindow
+            else DeleteItem(index);
+            exit;
+          end
+          else begin
+            ProcessHelper.ActivateWindow(items[index].hwnd);
+            CloseAPWindow;
+            exit;
+          end;
+        end;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.LButtonUp', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.MouseMove;
+var
+  index: integer;
+  pt: windows.TPoint;
+begin
+  try
+    if not FHover then MouseEnter;
+
+    GetCursorPos(pt);
+    dec(pt.x, Fx);
+    dec(pt.y, Fy);
+    for index := 0 to FItemCount - 1 do
+    begin
+      if items[index].hwnd <> 0 then
+        if PtInRect(items[index].rectSel, pt) then
+        begin
+          if FHoverIndex <> index then
+          begin
+            FHoverIndex := index;
+            Paint;
+            if (FState = apwsOpen) and (Fx = FXTarget) and (Fy = FYTarget) then InvokeAeroPeek(FHoverIndex);
+          end;
+        end;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.MouseMove', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.WMTimer(wParam: WPARAM);
+var
+  pt: windows.TPoint;
+begin
+  try
+    if wParam = ID_TIMER then Timer
+    else
+    if wParam = ID_TIMER_CLOSE then
+    begin
+      GetCursorPos(pt);
+      if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
+    end
+    else
+    if wParam = ID_TIMER_SLOW then UpdateTitles
+    else
+    if wParam = ID_TIMER_TRACKMOUSE then TrackMouse;
+    {begin
+      GetCursorPos(pt);
+      if WindowFromPoint(pt) <> FHWnd then
+      begin
+        KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+        InvokeAeroPeek(-1);
+      end;
+    end;}
+  except
+    on e: Exception do err('AeroPeekWindow.WMTimer', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.Timer;
+begin
+  if FActive and not FActivating then
+  try
+    if InTransition then
+    begin
+      DoTransition;
+      if (FState = apwsClose) and (Fx = FXTarget) and (Fy = FYTarget) then CloseAPWindowInt;
+    end;
+  except
+    on e: Exception do err('AeroPeekWindow.Timer', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+function TAeroPeekWindow.InTransition: boolean;
+begin
+  result := (FXTarget <> Fx) or (FYTarget <> Fy)
+    or (FWTarget <> FWidth) or (FHTarget <> FHeight) or (FAlpha <> FAlphaTarget);
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.DoTransition;
+var
+  delta: integer;
+begin
+  try
+    if FXTarget <> Fx then
+    begin
+      delta := abs(FXTarget - Fx) div 4;
+      if delta < 2 then delta := 2;
+      if abs(Fx - FXTarget) <= delta then Fx := FXTarget;
+      if Fx > FXTarget then Dec(Fx, delta);
+      if Fx < FXTarget then Inc(Fx, delta);
+    end;
+
+    if FYTarget <> Fy then
+    begin
+      delta := abs(FYTarget - Fy) div 4;
+      if delta < 2 then delta := 2;
+      if abs(Fy - FYTarget) <= delta then Fy := FYTarget;
+      if Fy > FYTarget then Dec(Fy, delta);
+      if Fy < FYTarget then Inc(Fy, delta);
+    end;
+
+    if FWTarget <> FWidth then
+    begin
+      delta := abs(FWTarget - FWidth) div 4;
+      if delta < 2 then delta := 2;
+      if abs(FWidth - FWTarget) <= delta then FWidth := FWTarget;
+      if FWidth > FWTarget then Dec(FWidth, delta);
+      if FWidth < FWTarget then Inc(FWidth, delta);
+    end;
+
+    if FHTarget <> FHeight then
+    begin
+      delta := abs(FHTarget - FHeight) div 4;
+      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
+      if delta < 2 then delta := 2;
+      if FHeight > FHTarget then Dec(FHeight, delta);
+      if FHeight < FHTarget then Inc(FHeight, delta);
+    end;
+
+    if FAlphaTarget <> FAlpha then
+    begin
+      delta := abs(FAlphaTarget - FAlpha) div 4;
+      if abs(FAlpha - FAlphaTarget) <= delta then FAlpha := FAlphaTarget;
+      if delta < 1 then delta := 1;
+      if FAlpha > FAlphaTarget then Dec(FAlpha, delta);
+      if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
+    end;
+
+    Paint;
+  except
+    on e: Exception do err('AeroPeekWindow.DoTransition', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+// -1 to disable aero peek
+procedure TAeroPeekWindow.InvokeAeroPeek(index: integer);
+begin
+  try
+    crs.Acquire;
+    if FAeroPeekIndex <> index then
+    begin
+      if index > -1 then DWM.InvokeAeroPeek(1, items[index].hwnd, FHWnd);
+      if index = -1 then DWM.InvokeAeroPeek(0, 0, FHWnd);
+      FAeroPeekIndex := index;
+    end;
+  finally
+    crs.Leave;
+  end;
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//
+//
+//
+//
+//
+//
+// items handling
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.AddItems(AppList: TFPList);
 var
@@ -839,9 +1193,6 @@ begin
     if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
     if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
     if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
-    {$ifdef EXT_DEBUG} Addlog('FXTarget=' + inttostr(FXTarget)); {$endif}
-    {$ifdef EXT_DEBUG} Addlog('FYTarget=' + inttostr(FYTarget)); {$endif}
-    {$ifdef EXT_DEBUG} Addlog('FWorkArea=' + recttostring(FWorkArea)); {$endif}
   except
     on e: Exception do err('AeroPeekWindow.SetItems', e);
   end;
@@ -1009,248 +1360,6 @@ begin
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y, crossRect.X + crossRect.Width, crossRect.Y + crossRect.Height);
   GdipDrawLineI(hgdip, pen, crossRect.X, crossRect.Y + crossRect.Height, crossRect.X + crossRect.Width, crossRect.Y);
   GdipDeletePen(pen);
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.SetAPWindowPosition(AX, AY: integer);
-begin
-  KillTimer(FHWnd, ID_TIMER_CLOSE);
-  KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
-
-  if FActive and not (FState = apwsClose) then
-  begin
-    FXTarget := AX - FWTarget div 2;
-    FYTarget := AY - FHTarget;
-    if FSite = 1 then // top
-    begin
-      FXTarget := AX - FWTarget div 2;
-      FYTarget := AY;
-    end else if FSite = 0 then // left
-    begin
-      FXTarget := AX;
-      FYTarget := AY - FHTarget div 2;
-    end else if FSite = 2 then // right
-    begin
-      FXTarget := AX - FWTarget;
-      FYTarget := AY - FHTarget div 2;
-    end;
-    // position window inside workarea
-    if FXTarget + FWTarget > FWorkArea.Right then FXTarget := FWorkArea.Right - FWTarget;
-    if FYTarget + FHTarget > FWorkArea.Bottom then FYTarget := FWorkArea.Bottom - FHTarget;
-    if FXTarget < FWorkArea.Left then FXTarget := FWorkArea.Left;
-    if FYTarget < FWorkArea.Top then FYTarget := FWorkArea.Top;
-
-    Fx := FXTarget;
-    Fy := FYTarget;
-
-    if FCompositionEnabled then UpdateLWindowPosAlpha(FHWnd, Fx, Fy, 255)
-    else SetWindowPos(FHWnd, $ffffffff, Fx, Fy, 0, 0, swp_nosize + swp_noactivate + swp_showwindow);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.MouseLeave;
-begin
-  try
-  if FHover then
-  begin
-    DWM.InvokeAeroPeek(0, 0, 0);
-    FHover := false;
-    KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
-    FHoverIndex := -1;
-    Paint;
-    CloseAPWindow(500);
-  end;
-  except
-    on e: Exception do err('AeroPeekWindow.MouseLeave', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-function TAeroPeekWindow.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
-var
-  pt: windows.TPoint;
-begin
-  Result := 0;
-  try
-    pt.x := TSmallPoint(DWORD(lParam)).x;
-    pt.y := TSmallPoint(DWORD(lParam)).y;
-    if message = WM_LBUTTONDOWN then LButtonDown(pt)
-    else if message = WM_LBUTTONUP then LButtonUp(pt)
-    else if message = WM_MOUSEMOVE then MouseMove
-    else if message = WM_TIMER then WMTimer(wParam)
-    else Result := DefWindowProc(wnd, message, wParam, lParam);
-  except
-    on e: Exception do err('AeroPeekWindow.WindowProc', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.LButtonDown(pt: windows.TPoint);
-var
-  index: integer;
-begin
-  try
-    for index := 0 to FItemCount - 1 do
-    begin
-      if items[index].hwnd <> 0 then
-        if PtInRect(items[index].rectSel, pt) then
-          if PtInRect(items[index].rectClose, pt) then
-          begin
-            FCloseButtonDownIndex := index;
-            Paint;
-          end;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.LButtonDown', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.LButtonUp(pt: windows.TPoint);
-var
-  index: integer;
-begin
-  try
-    FCloseButtonDownIndex := -1;
-    Paint;
-    for index := 0 to FItemCount - 1 do
-    begin
-      if items[index].hwnd <> 0 then
-        if PtInRect(items[index].rectSel, pt) then
-        begin
-          if PtInRect(items[index].rectClose, pt) then
-          begin
-            ProcessHelper.CloseWindow(items[index].hwnd);
-            if FItemCount < 2 then CloseAPWindow
-            else DeleteItem(index);
-            exit;
-          end
-          else begin
-            ProcessHelper.ActivateWindow(items[index].hwnd);
-            CloseAPWindow;
-            exit;
-          end;
-        end;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.LButtonUp', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.MouseMove;
-var
-  index: integer;
-  pt: windows.TPoint;
-begin
-  try
-    if not FHover then
-    begin
-      FHover := true;
-      SetTimer(FHWnd, ID_TIMER_TRACKMOUSE, 50, nil);
-    end;
-    GetCursorPos(pt);
-    dec(pt.x, Fx);
-    dec(pt.y, Fy);
-    for index := 0 to FItemCount - 1 do
-    begin
-      if items[index].hwnd <> 0 then
-        if PtInRect(items[index].rectSel, pt) then
-        begin
-          if FHoverIndex <> index then
-          begin
-            FHoverIndex := index;
-            Paint;
-            if (FState = apwsOpen) and (Fx = FXTarget) and (Fy = FYTarget) then
-              DWM.InvokeAeroPeek(1, items[FHoverIndex].hwnd, FHWnd);
-          end;
-        end;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.MouseMove', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.WMTimer(wParam: WPARAM);
-var
-  pt: windows.TPoint;
-begin
-  try
-    if wParam = ID_TIMER then Timer
-    else
-    if wParam = ID_TIMER_CLOSE then
-    begin
-      GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
-    end
-    else
-    if wParam = ID_TIMER_SLOW then UpdateTitles
-    else
-    if wParam = ID_TIMER_TRACKMOUSE then
-    begin
-      GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then MouseLeave;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.WMTimer', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.Timer;
-var
-  delta: integer;
-begin
-  if FActive and not FActivating then
-  try
-    if (FXTarget <> Fx) or (FYTarget <> Fy) or (FWTarget <> FWidth) or (FHTarget <> FHeight) or (FAlpha <> FAlphaTarget) then
-    begin
-      delta := abs(FXTarget - Fx) div 4;
-      if delta < 2 then delta := 2;
-      if abs(Fx - FXTarget) <= delta then Fx := FXTarget;
-      if Fx > FXTarget then Dec(Fx, delta);
-      if Fx < FXTarget then Inc(Fx, delta);
-
-      delta := abs(FYTarget - Fy) div 4;
-      if delta < 2 then delta := 2;
-      if abs(Fy - FYTarget) <= delta then Fy := FYTarget;
-      if Fy > FYTarget then Dec(Fy, delta);
-      if Fy < FYTarget then Inc(Fy, delta);
-
-      delta := abs(FWTarget - FWidth) div 4;
-      if delta < 2 then delta := 2;
-      if abs(FWidth - FWTarget) <= delta then FWidth := FWTarget;
-      if FWidth > FWTarget then Dec(FWidth, delta);
-      if FWidth < FWTarget then Inc(FWidth, delta);
-
-      delta := abs(FHTarget - FHeight) div 4;
-      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
-      if delta < 2 then delta := 2;
-      if FHeight > FHTarget then Dec(FHeight, delta);
-      if FHeight < FHTarget then Inc(FHeight, delta);
-
-      delta := abs(FAlphaTarget - FAlpha) div 4;
-      if abs(FAlpha - FAlphaTarget) <= delta then FAlpha := FAlphaTarget;
-      if delta < 1 then delta := 1;
-      if FAlpha > FAlphaTarget then Dec(FAlpha, delta);
-      if FAlpha < FAlphaTarget then Inc(FAlpha, delta);
-
-      Paint;
-
-      if (FState = apwsClose) and (Fx = FXTarget) and (Fy = FYTarget) then
-      begin
-        CloseAPWindowInt;
-      end;
-    end;
-  except
-    on e: Exception do err('AeroPeekWindow.Timer', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TAeroPeekWindow.err(where: string; e: Exception);
-begin
-  if assigned(e) then
-  begin
-    AddLog(where + LineEnding + e.message);
-    messagebox(0, PChar(where + LineEnding + e.message), declu.PROGRAM_NAME, MB_ICONERROR)
-  end else begin
-    AddLog(where);
-    messagebox(0, PChar(where), declu.PROGRAM_NAME, MB_ICONERROR);
-  end;
 end;
 //------------------------------------------------------------------------------
 end.

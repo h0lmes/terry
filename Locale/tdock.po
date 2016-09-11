@@ -804,6 +804,10 @@ msgctxt "TFRMSETS.CHBACTIVATERUNNING.CAPTION"
 msgid "Activate program if already running"
 msgstr ""
 
+#: tfrmsets.chbaeropeekenabled.caption
+msgid "Enable AeroPeek"
+msgstr ""
+
 #: tfrmsets.chbautohideonfullscreenapp.caption
 msgid "Hide dock completely while fullscreen application active (game, etc) "
 msgstr ""

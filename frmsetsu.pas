@@ -35,6 +35,7 @@ type
     chbRunInThread: TCheckBox;
     chbOccupyFullMonitor: TCheckBox;
     chbTaskbar: TCheckBox;
+    chbAeroPeekEnabled: TCheckBox;
     chbTaskbarGrouping: TCheckBox;
     chbTaskbarLivePreviews: TCheckBox;
     chbTaskbarSameMonitor: TCheckBox;
@@ -146,6 +147,7 @@ type
     procedure cbHideTaskBarChange(Sender: TObject);
     procedure cboItemAnimationTypeChange(Sender: TObject);
     procedure chbActivateRunningChange(Sender: TObject);
+    procedure chbAeroPeekEnabledChange(Sender: TObject);
 		procedure chbGlobalConsoleChange(Sender: TObject);
 		procedure chbGlobalHideChange(Sender: TObject);
     procedure chbHintEffectsChange(Sender: TObject);
@@ -413,6 +415,7 @@ begin
 
   try
     SetInitValue(chbTaskbar, sets.container.Taskbar);
+    SetInitValue(chbAeroPeekEnabled, sets.container.AeroPeekEnabled);
     SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
     SetInitValue(chbTaskbarGrouping, sets.container.TaskGrouping);
     SetInitValue(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
@@ -717,6 +720,11 @@ end;
 procedure Tfrmsets.chbTaskbarChange(Sender: TObject);
 begin
   frmmain.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbAeroPeekEnabledChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpAeroPeekEnabled, integer(chbAeroPeekEnabled.Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarGroupingChange(Sender: TObject);

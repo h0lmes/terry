@@ -239,7 +239,7 @@ begin
           sets.container.ItemAnimationType, sets.container.SeparatorAlpha,
           sets.container.ActivateRunningApps, sets.container.UseShellContextMenus, sets.container.LockDragging,
           sets.container.StackAnimationEnabled,
-          sets.container.TaskLivePreviews, sets.container.TaskGrouping,
+          sets.container.AeroPeekEnabled, sets.container.TaskLivePreviews, sets.container.TaskGrouping,
           sets.container.TaskThumbSize, sets.container.TaskSpot,
           sets.container.ShowHint, sets.container.Font);
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Create'); {$endif}
@@ -798,8 +798,6 @@ begin
     if sets.container.ActivateOnMouseInterval = 0 then SetForeground
     else SetTimer(Handle, ID_TIMER_FOREGROUND, sets.container.ActivateOnMouseInterval, nil);
 	end;
-	// unhover aeropeek
-  if TAeroPeekWindow.IsActive then TAeroPeekWindow.CMouseLeave;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnMouseLeave;

@@ -3,8 +3,8 @@ unit taskitemu;
 {$t+}
 
 interface
-uses jwaWindows, Windows, Messages, SysUtils, Controls, Classes, Math,
-  GDIPAPI, gfx, declu, dockh, toolu, customdrawitemu, processhlp, aeropeeku, loggeru;
+uses Windows, Messages, SysUtils, Controls, Classes, Math,
+  GDIPAPI, gfx, declu, dockh, customdrawitemu, processhlp, aeropeeku, loggeru;
 
 type
 
@@ -16,7 +16,8 @@ type
     FExecutable: string;
     FAppList: TFPList;
     FIsNew: boolean;
-    FIsOpen: boolean;
+    FAeroPeekActive: boolean;
+    FAeroPeekEnabled: boolean;
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
@@ -57,12 +58,13 @@ implementation
 constructor TTaskItem.Create(wndParent: HWND; var AParams: TDItemCreateParams);
 begin
   inherited;
+  FAeroPeekEnabled := AParams.AeroPeekEnabled;
   FTaskGrouping := AParams.TaskGrouping;
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
   FExecutable := '';
   FAppList := TFPList.Create;
-  FIsOpen := false;
+  FAeroPeekActive := false;
   FIsNew := true;
   FRunning := true;
   OnBeforeMouseHover := BeforeMouseHover;
@@ -76,7 +78,7 @@ end;
 destructor TTaskItem.Destroy;
 begin
   FFreed := true;
-  if FIsOpen then TAeroPeekWindow.Close(0);
+  if FAeroPeekActive then TAeroPeekWindow.Close(0);
   KillTimer(FHWnd, ID_TIMER);
   FAppList.free;
   try GdipDisposeImage(FImage);
@@ -179,7 +181,7 @@ begin
       FUpdating:= false;
     end;
 
-    if FIsOpen then ShowPeekWindow; // update peek window
+    if FAeroPeekActive then ShowPeekWindow; // update peek window
     Redraw;
   except
     on e: Exception do raise Exception.Create('TaskItem.UpdateItemInternal ' + LineEnding + e.message);
@@ -211,11 +213,12 @@ begin
           else if FBigItemSize <= 256 then temp := 256;
           if temp <> FIW then UpdateImage;
         end;
-      gpMonitor: ClosePeekWindow(0);
-      gpSite: ClosePeekWindow(0);
+      gpMonitor:          ClosePeekWindow(0);
+      gpSite:             ClosePeekWindow(0);
+      gpAeroPeekEnabled:  FAeroPeekEnabled := boolean(param);
       gpTaskLivePreviews: FTaskLivePreviews := boolean(param);
-      gpTaskThumbSize: FTaskThumbSize := param;
-      gpTaskGrouping: FTaskGrouping := boolean(param);
+      gpTaskThumbSize:    FTaskThumbSize := param;
+      gpTaskGrouping:     FTaskGrouping := boolean(param);
       tcDebugInfo:
         if FAppList.Count > 0 then // log every window info
         begin
@@ -245,7 +248,7 @@ end;
 // Draw routines ---------------------------------------------------------------
 procedure TTaskItem.AfterDraw;
 begin
-  if FIsOpen then UpdatePeekWindow;
+  if FAeroPeekActive then UpdatePeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.DrawOverlay(dst: pointer; x, y, size: integer);
@@ -319,8 +322,13 @@ begin
       if action = eaGroup then
           ProcessHelper.ActivateWindowList(FAppList)
 		  else
+      if FAeroPeekEnabled then
+      begin
           if not TAeroPeekWindow.IsActive then ShowPeekWindow;
-	end;
+      end else begin
+          ProcessHelper.ActivateProcessMainWindow(FExecutable, Handle, GetScreenRect, FSite);
+      end;
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.BeforeUndock;
@@ -394,16 +402,17 @@ end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.MouseHover(AHover: boolean);
 begin
-  if AHover then
-  begin
-    if TAeroPeekWindow.IsActive then
+  if FAeroPeekEnabled then
+    if AHover then
     begin
-      if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
-    end
-    else ShowPeekWindow(800);
-  end else begin
-    ClosePeekWindow(800);
-  end;
+      if TAeroPeekWindow.IsActive then
+      begin
+        if TAeroPeekWindow.ActivatedBy(FHWnd) then ShowPeekWindow else ShowPeekWindow(100);
+      end
+      else ShowPeekWindow(800);
+    end else begin
+      ClosePeekWindow(800);
+    end;
 end;
 //------------------------------------------------------------------------------
 procedure TTaskItem.WndMessage(var msg: TMessage);
@@ -459,7 +468,7 @@ begin
     FHideHint := true;
     UpdateHint;
     TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
-    FIsOpen := true;
+    FAeroPeekActive := true;
   except
     on e: Exception do raise Exception.Create('TaskItem.Cmd ' + LineEnding + e.message);
   end;
@@ -473,9 +482,9 @@ begin
     FHideHint := false;
     UpdateHint;
   end;
-  if FIsOpen then
+  if FAeroPeekActive then
   begin
-    FIsOpen := false;
+    FAeroPeekActive := false;
     TAeroPeekWindow.Close(Timeout);
   end;
 end;

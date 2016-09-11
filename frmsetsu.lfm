@@ -23,10 +23,10 @@ object frmsets: Tfrmsets
     Height = 505
     Top = 10
     Width = 615
-    ActivePage = tsPosition
+    ActivePage = tsTaskbar
     Anchors = [akTop, akLeft, akRight, akBottom]
     ShowTabs = False
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -177,7 +177,7 @@ object frmsets: Tfrmsets
       object chbTaskbarGrouping: TCheckBox
         Left = 15
         Height = 19
-        Top = 45
+        Top = 75
         Width = 109
         Caption = 'Group similar tasks'
         OnChange = chbTaskbarGroupingChange
@@ -186,7 +186,7 @@ object frmsets: Tfrmsets
       object chbTaskbarSameMonitor: TCheckBox
         Left = 15
         Height = 19
-        Top = 75
+        Top = 105
         Width = 208
         Caption = 'Show only tasks from the same monitor'
         OnChange = chbTaskbarSameMonitorChange
@@ -195,7 +195,7 @@ object frmsets: Tfrmsets
       object chbTaskbarLivePreviews: TCheckBox
         Left = 15
         Height = 19
-        Top = 105
+        Top = 135
         Width = 193
         Caption = 'Show live previews (when available)'
         OnChange = chbTaskbarLivePreviewsChange
@@ -204,7 +204,7 @@ object frmsets: Tfrmsets
       object tbAeroPeekThumbSize: TTrackBar
         Left = 15
         Height = 31
-        Top = 170
+        Top = 200
         Width = 575
         Frequency = 25
         Max = 400
@@ -218,10 +218,19 @@ object frmsets: Tfrmsets
       object Label4: TLabel
         Left = 15
         Height = 13
-        Top = 140
+        Top = 170
         Width = 81
         Caption = 'Live preview size'
         ParentColor = False
+      end
+      object chbAeroPeekEnabled: TCheckBox
+        Left = 15
+        Height = 19
+        Top = 45
+        Width = 101
+        Caption = 'Enable AeroPeek'
+        OnChange = chbAeroPeekEnabledChange
+        TabOrder = 5
       end
     end
     object tsPosition: TTabSheet

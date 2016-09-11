@@ -243,8 +243,15 @@ msgid "Confirm restore operation."
 msgstr "Подтвердите операцию восстановления."
 
 #: declu.xmsgnotificationareaicons
-msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
-msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
+msgid ""
+"After you close this message you will see \"Notification area icons\" "
+"window. To use this function uncheck \"Always show all icons\" at the bottom "
+"of the window and set all behaviors to \"Only show notifications\"."
+msgstr ""
+"После закрытия данного сообщения вы увидете окно \"Значки области уведомлений"
+"\". Для использования данной функции снимите отметку \"Всегда отображать все "
+"значки\" внизу окна и установите для всех значков поведение \"Показать "
+"только уведомления\"."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
 msgid "Place target file onto dock instead of shortcut?"
@@ -273,9 +280,43 @@ msgid "Theme saved"
 msgstr "Тема сохранена"
 
 #: declu.xmsgunsavediconparams
-#| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
-msgid "Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
-msgstr "Параметры значка изменены. Если вы продолжите все изменения будут утеряны. Продолжить?"
+#| msgid ""
+#| "Icon parameters changed. If you will proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
+#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
+#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
+#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
+#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
+#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
+#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?Icon parameters changed. If you choose to proceed all changes "
+#| "will be lost. Proceed?Icon parameters changed. If you choose to proceed "
+#| "all changes will be lost. Proceed?Icon parameters changed. If you choose "
+#| "to proceed all changes will be lost. Proceed?Icon parameters changed. If "
+#| "you choose to proceed all changes will be lost. Proceed?Icon parameters "
+#| "changed. If you choose to proceed all changes will be lost. Proceed?Icon "
+#| "parameters changed. If you choose to proceed all changes will be lost. "
+#| "Proceed?"
+msgid ""
+"Icon parameters changed. If you choose to proceed all changes will be lost. "
+"Proceed?"
+msgstr ""
+"Параметры значка изменены. Если вы продолжите все изменения будут утеряны. "
+"Продолжить?"
 
 #: declu.xoffsetoficons
 msgid "Offset of icons: %d pt"
@@ -862,6 +903,10 @@ msgctxt "tfrmsets.chbactivaterunning.caption"
 msgid "Activate program if already running"
 msgstr "Активировать программу если уже запущена"
 
+#: tfrmsets.chbaeropeekenabled.caption
+msgid "Enable AeroPeek"
+msgstr "Включить AeroPeek"
+
 #: tfrmsets.chbautohideonfullscreenapp.caption
 #| msgid "Hide while fullscreen application active (game, etc) "
 msgid "Hide dock completely while fullscreen application active (game, etc) "
@@ -1107,8 +1152,10 @@ msgid "Zoom width"
 msgstr "Ширина увеличения"
 
 #: tfrmsets.stmouseovertip.caption
-msgid "(Move mouse pointer to the edge of the screen to put the dock to foreground)"
-msgstr "Переместите указатель мыши к краю экрана чтобы вывести док на передний план"
+msgid ""
+"(Move mouse pointer to the edge of the screen to put the dock to foreground)"
+msgstr ""
+"Переместите указатель мыши к краю экрана чтобы вывести док на передний план"
 
 #: tfrmsets.tsabout.caption
 msgctxt "TFRMSETS.TSABOUT.CAPTION"
@@ -1358,4 +1405,3 @@ msgstr "Дальше"
 #: tfrmtip.caption
 msgid "Tip"
 msgstr "Подсказка"
-

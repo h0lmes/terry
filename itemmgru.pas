@@ -49,6 +49,7 @@ type
     FSetsFilename: string;
     FVisible: boolean;
     FEnabled: boolean;
+    FAeroPeekEnabled: boolean;
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
@@ -152,7 +153,7 @@ type
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
-      TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      AeroPeekEnabled, TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: TDFontData);
     destructor Destroy; override;
     procedure Enable(value: boolean);
@@ -219,7 +220,7 @@ constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; AB
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
-      TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      AeroPeekEnabled, TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: TDFontData);
 begin
   inherited Create;
@@ -245,6 +246,7 @@ begin
   FUseShellContextMenus := UseShellContextMenus;
   FLockDragging := LockDragging;
   FStackAnimationEnabled := StackAnimationEnabled;
+  FAeroPeekEnabled := AeroPeekEnabled;
   FTaskLivePreviews := TaskLivePreviews;
   FTaskGrouping := TaskGrouping;
   FTaskThumbSize := TaskThumbSize;
@@ -365,14 +367,15 @@ begin
           ItemsChanged(true);
         end;
       gpReflectionSize:         FReflectionSize := value;
+      gpAeroPeekEnabled:        FAeroPeekEnabled := boolean(value);
       gpTaskbar:                if value = 0 then ClearTaskbar;
       gpTaskLivePreviews:
         begin
           ClearTaskbar;
           FTaskLivePreviews := value <> 0;
         end;
-      gpTaskThumbSize: FTaskThumbSize := value;
-      gpTaskSpot: FTaskSpot := value;
+      gpTaskThumbSize:          FTaskThumbSize := value;
+      gpTaskSpot:               FTaskSpot := value;
       gpTaskGrouping:
         begin
           ClearTaskbar;
@@ -792,6 +795,7 @@ begin
     icp.LockDragging := FLockDragging;
     icp.StackAnimationEnabled := FStackAnimationEnabled;
     icp.SeparatorAlpha := FSeparatorAlpha;
+    icp.AeroPeekEnabled := FAeroPeekEnabled;
     icp.TaskLivePreviews := FTaskLivePreviews;
     icp.TaskThumbSize := FTaskThumbSize;
     icp.TaskGrouping := FTaskGrouping;

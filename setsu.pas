@@ -42,6 +42,7 @@ type
     HideSystemTaskbar: boolean;
     ReserveScreenEdge: boolean;
     ReserveScreenEdgePercent: integer;
+    AeroPeekEnabled: boolean;
     Taskbar: boolean;
     TaskLivePreviews: boolean;
     TaskThumbSize: integer;
@@ -199,6 +200,7 @@ begin
   container.HideSystemTaskbar := ini.ReadBool('base', 'HideTaskBar', false);
   container.ReserveScreenEdge := ini.ReadBool('base', 'ReserveScreenEdge', false);
   container.ReserveScreenEdgePercent := SetRange(ini.ReadInteger('base', 'ReserveScreenEdgePercent', 100), 0, 200);
+  container.AeroPeekEnabled := ini.ReadBool('base', 'AeroPeekEnabled', true);
   container.Taskbar := ini.ReadBool('base', 'Taskbar', false);
   container.TaskLivePreviews := ini.ReadBool('base', 'TaskbarLivePreviews', true);
   container.TaskThumbSize := ini.ReadInteger('base', 'TaskThumbSize', 200);
@@ -301,6 +303,7 @@ begin
   ini.WriteBool   ('base', 'HideTaskBar', container.HideSystemTaskbar);
   ini.WriteBool   ('base', 'ReserveScreenEdge', container.ReserveScreenEdge);
   ini.WriteInteger('base', 'ReserveScreenEdgePercent', container.ReserveScreenEdgePercent);
+  ini.WriteBool   ('base', 'AeroPeekEnabled', container.AeroPeekEnabled);
   ini.WriteBool   ('base', 'Taskbar', container.Taskbar);
   ini.WriteBool   ('base', 'TaskbarLivePreviews', container.TaskLivePreviews);
   ini.WriteInteger('base', 'TaskThumbSize', container.TaskThumbSize);
@@ -442,6 +445,7 @@ begin
   gpHideSystemTaskbar: container.HideSystemTaskbar := boolean(value);
   gpReserveScreenEdge: container.ReserveScreenEdge := boolean(value);
   gpReserveScreenEdgePercent: container.ReserveScreenEdgePercent := SetRange(value, 0, 200);
+  gpAeroPeekEnabled: container.AeroPeekEnabled := boolean(value);
   gpTaskbar: container.Taskbar := boolean(value);
   gpTaskLivePreviews: container.TaskLivePreviews := boolean(value);
   gpTaskThumbSize: container.TaskThumbSize := value;
@@ -504,6 +508,7 @@ begin
   gpHideSystemTaskbar: result := integer(container.HideSystemTaskbar);
   gpReserveScreenEdge: result := integer(container.ReserveScreenEdge);
   gpReserveScreenEdgePercent: result := container.ReserveScreenEdgePercent;
+  gpAeroPeekEnabled: result := integer(container.AeroPeekEnabled);
   gpTaskbar: result := integer(container.Taskbar);
   gpTaskLivePreviews: result := integer(container.TaskLivePreviews);
   gpTaskThumbSize: result := container.TaskThumbSize;
@@ -569,6 +574,7 @@ begin
   dst.HideSystemTaskbar := src.HideSystemTaskbar;
   dst.ReserveScreenEdge := src.ReserveScreenEdge;
   dst.ReserveScreenEdgePercent := src.ReserveScreenEdgePercent;
+  dst.AeroPeekEnabled := src.AeroPeekEnabled;
   dst.Taskbar := src.Taskbar;
   dst.TaskLivePreviews := src.TaskLivePreviews;
   dst.TaskThumbSize := src.TaskThumbSize;

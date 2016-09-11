@@ -26,6 +26,7 @@ type
     gpZoomTime,
     gpReserveScreenEdge,
     gpReserveScreenEdgePercent,
+    gpAeroPeekEnabled,
     gpTaskbar, // show taskbar items on the dock
     gpTaskLivePreviews,
     gpTaskThumbSize,
@@ -121,6 +122,7 @@ type
     LockDragging: boolean;
     StackAnimationEnabled: boolean;
     SeparatorAlpha: integer;
+    AeroPeekEnabled: boolean;
     TaskLivePreviews: boolean;
     TaskThumbSize: integer;
     TaskGrouping: boolean;
@@ -239,6 +241,7 @@ const
   ID_TIMER_FOREGROUND       = 10;
   ID_TIMER_WINDOWCREATED    = 11;
   ID_TIMER_TRACKMOUSE       = 12;
+  ID_TIMER_AEROPEEK         = 13;
 
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 
