@@ -99,15 +99,15 @@ begin
   FTaskLivePreviews := AParams.TaskLivePreviews;
   FTaskThumbSize := AParams.TaskThumbSize;
 
-  FLastMouseUp:= 0;
-  FCommand:= '';
-  FParams:= '';
-  FDir:= '';
-  FImageFile:= '';
-  FImageFile2:= '';
-  FShowCmd:= 0;
-  FHide:= false;
-  FRunning:= false;
+  FLastMouseUp := 0;
+  FCommand := '';
+  FParams := '';
+  FDir := '';
+  FImageFile := '';
+  FImageFile2 := '';
+  FShowCmd := 0;
+  FHide := false;
+  FRunning := false;
   FAppList := TFPList.Create;
   FAeroPeekActive := false;
   OnBeforeMouseHover := BeforeMouseHover;
@@ -403,7 +403,7 @@ begin
         end;
       icDragLeave:
         begin
-          FDropIndicator := 0;
+          FDropIndicator := DII_NONE;
           Redraw;
         end;
 

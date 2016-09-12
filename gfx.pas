@@ -28,6 +28,7 @@ const
   IID_IImageList: TGUID = '{46EB5926-582E-4017-9FDF-E8998DAA0950}';
   IID_IShellItemImageFactory: TGUID = '{bcc18b79-ba16-442f-80c4-8a59c30c463b}';
 
+  DII_NONE = 0;
   DII_ADD  = 1;
   DII_RUN  = 2;
   DII_ICON = 3;
@@ -803,7 +804,7 @@ var
   cell, cell2, cell3, cell4: single;
   points: array [0..23] of GDIPAPI.TPointF;
 begin
-  if iType > 0 then
+  if iType > DII_NONE then
   try
     if iType <> DII_MOVE then
     begin

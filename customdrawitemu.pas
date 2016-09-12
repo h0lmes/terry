@@ -65,8 +65,8 @@ begin
       FShowItem := AShowItem;
       if need_dock then
       begin
-        Ax := FXDocking;
-        Ay := FYDocking;
+        Ax := FDockingX;
+        Ay := FDockingY;
       end;
       screenX := Ax - ItemRect.Left;
       screenY := Ay - ItemRect.Top;

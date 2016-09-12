@@ -104,8 +104,8 @@ begin
       FShowItem := AShowItem;
       if need_dock then
       begin
-        Ax := FXDocking;
-        Ay := FYDocking;
+        Ax := FDockingX;
+        Ay := FDockingY;
       end;
       xReal := Ax - ItemRect.Left;
       yReal := Ay - ItemRect.Top;

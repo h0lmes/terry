@@ -32,10 +32,10 @@ type
     FY: integer;
     FSize: integer;
     FBorder: integer;
-    FxDockFrom: integer;
-    FyDockFrom: integer;
-    FXDocking: integer;
-    FYDocking: integer;
+    FDockFromX: integer;
+    FDockFromY: integer;
+    FDockingX: integer;
+    FDockingY: integer;
     need_dock: boolean;
     FDockingProgress: single;
     FNCHitTestNC: boolean; // if true - HitTest returns true for non-client area
@@ -238,8 +238,8 @@ begin
   FIW := 32;
   FIH := 32;
   FShowItem := SWP_HIDEWINDOW;
-  FXDocking := 0;
-  FYDocking := 0;
+  FDockingX := 0;
+  FDockingY := 0;
   need_dock := false;
   FNCHitTestNC := false;
   FNeedMouseWheel := false;
@@ -344,13 +344,13 @@ begin
   if FUndocked then
   begin
     FUndocked := false;
+    FDockingProgress := 0;
     need_dock := true;
     wRect := ScreenRect;
-    FxDockFrom := wRect.Left;
-    FyDockFrom := wRect.Top;
-    FXDocking := FxDockFrom;
-    FYDocking := FyDockFrom;
-    FDockingProgress := 0;
+    FDockFromX := wRect.Left;
+    FDockFromY := wRect.Top;
+    FDockingX := FDockFromX;
+    FDockingY := FDockFromY;
     Redraw;
   end;
 end;
@@ -372,8 +372,8 @@ begin
   if need_dock then
   begin
     FDockingProgress += 0.05;
-    FXDocking := FxDockFrom + round((FX - FxDockFrom) * FDockingProgress);
-    FYDocking := FyDockFrom + round((FY - FyDockFrom) * FDockingProgress);
+    FDockingX := FDockFromX + round((FX - FDockFromX) * FDockingProgress);
+    FDockingY := FDockFromY + round((FY - FDockFromY) * FDockingProgress);
     Redraw(false);
     if FDockingProgress >= 1 then need_dock := false;
   end;
@@ -480,7 +480,7 @@ var
 begin
   if not FFreed then
   try
-    do_show := FShowHint and FHover and not FHideHint and not FUndocked and not FLockMouseEffect and (trim(FCaption) <> '');
+    do_show := FShowHint and not FHideHint and FHover and not FUndocked and not FLockMouseEffect and (trim(FCaption) <> '');
     if not do_show then
     begin
       if FHintVisible then dockh.DeactivateHint(FHWnd);

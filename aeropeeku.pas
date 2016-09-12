@@ -84,6 +84,7 @@ type
     FHover: boolean;
     FHoverIndex: integer;
     FAeroPeekIndex: integer;
+    FAeroPeekAllowedInt: boolean;
     FState: TAPWState;
     crs: TCriticalSection;
     items: array of TAeroPeekWindowItem;
@@ -101,6 +102,8 @@ type
     procedure RegisterThumbnails;
     procedure SetItems;
     procedure Timer;
+    procedure TimerAeroPeek;
+    procedure TimerClose;
     procedure TrackMouse;
     procedure UnRegisterThumbnails;
     procedure UpdateTitles;
@@ -209,6 +212,7 @@ begin
   FHover := false;
   FHoverIndex := -1;
   FAeroPeekIndex := -1;
+  FAeroPeekAllowedInt := false;
   crs := TCriticalSection.Create;
 
   // create window //
@@ -365,6 +369,7 @@ begin
       FState := apwsOpen;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
       KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
+      KillTimer(FHWnd, ID_TIMER_AEROPEEK);
       KillTimer(FHWnd, ID_TIMER);
       KillTimer(FHWnd, ID_TIMER_SLOW);
       UnRegisterThumbnails;
@@ -418,6 +423,8 @@ begin
       FAlpha := 255;
       FHover := false;
       FHoverIndex := -1;
+      FAeroPeekIndex := -1;
+      FAeroPeekAllowedInt := false;
 
       // set starting position
       if FAnimate then
@@ -580,6 +587,7 @@ begin
   try
     FHover := true;
     SetTimer(FHWnd, ID_TIMER_TRACKMOUSE, 150, nil);
+    SetTimer(FHWnd, ID_TIMER_AEROPEEK, 1000, nil);
   except
     on e: Exception do err('AeroPeekWindow.MouseEnter', e);
   end;
@@ -595,7 +603,6 @@ begin
       KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
       KillTimer(FHWnd, ID_TIMER_AEROPEEK);
       InvokeAeroPeek(-1);
-      //Paint;
       CloseAPWindow(500);
     end;
   except
@@ -677,6 +684,7 @@ var
   index: integer;
   pt: windows.TPoint;
 begin
+  if not InTransition then
   try
     if not FHover then MouseEnter;
 
@@ -692,7 +700,7 @@ begin
           begin
             FHoverIndex := index;
             Paint;
-            if (FState = apwsOpen) and (Fx = FXTarget) and (Fy = FYTarget) then InvokeAeroPeek(FHoverIndex);
+            InvokeAeroPeek(FHoverIndex);
           end;
         end;
     end;
@@ -702,31 +710,40 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.WMTimer(wParam: WPARAM);
-var
-  pt: windows.TPoint;
 begin
   try
     if wParam = ID_TIMER then Timer
     else
-    if wParam = ID_TIMER_CLOSE then
-    begin
-      GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
-    end
+    if wParam = ID_TIMER_CLOSE then TimerClose
     else
     if wParam = ID_TIMER_SLOW then UpdateTitles
     else
+    if wParam = ID_TIMER_AEROPEEK then TimerAeroPeek
+    else
     if wParam = ID_TIMER_TRACKMOUSE then TrackMouse;
-    {begin
-      GetCursorPos(pt);
-      if WindowFromPoint(pt) <> FHWnd then
-      begin
-        KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
-        InvokeAeroPeek(-1);
-      end;
-    end;}
   except
     on e: Exception do err('AeroPeekWindow.WMTimer', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.TimerClose;
+var
+  pt: windows.TPoint;
+begin
+  GetCursorPos(pt);
+  if WindowFromPoint(pt) <> FHWnd then CloseAPWindow;
+end;
+//------------------------------------------------------------------------------
+procedure TAeroPeekWindow.TimerAeroPeek;
+var
+  pt: windows.TPoint;
+begin
+  KillTimer(FHWnd, ID_TIMER_AEROPEEK);
+  GetCursorPos(pt);
+  if WindowFromPoint(pt) = FHWnd then
+  begin
+    FAeroPeekAllowedInt := true;
+    if FAeroPeekIndex <> FHoverIndex then InvokeAeroPeek(FHoverIndex);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -785,8 +802,8 @@ begin
     if FHTarget <> FHeight then
     begin
       delta := abs(FHTarget - FHeight) div 4;
-      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
       if delta < 2 then delta := 2;
+      if abs(FHeight - FHTarget) <= delta then FHeight := FHTarget;
       if FHeight > FHTarget then Dec(FHeight, delta);
       if FHeight < FHTarget then Inc(FHeight, delta);
     end;
@@ -809,13 +826,20 @@ end;
 // -1 to disable aero peek
 procedure TAeroPeekWindow.InvokeAeroPeek(index: integer);
 begin
+  if (FAeroPeekIndex <> index) or (index = -1) then
   try
     crs.Acquire;
-    if FAeroPeekIndex <> index then
+    if (index > -1) and FAeroPeekAllowedInt then
     begin
-      if index > -1 then DWM.InvokeAeroPeek(1, items[index].hwnd, FHWnd);
-      if index = -1 then DWM.InvokeAeroPeek(0, 0, FHWnd);
       FAeroPeekIndex := index;
+      DWM.InvokeAeroPeek(1, items[index].hwnd, FHWnd);
+    end;
+    if index = -1 then
+    begin
+      FAeroPeekAllowedInt := false;
+      FAeroPeekIndex := index;
+      try DWM.InvokeAeroPeek(0, 0, 0);
+      except end;
     end;
   finally
     crs.Leave;
