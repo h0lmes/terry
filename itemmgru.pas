@@ -108,8 +108,7 @@ type
     procedure SetDropPlace(index: integer);
     procedure SetDropPlaceEx(index: integer);
 
-    procedure  AllItemTimer;
-    procedure PluginCallCreate(wnd: HWND);
+    procedure AllItemTimer;
     function  IsSeparator(wnd: HWND): boolean;
   public
     FItemArray: array [0..MAX_ITEM_COUNT - 1] of TItem; // static = more stable
@@ -731,22 +730,8 @@ begin
     SetWindowPos(wnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOSENDCHANGING);
     SetDropPlaceEx(NOT_AN_ITEM);
     SetDropPlace(NOT_AN_ITEM);
-    //
-    PluginCallCreate(wnd);
   end;
   if Update then ItemsChanged(true);
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.PluginCallCreate(wnd: HWND);
-var
-  Inst: TCustomItem;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TPluginItem then TPluginItem(Inst).CallCreate;
-  except
-    on e: Exception do raise Exception.Create('ItemManager.PluginCallCreate ' + LineEnding + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 function TItemManager.CreateItemFromIni(IniFile, IniSection: string): THandle;
@@ -820,7 +805,11 @@ begin
     else
     if ClassName = 'separator' then Inst := TSeparatorItem.Create(FParentHWnd, icp)
     else
-    if ClassName = 'plugin' then Inst := TPluginItem.Create(FParentHWnd, icp)
+    if ClassName = 'plugin' then
+    begin
+      Inst := TPluginItem.Create(FParentHWnd, icp);
+      TPluginItem(Inst).CallCreate;
+    end
     else
     if ClassName = 'stack' then Inst := TStackItem.Create(FParentHWnd, icp)
     else
@@ -1984,6 +1973,18 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TItemManager.ItemDock(wnd: HWND);
+var
+  Inst: TCustomItem;
+begin
+  try
+    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
+    if Inst is TCustomItem then Inst.Dock;
+  except
+    on e: Exception do err('ItemManager.ItemDock', e);
+  end;
+end;
+//------------------------------------------------------------------------------
 function TItemManager.ItemCmd(wnd: HWND; id: TDParam; param: PtrInt): PtrInt;
 var
   Inst: TCustomItem;
@@ -1994,18 +1995,6 @@ begin
     if Inst is TCustomItem then result := Inst.cmd(id, param);
   except
     on e: Exception do err('ItemManager.ItemCmd', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.ItemDock(wnd: HWND);
-var
-  Inst: TCustomItem;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(wnd, GWL_USERDATA));
-    if Inst is TCustomItem then Inst.Dock;
-  except
-    on e: Exception do err('ItemManager.ItemDock', e);
   end;
 end;
 //------------------------------------------------------------------------------

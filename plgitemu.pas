@@ -132,27 +132,19 @@ end;
 //------------------------------------------------------------------------------
 procedure TPluginItem.CallCreate;
 var
-  szIni, szIniGroup: array [0..MAX_PATH - 1] of char;
+  szIni, szIniGroup: array [0..MAX_PATH] of char;
 begin
-  if assigned(lpData) then exit;
-
-  if (FIniFile <> '') and (FIniSection <> '') then
-  begin
-    try
+  if not FFreed and not assigned(lpData) then
+  try
+    if (FIniFile <> '') and (FIniSection <> '') then
+    begin
       strlcopy(szIni, pchar(FIniFile), length(FIniFile));
       strlcopy(szIniGroup, pchar(FIniSection), length(FIniSection));
       lpData := OnCreate(FHWnd, hLib, @szIni, @szIniGroup);
-    except
-      on e: Exception do raise Exception.Create('PluginItem.CallCreate ' + LineEnding + e.message);
-    end;
-  end
-  else
-  begin
-    try
-      lpData := OnCreate(FHWnd, hLib, nil, nil);
-    except
-      on e: Exception do raise Exception.Create('PluginItem.CallCreate_NoIni ' + LineEnding + e.message);
-    end;
+    end
+    else lpData := OnCreate(FHWnd, hLib, nil, nil);
+  except
+    on e: Exception do raise Exception.Create('PluginItem.CallCreate(' + FIniFile + ', ' + FIniSection + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------

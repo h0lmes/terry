@@ -244,6 +244,7 @@ const
   ID_TIMER_WINDOWCREATED    = 11;
   ID_TIMER_TRACKMOUSE       = 12;
   ID_TIMER_AEROPEEK         = 13;
+  ID_TIMER_WINDOWACTIVATED  = 14;
 
   ___ = 'What is mind? No matter. What is matter? Never mind.';
 

@@ -38,6 +38,7 @@ type
     FDynObject: boolean;
     FDynObjectRecycleBin: boolean;
     FDynObjectState: integer;
+    procedure CheckWindowActivated;
     procedure FromIni(IniFile, IniSection: string);
     procedure FromString(value: string);
     procedure LoadImageI;
@@ -414,6 +415,7 @@ begin
         begin
           Animate;
           Attention(true);
+          SetTimer(Handle, ID_TIMER_WINDOWACTIVATED, 500, nil);
         end;
     end;
 
@@ -665,8 +667,10 @@ begin
         // WM_TIMER
         if msg = WM_TIMER then
         begin
-          // "OPEN" TIMER
+          // open AeroPeekWindow
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
+          // check if should cancel attention
+          if wParam = ID_TIMER_WINDOWACTIVATED then CheckWindowActivated;
           // update bitbucket
           if wParam = ID_TIMER_UPDATE_SHORTCUT then
             if FDynObject or FDynObjectRecycleBin then DynObjectUpdate;
@@ -754,6 +758,19 @@ begin
     3: dec(pt.y, 5);
   end;
   TAeroPeekWindow.SetPosition(pt.x, pt.y);
+end;
+//------------------------------------------------------------------------------
+procedure TShortcutItem.CheckWindowActivated;
+begin
+  if FAttention then
+  begin
+    if FAppList.IndexOf(pointer(GetForegroundWindow)) >= 0 then
+    begin
+      Attention(false);
+      KillTimer(Handle, ID_TIMER_WINDOWACTIVATED);
+    end;
+  end
+  else KillTimer(Handle, ID_TIMER_WINDOWACTIVATED);
 end;
 //------------------------------------------------------------------------------
 function TShortcutItem.CanOpenFolder: boolean;

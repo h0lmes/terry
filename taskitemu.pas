@@ -23,6 +23,7 @@ type
     FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
     FAeroPeekWindowActive: boolean;
     procedure BeforeUndock;
+    procedure CheckWindowActivated;
     procedure UpdateImage;
     procedure UpdateItemInternal;
     procedure AfterDraw;
@@ -238,6 +239,7 @@ begin
         begin
           Animate;
           Attention(true);
+          SetTimer(Handle, ID_TIMER_WINDOWACTIVATED, 500, nil);
         end;
 
       icIsItem: result := 0;
@@ -431,8 +433,10 @@ begin
         // WM_TIMER
         if msg = WM_TIMER then
         begin
-          // "OPEN" TIMER
+          // open AeroPeekWindow
           if wParam = ID_TIMER_OPEN then ShowPeekWindow;
+          // check if should cancel attention
+          if wParam = ID_TIMER_WINDOWACTIVATED then CheckWindowActivated;
         end;
     end;
 end;
@@ -508,6 +512,19 @@ begin
     3: dec(pt.y, 5);
   end;
   TAeroPeekWindow.SetPosition(pt.x, pt.y);
+end;
+//------------------------------------------------------------------------------
+procedure TTaskItem.CheckWindowActivated;
+begin
+  if FAttention then
+  begin
+    if FAppList.IndexOf(pointer(GetForegroundWindow)) >= 0 then
+    begin
+      Attention(false);
+      KillTimer(Handle, ID_TIMER_WINDOWACTIVATED);
+    end;
+  end
+  else KillTimer(Handle, ID_TIMER_WINDOWACTIVATED);
 end;
 //------------------------------------------------------------------------------
 //
