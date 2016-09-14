@@ -144,10 +144,6 @@ msgstr ""
 msgid "Restore operation failed."
 msgstr ""
 
-#: declu.xerrorthemeobjectnotfound
-msgid "Theme object not found"
-msgstr ""
-
 #: declu.xerrortipsnotfound
 msgid "Tips file not found. Try reinstalling the program."
 msgstr ""
@@ -209,7 +205,7 @@ msgid "Lock icons"
 msgstr ""
 
 #: declu.xminimizerestoreallwindows
-msgid "Minimize/restore all windows"
+msgid "Minimize/restore all windows (Alt+Click)"
 msgstr ""
 
 #: declu.xmonitor
@@ -871,6 +867,10 @@ msgstr ""
 
 #: tfrmsets.chbtaskbarsamemonitor.caption
 msgid "Show only tasks from the same monitor"
+msgstr ""
+
+#: tfrmsets.chbtaskbarsystemmenus.caption
+msgid "Use system-style menus"
 msgstr ""
 
 #: tfrmsets.chbuseshellcontextmenus.caption

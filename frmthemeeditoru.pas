@@ -44,7 +44,7 @@ class procedure TfrmThemeEditor.Open;
 begin
   if not assigned(theme) then
   begin
-    raise Exception.Create(UTF8ToAnsi(XErrorThemeObjectNotFound));
+    raise Exception.Create('Theme object not assigned');
     exit;
   end;
   if not assigned(frmThemeEditor) then Application.CreateForm(self, frmThemeEditor);

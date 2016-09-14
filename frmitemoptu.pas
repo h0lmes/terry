@@ -56,6 +56,7 @@ type
     procedure btnDefaultColorClick(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
     procedure cboWindowChange(Sender: TObject);
+    procedure chbHideChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edDirChange(Sender: TObject);
@@ -194,27 +195,28 @@ begin
 
   // show parameters //
 
-  edCaption.Text := UTF8Encode(savedCaption);
-  edCmd.Text := AnsiToUTF8(savedCommand);
-  edParams.Text := AnsiToUTF8(savedParams);
-  edDir.Text := AnsiToUTF8(savedDir);
-  edImage.text := savedImageFile;
-  if savedImageFile2 <> '' then edImage.text := edImage.text + ';' + savedImageFile2;
-  chbHide.Checked := savedHide;
+  edCaption.Text    := UTF8Encode(savedCaption);
+  edCmd.Text        := AnsiToUTF8(savedCommand);
+  edParams.Text     := AnsiToUTF8(savedParams);
+  edDir.Text        := AnsiToUTF8(savedDir);
+  edImage.text      := savedImageFile;
+  if savedImageFile2 <> '' then
+       edImage.text := edImage.text + ';' + savedImageFile2;
+  chbHide.Checked   := savedHide;
   //
-  color_data := savedColorData;
-  tbHue.OnChange := nil;
-  tbSat.OnChange := nil;
-  tbBr.OnChange := nil;
-  tbCont.OnChange := nil;
-  tbHue.position := byte(color_data);
-  tbSat.position := byte(color_data shr 8);
-  tbBr.position := byte(color_data shr 16);
-  tbCont.position := byte(color_data shr 24);
-  tbHue.OnChange := tbHueChange;
-  tbSat.OnChange := tbHueChange;
-  tbBr.OnChange := tbHueChange;
-  tbCont.OnChange := tbHueChange;
+  color_data        := savedColorData;
+  tbHue.OnChange    := nil;
+  tbSat.OnChange    := nil;
+  tbBr.OnChange     := nil;
+  tbCont.OnChange   := nil;
+  tbHue.position    := byte(color_data);
+  tbSat.position    := byte(color_data shr 8);
+  tbBr.position     := byte(color_data shr 16);
+  tbCont.position   := byte(color_data shr 24);
+  tbHue.OnChange    := tbHueChange;
+  tbSat.OnChange    := tbHueChange;
+  tbBr.OnChange     := tbHueChange;
+  tbCont.OnChange   := tbHueChange;
   //
   cboWindow.ItemIndex := 0;
   if savedShowCmd = sw_showminimized then cboWindow.ItemIndex := 1
@@ -233,51 +235,9 @@ begin
   if (key = 13) and (shift = []) then btnOk.Click;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.btnCancelClick(Sender: TObject);
-var
-  Inst: TObject = nil;
-  sci: TShortcutItem = nil;
-  scs: TShortcutSubitem = nil;
-begin
-  if FChanged then
-  begin
-    Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
-    if Inst is TShortcutItem then sci := TShortcutItem(Inst);
-    if Inst is TShortcutSubitem then scs := TShortcutSubitem(Inst);
-    if sci <> nil then
-    begin
-      sci.Caption    := savedCaption;
-      sci.Command    := savedCommand;
-      sci.Params     := savedParams;
-      sci.Dir        := savedDir;
-      sci.ImageFile  := savedImageFile;
-      sci.ImageFile2 := savedImageFile2;
-      sci.ShowCmd    := savedShowCmd;
-      sci.ColorData  := savedColorData;
-      sci.Hide       := savedHide;
-      sci.Update;
-    end
-    else
-    if scs <> nil then
-    begin
-      scs.Caption    := savedCaption;
-      scs.Command    := savedCommand;
-      scs.Params     := savedParams;
-      scs.Dir        := savedDir;
-      scs.ImageFile  := savedImageFile;
-      scs.ShowCmd    := savedShowCmd;
-      scs.ColorData  := savedColorData;
-      scs.Hide       := savedHide;
-      scs.Update;
-    end;
-  end;
-  FChanged := false;
-  Close;
-end;
-//------------------------------------------------------------------------------
 procedure TfrmItemProp.btnOKClick(Sender: TObject);
 begin
-  btnApply.Click;
+  if FChanged then btnApply.Click;
   // save settings !!!
   frmmain.BaseCmd(tcSaveSets, 0);
   Close;
@@ -331,6 +291,48 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TfrmItemProp.btnCancelClick(Sender: TObject);
+var
+  Inst: TObject = nil;
+  sci: TShortcutItem = nil;
+  scs: TShortcutSubitem = nil;
+begin
+  if FChanged then
+  begin
+    Inst := TObject(GetWindowLongPtr(ItemHWnd, GWL_USERDATA));
+    if Inst is TShortcutItem then sci := TShortcutItem(Inst);
+    if Inst is TShortcutSubitem then scs := TShortcutSubitem(Inst);
+    if sci <> nil then
+    begin
+      sci.Caption    := savedCaption;
+      sci.Command    := savedCommand;
+      sci.Params     := savedParams;
+      sci.Dir        := savedDir;
+      sci.ImageFile  := savedImageFile;
+      sci.ImageFile2 := savedImageFile2;
+      sci.ShowCmd    := savedShowCmd;
+      sci.ColorData  := savedColorData;
+      sci.Hide       := savedHide;
+      sci.Update;
+    end
+    else
+    if scs <> nil then
+    begin
+      scs.Caption    := savedCaption;
+      scs.Command    := savedCommand;
+      scs.Params     := savedParams;
+      scs.Dir        := savedDir;
+      scs.ImageFile  := savedImageFile;
+      scs.ShowCmd    := savedShowCmd;
+      scs.ColorData  := savedColorData;
+      scs.Hide       := savedHide;
+      scs.Update;
+    end;
+  end;
+  FChanged := false;
+  Close;
+end;
+//------------------------------------------------------------------------------
 procedure TfrmItemProp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   try if assigned(FImage) then GdipDisposeImage(FImage);
@@ -356,18 +358,19 @@ procedure TfrmItemProp.btnFileClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    if edCmd.Text = '' then
-      InitialDir := AnsiToUTF8(UnzipPath('%pp%'))
-    else
-      InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
-    if Execute then
-    begin
-      edCmd.Text := toolu.ZipPath(FileName);
-      if fileexists(FileName) then
-        edCaption.Text := cut(ExtractFileName(FileName), '.')
+      if edCmd.Text = '' then
+        InitialDir := AnsiToUTF8(UnzipPath('%pp%'))
       else
-        edCaption.Text := edCmd.Text;
-    end;
+        InitialDir := ExtractFilePath(toolu.UnzipPath(edCmd.Text));
+
+      if Execute then
+      begin
+        edCmd.Text := toolu.ZipPath(FileName);
+        if fileexists(FileName) then
+          edCaption.Text := cut(ExtractFileName(FileName), '.')
+        else
+          edCaption.Text := edCmd.Text;
+      end;
   finally
     Free;
   end;
@@ -377,9 +380,9 @@ procedure TfrmItemProp.btnParamsClick(Sender: TObject);
 begin
   with TOpenDialog.Create(self) do
   try
-    InitialDir := ExtractFilePath(toolu.UnzipPath(edParams.Text));
-    if Execute then
-      edParams.Text := toolu.ZipPath(FileName);
+      InitialDir := ExtractFilePath(toolu.UnzipPath(edParams.Text));
+      if Execute then
+        edParams.Text := toolu.ZipPath(FileName);
   finally
     Free;
   end;
@@ -396,20 +399,20 @@ var
 begin
   with TOpenDialog.Create(self) do
   try
-    img := toolu.UnzipPath(cut(edImage.text, ';')); // take only first image
-    if img = '' then InitialDir := toolu.UnzipPath('%pp%\images')
-    else
-    begin
-      InitialDir := ExtractFilePath(img);
-      Filename := ExtractFileName(img);
-    end;
-    Options := Options + [ofAllowMultiSelect];
-    if execute then
-    begin
-      edImage.text := toolu.ZipPath(Filename);
-      if Files.Count > 1 then
-        edImage.text := edImage.text + ';' + toolu.ZipPath(Files.strings[1]);
-    end;
+      img := toolu.UnzipPath(cut(edImage.text, ';')); // take only first image
+      if img = '' then InitialDir := toolu.UnzipPath('%pp%\images')
+      else
+      begin
+        InitialDir := ExtractFilePath(img);
+        Filename := ExtractFileName(img);
+      end;
+      Options := Options + [ofAllowMultiSelect];
+      if execute then
+      begin
+        edImage.text := toolu.ZipPath(Filename);
+        if Files.Count > 1 then
+          edImage.text := edImage.text + ';' + toolu.ZipPath(Files.strings[1]);
+      end;
   finally
     free;
   end;
@@ -430,11 +433,6 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.cboWindowChange(Sender: TObject);
-begin
-  FChanged := true;
-end;
-//------------------------------------------------------------------------------
 procedure TfrmItemProp.edCaptionChange(Sender: TObject);
 begin
   FChanged := true;
@@ -447,12 +445,12 @@ begin
   if edImage.text = '' then Draw;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.edDirChange(Sender: TObject);
+procedure TfrmItemProp.edParamsChange(Sender: TObject);
 begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmItemProp.edParamsChange(Sender: TObject);
+procedure TfrmItemProp.edDirChange(Sender: TObject);
 begin
   FChanged := true;
 end;
@@ -461,6 +459,16 @@ procedure TfrmItemProp.edImageChange(Sender: TObject);
 begin
   FChanged := true;
   Draw;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.cboWindowChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmItemProp.chbHideChange(Sender: TObject);
+begin
+  FChanged := true;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnClearImageClick(Sender: TObject);
@@ -490,21 +498,19 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnDefaultColorClick(Sender: TObject);
 begin
-  color_data := DEF_COLOR_DATA;
-
-  tbHue.OnChange:= nil;
-  tbSat.OnChange:= nil;
-  tbBr.OnChange:= nil;
-  tbCont.OnChange:= nil;
-  tbHue.position:= byte(color_data);
-  tbSat.position:= byte(color_data shr 8);
-  tbBr.position:= byte(color_data shr 16);
-  tbCont.position:= byte(color_data shr 24);
-  tbHue.OnChange:= tbHueChange;
-  tbSat.OnChange:= tbHueChange;
-  tbBr.OnChange:= tbHueChange;
-  tbCont.OnChange:= tbHueChange;
-
+  color_data      := DEF_COLOR_DATA;
+  tbHue.OnChange  := nil;
+  tbSat.OnChange  := nil;
+  tbBr.OnChange   := nil;
+  tbCont.OnChange := nil;
+  tbHue.position  := byte(color_data);
+  tbSat.position  := byte(color_data shr 8);
+  tbBr.position   := byte(color_data shr 16);
+  tbCont.position := byte(color_data shr 24);
+  tbHue.OnChange  := tbHueChange;
+  tbSat.OnChange  := tbHueChange;
+  tbBr.OnChange   := tbHueChange;
+  tbCont.OnChange := tbHueChange;
   tbHueChange(nil);
 end;
 //------------------------------------------------------------------------------
@@ -514,27 +520,27 @@ var
   apidl: PItemIDList;
 begin
   try
-    if edImage.text = '' then
-      str := UnzipPath(UTF8ToAnsi(cut(edCmd.Text, ';'))) // take only first command
-    else
-      str := UnzipPath(UTF8ToAnsi(cut(edImage.text, ';'))); // take only first image
+      if edImage.text = '' then
+        str := UnzipPath(UTF8ToAnsi(cut(edCmd.Text, ';'))) // take only first command
+      else
+        str := UnzipPath(UTF8ToAnsi(cut(edImage.text, ';'))); // take only first image
 
-    try if assigned(FImage) then GdipDisposeImage(FImage);
-    except end;
-    FImage := nil;
+      try if assigned(FImage) then GdipDisposeImage(FImage);
+      except end;
+      FImage := nil;
 
-    apidl := nil;
-    if IsGUID(str) then apidl := PIDL_GetFromPath(pchar(str));
-    if IsPIDLString(str) then apidl := PIDL_FromString(str);
-    if assigned(apidl) then
-    begin
-      LoadImageFromPIDL(apidl, 128, true, true, FImage, FIW, FIH);
-      PIDL_Free(apidl);
-    end else begin
-      LoadImage(str, 128, true, true, FImage, FIW, FIH);
-    end;
+      apidl := nil;
+      if IsGUID(str) then apidl := PIDL_GetFromPath(pchar(str));
+      if IsPIDLString(str) then apidl := PIDL_FromString(str);
+      if assigned(apidl) then
+      begin
+        LoadImageFromPIDL(apidl, 128, true, true, FImage, FIW, FIH);
+        PIDL_Free(apidl);
+      end else begin
+        LoadImage(str, 128, true, true, FImage, FIW, FIH);
+      end;
 
-    DrawFit;
+      DrawFit;
   except
     on e: Exception do frmmain.err('frmItemProp.Draw', e);
   end;

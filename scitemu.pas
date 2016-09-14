@@ -26,14 +26,15 @@ type
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
+    FTaskSystemMenus: boolean; // use old-style system menus instead of AeroPeekWindow
+    FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
     FIsExecutable: boolean;
     FExecutable: string;
     FIsPIDL: boolean;
     FPIDL: PItemIDList;
     FLastMouseUp: PtrUInt;
     FAppList: TFPList;
-    FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
-    FAeroPeekActive: boolean; // is PeekWindow open or not
+    FAeroPeekWindowActive: boolean;
     FDynObject: boolean;
     FDynObjectRecycleBin: boolean;
     FDynObjectState: integer;
@@ -94,27 +95,27 @@ constructor TShortcutItem.Create(AWndParent: HWND; var AParams: TDItemCreatePara
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
-  FAeroPeekEnabled := AParams.AeroPeekEnabled;
-  FTaskGrouping := AParams.TaskGrouping;
-  FTaskLivePreviews := AParams.TaskLivePreviews;
-  FTaskThumbSize := AParams.TaskThumbSize;
-
-  FLastMouseUp := 0;
-  FCommand := '';
-  FParams := '';
-  FDir := '';
-  FImageFile := '';
-  FImageFile2 := '';
-  FShowCmd := 0;
-  FHide := false;
-  FRunning := false;
-  FAppList := TFPList.Create;
-  FAeroPeekActive := false;
-  OnBeforeMouseHover := BeforeMouseHover;
-  OnMouseHover := MouseHover;
-  OnBeforeUndock := BeforeUndock;
-  OnAfterDraw := AfterDraw;
-  OnDrawOverlay := DrawOverlay;
+  FAeroPeekEnabled      := AParams.AeroPeekEnabled;
+  FTaskGrouping         := AParams.TaskGrouping;
+  FTaskLivePreviews     := AParams.TaskLivePreviews;
+  FTaskThumbSize        := AParams.TaskThumbSize;
+  FTaskSystemMenus      := AParams.TaskSystemMenus;
+  FLastMouseUp          := 0;
+  FCommand              := '';
+  FParams               := '';
+  FDir                  := '';
+  FImageFile            := '';
+  FImageFile2           := '';
+  FShowCmd              := 0;
+  FHide                 := false;
+  FRunning              := false;
+  FAeroPeekWindowActive := false;
+  OnBeforeMouseHover    := BeforeMouseHover;
+  OnMouseHover          := MouseHover;
+  OnBeforeUndock        := BeforeUndock;
+  OnAfterDraw           := AfterDraw;
+  OnDrawOverlay         := DrawOverlay;
+  FAppList              := TFPList.Create;
 
   if AParams.IniFile <> '' then FromIni(AParams.IniFile, AParams.IniSection)
   else FromString(Aparams.Parameter);
@@ -124,7 +125,7 @@ destructor TShortcutItem.Destroy;
 begin
   FFreed := true;
   KillTimer(FHWnd, ID_TIMER_UPDATE_SHORTCUT);
-  if FAeroPeekActive then TAeroPeekWindow.Close(0);
+  if FAeroPeekWindowActive then TAeroPeekWindow.Close(0);
   try if assigned(FImage) then GdipDisposeImage(FImage);
   except end;
   try if FIsPIDL then PIDL_Free(FPIDL);
@@ -382,6 +383,7 @@ begin
       gpTaskLivePreviews:     FTaskLivePreviews := boolean(param);
       gpTaskThumbSize:        FTaskThumbSize := param;
       gpTaskGrouping:         FTaskGrouping := boolean(param);
+      gpTaskSystemMenus:      FTaskSystemMenus := boolean(param);
       gpUseShellContextMenus: FUseShellContextMenus := boolean(param);
       gpSite:                 if FRunning then Redraw;
       tcThemeChanged:         if FRunning then Redraw;
@@ -441,7 +443,7 @@ end;
 // Draw routines ---------------------------------------------------------------
 procedure TShortcutItem.AfterDraw;
 begin
-  if FAeroPeekActive then UpdatePeekWindow;
+  if FAeroPeekWindowActive then UpdatePeekWindow;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.DrawOverlay(dst: pointer; x, y, size: integer);
@@ -550,7 +552,7 @@ begin
     result := true;
     if group then
       ProcessHelper.ActivateWindowList(FAppList)
-		else if FAeroPeekEnabled then
+		else if not FTaskSystemMenus then
     begin
       if not TAeroPeekWindow.IsActive then ShowPeekWindow;
     end else begin
@@ -679,7 +681,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.MouseHover(AHover: boolean);
 begin
-  if (FAppList.Count > 0) and FAeroPeekEnabled then
+  if (FAppList.Count > 0) and not FTaskSystemMenus then
     if AHover then
     begin
       if TAeroPeekWindow.IsActive then
@@ -717,8 +719,8 @@ begin
   end;
   FHideHint := true;
   UpdateHint;
-  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews);
-  FAeroPeekActive := true;
+  TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews, FAeroPeekEnabled);
+  FAeroPeekWindowActive := true;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.ClosePeekWindow(Timeout: cardinal = 0);
@@ -729,9 +731,9 @@ begin
     FHideHint := false;
     UpdateHint;
   end;
-  if FAeroPeekActive then
+  if FAeroPeekWindowActive then
   begin
-    FAeroPeekActive := false;
+    FAeroPeekWindowActive := false;
     TAeroPeekWindow.Close(Timeout);
   end;
 end;

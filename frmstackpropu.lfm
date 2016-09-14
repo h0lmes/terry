@@ -20,7 +20,7 @@ object frmStackProp: TfrmStackProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '1.6.0.4'
   object btnOK: TButton
     Left = 594
     Height = 31
@@ -100,6 +100,7 @@ object frmStackProp: TfrmStackProp
         Width = 180
         DropDownCount = 20
         ItemHeight = 13
+        OnChange = cboModeChange
         Style = csDropDownList
         TabOrder = 2
       end
@@ -453,6 +454,7 @@ object frmStackProp: TfrmStackProp
         Top = 345
         Width = 180
         ItemHeight = 13
+        OnChange = cboPreviewChange
         Style = csDropDownList
         TabOrder = 10
       end
@@ -480,6 +482,7 @@ object frmStackProp: TfrmStackProp
         Top = 235
         Width = 38
         Caption = 'Blur'
+        OnChange = chbBackgroundBlurChange
         TabOrder = 7
       end
       object btnSelectBkColor: TButton
@@ -497,6 +500,7 @@ object frmStackProp: TfrmStackProp
         Top = 235
         Width = 105
         Caption = 'Show background'
+        OnChange = chbBackgroundChange
         TabOrder = 6
       end
       object lblBackgroundAlpha: TLabel

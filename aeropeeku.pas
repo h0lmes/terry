@@ -85,6 +85,7 @@ type
     FHoverIndex: integer;
     FAeroPeekIndex: integer;
     FAeroPeekAllowedInt: boolean;
+    FAeroPeekEnabled: boolean;
     FState: TAPWState;
     crs: TCriticalSection;
     items: array of TAeroPeekWindowItem;
@@ -113,7 +114,7 @@ type
     property HostHandle: THandle read FHostWnd;
     property Active: boolean read FActive;
 
-    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
+    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
     class procedure SetPosition(AX, AY: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
@@ -124,7 +125,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure RegisterWindowClass;
-    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
+    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
     procedure MouseLeave;
     procedure CloseAPWindowInt;
@@ -141,12 +142,12 @@ var AeroPeekWindow: TAeroPeekWindow;
 implementation
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
+class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
   if assigned(AeroPeekWindow) then
-    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, TaskThumbSize, LivePreviews);
+    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, TaskThumbSize, LivePreviews, AeroPeekEnabled);
 end;
 //------------------------------------------------------------------------------
 // set new position
@@ -213,6 +214,7 @@ begin
   FHoverIndex := -1;
   FAeroPeekIndex := -1;
   FAeroPeekAllowedInt := false;
+  FAeroPeekEnabled := true;
   crs := TCriticalSection.Create;
 
   // create window //
@@ -350,7 +352,7 @@ begin
   if needRepaint or needRearrange then Paint;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews: boolean): boolean;
+function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
 var
   opaque: bool;
   mon: THandle;
@@ -366,6 +368,7 @@ begin
       FHostWnd := HostWnd;
       FSite := Site;
       FTaskThumbSize := TaskThumbSize;
+      FAeroPeekEnabled := AeroPeekEnabled;
       FState := apwsOpen;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
       KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
@@ -826,7 +829,7 @@ end;
 // -1 to disable aero peek
 procedure TAeroPeekWindow.InvokeAeroPeek(index: integer);
 begin
-  if (FAeroPeekIndex <> index) or (index = -1) then
+  if FAeroPeekEnabled and ((FAeroPeekIndex <> index) or (index = -1)) then
   try
     crs.Acquire;
     if (index > -1) and FAeroPeekAllowedInt then

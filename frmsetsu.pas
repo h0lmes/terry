@@ -25,6 +25,7 @@ type
     btnColor: TButton;
     cbAutoHide: TCheckBox;
 		cbShowHint: TCheckBox;
+    chbTaskbarSystemMenus: TCheckBox;
 		chbAutoHideOnFullScreenApp: TCheckBox;
     chbGlobalConsole: TCheckBox;
     chbGlobalHide: TCheckBox;
@@ -160,6 +161,7 @@ type
     procedure chbTaskbarLivePreviewsChange(Sender: TObject);
     procedure chbTaskbarSameMonitorChange(Sender: TObject);
     procedure chbOccupyFullMonitorChange(Sender: TObject);
+    procedure chbTaskbarSystemMenusChange(Sender: TObject);
     procedure chbUseShellContextMenusChange(Sender: TObject);
 		procedure edActivateOnMouseIntervalChange(Sender: TObject);
     procedure edEndOffsetChange(Sender: TObject);
@@ -256,14 +258,14 @@ begin
 	    if not sets.Backup then
 	    begin
 	      AddLog('frmsets.Open.Backup failed');
-	      messagebox(application.mainform.handle, pchar(UTF8ToAnsi(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
+	      messageboxw(application.mainform.handle, pwchar(UTF8Decode(XErrorSetsBackupFailed)), PROGRAM_NAME, MB_ICONERROR);
 	    end;
   except
     on e: Exception do
     begin
       AddLog('frmsets.Open.Backup exception');
       AddLog(e.message);
-      messagebox(application.mainform.handle, pchar(UTF8ToAnsi(e.message)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+      messageboxw(application.mainform.handle, pwchar(UTF8Decode(e.message)), PROGRAM_NAME, MB_ICONEXCLAMATION);
     end;
   end;
   if not assigned(frmsets) then application.CreateForm(self, frmsets);
@@ -416,9 +418,10 @@ begin
   try
     SetInitValue(chbTaskbar, sets.container.Taskbar);
     SetInitValue(chbAeroPeekEnabled, sets.container.AeroPeekEnabled);
-    SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
     SetInitValue(chbTaskbarGrouping, sets.container.TaskGrouping);
     SetInitValue(chbTaskbarSameMonitor, sets.container.TaskSameMonitor);
+    SetInitValue(chbTaskbarSystemMenus, sets.container.TaskSystemMenus);
+    SetInitValue(chbTaskbarLivePreviews, sets.container.TaskLivePreviews);
     SetInitValue(tbAeroPeekThumbSize, sets.container.TaskThumbSize);
   except
     on e: Exception do frmmain.err('frmSets.Show.Taskbar', e);
@@ -581,7 +584,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.btnRemoveDockClick(Sender: TObject);
 begin
-  if idYes = messagebox(handle, pchar(UTF8ToAnsi(XMsgRemoveDockWarning)), 'Warning', mb_yesno or mb_iconexclamation) then
+  if idYes = messageboxw(handle, pwchar(UTF8Decode(XMsgRemoveDockWarning)), 'Warning', mb_yesno or mb_iconexclamation) then
     frmmain.execute_cmdline('/removedock');
 end;
 //------------------------------------------------------------------------------
@@ -600,7 +603,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbAutorunChange(Sender: TObject);
 begin
-  toolu.setautorun(cbAutorun.checked);
+  toolu.setautorun(TCheckBox(Sender).Checked);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboBaseSiteChange(Sender: TObject);
@@ -610,7 +613,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbAutoHideChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpAutoHide, integer(cbAutoHide.Checked));
+  frmmain.SetParam(gpAutoHide, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edAutoHideTimeChange(Sender: TObject);
@@ -636,7 +639,7 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbActivateOnMouseChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpActivateOnMouse, integer(cbActivateOnMouse.Checked));
+  frmmain.SetParam(gpActivateOnMouse, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.edActivateOnMouseIntervalChange(Sender: TObject);
@@ -678,17 +681,17 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbGlobalHideChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpGlobalHotkeyFlag_Hide, integer(chbGlobalHide.checked));
+  frmmain.SetParam(gpGlobalHotkeyFlag_Hide, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbGlobalConsoleChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpGlobalHotkeyFlag_Console, integer(chbGlobalConsole.checked));
+  frmmain.SetParam(gpGlobalHotkeyFlag_Console, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbAutoHideOnFullScreenAppChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpAutoHideOnFullScreenApp, integer(chbAutoHideOnFullScreenApp.checked));
+  frmmain.SetParam(gpAutoHideOnFullScreenApp, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cboMonitorChange(Sender: TObject);
@@ -698,12 +701,12 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.cbHideTaskBarChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpHideSystemTaskbar, integer(cbHideTaskBar.Checked));
+  frmmain.SetParam(gpHideSystemTaskbar, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbReserveScreenEdgeChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpReserveScreenEdge, integer(chbReserveScreenEdge.Checked));
+  frmmain.SetParam(gpReserveScreenEdge, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbReserveScreenEdgePercentChange(Sender: TObject);
@@ -719,27 +722,32 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskbar, integer(chbTaskbar.Checked));
+  frmmain.SetParam(gpTaskbar, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbAeroPeekEnabledChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpAeroPeekEnabled, integer(chbAeroPeekEnabled.Checked));
+  frmmain.SetParam(gpAeroPeekEnabled, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarGroupingChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskGrouping, integer(chbTaskbarGrouping.Checked));
+  frmmain.SetParam(gpTaskGrouping, integer(TCheckBox(Sender).Checked));
+end;
+//------------------------------------------------------------------------------
+procedure Tfrmsets.chbTaskbarSystemMenusChange(Sender: TObject);
+begin
+  frmmain.SetParam(gpTaskSystemMenus, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarLivePreviewsChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskLivePreviews, integer(chbTaskbarLivePreviews.Checked));
+  frmmain.SetParam(gpTaskLivePreviews, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.chbTaskbarSameMonitorChange(Sender: TObject);
 begin
-  frmmain.SetParam(gpTaskSameMonitor, integer(chbTaskbarSameMonitor.Checked));
+  frmmain.SetParam(gpTaskSameMonitor, integer(TCheckBox(Sender).Checked));
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmsets.tbAeroPeekThumbSizeChange(Sender: TObject);

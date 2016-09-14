@@ -70,6 +70,10 @@ type
     procedure btnDefaultColorClick(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
     procedure btnSelectBkColorClick(Sender: TObject);
+    procedure cboModeChange(Sender: TObject);
+    procedure cboPreviewChange(Sender: TObject);
+    procedure chbBackgroundBlurChange(Sender: TObject);
+    procedure chbBackgroundChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -114,7 +118,6 @@ type
     FIH: cardinal;
     function SetData(wnd: HWND): boolean;
     procedure ReadSubitems;
-    procedure OpenColor;
     procedure iPicPaint(Sender: TObject);
     procedure Draw;
     procedure DrawFit;
@@ -136,7 +139,6 @@ begin
     if not assigned(frmStackProp) then Application.CreateForm(self, frmStackProp);
     if frmStackProp.SetData(wnd) then
     begin
-      frmStackProp.ReadSubitems;
       frmStackProp.Show;
       frmStackProp.edCaption.SetFocus;
     end;
@@ -198,7 +200,7 @@ begin
 
   // show parameters //
 
-  edCaption.Text             := AnsiToUTF8(savedCaption);
+  edCaption.Text             := UTF8Encode(savedCaption);
   edImage.Text               := AnsiToUTF8(savedImageFile);
   SpecialFolder              := savedSpecialFolder;
 
@@ -233,8 +235,9 @@ begin
   tbBackgroundAlpha.Position := (background_color and $ff000000 shr 24) * 100 div 255;
 
   Draw;
-
   iPic.OnPaint := iPicPaint;
+
+  ReadSubitems;
 
   // reset 'changed' state //
   FChanged := false;
@@ -248,8 +251,207 @@ begin
   list.Clear;
   if item.ItemCount > 0 then
     for idx := 0 to item.ItemCount - 1 do
-      list.Items.Add(AnsiToUTF8(Item.GetSubitemCaption(idx)));
+      list.Items.Add(UTF8Encode(Item.GetSubitemCaption(idx)));
   list.Items.EndUpdate;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
+begin
+  if (key = 27) and (shift = []) then btnCancel.Click;
+  if (key = 13) and (shift = []) then btnOK.Click;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnOKClick(Sender: TObject);
+begin
+  if FChanged then btnApply.Click;
+  // save settings !!!
+  frmmain.BaseCmd(tcSaveSets, 0);
+  Close;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnApplyClick(Sender: TObject);
+begin
+  try
+    Item.Caption               := UTF8Decode(edCaption.Text);
+    Item.ImageFile             := UTF8ToAnsi(edImage.Text);
+    Item.SpecialFolder         := SpecialFolder;
+    Item.ColorData             := color_data;
+    Item.Mode                  := cboMode.ItemIndex;
+    Item.Offset                := tbOffset.Position;
+    Item.AnimationSpeed        := tbAnimationSpeed.Position;
+    Item.Distort               := tbDistort.Position;
+    Item.Preview               := cboPreview.ItemIndex;
+    Item.ShowBackground        := chbBackground.Checked;
+    Item.BackgroundBlur        := chbBackgroundBlur.Checked;
+    Item.BackgroundColor       := background_color;
+    Item.Update;
+    FChanged := false;
+  except
+    on e: Exception do frmmain.err('frmStackProp.btnApplyClick', e);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnCancelClick(Sender: TObject);
+begin
+  if FChanged then
+  begin
+    Item.Caption               := savedCaption;
+    Item.ImageFile             := savedImageFile;
+    Item.SpecialFolder         := savedSpecialFolder;
+    Item.ColorData             := savedColorData;
+    Item.Mode                  := savedMode;
+    Item.Offset                := savedOffset;
+    Item.AnimationSpeed        := savedAnimationSpeed;
+    Item.Distort               := savedDistort;
+    Item.Preview               := savedPreview;
+    Item.ShowBackground        := savedShowBackground;
+    Item.BackgroundBlur        := savedBackgroundBlur;
+    Item.BackgroundColor       := savedBackgroundColor;
+    Item.Update;
+  end;
+  FChanged := false;
+  Close;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  try if assigned(FImage) then GdipDisposeImage(FImage);
+  except end;
+  FImage := nil;
+  action := caFree;
+  frmStackProp := nil;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ReleaseCapture;
+  postmessage(handle, $a1, 2, 0);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnClearImageClick(Sender: TObject);
+begin
+  edImage.Clear;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnSelectColorClick(Sender: TObject);
+begin
+  pages.ActivePageIndex := 1;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnPropertiesClick(Sender: TObject);
+begin
+  pages.ActivePageIndex := 0;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
+begin
+  with TOpenDialog.Create(self) do
+  try
+    if edImage.Text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
+    else InitialDir:= ExtractFilePath(toolu.UnzipPath(edImage.Text));
+    if execute then edImage.Text := toolu.ZipPath(FileName);
+  finally
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.edCaptionChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.edImageChange(Sender: TObject);
+begin
+  FChanged := true;
+  Draw;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
+begin
+  FChanged := true;
+  lblOffset.Caption := Format(XOffsetOfIcons, [TTrackBar(Sender).Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbDistortChange(Sender: TObject);
+begin
+  FChanged := true;
+  lblDistort.Caption := Format(XDistort, [TTrackBar(Sender).Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbAnimationSpeedChange(Sender: TObject);
+begin
+  FChanged := true;
+  lblAnimationSpeed.Caption := Format(XAnimationSpeed, [TTrackBar(Sender).Position]);
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);
+begin
+  with TColorDialog.Create(self) do
+  begin
+    Color := gfx.SwapColor(background_color and $ffffff);
+    if Execute then
+    begin
+      FChanged := true;
+      background_color := (background_color and $ff000000) + gfx.SwapColor(Color and $ffffff);
+    end;
+    free;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.cboModeChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.cboPreviewChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.chbBackgroundBlurChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.chbBackgroundChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbBackgroundAlphaChange(Sender: TObject);
+begin
+  FChanged := true;
+  lblBackgroundAlpha.Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
+  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position * 255 div 100 shl 24;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.tbHueChange(Sender: TObject);
+begin
+  FChanged := true;
+  color_data := byte(tbHue.Position) +
+    byte(tbSat.Position) shl 8 +
+    byte(tbBr.Position) shl 16 +
+    byte(tbCont.Position) shl 24;
+  DrawFit;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.btnDefaultColorClick(Sender: TObject);
+begin
+  FChanged := true;
+  color_data      := DEF_COLOR_DATA;
+  tbHue.OnChange  := nil;
+  tbSat.OnChange  := nil;
+  tbBr.OnChange   := nil;
+  tbCont.OnChange := nil;
+  tbHue.position  := byte(color_data);
+  tbSat.position  := byte(color_data shr 8);
+  tbBr.position   := byte(color_data shr 16);
+  tbCont.position := byte(color_data shr 24);
+  tbHue.OnChange  := tbHueChange;
+  tbSat.OnChange  := tbHueChange;
+  tbBr.OnChange   := tbHueChange;
+  tbCont.OnChange := tbHueChange;
+  tbHueChange(nil);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.bbIconUpClick(Sender: TObject);
@@ -294,185 +496,6 @@ end;
 procedure TfrmStackProp.listDblClick(Sender: TObject);
 begin
   bbEditIcon.Click;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
-begin
-  if (key = 27) and (shift = []) then btnCancel.Click;
-  if (key = 13) and (shift = []) then btnOK.Click;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnCancelClick(Sender: TObject);
-begin
-  if FChanged then
-  begin
-    Item.Caption               := savedCaption;
-    Item.ImageFile             := savedImageFile;
-    Item.SpecialFolder         := savedSpecialFolder;
-    Item.ColorData             := savedColorData;
-    Item.Mode                  := savedMode;
-    Item.Offset                := savedOffset;
-    Item.AnimationSpeed        := savedAnimationSpeed;
-    Item.Distort               := savedDistort;
-    Item.Preview               := savedPreview;
-    Item.ShowBackground        := savedShowBackground;
-    Item.BackgroundBlur        := savedBackgroundBlur;
-    Item.BackgroundColor       := savedBackgroundColor;
-    Item.Update;
-  end;
-  FChanged := false;
-  Close;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnOKClick(Sender: TObject);
-begin
-  btnApply.Click;
-  // save settings !!!
-  frmmain.BaseCmd(tcSaveSets, 0);
-  Close;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnApplyClick(Sender: TObject);
-var
-  str: string;
-begin
-  try
-    Item.Caption               := UTF8ToAnsi(edCaption.Text);
-    Item.ImageFile             := UTF8ToAnsi(edImage.Text);
-    Item.SpecialFolder         := SpecialFolder;
-    Item.ColorData             := color_data;
-    Item.Mode                  := cboMode.ItemIndex;
-    Item.Offset                := tbOffset.Position;
-    Item.AnimationSpeed        := tbAnimationSpeed.Position;
-    Item.Distort               := tbDistort.Position;
-    Item.Preview               := cboPreview.ItemIndex;
-    Item.ShowBackground        := chbBackground.Checked;
-    Item.BackgroundBlur        := chbBackgroundBlur.Checked;
-    Item.BackgroundColor       := background_color;
-    Item.Update;
-    FChanged := false;
-  except
-    on e: Exception do frmmain.err('frmStackProp.btnApplyClick', e);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  try if assigned(FImage) then GdipDisposeImage(FImage);
-  except end;
-  FImage := nil;
-  action := caFree;
-  frmStackProp := nil;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  ReleaseCapture;
-  postmessage(handle, $a1, 2, 0);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnBrowseImage1Click(Sender: TObject);
-begin
-  with TOpenDialog.Create(self) do
-  try
-    if edImage.Text = '' then InitialDir:= toolu.UnzipPath('%pp%\images')
-    else InitialDir:= ExtractFilePath(toolu.UnzipPath(edImage.Text));
-    if execute then edImage.Text := toolu.ZipPath(FileName);
-  finally
-    free;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.edCaptionChange(Sender: TObject);
-begin
-  FChanged := true;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.edImageChange(Sender: TObject);
-begin
-  FChanged := true;
-  Draw;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
-begin
-  lblOffset.Caption := Format(XOffsetOfIcons, [TTrackBar(Sender).Position]);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbDistortChange(Sender: TObject);
-begin
-  lblDistort.Caption := Format(XDistort, [TTrackBar(Sender).Position]);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbAnimationSpeedChange(Sender: TObject);
-begin
-  lblAnimationSpeed.Caption := Format(XAnimationSpeed, [TTrackBar(Sender).Position]);
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);
-begin
-  with TColorDialog.Create(self) do
-  begin
-    Color := gfx.SwapColor(background_color and $ffffff);
-    if Execute then background_color := (background_color and $ff000000) + gfx.SwapColor(Color and $ffffff);
-    free;
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbBackgroundAlphaChange(Sender: TObject);
-begin
-  lblBackgroundAlpha.Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
-  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position * 255 div 100 shl 24;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnClearImageClick(Sender: TObject);
-begin
-  edImage.Clear;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnSelectColorClick(Sender: TObject);
-begin
-  OpenColor;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.OpenColor;
-begin
-  pages.ActivePageIndex := 1;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnPropertiesClick(Sender: TObject);
-begin
-  pages.ActivePageIndex := 0;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbHueChange(Sender: TObject);
-begin
-  FChanged := true;
-  color_data := byte(tbHue.Position) +
-    byte(tbSat.Position) shl 8 +
-    byte(tbBr.Position) shl 16 +
-    byte(tbCont.Position) shl 24;
-  DrawFit;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.btnDefaultColorClick(Sender: TObject);
-begin
-  color_data := DEF_COLOR_DATA;
-
-  tbHue.OnChange:= nil;
-  tbSat.OnChange:= nil;
-  tbBr.OnChange:= nil;
-  tbCont.OnChange:= nil;
-  tbHue.position:= byte(color_data);
-  tbSat.position:= byte(color_data shr 8);
-  tbBr.position:= byte(color_data shr 16);
-  tbCont.position:= byte(color_data shr 24);
-  tbHue.OnChange:= tbHueChange;
-  tbSat.OnChange:= tbHueChange;
-  tbBr.OnChange:= tbHueChange;
-  tbCont.OnChange:= tbHueChange;
-
-  tbHueChange(nil);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.Draw;

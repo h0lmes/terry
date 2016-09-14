@@ -48,6 +48,7 @@ type
     TaskThumbSize: integer;
     TaskGrouping: boolean;
     TaskSameMonitor: boolean;
+    TaskSystemMenus: boolean;
     TaskSpot: integer;
     StayOnTop: boolean;
     ShowHint: boolean;
@@ -206,6 +207,7 @@ begin
   container.TaskThumbSize := ini.ReadInteger('base', 'TaskThumbSize', 200);
   container.TaskGrouping := ini.ReadBool('base', 'TaskbarGrouping', true);
   container.TaskSameMonitor := ini.ReadBool('base', 'TaskbarSameMonitor', false);
+  container.TaskSystemMenus := ini.ReadBool('base', 'TaskSystemMenus', false);
   container.TaskSpot := ini.ReadInteger('base', 'TaskSpot', -1);
   container.StayOnTop := ini.ReadBool('base', 'StayOnTop', false);
   container.LockDragging := ini.ReadBool('base', 'LockDragging', true);
@@ -309,6 +311,7 @@ begin
   ini.WriteInteger('base', 'TaskThumbSize', container.TaskThumbSize);
   ini.WriteBool   ('base', 'TaskbarGrouping', container.TaskGrouping);
   ini.WriteBool   ('base', 'TaskbarSameMonitor', container.TaskSameMonitor);
+  ini.WriteBool   ('base', 'TaskSystemMenus', container.TaskSystemMenus);
   ini.WriteInteger('base', 'TaskSpot', container.TaskSpot);
   ini.WriteBool   ('base', 'StayOnTop', container.StayOnTop);
   ini.WriteBool   ('base', 'LockDragging', container.LockDragging);
@@ -451,6 +454,7 @@ begin
   gpTaskThumbSize: container.TaskThumbSize := value;
   gpTaskGrouping: container.TaskGrouping := boolean(value);
   gpTaskSameMonitor: container.TaskSameMonitor := boolean(value);
+  gpTaskSystemMenus: container.TaskSystemMenus := boolean(value);
   gpStayOnTop: container.StayOnTop := boolean(value);
   gpShowHint: container.ShowHint := boolean(value);
   gpHintEffects: container.HintEffects := boolean(value);
@@ -514,6 +518,7 @@ begin
   gpTaskThumbSize: result := container.TaskThumbSize;
   gpTaskGrouping: result := integer(container.TaskGrouping);
   gpTaskSameMonitor: result := integer(container.TaskSameMonitor);
+  gpTaskSystemMenus: result := integer(container.TaskSystemMenus);
   gpStayOnTop: result := integer(container.StayOnTop);
   gpShowHint: result := integer(container.ShowHint);
   gpHintEffects: result := integer(container.HintEffects);
@@ -580,6 +585,7 @@ begin
   dst.TaskThumbSize := src.TaskThumbSize;
   dst.TaskGrouping := src.TaskGrouping;
   dst.TaskSameMonitor := src.TaskSameMonitor;
+  dst.TaskSystemMenus := src.TaskSystemMenus;
   dst.StayOnTop := src.StayOnTop;
   dst.ShowHint := src.ShowHint;
   dst.HintEffects := src.HintEffects;

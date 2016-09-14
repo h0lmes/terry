@@ -32,6 +32,7 @@ type
     gpTaskThumbSize,
     gpTaskGrouping,
     gpTaskSameMonitor,
+    gpTaskSystemMenus,
     gpAutoHide,
     gpAutoHideTime,
     gpAutoHidePixels,
@@ -126,6 +127,7 @@ type
     TaskLivePreviews: boolean;
     TaskThumbSize: integer;
     TaskGrouping: boolean;
+    TaskSystemMenus: boolean;
     Font: TDFontData;
     IniFile: string;
     IniSection: string;
@@ -250,7 +252,6 @@ resourcestring
   XErrorContactDeveloper = 'Contact developer if error is permanent.';
   XErrorCritical = 'Critical error occured. Try to run the program again.';
   XErrorLoadTheme = 'Theme load error. Try to run the program again.';
-  XErrorThemeObjectNotFound = 'Theme object not found';
   XMsgThemeSaved = 'Theme saved';
   XErrorSetsCorrupted = 'Settings file corrupted.';
   XErrorSetsRestoreFailed = 'Restore operation failed.';
@@ -276,7 +277,7 @@ resourcestring
   XExit = 'Exit';
   XCloseWindow = 'Close window';
   XCloseAllWindows = 'Close all windows';
-  XMinimizeRestoreAllWindows = 'Minimize/restore all windows';
+  XMinimizeRestoreAllWindows = 'Minimize/restore all windows (Alt+Click)';
   XEmptyBin = 'Empty bin';
   XOpenThemesFolder = 'Open themes folder';
   XUndeleteIcon = 'Undelete icon  (Ctrl+Z)';

@@ -152,6 +152,7 @@ object frmItemProp: TfrmItemProp
         Top = 228
         Width = 173
         Caption = 'Hide dock when application runs'
+        OnChange = chbHideChange
         TabOrder = 9
       end
       object lblTip: TLabel

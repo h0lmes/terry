@@ -53,6 +53,7 @@ type
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
     FTaskGrouping: boolean;
+    FTaskSystemMenus: boolean;
     FTaskSpot: integer;
     // for smooth zooming in and out //
     // 0 <= ZoomItemSizeDiff <= (BigItemSize - ItemSize) //
@@ -153,7 +154,8 @@ type
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
-      AeroPeekEnabled, TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      AeroPeekEnabled, TaskLivePreviews, TaskGrouping, TaskSystemMenus: boolean;
+      TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: TDFontData);
     destructor Destroy; override;
     procedure Enable(value: boolean);
@@ -220,7 +222,8 @@ constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; AB
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
       ActivateRunning, UseShellContextMenus, LockDragging, StackAnimationEnabled: boolean;
-      AeroPeekEnabled, TaskLivePreviews, TaskGrouping: boolean; TaskThumbSize, TaskSpot: integer;
+      AeroPeekEnabled, TaskLivePreviews, TaskGrouping, TaskSystemMenus: boolean;
+      TaskThumbSize, TaskSpot: integer;
       ShowHint: boolean; Font: TDFontData);
 begin
   inherited Create;
@@ -249,6 +252,7 @@ begin
   FAeroPeekEnabled := AeroPeekEnabled;
   FTaskLivePreviews := TaskLivePreviews;
   FTaskGrouping := TaskGrouping;
+  FTaskSystemMenus := TaskSystemMenus;
   FTaskThumbSize := TaskThumbSize;
   FTaskSpot := TaskSpot;
   FShowHint := ShowHint;
@@ -381,6 +385,7 @@ begin
           ClearTaskbar;
           FTaskGrouping := value <> 0;
         end;
+      gpTaskSystemMenus:        FTaskSystemMenus := value <> 0;
       gpItemAnimationType:      FItemAnimation := value;
       gpLaunchInterval:         FLaunchInterval := value;
       gpActivateRunning:        FActivateRunning := value <> 0;
@@ -612,7 +617,7 @@ begin
       end;
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Load.Default.Stack'); {$endif}
       // basic FItemArray //
-      AddItem(CreateItemFromString(TShortcutItem.Make(UTF8ToAnsi(XStartButtonText), '/startmenu', '', '', 'images\default\start.png')));
+      AddItem(CreateItemFromString(TShortcutItem.Make(UTF8Decode(XStartButtonText), '/startmenu', '', '', 'images\default\start.png')));
       AddItem(CreateItemFromString(TShortcutItem.Make('Computer', 'CSIDL_DRIVES', '', '', '')));
       AddItem(CreateItemFromString(TShortcutItem.Make('Control panel', 'CSIDL_CONTROLS', '', '', '')));
       AddItem(CreateItemFromString(TShortcutItem.Make('Parameters', 'ms-settings:', '', '', '%sysdir%\shell32.dll,315')));
@@ -781,24 +786,25 @@ begin
   Inst := nil;
   if FItemCount > MAX_ITEM_COUNT then exit;
   try
-    icp.ItemSize := FItemSize;
-    icp.BigItemSize := FBigItemSize;
-    icp.ItemSpacing := FItemSpacing;
-    icp.LaunchInterval := FLaunchInterval;
-    icp.ActivateRunning := FActivateRunning;
-    icp.UseShellContextMenus := FUseShellContextMenus;
-    icp.Site := integer(FSite);
-    icp.Reflection := FReflection;
-    icp.ReflectionSize := FReflectionSize;
-    icp.ShowHint := FShowHint;
-    icp.AnimationType := FItemAnimation;
-    icp.LockDragging := FLockDragging;
+    icp.ItemSize              := FItemSize;
+    icp.BigItemSize           := FBigItemSize;
+    icp.ItemSpacing           := FItemSpacing;
+    icp.LaunchInterval        := FLaunchInterval;
+    icp.ActivateRunning       := FActivateRunning;
+    icp.UseShellContextMenus  := FUseShellContextMenus;
+    icp.Site                  := integer(FSite);
+    icp.Reflection            := FReflection;
+    icp.ReflectionSize        := FReflectionSize;
+    icp.ShowHint              := FShowHint;
+    icp.AnimationType         := FItemAnimation;
+    icp.LockDragging          := FLockDragging;
     icp.StackAnimationEnabled := FStackAnimationEnabled;
-    icp.SeparatorAlpha := FSeparatorAlpha;
-    icp.AeroPeekEnabled := FAeroPeekEnabled;
-    icp.TaskLivePreviews := FTaskLivePreviews;
-    icp.TaskThumbSize := FTaskThumbSize;
-    icp.TaskGrouping := FTaskGrouping;
+    icp.SeparatorAlpha        := FSeparatorAlpha;
+    icp.AeroPeekEnabled       := FAeroPeekEnabled;
+    icp.TaskLivePreviews      := FTaskLivePreviews;
+    icp.TaskThumbSize         := FTaskThumbSize;
+    icp.TaskGrouping          := FTaskGrouping;
+    icp.TaskSystemMenus       := FTaskSystemMenus;
     CopyFontData(FFont, icp.Font);
     if IniFile <> '' then
     begin

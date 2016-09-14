@@ -239,7 +239,8 @@ begin
           sets.container.ItemAnimationType, sets.container.SeparatorAlpha,
           sets.container.ActivateRunningApps, sets.container.UseShellContextMenus, sets.container.LockDragging,
           sets.container.StackAnimationEnabled,
-          sets.container.AeroPeekEnabled, sets.container.TaskLivePreviews, sets.container.TaskGrouping,
+          sets.container.AeroPeekEnabled, sets.container.TaskLivePreviews,
+          sets.container.TaskGrouping, sets.container.TaskSystemMenus,
           sets.container.TaskThumbSize, sets.container.TaskSpot,
           sets.container.ShowHint, sets.container.Font);
       {$ifdef EXT_DEBUG} AddLog('TItemManager.Create'); {$endif}
@@ -528,15 +529,15 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.Restore(backupFile: string);
 begin
-  notify(WideString('Restore: ' + backupFile));
+  notify('Restore: ' + backupFile);
   if sets.Restore(backupFile) then
   begin
     AddLog('Restore.Succeeded');
-    messagebox(handle, pchar(UTF8ToAnsi(XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
+    messageboxw(handle, pwchar(UTF8Decode(XMsgSetsRestored + ' ' + XMsgRunAgain)), PROGRAM_NAME, MB_ICONEXCLAMATION);
     halt;
   end else begin
     AddLog('Restore.Failed');
-    messagebox(handle, pchar(UTF8ToAnsi(XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
+    messageboxw(handle, pwchar(UTF8Decode(XErrorSetsRestoreFailed + ' ' + XErrorContactDeveloper)), PROGRAM_NAME, MB_ICONERROR);
     halt;
   end;
 end;
@@ -1556,7 +1557,7 @@ var
 begin
   try
     hwndTaskbar := FindWindow('Shell_TrayWnd', nil);
-    hwndButton := FindWindow('Button', pchar(UTF8ToAnsi(XStartButtonText)));
+    hwndButton := FindWindowW('Button', pwchar(UTF8Decode(XStartButtonText)));
     taskbarVisible := IsWindowVisible(hwndTaskbar);
     buttonVisible := IsWindowVisible(hwndButton);
     updateWorkarea := false;
