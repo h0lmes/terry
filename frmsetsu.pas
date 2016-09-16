@@ -570,7 +570,8 @@ begin
   try
     sets.RestoreSetsContainer;
     theme.setTheme(pchar(sets.container.ThemeName));
-    frmmain.ApplyParams;
+    //frmmain.ApplyParams;
+    frmmain.BaseCmd(tcThemeChanged, 0);
     close;
   except
     on e: Exception do frmmain.err('frmSets.Cancel', e);

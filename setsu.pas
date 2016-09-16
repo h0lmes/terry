@@ -470,7 +470,7 @@ begin
   gpTaskSpot: container.TaskSpot := value;
   end;
 
-  result := value;
+  result := GetParam(id);
 end;
 //------------------------------------------------------------------------------
 function TDSets.GetParam(id: TDParam): PtrInt;
@@ -483,7 +483,7 @@ begin
   gpZoomTime: result := container.ZoomTime;
   gpItemSpacing: result := container.ItemSpacing;
   gpZoomEnabled: result := integer(container.ZoomEnabled);
-  gpMonitor: result := container.Monitor;
+  gpMonitor: result := SetRange(container.Monitor, -1, screen.MonitorCount - 1);
   gpSite: result := integer(container.Site);
   gpCenterOffsetPercent: result := container.CenterOffsetPercent;
   gpEdgeOffset: result := container.EdgeOffset;

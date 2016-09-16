@@ -42,7 +42,7 @@ type
     FWndOffsetTarget: integer;
     FHideKeysPressed: boolean;
     FConsoleKeysPressed: boolean;
-    FRevertMonitor: integer;
+    FMonitor: integer;
     FOldBaseWindowRect: GDIPAPI.TRect;
     FOldBaseImageRect: GDIPAPI.TRect;
     FLastMouseHookPoint: Windows.TPoint;
@@ -216,7 +216,7 @@ begin
 
     sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
-    FRevertMonitor := sets.container.Monitor;
+    FMonitor := sets.container.Monitor;
 
     if sets.container.BlurEnabled then CreateBlurWindow;
 
@@ -249,7 +249,6 @@ begin
       AddLog('Exception in TItemManager.Create');
       halt;
     end;
-    SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
     SetParam(gpSite, integer(sets.container.site));
     SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
     SetParam(gpEdgeOffset, sets.container.EdgeOffset);
@@ -257,7 +256,6 @@ begin
     SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
     SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
-    SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
     SetParam(gpBlurEnabled, sets.GetParam(gpBlurEnabled));
     BaseCmd(tcThemeChanged, 0);
@@ -298,7 +296,7 @@ begin
 
     // show the dock //
     BaseCmd(tcSetVisible, 1);
-    if sets.GetParam(gpStayOnTop) = 1 then SetParam(gpStayOnTop, 1);
+    if sets.GetParam(gpStayOnTop) = 1 then SetParam(gpStayOnTop, 1); // apply StayOnTop
     {$ifdef EXT_DEBUG} AddLog('show dock'); {$endif}
 
     // RawInput (replacement for hook) //
@@ -314,16 +312,6 @@ begin
     {$ifdef EXT_DEBUG} AddLog('TDropManager.Create'); {$endif}
 
     // apply theme. trigger full repaint //
-    SetParam(gpStayOnTop, integer(sets.container.StayOnTop));
-    SetParam(gpSite, integer(sets.container.site));
-    SetParam(gpCenterOffsetPercent, sets.container.CenterOffsetPercent);
-    SetParam(gpEdgeOffset, sets.container.EdgeOffset);
-    SetParam(gpAutoHide, integer(sets.container.AutoHide));
-    SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
-    SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
-    SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
-    SetParam(gpMonitor, sets.container.Monitor);
-    SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
     BaseCmd(tcThemeChanged, 0);
     {$ifdef EXT_DEBUG} AddLog('apply theme. trigger full repaint'); {$endif}
 
@@ -469,7 +457,6 @@ begin
     SetParam(gpAutoHidePixels, integer(sets.container.AutoHidePixels));
     SetParam(gpHideSystemTaskbar, integer(sets.container.HideSystemTaskbar));
     SetParam(gpReserveScreenEdge, sets.GetParam(gpReserveScreenEdge));
-    SetParam(gpMonitor, sets.container.Monitor);
     SetParam(gpOccupyFullMonitor, integer(sets.container.OccupyFullMonitor));
 
     ItemMgr.SetParam(gpItemSize, sets.container.itemsize);
@@ -567,6 +554,7 @@ begin
     tcThemeChanged:
       if assigned(ItemMgr) then
       begin
+        FMonitor := sets.GetParam(gpMonitor);
         ItemMgr.ItemsArea := theme.CorrectMargins(theme.ItemsArea);
         ItemMgr.ItemsArea2 := theme.CorrectMargins(theme.ItemsArea2);
         ItemMgr.Margin := theme.Margin;
@@ -611,22 +599,20 @@ begin
     gpMonitor, gpSite: UnreserveScreenEdge(sets.container.Site);
   end;
 
-  value := sets.StoreParam(id, value);
+  // here is the only place to "store" parameter
+  // all other pieces of code should use frmmain.SetParam instead
+  if (id > gpMin) and (id < gpMax) then value := sets.StoreParam(id, value);
 
   // take some actions prior to notify ItemMgr //
   case id of
-    gpMonitor:
-      begin
-        BaseCmd(tcThemeChanged, 0);
-        FRevertMonitor := sets.container.Monitor;
-      end;
+    gpMonitor:                BaseCmd(tcThemeChanged, 0);
     gpSite:
       begin
         if assigned(theme) then theme.Site := sets.container.Site;
         BaseCmd(tcThemeChanged, 0);
       end;
     gpAutoHide:               if value = 0 then DoRollUp;
-    gpHideSystemTaskbar:            HideTaskbar(value <> 0);
+    gpHideSystemTaskbar:      HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
         if value = 0 then UnreserveScreenEdge(sets.container.Site)
@@ -1450,13 +1436,13 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.notify(message: WideString; silent: boolean = False);
 begin
-  if assigned(Notifier) then Notifier.Message(message, sets.GetParam(gpMonitor), False, silent)
+  if assigned(Notifier) then Notifier.Message(message, FMonitor, False, silent)
   else if not silent then messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.alert(message: WideString);
 begin
-  if assigned(notifier) then notifier.message(message, sets.GetParam(gpMonitor), True, False)
+  if assigned(Notifier) then Notifier.message(message, FMonitor, True, False)
   else messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
@@ -1529,7 +1515,7 @@ var
   monitor: integer;
 begin
   result := screen.DesktopRect;
-  if assigned(pMonitor) then monitor := pMonitor^ else monitor := sets.GetParam(gpMonitor);
+  if assigned(pMonitor) then monitor := pMonitor^ else monitor := FMonitor;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
 end;
@@ -1540,7 +1526,7 @@ var
   monitor: integer;
 begin
   result := screen.DesktopRect;
-  if assigned(pMonitor) then monitor := pMonitor^ else monitor := sets.GetParam(gpMonitor);
+  if assigned(pMonitor) then monitor := pMonitor^ else monitor := FMonitor;
   if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
@@ -1905,7 +1891,6 @@ end;
 procedure Tfrmmain.WMDisplayChange(var Message: TMessage);
 begin
   screen.UpdateMonitors;
-  sets.StoreParam(gpMonitor, max(sets.GetParam(gpMonitor), FRevertMonitor));
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;
