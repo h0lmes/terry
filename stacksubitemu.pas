@@ -430,28 +430,28 @@ begin
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
-        xBitmap := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+        xBitmap := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
         yBitmap := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_TOP then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle - 90, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
+        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
+        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle + 90, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 2 + 5;
+        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
         yBitmap := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_BOTTOM then
@@ -558,19 +558,19 @@ begin
     begin
       if AHintAlign = HA_HORIZONTAL_LEFT then
       begin
-        result.Left := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+        result.Left := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
 			end else
       if AHintAlign = HA_VERTICAL_TOP then
       begin
-        result.Top := -FSize div 2 - FCaptionHeight div 2 - FCaptionWidth - 5;
+        result.Top := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
       end else
       if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
-        result.Right := result.Left + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
+        result.Right := result.Left + FSize + FCaptionHeight div 3 + FCaptionWidth + 5;
       end else
       if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
-        result.Bottom := result.Top + FSize + FCaptionHeight div 2 + FCaptionWidth + 5;
+        result.Bottom := result.Top + FSize + FCaptionHeight div 3 + FCaptionWidth + 5;
       end else
       if AHintAlign = HA_HORIZONTAL_BOTTOM then
       begin

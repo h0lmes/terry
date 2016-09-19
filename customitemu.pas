@@ -436,7 +436,6 @@ begin
   begin
     if assigned(OnBeforeMouseHover) then OnBeforeMouseHover(AHover);
     FHover := AHover;
-    if FAttention then Attention(false);
     if not FHover then KillTimer(FHWnd, ID_TIMER_MOUSEHELD);
     UpdateHint;
     if assigned(OnMouseHover) then OnMouseHover(FHover);
