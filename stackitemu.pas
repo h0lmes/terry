@@ -1156,7 +1156,7 @@ begin
 
   if FShowBackground then
   begin
-    if FState = stsOpen then
+    if FState <> stsClosed then
     begin
       for idx := 0 to FItemCount - 1 do
       begin
@@ -1166,11 +1166,11 @@ begin
         if items[idx].x + itemRect.Right  > Xmax then Xmax := items[idx].x + itemRect.Right;
         if items[idx].y + itemRect.Bottom > Ymax then Ymax := items[idx].y + itemRect.Bottom;
       end;
+      Xmin -= 16;
+      Ymin -= 16;
+      Xmax += 16;
+      Ymax += 16;
       CreateBackgroundWindowIfNotExists;
-      Xmin -= 20;
-      Ymin -= 20;
-      Xmax += 20;
-      Ymax += 15;
       ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
       ZOrderTop;
     end else begin
@@ -1185,7 +1185,7 @@ begin
   if not IsWindow(FBackgroundWindow) then
   try
     FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
-      'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWndParent, 0, hInstance, nil);
+      'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWnd, 0, hInstance, nil);
   except
     on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists ' + LineEnding + e.message);
   end;

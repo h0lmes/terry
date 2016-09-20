@@ -694,8 +694,8 @@ begin
     WM_DISPLAYCHANGE :         WMDisplayChange(message);
     WM_SETTINGCHANGE :         WMSettingChange(message);
     WM_DWMCOMPOSITIONCHANGED : WMCompositionChanged(message);
-    WM_DPICHANGED:             WMDPIChanged(message);
-    WM_APP_RUN_THREAD_END:     CloseHandle(message.lParam);
+    WM_DPICHANGED :            WMDPIChanged(message);
+    WM_APP_RUN_THREAD_END :    CloseHandle(message.lParam);
     else
       message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
   end;
@@ -1436,13 +1436,13 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.notify(message: WideString; silent: boolean = False);
 begin
-  if assigned(Notifier) then Notifier.Message(message, FMonitor, False, silent)
+  if assigned(Notifier) then Notifier.Message(message, GetMonitorWorkareaRect(@FMonitor), False, silent)
   else if not silent then messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.alert(message: WideString);
 begin
-  if assigned(Notifier) then Notifier.message(message, FMonitor, True, False)
+  if assigned(Notifier) then Notifier.Message(message, GetMonitorWorkareaRect(@FMonitor), True, False)
   else messageboxw(handle, pwchar(message), nil, mb_iconerror);
 end;
 //------------------------------------------------------------------------------
@@ -1451,7 +1451,7 @@ var
   monitor: THandle;
 begin
   try
-    if not FProgramIsClosing and not IsHiddenDown
+    if not FProgramIsClosing and not IsHiddenDown and not IsMouseEffectLocked
        and not ItemMgr.FDraggingFile and not ItemMgr.FDraggingItem then
     begin
       if FInitDone and not assigned(AHint) then AHint := THint.Create;
@@ -2135,9 +2135,8 @@ begin
   end;
 
   system.Delete(cmd, 1, 1);
-  params := toolu.UnzipPath(params);
 
-  if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cutafter(cmd, '.'), params)
+  if cut(cmd, '.') = 'itemmgr' then frmmain.ItemMgr.command(cutafter(cmd, '.'), toolu.UnzipPath(params))
   else if cmd = 'quit' then         frmmain.CloseProgram
   else if cmd = 'hide' then         frmmain.BaseCmd(tcSetVisible, 0)
   else if cmd = 'say' then          frmmain.notify(toolu.UnzipPath(params))

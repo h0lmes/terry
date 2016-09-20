@@ -3,7 +3,7 @@ unit notifieru;
 interface
 
 uses Windows, Messages, Classes, SysUtils, Forms,
-  declu, toolu, GDIPAPI, gfx, dwm_unit, loggeru;
+  declu, GDIPAPI, gfx, dwm_unit, loggeru, toolu;
 
 const
   NOTIFIER_FONT_NAME = 'Lucida Console';
@@ -24,8 +24,8 @@ type
     FShowTime: QWord;
     FActive: boolean;
     FAlert: boolean;
-    FTimeout: cardinal;
-    FMonitor: integer;
+    FTimeout: QWord;
+    FMonitorRect: windows.TRect;
     FText: WideString;
     procedure err(where: string; e: Exception);
   public
@@ -33,10 +33,9 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure RegisterWindowItemClass;
-    function GetMonitorRect(monitor: integer): Windows.TRect;
-    procedure Message(Text: WideString; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
-    procedure MessageNoLog(Text: WideString; monitor: integer = 0; replace: boolean = false);
-    procedure Message_Internal(Text: WideString; monitor: integer; animate: boolean = True);
+    procedure Message(Text: WideString; monitorRect: windows.TRect; alert: boolean = false; silent: boolean = false);
+    procedure MessageNoLog(Text: WideString; monitorRect: windows.TRect; replace: boolean = false);
+    procedure Message_Internal(Text: WideString; monitorRect: windows.TRect; animate: boolean = True);
     procedure Close;
     procedure Timer;
     function WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
@@ -72,7 +71,8 @@ begin
   FHWnd := 0;
   try
     RegisterWindowItemClass;
-    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, NOTIFIER_WCLASS, nil, ws_popup, 0, 0, 0, 0, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, NOTIFIER_WCLASS, nil, ws_popup, -100, -100, 10, 10, 0, 0, hInstance, nil);
+    DWM.ExcludeFromPeek(FHWnd);
     if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('Notifier.Create.CreateWindowEx failed', nil);
   except
@@ -106,14 +106,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TNotifier.GetMonitorRect(monitor: integer): Windows.TRect;
-begin
-  result := screen.DesktopRect;
-  if monitor >= screen.MonitorCount then monitor := screen.MonitorCount - 1;
-  if monitor >= 0 then Result := screen.Monitors[monitor].WorkareaRect;
-end;
-//------------------------------------------------------------------------------
-procedure TNotifier.Message(Text: WideString; monitor: integer = 0; alert: boolean = false; silent: boolean = false);
+procedure TNotifier.Message(Text: WideString; monitorRect: windows.TRect; alert: boolean = false; silent: boolean = false);
 begin
   if alert then AddLog('!!! ' + text) else AddLog(text);
   try
@@ -128,14 +121,14 @@ begin
       Text := Text + LineEnding + LineEnding + '~ ' + declu.PROGRAM_NAME + '#';
       if FText = '' then FText := Text
       else FText := FText + LineEnding + LineEnding + Text;
-      Message_Internal(FText, monitor, false);
+      Message_Internal(FText, monitorRect, false);
     end;
   except
     on e: Exception do err('Notifier.Message', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.MessageNoLog(Text: WideString; monitor: integer = 0; replace: boolean = false);
+procedure TNotifier.MessageNoLog(Text: WideString; monitorRect: windows.TRect; replace: boolean = false);
 begin
   try
     FTimeout := 8000;
@@ -145,31 +138,31 @@ begin
     Text := Text + LineEnding + LineEnding + '~ ' + declu.PROGRAM_NAME + '#';
     if replace or (FText = '') then FText := Text
     else FText := FText + LineEnding + LineEnding + Text;
-    Message_Internal(FText, monitor, false);
+    Message_Internal(FText, monitorRect, false);
   except
     on e: Exception do err('Notifier.MessageNoLog', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TNotifier.Message_Internal(Text: WideString; monitor: integer; animate: boolean = True);
+procedure TNotifier.Message_Internal(Text: WideString; monitorRect: windows.TRect; animate: boolean = True);
 var
   hgdip, path, hbrush: Pointer;
-  message_font, font_family: Pointer;
-  text_rect: TRectF;
-  message_margin, wa: Windows.TRect;
+  font, ffamily: Pointer;
+  textRect: TRectF;
+  messageMargin, wa: Windows.TRect;
   bmp: _SimpleBitmap;
   alpha: uint;
   acoeff: integer;
 begin
   if FActivating then exit;
-  self.FMonitor := monitor;
+  FMonitorRect := monitorRect;
 
   FActivating := True;
   FW := 320;
-  message_margin.left := 16;
-  message_margin.right := 16;
-  message_margin.top := 16;
-  message_margin.bottom := 16;
+  messageMargin.left := 16;
+  messageMargin.right := 16;
+  messageMargin.top := 16;
+  messageMargin.bottom := 16;
 
   // context //
   try
@@ -189,11 +182,11 @@ begin
   // context //
   try
     try
-      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME)), nil, font_family);
+      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME)), nil, ffamily);
     except
-      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME_ALT)), nil, font_family);
+      GdipCreateFontFamilyFromName(PWideChar(WideString(NOTIFIER_FONT_NAME_ALT)), nil, ffamily);
     end;
-    GdipCreateFont(font_family, 12, 0, 2, message_font);
+    GdipCreateFont(ffamily, 12, 0, 2, font);
   except
     on e: Exception do
     begin
@@ -205,23 +198,23 @@ begin
 
   // measure //
   try
-    text_rect.x := 0;
-    text_rect.y := 0;
-    text_rect.Width := FW - message_margin.left - message_margin.right;
-    text_rect.Height := 0;
-    GdipMeasureString(hgdip, PWideChar(Text), -1, message_font, @text_rect, nil, @text_rect, nil, nil);
-    text_rect.Height := text_rect.Height + 1;
+    textRect.x := 0;
+    textRect.y := 0;
+    textRect.Width := FW - messageMargin.left - messageMargin.right;
+    textRect.Height := 0;
+    GdipMeasureString(hgdip, PWideChar(Text), -1, font, @textRect, nil, @textRect, nil, nil);
+    textRect.Height := textRect.Height + 1;
 
-    text_rect.x := message_margin.left;
-    text_rect.y := message_margin.top;
+    textRect.x := messageMargin.left;
+    textRect.y := messageMargin.top;
 
     if assigned(hgdip) then GdipDeleteGraphics(hgdip);
     if bmp.dc > 0 then DeleteDC(bmp.dc);
 
-    FH := message_margin.top + trunc(text_rect.Height) + message_margin.bottom;
+    FH := messageMargin.top + trunc(textRect.Height) + messageMargin.bottom;
 
     // calc position //
-    wa := GetMonitorRect(monitor);
+    wa := FMonitorRect;
     FXTarget := wa.right - FW;
     FX := wa.right - FW div 2;
     FYTarget := wa.bottom - FH;
@@ -283,7 +276,7 @@ begin
   // message caption and text //
   try
     if FAlert then GdipCreateSolidFill($ffff5000, hbrush) else GdipCreateSolidFill($ffffffff, hbrush);
-    GdipDrawString(hgdip, PWideChar(Text), -1, message_font, @text_rect, nil, hbrush);
+    GdipDrawString(hgdip, PWideChar(Text), -1, font, @textRect, nil, hbrush);
     GdipDeleteBrush(hbrush);
   except
     on e: Exception do
@@ -304,8 +297,9 @@ begin
       if acoeff > 255 then acoeff := 255;
     end;
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
-    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
-    if dwm.IsCompositionEnabled then
+    ShowWindow(FHWnd, SW_SHOWNORMAL);
+    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize);
+    if DWM.IsCompositionEnabled then
       DWM.EnableBlurBehindWindow(FHWnd, 0)
     else
       DWM.DisableBlurBehindWindow(FHWnd);
@@ -320,8 +314,8 @@ begin
 
   // cleanup //
   try
-    GdipDeleteFont(message_font);
-    GdipDeleteFontFamily(font_family);
+    GdipDeleteFont(font);
+    GdipDeleteFontFamily(ffamily);
     GdipDeleteGraphics(hgdip);
     gfx.DeleteBitmap(bmp);
   except
@@ -366,7 +360,7 @@ begin
       UpdateLWindowPosAlpha(FHWnd, FX, FY, acoeff);
     end;
 
-    if (FX <> FXTarget) or (FY <> FYTarget) then FShowTime := gettickcount
+    if (FX <> FXTarget) or (FY <> FYTarget) then FShowTime := gettickcount64
     else
     if not FAlert then
     begin

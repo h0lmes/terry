@@ -360,7 +360,7 @@ begin
   result.s := round(ItemSize * d);
   result.alpha := round(255 * d);
   result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
-  x := (ItemSize + Distort + 4) * (index + 1) + 4 + Offset;
+  x := ItemSize + 4 + Offset + (ItemSize + Distort + 4) * index;
   y := 0;
   result.angle := 0;
   case Site of
@@ -407,7 +407,7 @@ begin
   result.alpha := round(255 * d);
   result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
   result.angle := 0;
-  x := (ItemSize + Distort + 4) * (index div 2 + 1) + 4 + Offset;
+  x := ItemSize + 4 + Offset + (ItemSize + Distort + 4) * (index div 2);
   y := ItemSize div 2 + 2 + Distort;
   if index mod 2 = 0 then y := -y;
   case Site of
