@@ -82,11 +82,6 @@ type
     procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
     procedure ShowStackState;
-    procedure CreateBackgroundWindowIfNotExists;
-    procedure ShowBackgroundWindow(AX, AY, AW, AH: integer);
-    procedure ZOrderTop;
-    procedure ZOrderNoTop;
-    function ZOrderItems(InsertAfter: HWND): HWND;
   public
     property ItemCount: integer read FItemCount;
     property ImageFile: string read FImageFile write FImageFile;
@@ -1112,9 +1107,8 @@ end;
 procedure TStackItem.ShowStackState;
 var
   idx: integer;
-  wr, itemRect: windows.TRect;
+  wr: windows.TRect;
   xyaa: TStackItemData;
-  Xmin, Ymin, Xmax, Ymax: integer;
 begin
   if FItemCount = 0 then
   begin
@@ -1126,11 +1120,6 @@ begin
   wr := ScreenRect;
   wr.left += FSize div 2;
   wr.top += FSize div 2;
-
-  Xmin := $FFFF;
-  Ymin := $FFFF;
-  Xmax := 0;
-  Ymax := 0;
 
   // get item params //
   for idx := 0 to FItemCount - 1 do
@@ -1151,115 +1140,7 @@ begin
   for idx := 0 to FItemCount - 1 do
   begin
     if items[idx].draw then items[idx].item.Draw(items[idx].x, items[idx].y, items[idx].s,
-      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, not FShowBackground, false);
-  end;
-
-  if FShowBackground then
-  begin
-    if FState <> stsClosed then
-    begin
-      for idx := 0 to FItemCount - 1 do
-      begin
-        itemRect := items[idx].item.Measure(items[idx].s, items[idx].angle, items[idx].hint_align);
-        if items[idx].x + itemRect.Left   < Xmin then Xmin := items[idx].x + itemRect.Left;
-        if items[idx].y + itemRect.Top    < Ymin then Ymin := items[idx].y + itemRect.Top;
-        if items[idx].x + itemRect.Right  > Xmax then Xmax := items[idx].x + itemRect.Right;
-        if items[idx].y + itemRect.Bottom > Ymax then Ymax := items[idx].y + itemRect.Bottom;
-      end;
-      Xmin -= 16;
-      Ymin -= 16;
-      Xmax += 16;
-      Ymax += 16;
-      CreateBackgroundWindowIfNotExists;
-      ShowBackgroundWindow(Xmin, Ymin, Xmax - Xmin, Ymax - Ymin);
-      ZOrderTop;
-    end else begin
-      ShowWindow(FBackgroundWindow, SW_HIDE);
-      ZOrderNoTop;
-		end;
-	end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.CreateBackgroundWindowIfNotExists;
-begin
-  if not IsWindow(FBackgroundWindow) then
-  try
-    FBackgroundWindow := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDWCLASS,
-      'StackBackgroundWindow', WS_POPUP, -100, -100, 10, 10, FHWnd, 0, hInstance, nil);
-  except
-    on e: Exception do raise Exception.Create('StackItem.CreateBackgroundWindowIfNotExists ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.ShowBackgroundWindow(AX, AY, AW, AH: integer);
-var
-  bmp: _SimpleBitmap;
-  dst, brush: Pointer;
-begin
-  if IsWindow(FBackgroundWindow) then
-  try
-    bmp.topleft.x := AX;
-    bmp.topleft.y := AY;
-    bmp.width     := AW;
-    bmp.height    := AH;
-    if not CreateBitmap(bmp, FBackgroundWindow) then exit; //raise Exception.Create('CreateBitmap failed');
-    GdipCreateFromHDC(bmp.dc, dst);
-    if not assigned(dst) then
-    begin
-      DeleteBitmap(bmp);
-      exit; //raise Exception.Create('CreateGraphics failed');
-    end;
-    GdipCreateSolidFill(FBackgroundColor, brush);
-    GdipFillRectangleI(dst, brush, 0, 0, AW, AH);
-    GdipDeleteBrush(brush);
-
-    UpdateLWindow(FBackgroundWindow, bmp, 255);
-    SetWindowPos(FBackgroundWindow, 0, 0, 0, 0, 0, SWP_NO_FLAGS + SWP_NOZORDER + SWP_SHOWWINDOW);
-    if FBackgroundBlur then DWM.EnableBlurBehindWindow(FBackgroundWindow, 0)
-    else DWM.DisableBlurBehindWindow(FBackgroundWindow);
-    DeleteGraphics(dst);
-    DeleteBitmap(bmp);
-  except
-    on e: Exception do raise Exception.Create('StackItem.ShowBackgroundWindow ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.ZOrderTop;
-begin
-  try
-    // set all items topmost and place the dock window right underneath
-	  SetWindowPos(FHWnd, ZOrderItems(HWND_TOPMOST), 0, 0, 0, 0, SWP_NO_FLAGS);
-  except
-    on e: Exception do raise Exception.Create('StackItem.ZOrderTop ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TStackItem.ZOrderNoTop;
-begin
-  try
-    // set dock window non topmost
-	  SetWindowPos(FHWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NO_FLAGS);
-	  // set all items non topmost
-	  ZOrderItems(HWND_NOTOPMOST);
-  except
-    on e: Exception do raise Exception.Create('StackItem.ZOrderNoTop ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-function TStackItem.ZOrderItems(InsertAfter: HWND): HWND;
-var
-  idx: integer;
-begin
-  result := 0;
-  if FEnabled then
-  begin
-    if FItemCount > 0 then result := items[0].wnd;
-    idx := 0;
-    while idx < FItemCount do
-    begin
-      SetWindowPos(items[idx].wnd, InsertAfter, 0, 0, 0, 0, SWP_NO_FLAGS);
-      inc(idx);
-    end;
+      items[idx].alpha, items[idx].angle, items[idx].hint_align, items[idx].hint_alpha, FShowBackground, false);
   end;
 end;
 //------------------------------------------------------------------------------

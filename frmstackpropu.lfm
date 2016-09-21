@@ -477,7 +477,7 @@ object frmStackProp: TfrmStackProp
         ParentFont = False
       end
       object chbBackgroundBlur: TCheckBox
-        Left = 190
+        Left = 215
         Height = 19
         Top = 235
         Width = 38
@@ -489,7 +489,7 @@ object frmStackProp: TfrmStackProp
         Left = 20
         Height = 30
         Top = 270
-        Width = 210
+        Width = 295
         Caption = 'Select background color'
         OnClick = btnSelectBkColorClick
         TabOrder = 8
@@ -505,7 +505,7 @@ object frmStackProp: TfrmStackProp
       end
       object lblBackgroundAlpha: TLabel
         Tag = 10
-        Left = 320
+        Left = 340
         Height = 13
         Top = 240
         Width = 67
@@ -513,7 +513,7 @@ object frmStackProp: TfrmStackProp
         ParentColor = False
       end
       object tbBackgroundAlpha: TTrackBar
-        Left = 310
+        Left = 330
         Height = 34
         Top = 265
         Width = 215

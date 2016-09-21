@@ -496,7 +496,7 @@ begin
     // restore most recent deleted item //
     if _itemsDeleted.Count > 0 then
     begin
-      AddItem(HWND(_itemsDeleted.Items[_itemsDeleted.Count - 1]));
+      AddItem(HWND(_itemsDeleted.Items[_itemsDeleted.Count - 1]), true);
       _itemsDeleted.Delete(_itemsDeleted.Count - 1);
     end;
   except
