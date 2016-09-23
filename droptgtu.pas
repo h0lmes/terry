@@ -123,22 +123,18 @@ end;
 procedure TDropManager.AddToListHDrop(h: HDROP; var List: TStrings);
 var
   i, size: uint;
-  filename: array [0..MAX_PATH - 1] of char;
+  filenameW: array [0..MAX_PATH - 1] of wchar;
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListHDrop');
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHDrop'); {$endif}
 
-    size := DragQueryFile(h, $ffffffff, nil, 0);
+    size := DragQueryFileW(h, $ffffffff, nil, 0);
     i := 0;
     while i < size do
     begin
-      dragQueryFile(h, i, filename, sizeof(filename));
-      List.Add(filename);
-      {$ifdef DEBUG_DROPTGT}
-      notifier.message(filename);
-      {$endif}
+      DragQueryFileW(h, i, @filenameW, MAX_PATH);
+      List.Add(strpas(pwchar(@filenameW)));
+      {$ifdef DEBUG_DROPTGT} notifier.message(filename); {$endif}
       inc(i);
     end;
     DragFinish(h);
@@ -156,9 +152,7 @@ var
   cbRead: dword;
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListIStreamFileName');
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListIStreamFileName'); {$endif}
 
     FillChar(data, MAX_PATH, 0);
     ist := IStream(h);
@@ -167,9 +161,7 @@ begin
     if size > MAX_PATH then size := MAX_PATH;
     ist.Read(@data, size, @cbRead);
     List.Add(strpas(pchar(@data)));
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message(strpas(pchar(@data)));
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message(strpas(pchar(@data))); {$endif}
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName ' + LineEnding + e.message);
   end;
@@ -184,9 +176,7 @@ var
   idpath: string;
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListHGlobalPIDL');
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHGlobalPIDL'); {$endif}
 
     FillChar(data, 4096, 0);
     p := GlobalLock(h);
@@ -204,9 +194,7 @@ begin
     {$endif}
 
     qty := PIDL_CountFromCIDA(p);
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('PIDL count = ' + inttostr(qty));
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('PIDL count = ' + inttostr(qty)); {$endif}
 
     for i := 0 to qty - 1 do
     begin
@@ -217,9 +205,7 @@ begin
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         List.Add(idpath);
-        {$ifdef DEBUG_DROPTGT}
-        notifier.message('PIDL ToString = ' + idpath);
-        {$endif}
+        {$ifdef DEBUG_DROPTGT} notifier.message('PIDL ToString = ' + idpath); {$endif}
       end;
     end;
     GlobalUnlock(h);
@@ -240,9 +226,7 @@ var
   idpath: string;
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListIStreamPIDL');
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListIStreamPIDL'); {$endif}
 
     FillChar(data, 4096, 0);
     ist := IStream(h);
@@ -262,9 +246,7 @@ begin
     {$endif}
 
     qty := PIDL_CountFromCIDA(@data);
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('PIDL count = ' + inttostr(qty));
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('PIDL count = ' + inttostr(qty)); {$endif}
 
     for i := 0 to qty - 1 do
     begin
@@ -275,9 +257,7 @@ begin
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         List.Add(idpath);
-        {$ifdef DEBUG_DROPTGT}
-        notifier.message('PIDL ToString = ' + idpath);
-        {$endif}
+        {$ifdef DEBUG_DROPTGT} notifier.message('PIDL ToString = ' + idpath); {$endif}
       end;
     end;
   except
@@ -288,14 +268,9 @@ end;
 procedure TDropManager.AddToListFileFile(lpsz: POLESTR; var List: TStrings);
 begin
   try
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message('DropManager.AddToListFileFile');
-    {$endif}
-
-    List.Add(pchar(lpsz));
-    {$ifdef DEBUG_DROPTGT}
-    notifier.message(pchar(lpsz));
-    {$endif}
+    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListFileFile'); {$endif}
+    List.Add(strpas(pwchar(lpsz)));
+    {$ifdef DEBUG_DROPTGT} notifier.message(pchar(lpsz)); {$endif}
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL ' + LineEnding + e.message);
   end;

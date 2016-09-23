@@ -414,7 +414,7 @@ begin
       on e: Exception do raise Exception.Create('InitDraw ' + LineEnding + e.message);
     end;
 
-    // icon background //
+    // full item background //
     if FBackground then
     begin
       GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);

@@ -359,7 +359,7 @@ begin
   d := sin(d * PI / 2);
   result.s := round(ItemSize * d);
   result.alpha := round(255 * d);
-  result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
+  result.hint_alpha := trunc(max(progress - 0.5, 0) * 510);
   x := ItemSize + 4 + Offset + (ItemSize + Distort + 4) * index;
   y := 0;
   result.angle := 0;
@@ -405,7 +405,7 @@ begin
   d := sin(d * PI / 2);
   result.s := round(ItemSize * d);
   result.alpha := round(255 * d);
-  result.hint_alpha := round(max(progress - 0.75, 0) * 1020);
+  result.hint_alpha := trunc(max(progress - 0.5, 0) * 510);
   result.angle := 0;
   x := ItemSize + 4 + Offset + (ItemSize + Distort + 4) * (index div 2);
   y := ItemSize div 2 + 2 + Distort;
