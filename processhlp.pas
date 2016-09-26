@@ -61,7 +61,7 @@ type
     class function GetWindowText(wnd: THandle): WideString;
     procedure AllowSetForeground(wnd: HWND);
     function WindowOnTop(wnd: THandle): boolean;
-    procedure ActivateWindow(h: THandle);
+    procedure ActivateWindow(h: THandle; Force: boolean = false);
     procedure ActivateWindowList(list: TFPList);
     procedure CloseWindow(h: THandle);
     function ActivateProcessMainWindow(ProcessName: string; h: THandle; ItemRect: windows.TRect; Edge: integer): boolean;
@@ -641,8 +641,16 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.ActivateWindow(h: THandle);
+procedure TProcessHelper.ActivateWindow(h: THandle; Force: boolean = false);
 begin
+  if Force then
+  begin
+    AllowSetForeground(h);
+    SetForegroundWindow(h);
+    SetActiveWindow(h);
+    exit;
+  end;
+
   if IsWindowVisible(h) and not IsIconic(h) then
   begin
       if WindowOnTop(h) then

@@ -162,8 +162,8 @@ function GetLangID: integer;
 function GetLangIDString(id: integer): string;
 function GetLangIDName(id: integer): WideString;
 function GetRecycleBinState: integer;
-procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
-procedure ResolveAppref(wnd: HWND; var Target: string);
+function ResolveLNK(wnd: HWND; var Target: WideString; out params, dir, icon: string): boolean;
+procedure ResolveAppref(wnd: HWND; var Target: WideString);
 function BrowseFolder(hWnd: THandle; title, default: string): string;
 procedure SetClipboard(Text: string);
 function GetClipboard: string;
@@ -960,50 +960,49 @@ begin
   ILFree(pidFolder);
 end;
 //------------------------------------------------------------------------------
-procedure ResolveLNK(wnd: HWND; var Target: string; out params, dir, icon: string);
+function ResolveLNK(wnd: HWND; var Target: WideString; out params, dir, icon: string): boolean;
 var
   obj: IUnknown;
   isl: IShellLink;
   ipf: IPersistFile;
-  fda: Windows.TWin32FindDataA;
+  fda: Windows.TWin32FindData;
   s: string;
   iIcon: integer;
 begin
+  result := false;
   obj := CreateComObject(CLSID_ShellLink);
-  isl := obj as IShellLink;
-  ipf := obj as IPersistFile;
-  if S_OK <> ipf.Load(PWChar(WideString(Target)), STGM_READ) then exit;
-  if S_OK = isl.Resolve(wnd, SLR_NO_UI + SLR_NOUPDATE) then
+  if assigned(obj) then
   begin
-    SetLength(s, MAX_PATH);
-    isl.GetPath(PChar(s), length(s), fda, SLGP_UNCPRIORITY);
-    Target := PChar(s);
-    isl.GetArguments(PChar(s), length(s));
-    params := PChar(s);
-    isl.GetWorkingDirectory(PChar(s), length(s));
-    dir := PChar(s);
-    isl.GetIconLocation(PChar(s), length(s), iIcon);
-    icon := PChar(s);
+      isl := obj as IShellLink;
+      ipf := obj as IPersistFile;
+      if S_OK = ipf.Load(PWChar(Target), STGM_READ) then
+      begin
+          if S_OK = isl.Resolve(wnd, SLR_NO_UI + SLR_NOUPDATE) then
+          begin
+            SetLength(s, MAX_PATH);
+            if S_OK = isl.GetPath(PChar(s), MAX_PATH, fda, SLGP_UNCPRIORITY) then Target := strpas(PChar(s));
+            if S_OK = isl.GetArguments(PChar(s), MAX_PATH) then params := PChar(s);
+            if S_OK = isl.GetWorkingDirectory(PChar(s), MAX_PATH) then dir := PChar(s);
+            if S_OK = isl.GetIconLocation(PChar(s), MAX_PATH, iIcon) then icon := PChar(s);
+            result := true;
+          end;
+      end;
   end;
 end;
 //--------------------------------------------------------------------------------------------------
-procedure ResolveAppref(wnd: HWND; var Target: string);
+procedure ResolveAppref(wnd: HWND; var Target: WideString);
 //var
   //fs: TFileStream;
   //size: integer;
   //wch: array of WChar;
-  //ch: array of char;
 begin
   Target := ChangeFileExt(ExtractFileName(Target), '.exe');
-  exit;
   {fs := TFileStream.Create(Target, fmOpenRead);
   try
     size := integer(fs.Size) div 2;
     SetLength(wch, size + 1);
-    SetLength(ch, size + 1);
     fs.ReadBuffer(wch, fs.Size);
-    WideCharToMultiByte(CP_ACP, 0, @wch, -1, @ch, size, nil, nil);
-    Target := ChangeFileExt(cut(cutafter(pchar(ch), '#'), ','), '.exe');
+    Target := ChangeFileExt(cut(cutafter(strpas(pwchar(wch)), '#'), ','), '.exe');
   finally
     fs.free;
   end;}

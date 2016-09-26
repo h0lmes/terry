@@ -98,8 +98,7 @@ type
     function  AddItem(wnd: HWND; Update: boolean = false): THandle;
     function  CreateItem(IniFile, IniSection, Parameter: string): THandle;
     procedure AddTaskWindow(HWndTask: THandle);
-    procedure AddToRegisteredPrograms(HWnd: THandle);
-    procedure DeleteFromRegisteredPrograms(HWnd: THandle);
+    function IsRegisteredExecutable(processName: string): boolean;
 
     procedure Zoom(x, y: integer);
     procedure UnZoom(do_now: boolean = false);
@@ -116,7 +115,6 @@ type
     FHoverItemHWnd: THandle; // handle of the item over which the mouse is //
     FSelectedItemHWnd: THandle;
     _itemsDeleted: TFPList;
-    _registeredPrograms: TStrings; // intended for use in taskbar routines
     // pos/size of ItemManager //
     x: integer;
     y: integer;
@@ -275,7 +273,6 @@ begin
   FEdgeOffset := 0;
   FWndOffset := 0;
   _itemsDeleted := TFPList.Create;
-  _registeredPrograms := TStringList.Create;
 end;
 //------------------------------------------------------------------------------
 destructor TItemManager.Destroy;
@@ -284,7 +281,6 @@ begin
   Clear;
   ClearDeleted;
   _itemsDeleted.Free;
-  _registeredPrograms.free;
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -722,7 +718,6 @@ begin
   if wnd <> THandle(0) then
   begin
     if (FDropPlace < 0) or (FDropPlace >= FItemCount) then SetDropPlace(FItemCount);
-    AddToRegisteredPrograms(wnd);
     FItemArray[FDropPlace].h := wnd;
     FItemArray[FDropPlace].s := FItemSize;
     ItemCmd(wnd, icFree, 0); // enable item
@@ -852,8 +847,6 @@ begin
       dec(FItemCount);
     end;
 
-    DeleteFromRegisteredPrograms(HWnd);
-
     // update dock //
     ItemsChanged;
   except
@@ -861,31 +854,33 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.AddToRegisteredPrograms(HWnd: THandle);
+function TItemManager.IsRegisteredExecutable(processName: string): boolean;
 var
+  index: integer;
   Inst: TCustomItem;
-  str: string;
+  instExecutable: string;
 begin
+  result := false;
   try
-    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
-    str := Inst.RegisterProgram;
-    if str <> '' then _registeredPrograms.Add(LowerCase(str));
+    processName := LowerCase(processName);
+    index := 0;
+    while index < FItemCount do
+    begin
+        Inst := TCustomItem(GetWindowLongPtr(FItemArray[index].h, GWL_USERDATA));
+        if Inst is TCustomItem then
+        begin
+            instExecutable := LowerCase(Inst.Executable);
+            if instExecutable <> '' then
+                if (instExecutable = processName) or (instExecutable = ExtractFileName(processName)) then
+                begin
+                  result := true;
+                  exit;
+                end;
+        end;
+        inc(index);
+    end;
   except
-    on e: Exception do raise Exception.Create('ItemManager.AddToRegisteredPrograms ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure TItemManager.DeleteFromRegisteredPrograms(HWnd: THandle);
-var
-  Inst: TCustomItem;
-  rpIndex: integer;
-begin
-  try
-    Inst := TCustomItem(GetWindowLongPtr(HWnd, GWL_USERDATA));
-    rpIndex := _registeredPrograms.IndexOf(LowerCase(Inst.RegisterProgram));
-    if rpIndex >= 0 then _registeredPrograms.Delete(rpIndex);
-  except
-    on e: Exception do raise Exception.Create('ItemManager.DeleteFromRegisteredPrograms ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('ItemManager.IsRegisteredExecutable ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -2226,14 +2221,10 @@ var
   index, found: integer;
   wndItem: HWND;
   Inst: TCustomItem;
-  str: string;
 begin
   try
     // do not add registered programs, so check for it
-    str := LowerCase(ProcessHelper.GetWindowProcessName(HWndTask));
-    index := _registeredPrograms.IndexOf(str);
-    if index < 0 then index := _registeredPrograms.IndexOf(ExtractFileName(str));
-    if index >= 0 then exit;
+    if IsRegisteredExecutable(ProcessHelper.GetWindowProcessName(HWndTask)) then exit;
 
     // search existing TaskItem for the given window
     found := -1;

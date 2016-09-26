@@ -29,7 +29,7 @@ type
     FTaskSystemMenus: boolean; // use old-style system menus instead of AeroPeekWindow
     FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
     FIsExecutable: boolean;
-    FExecutable: string;
+    FExecutable: WideString;
     FIsPIDL: boolean;
     FPIDL: PItemIDList;
     FLastMouseUp: PtrUInt;
@@ -79,7 +79,7 @@ type
     procedure Configure; override;
     function CanOpenFolder: boolean; override;
     procedure OpenFolder; override;
-    function RegisterProgram: string; override;
+    function Executable: string; override;
     function DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; override;
     procedure Save(ini, section: string); override;
     //
@@ -547,18 +547,18 @@ begin
   begin
     result := true;
     KillTimer(FHWnd, ID_TIMER_OPEN);
-    ProcessHelper.ActivateWindow(THandle(FAppList.First));
+    ProcessHelper.ActivateWindow(THandle(FAppList.First), FAttention);
   end else
   if FAppList.Count > 1 then
   begin
     result := true;
     if group then
       ProcessHelper.ActivateWindowList(FAppList)
-		else if not FTaskSystemMenus then
+		else if FTaskSystemMenus then
     begin
-      if not TAeroPeekWindow.IsActive then ShowPeekWindow;
-    end else begin
       ProcessHelper.ActivateProcessMainWindow(FExecutable, Handle, GetScreenRect, FSite);
+    end else begin
+      if not TAeroPeekWindow.IsActive then ShowPeekWindow;
     end;
 	end;
 end;
@@ -789,7 +789,7 @@ begin
   DockExecute(FHWnd, pchar(strFile), nil, nil, sw_shownormal);
 end;
 //------------------------------------------------------------------------------
-function TShortcutItem.RegisterProgram: string;
+function TShortcutItem.Executable: string;
 begin
   result := FExecutable;
 end;

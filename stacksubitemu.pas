@@ -7,6 +7,7 @@ uses Windows, Messages, SysUtils, Controls, Classes, ShellAPI, Math, ComObj, Shl
   GDIPAPI, gfx, PIDL, ShContextU, declu, dockh, toolu, customitemu, processhlp, loggeru;
 
 const
+  MIN_BORDER = 8;
   MAX_CAPTION_WIDTH = 150;
   TDSUBITEM_WCLASS = 'TDockSubItemWClass';
 
@@ -25,7 +26,6 @@ type
     Fx: integer;
     Fy: integer;
     FSize: integer;
-    FBorder: integer;
     FAngle: single;
     FAlpha: integer;
     FHintAlign: integer;
@@ -34,7 +34,7 @@ type
     FQueryDelete: boolean;
     FFont: TDFontData;
     FIsExecutable: boolean;
-    FExecutable: string;
+    FExecutable: WideString;
 
     FEnabled: boolean;
     FUpdating: boolean;
@@ -57,7 +57,7 @@ type
     procedure RegisterWindowItemClass;
     procedure Init; virtual;
     procedure Redraw;
-    function GetRectFromSize(ASize: integer): windows.TRect;
+    function GetNCRect: windows.TRect;
     function GetClientRect: windows.TRect;
     function GetScreenRect: windows.TRect;
     procedure CloseStack;
@@ -342,17 +342,18 @@ begin
 end;
 //------------------------------------------------------------------------------
 // set position, size, repaint window //
-procedure TShortcutSubitem.Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean);
+// Ax, Ay - center of icon
+procedure TShortcutSubitem.Draw(Ax, Ay, ASize, AAlpha: integer; AAngle: single; AHintAlign, AHintAlpha: integer; ABackground, AForce: boolean);
 const BGMARGIN = 3;
 var
   bmp: _SimpleBitmap;
   dst: Pointer;
-  hattr, brush, path, font, family: Pointer;
-  xBitmap, yBitmap: integer; // coord of image within window
-  xReal, yReal: integer; // coord of window
-  ItemRect, MeasuredRect: windows.TRect;
-  rect: TRectF;
-  points: array [0..3] of GDIPAPI.TPoint;
+  attr, brush, path, font, family: Pointer;
+  IconX, IconY: integer; // relative icon coordinates
+  WindowX, WindowY: integer;
+  ClientRect, NCRect, MeasuredRect: windows.TRect;
+  CaptionRect: TRectF;
+  ptsBackground: array [0..3] of GDIPAPI.TPoint;
 begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
@@ -373,40 +374,40 @@ begin
       if AHintAlpha > 255 then AHintAlpha := 255;
       FHintAlpha := AHintAlpha;
       FBackground := ABackground;
-      ItemRect := GetRectFromSize(FSize);
-      xReal := Ax - ItemRect.Left - FSize div 2;
-      yReal := Ay - ItemRect.Top - FSize div 2;
+      ClientRect := GetClientRect;
+      NCRect := GetNCRect;
+      WindowX := Ax - FSize div 2 - ClientRect.Left - NCRect.Left;
+      WindowY := Ay - FSize div 2 - ClientRect.Top - NCRect.Top;
     except
       on e: Exception do raise Exception.Create('SetPosition ' + LineEnding + e.message);
     end;
 
     // init drawing //
     try
-      bmp.topleft.x := xReal;
-      bmp.topleft.y := yReal;
-      bmp.width := FSize + ItemRect.Left * 2;
-      bmp.height := FSize + ItemRect.Top * 2;
-      if not CreateBitmap(bmp, FHWnd) then exit; //raise Exception.Create('CreateBitmap failed');
+      bmp.topleft.x := WindowX + NCRect.Left;
+      bmp.topleft.y := WindowY + NCRect.Top;
+      bmp.width := NCRect.Right - NCRect.Left;
+      bmp.height := NCRect.Bottom - NCRect.Top;
+      if not CreateBitmap(bmp, FHWnd) then exit;
       dst := CreateGraphics(bmp.dc, 0);
       if not assigned(dst) then
       begin
         DeleteBitmap(bmp);
-        exit; //raise Exception.Create('CreateGraphics failed');
+        exit;
       end;
-
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
-      GdipFillRectangleI(dst, brush, ItemRect.Left - 1, ItemRect.Top - 1, ItemRect.Right - ItemRect.Left + 2, ItemRect.Bottom - ItemRect.Top + 2);
+      GdipFillRectangleI(dst, brush, ClientRect.Left - 1, ClientRect.Top - 1, ClientRect.Right - ClientRect.Left + 2, ClientRect.Bottom - ClientRect.Top + 2);
       GdipDeleteBrush(brush);
       GdipSetInterpolationMode(dst, InterpolationModeBilinear);
 
-      xBitmap := ItemRect.Left;
-      yBitmap := ItemRect.Top;
+      IconX := ClientRect.Left;
+      IconY := ClientRect.Top;
 
       if AAngle > 0 then
       begin
-        xBitmap := -FSize div 2;
-        yBitmap := -FSize div 2;
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        IconX := -FSize div 2;
+        IconY := -FSize div 2;
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
       end;
 
@@ -446,27 +447,27 @@ begin
           MeasuredRect.Bottom += FCaptionHeight;
         end;
       end;
-      points[0].x := xBitmap + MeasuredRect.Left;
-      points[0].y := yBitmap + MeasuredRect.Top;
-      points[1].x := xBitmap + MeasuredRect.Right;
-      points[1].y := yBitmap + MeasuredRect.Top;
-      points[2].x := xBitmap + MeasuredRect.Right;
-      points[2].y := yBitmap + MeasuredRect.Bottom;
-      points[3].x := xBitmap + MeasuredRect.Left;
-      points[3].y := yBitmap + MeasuredRect.Bottom;
-      GdipAddPathClosedCurve2I(path, points, 4, 5 / FCaptionWidth);
+      ptsBackground[0].x := IconX + MeasuredRect.Left;
+      ptsBackground[0].y := IconY + MeasuredRect.Top;
+      ptsBackground[1].x := IconX + MeasuredRect.Right;
+      ptsBackground[1].y := IconY + MeasuredRect.Top;
+      ptsBackground[2].x := IconX + MeasuredRect.Right;
+      ptsBackground[2].y := IconY + MeasuredRect.Bottom;
+      ptsBackground[3].x := IconX + MeasuredRect.Left;
+      ptsBackground[3].y := IconY + MeasuredRect.Bottom;
+      GdipAddPathClosedCurve2I(path, ptsBackground, 4, 5 / FCaptionWidth);
 	    GdipFillPath(dst, brush, path);
 	    GdipDeletePath(path);
 	    GdipDeleteBrush(brush);
     end;
     // draw icon //
-    CreateColorAttributes(FColorData, FSelected, hattr);
-    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, xBitmap, yBitmap, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, hattr, nil, nil);
-    if hattr <> nil then GdipDisposeImageAttributes(hattr);
+    CreateColorAttributes(FColorData, FSelected, attr);
+    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, IconX, IconY, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, attr, nil, nil);
+    if attr <> nil then GdipDisposeImageAttributes(attr);
 
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
     if FRunning and (AAlpha > 24) then
-      if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, xBitmap, yBitmap, FSize, FProcessWindowsCount); //theme.DrawIndicator(dst, xBitmap, yBitmap, FSize, FSite);
+      if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, IconX, IconY, FSize, FProcessWindowsCount); //theme.DrawIndicator(dst, IconX, IconY, FSize, FSite);
     GdipResetWorldTransform(dst);
 
     // hint (caption) //
@@ -474,38 +475,38 @@ begin
     begin
       if AHintAlign = HA_HORIZONTAL_LEFT then
       begin
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
-        xBitmap := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
-        yBitmap := -FCaptionHeight div 2;
+        IconX := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
+        IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
-        yBitmap := -FCaptionHeight div 2;
+        IconX := FSize div 2 + FCaptionHeight div 3 + 5;
+        IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_TOP then
       begin
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle - 90, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
-        yBitmap := -FCaptionHeight div 2;
+        IconX := FSize div 2 + FCaptionHeight div 3 + 5;
+        IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle + 90, MatrixOrderPrepend);
-        xBitmap := FSize div 2 + FCaptionHeight div 3 + 5;
-        yBitmap := -FCaptionHeight div 2;
+        IconX := FSize div 2 + FCaptionHeight div 3 + 5;
+        IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_BOTTOM then
       begin
-        GdipTranslateWorldTransform(dst, ItemRect.Left + FSize div 2, ItemRect.Top + FSize div 2, MatrixOrderPrepend);
+        GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
-        xBitmap := -FCaptionWidth div 2;
-        yBitmap := FSize div 2 + 3;
+        IconX := -FCaptionWidth div 2;
+        IconY := FSize div 2 + 3;
       end;
       // hint background
       if not FBackground then
@@ -513,29 +514,29 @@ begin
 	      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
 	      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
 	      GdipCreatePath(FillModeWinding, path);
-	      points[0].x := xBitmap - FCaptionHeight div 10;
-	      points[0].y := yBitmap - 1;
-	      points[1].x := points[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
-	      points[1].y := points[0].y;
-	      points[2].x := points[1].x;
-	      points[2].y := points[0].y + FCaptionHeight + 1;
-	      points[3].x := points[0].x;
-	      points[3].y := points[2].y;
-        GdipAddPathClosedCurve2I(path, points, 4, 15 / FCaptionWidth);
+	      ptsBackground[0].x := IconX - FCaptionHeight div 10;
+	      ptsBackground[0].y := IconY - 1;
+	      ptsBackground[1].x := ptsBackground[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
+	      ptsBackground[1].y := ptsBackground[0].y;
+	      ptsBackground[2].x := ptsBackground[1].x;
+	      ptsBackground[2].y := ptsBackground[0].y + FCaptionHeight + 1;
+	      ptsBackground[3].x := ptsBackground[0].x;
+	      ptsBackground[3].y := ptsBackground[2].y;
+        GdipAddPathClosedCurve2I(path, ptsBackground, 4, 15 / FCaptionWidth);
 	      GdipFillPath(dst, brush, path);
 	      GdipDeletePath(path);
 	      GdipDeleteBrush(brush);
       end;
       //
-      rect.X := xBitmap;
-      rect.Y := yBitmap;
-      rect.Width := FCaptionWidth;
-      rect.Height := FCaptionHeight;
+      CaptionRect.X := IconX;
+      CaptionRect.Y := IconY;
+      CaptionRect.Width := FCaptionWidth;
+      CaptionRect.Height := FCaptionHeight;
       GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
       GdipCreateFont(family, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
       GdipCreateSolidFill(AHintAlpha shl 24 + FFont.color and $ffffff, brush);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
-      GdipDrawString(dst, PWideChar(FCaption), -1, font, @rect, nil, brush);
+      GdipDrawString(dst, PWideChar(FCaption), -1, font, @CaptionRect, nil, brush);
       GdipDeleteBrush(brush);
       GdipDeleteFont(font);
       GdipDeleteFontFamily(family);
@@ -963,7 +964,6 @@ begin
   Fx:= -1000;
   Fy:= -1000;
   FSize:= 32;
-  FBorder := 8;
   FCaption := '';
   FUpdating:= false;
   FSelected:= false;
@@ -1016,10 +1016,10 @@ begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
 
-    result.Left := -ASize div 2;
-    result.Right := result.Left + ASize;
-    result.Top := -ASize div 2;
-    result.Bottom := result.Top + ASize;
+    result.Left := -MIN_BORDER;
+    result.Right := ASize + MIN_BORDER;
+    result.Top := -MIN_BORDER;
+    result.Bottom := ASize + MIN_BORDER;
   except
     on e: Exception do raise Exception.Create('TCustomSubitem.Measure(' + caption + ') ' + LineEnding + e.message);
   end;
@@ -1053,15 +1053,28 @@ begin
   if button = mbLeft then BeginDrag;
 end;
 //------------------------------------------------------------------------------
-function TCustomSubitem.GetRectFromSize(ASize: integer): windows.TRect;
+// item window rect in client coordinates
+function TCustomSubitem.GetNCRect: windows.TRect;
+var
+  Border: integer;
 begin
-  result := classes.rect(FBorder, FBorder, FBorder + ASize, FBorder + ASize);
+  Border := FCaptionWidth + FCaptionHeight + MIN_BORDER;
+  result.Left   := 0;
+  result.Top    := 0;
+  result.Right  := Border + FSize + Border;
+  result.Bottom := Border + FSize + Border;
 end;
 //------------------------------------------------------------------------------
 // item rect in client coordinates
 function TCustomSubitem.GetClientRect: windows.TRect;
+var
+  Border: integer;
 begin
-  result := GetRectFromSize(FSize);
+  Border := FCaptionWidth + FCaptionHeight + MIN_BORDER;
+  result.Left   := Border;
+  result.Top    := Border;
+  result.Right  := Border + FSize;
+  result.Bottom := Border + FSize;
 end;
 //------------------------------------------------------------------------------
 // item rect in screen coordinates
@@ -1069,7 +1082,7 @@ function TCustomSubitem.GetScreenRect: windows.TRect;
 var
   r: windows.TRect;
 begin
-  result := GetRectFromSize(FSize);
+  result := GetClientRect;
   GetWindowRect(FHWnd, @r);
   inc(result.Left, r.Left);
   inc(result.Right, r.Left);
@@ -1146,7 +1159,6 @@ var
   rect: TRectF;
   dc: HDC;
 begin
-  FBorder := 8;
   FCaptionWidth := 0;
   FCaptionHeight := 0;
   if FShowHint and (length(FCaption) > 0) then
@@ -1181,7 +1193,6 @@ begin
     end;
     FCaptionWidth := min(ceil(rect.Width), MAX_CAPTION_WIDTH);
     FCaptionHeight := ceil(rect.Height);
-    FBorder := FCaptionWidth + FCaptionHeight + 8;
   end;
 end;
 //------------------------------------------------------------------------------

@@ -1216,11 +1216,6 @@ msgctxt "tfrmstackprop.btnproperties.caption"
 msgid "Back to properties"
 msgstr "Вернуться к свойствам"
 
-#: tfrmstackprop.btnselectbkcolor.caption
-msgctxt "tfrmstackprop.btnselectbkcolor.caption"
-msgid "Select background color"
-msgstr "Выбрать цвет фона"
-
 #: tfrmstackprop.btnselectcolor.caption
 msgctxt "tfrmstackprop.btnselectcolor.caption"
 msgid "Select color"
@@ -1235,19 +1230,11 @@ msgstr "Свойства"
 msgid "Show background"
 msgstr "Показывать фон"
 
-#: tfrmstackprop.chbbackgroundblur.caption
-msgid "Blur"
-msgstr "Размытие"
-
 #: tfrmstackprop.dividerbevel1.caption
 #| msgid "Stack contents"
 msgctxt "tfrmstackprop.dividerbevel1.caption"
 msgid "Items in this stack"
 msgstr "Значки в стеке"
-
-#: tfrmstackprop.dividerbevel2.caption
-msgid "Stack background"
-msgstr "Фон стека"
 
 #: tfrmstackprop.label1.caption
 msgid "Preview:"
@@ -1276,11 +1263,6 @@ msgstr "Контраст"
 #: tfrmstackprop.lblanimationspeed.caption
 msgid "Animation speed"
 msgstr "Скорость анимации"
-
-#: tfrmstackprop.lblbackgroundalpha.caption
-msgctxt "tfrmstackprop.lblbackgroundalpha.caption"
-msgid "Alpha channel"
-msgstr "Альфа-канал"
 
 #: tfrmstackprop.lblcaption.caption
 msgctxt "TFRMSTACKPROP.LBLCAPTION.CAPTION"

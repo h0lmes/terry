@@ -26,13 +26,10 @@ type
     btnCancel: TButton;
     btnProperties: TButton;
     btnSelectColor: TButton;
-    btnSelectBkColor: TButton;
     cboMode: TComboBox;
     cboPreview: TComboBox;
-    chbBackgroundBlur: TCheckBox;
     chbBackground: TCheckBox;
     DividerBevel1: TDividerBevel;
-    DividerBevel2: TDividerBevel;
     edImage: TEdit;
     edCaption: TEdit;
     iPic: TPaintBox;
@@ -41,7 +38,6 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Label5: TLabel;
-    lblBackgroundAlpha: TLabel;
     lblImage: TLabel;
     lblDistort: TLabel;
     lblCaption: TLabel;
@@ -53,7 +49,6 @@ type
     pages: TPageControl;
     tbAnimationSpeed: TTrackBar;
     tbDistort: TTrackBar;
-    tbBackgroundAlpha: TTrackBar;
     tbOffset: TTrackBar;
     tsProperties: TTabSheet;
     tsColor: TTabSheet;
@@ -69,10 +64,8 @@ type
     procedure btnBrowseImage1Click(Sender: TObject);
     procedure btnDefaultColorClick(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
-    procedure btnSelectBkColorClick(Sender: TObject);
     procedure cboModeChange(Sender: TObject);
     procedure cboPreviewChange(Sender: TObject);
-    procedure chbBackgroundBlurChange(Sender: TObject);
     procedure chbBackgroundChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
@@ -84,12 +77,10 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure btnApplyClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure listDblClick(Sender: TObject);
     procedure tbAnimationSpeedChange(Sender: TObject);
-    procedure tbBackgroundAlphaChange(Sender: TObject);
     procedure tbDistortChange(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
     procedure tbOffsetChange(Sender: TObject);
@@ -104,8 +95,6 @@ type
     savedDistort: integer;
     savedPreview: integer;
     savedShowBackground: boolean;
-    savedBackgroundBlur: boolean;
-    savedBackgroundColor: integer;
     //
     color_data: uint;
     background_color: uint;
@@ -195,8 +184,6 @@ begin
   savedDistort               := Item.Distort;
   savedPreview               := Item.Preview;
   savedShowBackground        := Item.ShowBackground;
-  savedBackgroundBlur        := Item.BackgroundBlur;
-  savedBackgroundColor       := Item.BackgroundColor;
 
   // show parameters //
 
@@ -230,9 +217,6 @@ begin
   tbDistort.Position         := savedDistort;
   cboPreview.ItemIndex       := savedPreview;
   chbBackground.checked      := savedShowBackground;
-  chbBackgroundBlur.checked  := savedBackgroundBlur;
-  background_color           := savedBackgroundColor;
-  tbBackgroundAlpha.Position := (background_color and $ff000000 shr 24) * 100 div 255;
 
   Draw;
   iPic.OnPaint := iPicPaint;
@@ -282,8 +266,6 @@ begin
     Item.Distort               := tbDistort.Position;
     Item.Preview               := cboPreview.ItemIndex;
     Item.ShowBackground        := chbBackground.Checked;
-    Item.BackgroundBlur        := chbBackgroundBlur.Checked;
-    Item.BackgroundColor       := background_color;
     Item.Update;
     FChanged := false;
   except
@@ -305,8 +287,6 @@ begin
     Item.Distort               := savedDistort;
     Item.Preview               := savedPreview;
     Item.ShowBackground        := savedShowBackground;
-    Item.BackgroundBlur        := savedBackgroundBlur;
-    Item.BackgroundColor       := savedBackgroundColor;
     Item.Update;
   end;
   FChanged := false;
@@ -384,20 +364,6 @@ begin
   lblAnimationSpeed.Caption := Format(XAnimationSpeed, [TTrackBar(Sender).Position]);
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.btnSelectBkColorClick(Sender: TObject);
-begin
-  with TColorDialog.Create(self) do
-  begin
-    Color := gfx.SwapColor(background_color and $ffffff);
-    if Execute then
-    begin
-      FChanged := true;
-      background_color := (background_color and $ff000000) + gfx.SwapColor(Color and $ffffff);
-    end;
-    free;
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure TfrmStackProp.cboModeChange(Sender: TObject);
 begin
   FChanged := true;
@@ -408,21 +374,9 @@ begin
   FChanged := true;
 end;
 //------------------------------------------------------------------------------
-procedure TfrmStackProp.chbBackgroundBlurChange(Sender: TObject);
-begin
-  FChanged := true;
-end;
-//------------------------------------------------------------------------------
 procedure TfrmStackProp.chbBackgroundChange(Sender: TObject);
 begin
   FChanged := true;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.tbBackgroundAlphaChange(Sender: TObject);
-begin
-  FChanged := true;
-  lblBackgroundAlpha.Caption := Format(XAlphaChannel, [TTrackBar(Sender).Position]);
-  background_color := (background_color and $ffffff) + TTrackBar(Sender).Position * 255 div 100 shl 24;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.tbHueChange(Sender: TObject);

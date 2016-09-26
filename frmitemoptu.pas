@@ -420,11 +420,12 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnConvertLinkClick(Sender: TObject);
 var
-  cmd, param, dir, icon: string;
+  cmd: WideString;
+  param, dir, icon: string;
 begin
-  if SameText(ExtractFileExt(edCmd.Text), '.lnk') then
+  if SameText(ExtractFileExt(UTF8Decode(edCmd.Text)), '.lnk') then
   begin
-    cmd := UnzipPath(edCmd.Text);
+    cmd := UnzipPath(UTF8Decode(edCmd.Text));
     ResolveLNK(handle, cmd, param, dir, icon);
     edCmd.Text := ZipPath(cmd);
     edParams.Text := ZipPath(param);

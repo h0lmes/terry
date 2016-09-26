@@ -702,6 +702,7 @@ begin
           if FHoverIndex <> index then
           begin
             FHoverIndex := index;
+            if not FAeroPeekAllowedInt then SetTimer(FHWnd, ID_TIMER_AEROPEEK, 1000, nil);
             Paint;
             InvokeAeroPeek(FHoverIndex);
           end;

@@ -142,7 +142,6 @@ type
     function  ListFullScreenApps: string;
     procedure ThemesMenu;
     procedure SetTaskSpot(wnd: THandle);
-    procedure ListRegisteredPrograms;
     procedure ListTasksAndModules;
     procedure WinampCmd(params: string; showcmd: integer = sw_shownormal);
     procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
@@ -2048,15 +2047,6 @@ begin
   SetParam(gpTaskSpot, spot);
 end;
 //------------------------------------------------------------------------------
-// show the list of registered programs
-// registered programs - executables from all ShortcutItem's
-procedure Tfrmmain.ListRegisteredPrograms;
-var
-  i: integer;
-begin
-  for i := 0 to ItemMgr._registeredPrograms.Count - 1 do notify(ItemMgr._registeredPrograms.Strings[i]);
-end;
-//------------------------------------------------------------------------------
 // show the list of running tasks (processes) and modules
 procedure Tfrmmain.ListTasksAndModules;
 begin
@@ -2182,7 +2172,6 @@ begin
   else if cmd = 'play' then         sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
   else if cmd = 'guid' then         SetClipboard(CreateClassId)
   else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
-  else if cmd = 'regp' then         ListRegisteredPrograms
   else if cmd = 'tasks' then        ListTasksAndModules
   else if cmd = 'setdisplaymode' then
   begin

@@ -45,8 +45,6 @@ type
     FDistort: integer;
     FPreview: integer; // 0 - none, 1 - four, 2 - nine
     FShowBackground: boolean;
-    FBackgroundBlur: boolean;
-    FBackgroundColor: uint;
     //
     FUseShellContextMenus: boolean;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
@@ -92,8 +90,6 @@ type
     property Distort: integer read FDistort write FDistort;
     property Preview: integer read FPreview write FPreview;
     property ShowBackground: boolean read FShowBackground write FShowBackground;
-    property BackgroundBlur: boolean read FBackgroundBlur write FBackgroundBlur;
-    property BackgroundColor: uint read FBackgroundColor write FBackgroundColor;
     //
     function ToStringFullCopy: string;
     //
@@ -128,7 +124,7 @@ type
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
       ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
-      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
+      AShowBackground: boolean = false): string;
   end;
 
 implementation
@@ -165,8 +161,6 @@ begin
   FPreviewImage := nil;
   FBackgroundWindow := 0;
   FShowBackground := false;
-  FBackgroundBlur := true;
-  FBackgroundColor := DEF_STACK_BGCOLOR;
   FWindowCount := 0;
 end;
 //------------------------------------------------------------------------------
@@ -205,8 +199,6 @@ begin
         FPreview         := ReadIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW, 0, 2);
         FSpecialFolder   := ReadIniStringW(IniFile, IniSection, 'special_folder', '');
         FShowBackground  := ReadIniBoolW(IniFile, IniSection, 'background', false);
-        FBackgroundBlur  := ReadIniBoolW(IniFile, IniSection, 'background_blur', true);
-        FBackgroundColor := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'background_color', toolu.ColorToString(DEF_STACK_BGCOLOR)));
 
         idx := 1;
         repeat
@@ -250,8 +242,6 @@ begin
       FDistort             := DEF_DISTORT;
       FSpecialFolder       := '';
       FShowBackground      := false;
-      FBackgroundBlur      := true;
-      FBackgroundColor     := DEF_STACK_BGCOLOR;
       try FColorData       := strtoint(FetchValue(value, 'color_data="', '";'));
       except end;
       try FMode            := strtoint(FetchValue(value, 'mode="', '";'));
@@ -267,10 +257,6 @@ begin
       except end;
       FSpecialFolder       := FetchValue(value, 'special_folder="', '";');
       try FShowBackground  := boolean(strtoint(FetchValue(value, 'background="', '";')));
-      except end;
-      try FBackgroundBlur  := boolean(strtoint(FetchValue(value, 'background_blur="', '";')));
-      except end;
-      try FBackgroundColor := strtoint(FetchValue(value, 'background_color="', '";'));
       except end;
 
       if list.count > 1 then
@@ -453,8 +439,7 @@ end;
 function TStackItem.ToString: string;
 begin
   result := Make(FCaption, FImageFile, FSpecialFolder,
-    FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview,
-    FShowBackground, FBackgroundBlur, FBackgroundColor);
+    FColorData, FMode, FOffset, FAnimationSpeed, FDistort, FPreview, FShowBackground);
 end;
 //------------------------------------------------------------------------------
 function TStackItem.ToStringFullCopy: string;
@@ -666,8 +651,6 @@ begin
   if FSpecialFolder <> '' then                  WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
   if FPreview <> DEF_STACK_PREVIEW then         WriteIniStringW(ini, section, 'preview', inttostr(FPreview));
   if FShowBackground then                       WriteIniStringW(ini, section, 'background', '1');
-  if FShowBackground and FBackgroundBlur then   WriteIniStringW(ini, section, 'background_blur', '1');
-  if FBackgroundColor <> DEF_STACK_BGCOLOR then WriteIniStringW(ini, section, 'background_color', toolu.ColorToString(FBackgroundColor));
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for idx := 0 to FItemCount - 1 do   WriteIniStringW(ini, section, 'subitem' + inttostr(idx + 1), items[idx].item.ToString);
@@ -1156,7 +1139,7 @@ class function TStackItem.Make(ACaption: WideString = ''; AImage: string = ''; A
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
       ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
-      AShowBackground: boolean = false; ABackgroundBlur: boolean = true; ABackgroundColor: integer = DEF_STACK_BGCOLOR): string;
+      AShowBackground: boolean = false): string;
 begin
   result := 'class="stack";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
@@ -1168,9 +1151,7 @@ begin
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
   if APreview <> DEF_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
-  if AShowBackground then result := result + 'background="1";';
-  if ABackgroundBlur then result := result + 'background_blur="1";';
-  if ABackgroundColor <> DEF_STACK_BGCOLOR then result := result + 'background_color="' + toolu.ColorToString(ABackgroundColor) + '";';
+  if AShowBackground then result := result + 'background="0";';
 end;
 //------------------------------------------------------------------------------
 end.

@@ -119,7 +119,7 @@ type
     procedure Configure; virtual;
     function  CanOpenFolder: boolean; virtual;
     procedure OpenFolder; virtual;
-    function  RegisterProgram: string; virtual;
+    function  Executable: string; virtual;
     function  DropFile(wnd: HWND; pt: windows.TPoint; filename: string): boolean; virtual;
     procedure Save(ini, section: string); virtual; abstract;
 
@@ -456,7 +456,7 @@ procedure TCustomItem.OpenFolder;
 begin
 end;
 //------------------------------------------------------------------------------
-function TCustomItem.RegisterProgram: string;
+function TCustomItem.Executable: string;
 begin
   result := '';
 end;

@@ -1131,11 +1131,6 @@ msgctxt "TFRMSTACKPROP.BTNPROPERTIES.CAPTION"
 msgid "Back to properties"
 msgstr ""
 
-#: tfrmstackprop.btnselectbkcolor.caption
-msgctxt "TFRMSTACKPROP.BTNSELECTBKCOLOR.CAPTION"
-msgid "Select background color"
-msgstr ""
-
 #: tfrmstackprop.btnselectcolor.caption
 msgctxt "TFRMSTACKPROP.BTNSELECTCOLOR.CAPTION"
 msgid "Select color"
@@ -1150,16 +1145,8 @@ msgstr ""
 msgid "Show background"
 msgstr ""
 
-#: tfrmstackprop.chbbackgroundblur.caption
-msgid "Blur"
-msgstr ""
-
 #: tfrmstackprop.dividerbevel1.caption
 msgid "Items in this stack"
-msgstr ""
-
-#: tfrmstackprop.dividerbevel2.caption
-msgid "Stack background"
 msgstr ""
 
 #: tfrmstackprop.label1.caption
@@ -1188,11 +1175,6 @@ msgstr ""
 
 #: tfrmstackprop.lblanimationspeed.caption
 msgid "Animation speed"
-msgstr ""
-
-#: tfrmstackprop.lblbackgroundalpha.caption
-msgctxt "TFRMSTACKPROP.LBLBACKGROUNDALPHA.CAPTION"
-msgid "Alpha channel"
 msgstr ""
 
 #: tfrmstackprop.lblcaption.caption

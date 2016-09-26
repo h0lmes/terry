@@ -319,19 +319,18 @@ begin
 	if FAppList.Count = 1 then
   begin
       KillTimer(FHWnd, ID_TIMER_OPEN);
-      ProcessHelper.ActivateWindow(THandle(FAppList.First));
+      ProcessHelper.ActivateWindow(THandle(FAppList.First), FAttention);
   end
   else
   if FAppList.Count > 1 then
   begin
-      if action = eaGroup then
-          ProcessHelper.ActivateWindowList(FAppList)
+      if action = eaGroup then ProcessHelper.ActivateWindowList(FAppList)
 		  else
-      if not FTaskSystemMenus then
+      if FTaskSystemMenus then
       begin
-          if not TAeroPeekWindow.IsActive then ShowPeekWindow;
+        ProcessHelper.ActivateProcessMainWindow(FExecutable, Handle, GetScreenRect, FSite);
       end else begin
-          ProcessHelper.ActivateProcessMainWindow(FExecutable, Handle, GetScreenRect, FSite);
+        if not TAeroPeekWindow.IsActive then ShowPeekWindow;
       end;
   end;
 end;
