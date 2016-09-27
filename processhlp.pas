@@ -94,6 +94,7 @@ begin
   FReady := false;
   inherited Create;
 
+  ForegroundWindowHandle := 0;
   VerInfo.dwOSVersionInfoSize:= sizeof(TOSVersionInfo);
   windows.GetVersionEx(VerInfo);
   FVistaOrHigher := VerInfo.dwMajorVersion >= 6;

@@ -153,7 +153,7 @@ begin
 
   FHWndParent := wndParent;
   RegisterWindowItemClass;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow, TDITEM_WCLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
+  FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDITEM_WCLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
@@ -602,8 +602,6 @@ begin
 end;
 //------------------------------------------------------------------------------
 function TCustomItem.WindowProc(wnd: HWND; message: uint; wParam: WPARAM; lParam: LPARAM): LRESULT;
-const
-  MK_ALT = $1000;
 var
   idx: integer;
   ShiftState: classes.TShiftState;
@@ -641,7 +639,7 @@ begin
           exit;
         end;
 
-        if message = wm_lbuttondown then
+        if message = WM_LBUTTONDOWN then
         begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
@@ -651,7 +649,7 @@ begin
                 sendmessage(FHWndParent, message, wParam, lParam);
               end;
         end
-        else if message = wm_rbuttondown then
+        else if message = WM_RBUTTONDOWN then
         begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
@@ -661,7 +659,7 @@ begin
                 sendmessage(FHWndParent, message, wParam, lParam);
               end;
         end
-        else if message = wm_lbuttonup then
+        else if message = WM_LBUTTONUP then
         begin
               Dock;
               if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
@@ -670,7 +668,7 @@ begin
                 sendmessage(FHWndParent, message, wParam, lParam);
               end;
         end
-        else if message = wm_rbuttonup then
+        else if message = WM_RBUTTONUP then
         begin
               if not FFreed then
               begin
@@ -681,17 +679,17 @@ begin
                 end;
               end;
         end
-        else if message = wm_lbuttondblclk then
+        else if message = WM_LBUTTONDBLCLK then
         begin
               if not HitTest(pos.x, pos.y) then sendmessage(FHWndParent, message, wParam, lParam)
               else
               if not DblClick(mbLeft, ShiftState, pos.x, pos.y) then sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if message = wm_mousewheel then
+        else if message = WM_MOUSEWHEEL then
         begin
               if not FNeedMouseWheel then sendmessage(FHWndParent, message, wParam, lParam);
         end
-        else if message = wm_mousemove then
+        else if message = WM_MOUSEMOVE then
         begin
               // actually undock item (the only place to undock) //
               if (not FLockMouseEffect and not FLockDragging and (wParam and MK_LBUTTON <> 0)) or FUndocked then
@@ -712,17 +710,17 @@ begin
                 dockh.Dock(FHWnd);
               end;
         end
-        else if message = wm_exitsizemove then
+        else if message = WM_EXITSIZEMOVE then
         begin
               // dock item (the only place to dock) //
               Dock;
               dockh.Dock(FHWnd);
         end
-        else if message = wm_command then
+        else if message = WM_COMMAND then
         begin
               WMCommand(wParam, lParam, Result);
         end
-        else if message = wm_timer then
+        else if message = WM_TIMER then
         begin
               // mouse held //
               if wParam = ID_TIMER_MOUSEHELD then
@@ -732,7 +730,7 @@ begin
                 if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
               end;
         end
-        else if message = wm_dropfiles then
+        else if message = WM_DROPFILES then
         begin
               filecount := DragQueryFile(wParam, $ffffffff, nil, 0);
               GetCursorPos(wpt);
@@ -744,7 +742,7 @@ begin
                 inc(idx);
               end;
         end
-        else if (message = wm_close) or (message = wm_quit) then exit;
+        else if (message = WM_CLOSE) or (message = WM_QUIT) then exit;
 
     end; // end if not FFreed
     if FHWnd <> 0 then
