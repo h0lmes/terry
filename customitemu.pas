@@ -646,27 +646,39 @@ begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
               if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, message, wParam, lParam);
+              else begin
+                SetActiveWindow(FHWndParent);
+                sendmessage(FHWndParent, message, wParam, lParam);
+              end;
         end
         else if message = wm_rbuttondown then
         begin
               MouseDownPoint.x:= pos.x;
               MouseDownPoint.y:= pos.y;
               if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, message, wParam, lParam);
+              else begin
+                SetActiveWindow(FHWndParent);
+                sendmessage(FHWndParent, message, wParam, lParam);
+              end;
         end
         else if message = wm_lbuttonup then
         begin
               Dock;
               if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y)
-              else sendmessage(FHWndParent, message, wParam, lParam);
+              else begin
+                SetActiveWindow(FHWndParent);
+                sendmessage(FHWndParent, message, wParam, lParam);
+              end;
         end
         else if message = wm_rbuttonup then
         begin
               if not FFreed then
               begin
                 if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y)
-                else sendmessage(FHWndParent, message, wParam, lParam);
+                else begin
+                  SetActiveWindow(FHWndParent);
+                  sendmessage(FHWndParent, message, wParam, lParam);
+                end;
               end;
         end
         else if message = wm_lbuttondblclk then
