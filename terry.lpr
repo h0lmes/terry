@@ -582,6 +582,9 @@ begin
   {$ifdef EXT_DEBUG} AddLog('TNotifier.Create'); {$endif}
   mixer := TMixer.Create;
   {$ifdef EXT_DEBUG} AddLog('TMixer.Create'); {$endif}
+  // ProcessHelper (must be created before tray controller). Depends on DWM //
+  ProcessHelper := TProcessHelper.Create;
+  {$ifdef EXT_DEBUG} AddLog('TProcessHelper.Create'); {$endif}
 
   frmmain.Init(SetsFilename);
   {$ifdef EXT_DEBUG} AddLog('frmmain.Init'); {$endif}
@@ -591,6 +594,7 @@ begin
   Application.Run;
 
   CloseHandle(hMutex);
+  TProcessHelper.Cleanup;
   TMixer.Cleanup;
   TNotifier.Cleanup;
   TMultiDock.CDestroy;

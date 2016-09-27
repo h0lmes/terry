@@ -1164,7 +1164,7 @@ begin
           items[index].rectClose.Bottom := items[index].rectClose.Top + FCloseButtonSize;
 
           if IsWindowVisible(items[index].hwnd) and not IsIconic(items[index].hwnd) then
-             if ProcessHelper.WindowOnTop(items[index].hwnd) then FForegroundWindowIndex := index;
+             if ProcessHelper.IsForegroundWindow(items[index].hwnd) then FForegroundWindowIndex := index;
              //if items[index].hwnd = GetForegroundWindow then FForegroundWindowIndex := index;
         end;
 

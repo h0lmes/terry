@@ -6,7 +6,7 @@ unit processhlp;
 interface
 
 uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs,
-  declu, dwm_unit, toolu, loggeru;
+  declu, dwm_unit, loggeru;
 
 type
   {TProcessHelper}
@@ -39,6 +39,7 @@ type
     function GetProcesses: string;
     function GetProcessesFullName: string;
   public
+    ForegroundWindowHandle: THandle;
     property Ready: boolean read FReady;
     property WindowsCountChanged: boolean read FWindowsCountChanged;
     property Processes: string read GetProcesses;
@@ -60,7 +61,7 @@ type
     // windows //
     class function GetWindowText(wnd: THandle): WideString;
     procedure AllowSetForeground(wnd: HWND);
-    function WindowOnTop(wnd: THandle): boolean;
+    function IsForegroundWindow(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle; Force: boolean = false);
     procedure ActivateWindowList(list: TFPList);
     procedure CloseWindow(h: THandle);
@@ -602,7 +603,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TProcessHelper.WindowOnTop(wnd: THandle): boolean;
+function TProcessHelper.IsForegroundWindow(wnd: THandle): boolean;
     function ZOrderIndex(wnd: HWND): integer;
     var
       index: integer;
@@ -625,6 +626,12 @@ var
   h: THandle;
 begin
   result := true;
+  if ForegroundWindowHandle <> THandle(0) then
+  begin
+    result := wnd = ForegroundWindowHandle;
+    exit;
+  end;
+
   index := ZOrderIndex(wnd);
   i := 0;
   while i < listAppWindows.count do
@@ -653,12 +660,13 @@ begin
 
   if IsWindowVisible(h) and not IsIconic(h) then
   begin
-      if WindowOnTop(h) then
+      if IsForegroundWindow(h) then
           PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0)
       else
       begin
           AllowSetForeground(h);
           SetForegroundWindow(h);
+          SetActiveWindow(h);
       end;
   end
   else begin

@@ -1,7 +1,7 @@
 object frmStackProp: TfrmStackProp
-  Left = 414
+  Left = 442
   Height = 523
-  Top = 150
+  Top = 229
   Width = 760
   Anchors = [akTop, akRight]
   BorderIcons = [biSystemMenu]
@@ -97,7 +97,7 @@ object frmStackProp: TfrmStackProp
         Left = 125
         Height = 21
         Top = 80
-        Width = 180
+        Width = 170
         DropDownCount = 20
         ItemHeight = 13
         OnChange = cboModeChange
@@ -140,9 +140,9 @@ object frmStackProp: TfrmStackProp
         Height = 34
         Top = 145
         Width = 180
-        Frequency = 5
+        Frequency = 10
         Max = 50
-        Min = -20
+        Min = -40
         OnChange = tbOffsetChange
         PageSize = 5
         Position = 0
@@ -191,10 +191,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 1
       end
       object bbAddIcon: TBitBtn
-        Left = 504
+        Left = 505
         Height = 25
         Hint = 'Add shortcut/command'
-        Top = 305
+        Top = 250
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -239,10 +239,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 9
       end
       object bbDelIcon: TBitBtn
-        Left = 504
+        Left = 505
         Height = 25
         Hint = 'Delete icon'
-        Top = 335
+        Top = 280
         Width = 41
         Anchors = [akTop, akRight]
         Color = clWhite
@@ -287,10 +287,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 10
       end
       object bbEditIcon: TBitBtn
-        Left = 504
+        Left = 505
         Height = 25
         Hint = 'Configure icon'
-        Top = 365
+        Top = 310
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -334,10 +334,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 11
       end
       object bbIconUp: TBitBtn
-        Left = 504
+        Left = 505
         Height = 25
         Hint = 'Move up'
-        Top = 395
+        Top = 340
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -381,10 +381,10 @@ object frmStackProp: TfrmStackProp
         TabOrder = 12
       end
       object bbIconDown: TBitBtn
-        Left = 504
+        Left = 505
         Height = 25
         Hint = 'Move down'
-        Top = 425
+        Top = 370
         Width = 41
         Anchors = [akTop, akRight]
         Glyph.Data = {
@@ -429,8 +429,8 @@ object frmStackProp: TfrmStackProp
       end
       object list: TListBox
         Left = 10
-        Height = 182
-        Top = 305
+        Height = 237
+        Top = 250
         Width = 480
         Anchors = [akTop, akLeft, akRight, akBottom]
         ExtendedSelect = False
@@ -441,7 +441,7 @@ object frmStackProp: TfrmStackProp
       object DividerBevel1: TDividerBevel
         Left = 10
         Height = 15
-        Top = 240
+        Top = 190
         Width = 540
         Caption = 'Items in this stack'
         Anchors = [akTop, akLeft, akRight]
@@ -451,7 +451,7 @@ object frmStackProp: TfrmStackProp
       object cboPreview: TComboBox
         Left = 180
         Height = 21
-        Top = 272
+        Top = 215
         Width = 180
         ItemHeight = 13
         OnChange = cboPreviewChange
@@ -461,15 +461,15 @@ object frmStackProp: TfrmStackProp
       object Label1: TLabel
         Left = 10
         Height = 13
-        Top = 275
+        Top = 218
         Width = 42
         Caption = 'Preview:'
         ParentColor = False
       end
       object chbBackground: TCheckBox
-        Left = 10
+        Left = 315
         Height = 19
-        Top = 195
+        Top = 81
         Width = 105
         Caption = 'Show background'
         OnChange = chbBackgroundChange

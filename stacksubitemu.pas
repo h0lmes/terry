@@ -455,7 +455,7 @@ begin
       ptsBackground[2].y := IconY + MeasuredRect.Bottom;
       ptsBackground[3].x := IconX + MeasuredRect.Left;
       ptsBackground[3].y := IconY + MeasuredRect.Bottom;
-      GdipAddPathClosedCurve2I(path, ptsBackground, 4, 5 / FCaptionWidth);
+      GdipAddPathClosedCurve2I(path, ptsBackground, 4, 0.1);
 	    GdipFillPath(dst, brush, path);
 	    GdipDeletePath(path);
 	    GdipDeleteBrush(brush);

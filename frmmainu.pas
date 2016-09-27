@@ -210,9 +210,6 @@ begin
     //FHook := 0;
     //if FileExists(theFile) then FHook := LoadLibrary(pchar(theFile));
 
-    // ProcessHelper (must be created before tray controller). Depends on DWM //
-    ProcessHelper := TProcessHelper.Create;
-
     sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
     FMonitor := sets.container.Monitor;
@@ -428,7 +425,6 @@ begin
       if assigned(StartMenu) then StartMenu.Free;
       StartMenu := nil;
 
-      TProcessHelper.Cleanup;
       TAeroPeekWindow.Cleanup;
       LockList.free;
       DestroyBlurWindow;
@@ -664,7 +660,8 @@ begin
     if      message.wParam = HSHELL_FLASH           then FlashTaskWindow(message.lParam)
     else if message.wParam = HSHELL_WINDOWCREATED   then SetTimer(handle, ID_TIMER_WINDOWCREATED, 200, nil) // workaroud
     else if message.wParam = HSHELL_WINDOWDESTROYED then UpdateRunning
-    else if message.wParam = HSHELL_MONITORCHANGED  then UpdateRunning;
+    else if message.wParam = HSHELL_MONITORCHANGED  then UpdateRunning
+    else if message.wParam = HSHELL_WINDOWACTIVATED then ProcessHelper.ForegroundWindowHandle := message.lParam;
     exit;
   end;
 

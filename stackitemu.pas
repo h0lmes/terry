@@ -191,9 +191,8 @@ begin
         Caption          := ReadIniStringW(IniFile, IniSection, 'caption', '');
         FImageFile       := ReadIniStringW(IniFile, IniSection, 'image', '');
         FColorData       := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
-
         FMode            := ReadIniIntW(IniFile, IniSection, 'mode', 0, 0, 1000);
-        FOffset          := ReadIniIntW(IniFile, IniSection, 'offset', 0, -20, 50);
+        FOffset          := ReadIniIntW(IniFile, IniSection, 'offset', 0, -100, 100);
         FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEF_ANIM_SPEED, 1, 10);
         FDistort         := ReadIniIntW(IniFile, IniSection, 'distort', DEF_DISTORT, -10, 10);
         FPreview         := ReadIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW, 0, 2);
