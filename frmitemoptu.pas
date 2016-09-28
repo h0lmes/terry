@@ -107,7 +107,7 @@ var
 
 {$t+}
 implementation
-uses declu, scitemu, stacksubitemu, PIDL, toolu, frmmainu;
+uses declu, scitemu, scsubitemu, PIDL, toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
 class procedure TfrmItemProp.Open(itemWnd: HWND);

@@ -46,7 +46,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="46">
+    <Units Count="48">
       <Unit0>
         <Filename Value="terry.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -270,6 +270,14 @@
         <Filename Value="loggeru.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit45>
+      <Unit46>
+        <Filename Value="customsubitemu.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit46>
+      <Unit47>
+        <Filename Value="scsubitemu.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit47>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

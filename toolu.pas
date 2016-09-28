@@ -133,6 +133,8 @@ function cuttolast(itext, ch: string): string;
 function cutafterlast(itext, ch: string): string;
 procedure RotatePoint(cx, cy: integer; theta: single; var pt: windows.TPoint);
 procedure RotateRect(cx, cy: integer; theta: single; var rect: windows.TRect);
+procedure RotateAndEmbedRect(cx, cy: integer; theta: single;
+  source: windows.TRect; var result: windows.TRect; var bounds: windows.TRect);
 function StringToRect(str: string): Windows.Trect;
 function RectToString(r: Windows.Trect): string;
 function StringToSize(str: string): Windows.TSize;
@@ -419,6 +421,47 @@ begin
   rect.Top := min(topLeft.y, min(topRight.y, min(bottomRight.y, bottomLeft.y)));
   rect.Right := max(topLeft.x, max(topRight.x, max(bottomRight.x, bottomLeft.x)));
   rect.Bottom := max(topLeft.y, max(topRight.y, max(bottomRight.y, bottomLeft.y)));
+end;
+//------------------------------------------------------------------------------
+// cx, cy - rotation center
+// theta in radians
+procedure RotateAndEmbedRect(cx, cy: integer; theta: single;
+  source: windows.TRect; var result: windows.TRect; var bounds: windows.TRect);
+var
+  topLeft, topRight, bottomLeft, bottomRight: windows.TPoint;
+begin
+  topLeft      := source.TopLeft;
+  topRight.x   := source.Right;
+  topRight.y   := source.Top;
+  bottomRight  := source.BottomRight;
+  bottomLeft.x := source.Left;
+  bottomLeft.y := source.Bottom;
+
+  RotatePoint(cx, cy, theta, topLeft);
+  RotatePoint(cx, cy, theta, topRight);
+  RotatePoint(cx, cy, theta, bottomRight);
+  RotatePoint(cx, cy, theta, bottomLeft);
+
+  bounds.Left   := min(topLeft.x, min(topRight.x, min(bottomRight.x, bottomLeft.x)));
+  bounds.Top    := min(topLeft.y, min(topRight.y, min(bottomRight.y, bottomLeft.y)));
+  bounds.Right  := max(topLeft.x, max(topRight.x, max(bottomRight.x, bottomLeft.x)));
+  bounds.Bottom := max(topLeft.y, max(topRight.y, max(bottomRight.y, bottomLeft.y)));
+
+  result := source;
+  if bounds.Left < 0 then
+  begin
+    inc(result.Left, -bounds.Left);
+    inc(result.Right, -bounds.Left);
+    inc(bounds.Right, -bounds.Left);
+    bounds.Left := 0;
+  end;
+  if bounds.Top < 0 then
+  begin
+    inc(result.Top, -bounds.Top);
+    inc(result.Bottom, -bounds.Top);
+    inc(bounds.Bottom, -bounds.Top);
+    bounds.Top := 0;
+  end;
 end;
 //------------------------------------------------------------------------------
 function StringToRect(str: string): Windows.Trect;

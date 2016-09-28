@@ -60,7 +60,7 @@ type
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
     // windows //
     class function GetWindowText(wnd: THandle): WideString;
-    procedure AllowSetForeground(wnd: HWND);
+    procedure SetForegroundWindow(wnd: THandle);
     function IsForegroundWindow(wnd: THandle): boolean;
     procedure ActivateWindow(h: THandle; Force: boolean = false);
     procedure ActivateWindowList(list: TFPList);
@@ -592,7 +592,7 @@ begin
   result := strpas(pwchar(@name[0]));
 end;
 //------------------------------------------------------------------------------
-procedure TProcessHelper.AllowSetForeground(wnd: HWND);
+procedure TProcessHelper.SetForegroundWindow(wnd: THandle);
 var
   dwProcess: dword;
 begin
@@ -601,11 +601,12 @@ begin
     dwProcess := 0;
     GetWindowThreadProcessId(wnd, @dwProcess);
     AllowSetForegroundWindow(dwProcess);
+    windows.SetForegroundWindow(wnd);
   end;
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IsForegroundWindow(wnd: THandle): boolean;
-    function ZOrderIndex(wnd: HWND): integer;
+    function ZOrderIndex(wnd: THandle): integer;
     var
       index: integer;
       h: HWND;
@@ -653,26 +654,17 @@ procedure TProcessHelper.ActivateWindow(h: THandle; Force: boolean = false);
 begin
   if Force then
   begin
-    AllowSetForeground(h);
     SetForegroundWindow(h);
-    SetActiveWindow(h);
     exit;
   end;
 
   if IsWindowVisible(h) and not IsIconic(h) then
   begin
-      if IsForegroundWindow(h) then
-          PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0)
-      else
-      begin
-          AllowSetForeground(h);
-          SetForegroundWindow(h);
-          SetActiveWindow(h);
-      end;
+      if IsForegroundWindow(h) then PostMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0)
+      else SetForegroundWindow(h);
   end
   else begin
       PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
-      AllowSetForeground(h);
       SetForegroundWindow(h);
   end;
 end;
@@ -708,7 +700,6 @@ begin
 	    begin
 	        h := THandle(list.Items[index]);
 	        PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
-          AllowSetForeground(h);
           SetForegroundWindow(h);
 	        inc(index);
 		  end;

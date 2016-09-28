@@ -241,9 +241,7 @@ begin
   FControl := true;
   // open Battery Meter Flyout
   showwindow(FControlWindow, sw_show);
-  processhelper.AllowSetForeground(FControlWindow);
-  SetActiveWindow(FControlWindow);
-  SetForegroundWindow(FControlWindow);
+  processhelper.SetForegroundWindow(FControlWindow);
 end;
 //------------------------------------------------------------------------------
 procedure TTrayController.Timer;
