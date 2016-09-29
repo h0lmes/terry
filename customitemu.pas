@@ -153,7 +153,7 @@ begin
 
   FHWndParent := wndParent;
   RegisterWindowItemClass;
-  FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDITEM_WCLASS, nil, ws_popup, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
+  FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW, TDITEM_WCLASS, nil, WS_POPUP, FX, FY, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
@@ -162,19 +162,19 @@ begin
   dockh.ExcludeFromPeek(FHWnd);
   SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUint(self));
 
-  FItemSize := AParams.ItemSize;
-  FSize := FItemSize;
-  FBigItemSize := AParams.BigItemSize;
-  FItemSpacing := AParams.ItemSpacing;
+  FItemSize          := AParams.ItemSize;
+  FSize              := FItemSize;
+  FBigItemSize       := AParams.BigItemSize;
+  FItemSpacing       := AParams.ItemSpacing;
   FItemAnimationType := AParams.AnimationType;
-  FLaunchInterval := AParams.LaunchInterval;
-  FActivateRunning := AParams.ActivateRunning;
-  FReflection := AParams.Reflection;
-  FReflectionSize := AParams.ReflectionSize;
-  FBorder := max(FReflectionSize, MIN_BORDER);
-  FSite := AParams.Site;
-  FShowHint := AParams.ShowHint;
-  FLockDragging := AParams.LockDragging;
+  FLaunchInterval    := AParams.LaunchInterval;
+  FActivateRunning   := AParams.ActivateRunning;
+  FReflection        := AParams.Reflection;
+  FReflectionSize    := AParams.ReflectionSize;
+  FBorder            := max(FReflectionSize, MIN_BORDER);
+  FSite              := AParams.Site;
+  FShowHint          := AParams.ShowHint;
+  FLockDragging      := AParams.LockDragging;
   CopyFontData(AParams.Font, FFont);
 end;
 //------------------------------------------------------------------------------

@@ -56,7 +56,6 @@ type
     FPreviewImage: pointer;
     FPreviewImageW: uint;
     FPreviewImageH: uint;
-    FBackgroundWindow: uint;
     FWindowCount: integer;
     procedure BeforeDraw;
     procedure DrawOverlay(dst: pointer; x, y, size: integer);
@@ -159,7 +158,6 @@ begin
   FSpecialFolder := '';
   FPreview := DEF_STACK_PREVIEW;
   FPreviewImage := nil;
-  FBackgroundWindow := 0;
   FShowBackground := false;
   FWindowCount := 0;
 end;
@@ -172,7 +170,6 @@ begin
   try if FPreviewImage <> nil then GdipDisposeImage(FPreviewImage);
   except end;
   DeleteSubitems;
-  if IsWindow(FBackgroundWindow) then DestroyWindow(FBackgroundWindow);
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -1076,10 +1073,10 @@ begin
 
       if FState = stsClosed then
       begin
-        if FShowBackground then ShowWindow(FBackgroundWindow, SW_HIDE);
         wpi := BeginDeferWindowPos(FItemCount);
         for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].wnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
         EndDeferWindowPos(wpi);
+        for idx := 0 to FItemCount - 1 do items[idx].item.HideItem;
       end else begin
         ShowStackState;
       end;

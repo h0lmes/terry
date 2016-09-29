@@ -302,7 +302,7 @@ begin
       GdipDeleteBrush(brush);
 
       UpdateLWindow(FHWnd, bmp, FAlpha);
-      SetWindowPos(FHWnd, hwnd_topmost, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize + swp_showwindow);
+      SetWindowPos(FHWnd, hwnd_topmost, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_NOMOVE + SWP_NOSIZE + SWP_SHOWWINDOW);
 
       GdipDeleteFont(font);
       GdipDeleteFontFamily(family);

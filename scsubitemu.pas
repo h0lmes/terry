@@ -43,8 +43,8 @@ type
     destructor Destroy; override;
     procedure FromString(data: string); override;
     procedure Update;
+    procedure HideItem; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean); override;
-    function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
     function ToString: string; override;
     function HitTest(Ax, Ay: integer): boolean; override;
@@ -71,27 +71,25 @@ constructor TShortcutSubitem.Create(wndParent: HWND; AParams: TDItemCreateParams
 begin
   inherited;
   FUseShellContextMenus := AParams.UseShellContextMenus;
-
+  FCommand     := '';
+  FParams      := '';
+  FDir         := '';
+  FImageFile   := '';
+  FColorData   := DEF_COLOR_DATA;
+  FShowCmd     := 0;
+  FHide        := false;
   FLastMouseUp := 0;
-  FCommand := '';
-  FParams := '';
-  FDir := '';
-  FImageFile := '';
-  FColorData := DEF_COLOR_DATA;
-  FShowCmd := 0;
-  FHide := false;
 end;
 //------------------------------------------------------------------------------
 destructor TShortcutSubitem.Destroy;
 begin
   FFreed := true;
   try GdipDisposeImage(FImage);
-  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.GdipDisposeImage ' + LineEnding + e.message);
+  except on e: Exception do raise Exception.Create('TShortcutSubitem.Destroy.GdipDisposeImage ' + LineEnding + e.message);
   end;
   try if FIsPIDL then PIDL_Free(FPIDL);
-  except on e: Exception do raise Exception.Create('StackSubitem.Destroy.PIDL_Free ' + LineEnding + e.message);
+  except on e: Exception do raise Exception.Create('TShortcutSubitem.Destroy.PIDL_Free ' + LineEnding + e.message);
   end;
-
   inherited;
 end;
 //------------------------------------------------------------------------------
@@ -245,6 +243,21 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
+procedure TShortcutSubitem.HideItem;
+var
+  bmp: _SimpleBitmap;
+  ClientRect: windows.TRect;
+begin
+  ClientRect := GetClientRect;
+  bmp.topleft.x := Fx - FSize div 2 - ClientRect.Left;
+  bmp.topleft.y := Fy - FSize div 2 - ClientRect.Top;
+  bmp.width := 1;
+  bmp.height := 1;
+  if not CreateBitmap(bmp, FHWnd) then exit;
+  UpdateLWindow(FHWnd, bmp, FAlpha);
+  DeleteBitmap(bmp);
+end;
+//------------------------------------------------------------------------------
 // set position, size, repaint window //
 // Ax, Ay - center of icon
 procedure TShortcutSubitem.Draw(Ax, Ay, ASize, AAlpha: integer; AAngle: single; AHintAlign, AHintAlpha: integer; ABackground, AForce: boolean);
@@ -255,7 +268,7 @@ var
   attr, brush, path, font, family: Pointer;
   IconX, IconY: integer; // relative icon coordinates
   WindowX, WindowY: integer;
-  ClientRect, NCRect, MeasuredRect: windows.TRect;
+  ClientRect, NCRect, BackgroundRect: windows.TRect;
   CaptionRect: TRectF;
   ptsBackground: array [0..3] of GDIPAPI.TPoint;
 begin
@@ -286,7 +299,7 @@ begin
       on e: Exception do raise Exception.Create('SetPosition ' + LineEnding + e.message);
     end;
 
-    // init drawing //
+    // init //
     try
       bmp.topleft.x := WindowX + NCRect.Left;
       bmp.topleft.y := WindowY + NCRect.Top;
@@ -303,10 +316,8 @@ begin
       GdipFillRectangleI(dst, brush, ClientRect.Left - 1, ClientRect.Top - 1, ClientRect.Right - ClientRect.Left + 2, ClientRect.Bottom - ClientRect.Top + 2);
       GdipDeleteBrush(brush);
       GdipSetInterpolationMode(dst, InterpolationModeBilinear);
-
       IconX := ClientRect.Left;
       IconY := ClientRect.Top;
-
       if AAngle > 0 then
       begin
         IconX := -FSize div 2;
@@ -314,67 +325,65 @@ begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
         GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
       end;
-
     except
       on e: Exception do raise Exception.Create('InitDraw ' + LineEnding + e.message);
     end;
 
-    // full item background //
+    // background //
     if FBackground then
     begin
-      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
-      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-	    GdipCreatePath(FillModeWinding, path);
-      MeasuredRect := classes.rect(-BGMARGIN, -BGMARGIN, ASize + BGMARGIN, ASize + BGMARGIN);
+      BackgroundRect := classes.rect(-BGMARGIN, -BGMARGIN, FSize + BGMARGIN, FSize + BGMARGIN);
       if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
       begin
         if AHintAlign = HA_HORIZONTAL_LEFT then
         begin
-          MeasuredRect.Left -= FCaptionWidth + FCaptionHeight div 3 + 5;
+          BackgroundRect.Left -= FCaptionWidth + FCaptionHeight div 3 + 5;
         end else
         if AHintAlign = HA_HORIZONTAL_RIGHT then
         begin
-          MeasuredRect.Right += FCaptionWidth + FCaptionHeight div 3 + 5;
+          BackgroundRect.Right += FCaptionWidth + FCaptionHeight div 3 + 5;
         end else
         if AHintAlign = HA_VERTICAL_TOP then
         begin
-          MeasuredRect.Top -= FCaptionWidth + FCaptionHeight div 3 + 5;
+          BackgroundRect.Top -= FCaptionWidth + FCaptionHeight div 3 + 5;
         end else
         if AHintAlign = HA_VERTICAL_BOTTOM then
         begin
-          MeasuredRect.Bottom += FCaptionWidth + FCaptionHeight div 3 + 5;
+          BackgroundRect.Bottom += FCaptionWidth + FCaptionHeight div 3 + 5;
         end else
         if AHintAlign = HA_HORIZONTAL_BOTTOM then
         begin
-          MeasuredRect.Left := -FCaptionWidth div 2 + FSize div 2 - BGMARGIN;
-          MeasuredRect.Right := FCaptionWidth div 2 + FSize div 2 + BGMARGIN;
-          MeasuredRect.Bottom += FCaptionHeight;
+          BackgroundRect.Left := -FCaptionWidth div 2 + FSize div 2 - BGMARGIN;
+          BackgroundRect.Right := FCaptionWidth div 2 + FSize div 2 + BGMARGIN;
+          BackgroundRect.Bottom += FCaptionHeight;
         end;
       end;
-      ptsBackground[0].x := IconX + MeasuredRect.Left;
-      ptsBackground[0].y := IconY + MeasuredRect.Top;
-      ptsBackground[1].x := IconX + MeasuredRect.Right;
-      ptsBackground[1].y := IconY + MeasuredRect.Top;
-      ptsBackground[2].x := IconX + MeasuredRect.Right;
-      ptsBackground[2].y := IconY + MeasuredRect.Bottom;
-      ptsBackground[3].x := IconX + MeasuredRect.Left;
-      ptsBackground[3].y := IconY + MeasuredRect.Bottom;
+      ptsBackground[0].x := IconX + BackgroundRect.Left;
+      ptsBackground[0].y := IconY + BackgroundRect.Top;
+      ptsBackground[1].x := IconX + BackgroundRect.Right;
+      ptsBackground[1].y := IconY + BackgroundRect.Top;
+      ptsBackground[2].x := IconX + BackgroundRect.Right;
+      ptsBackground[2].y := IconY + BackgroundRect.Bottom;
+      ptsBackground[3].x := IconX + BackgroundRect.Left;
+      ptsBackground[3].y := IconY + BackgroundRect.Bottom;
+      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
+	    GdipCreatePath(FillModeWinding, path);
       GdipAddPathClosedCurve2I(path, ptsBackground, 4, 0.1);
-	    GdipFillPath(dst, brush, path);
-	    GdipDeletePath(path);
+	    GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
+      GdipFillPath(dst, brush, path);
 	    GdipDeleteBrush(brush);
+	    GdipDeletePath(path);
     end;
-    // draw icon //
+
+    // icon and number //
     CreateColorAttributes(FColorData, FSelected, attr);
     if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, IconX, IconY, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, attr, nil, nil);
     if attr <> nil then GdipDisposeImageAttributes(attr);
-
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
-    if FRunning and (AAlpha > 24) then
-      if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, IconX, IconY, FSize, FProcessWindowsCount); //theme.DrawIndicator(dst, IconX, IconY, FSize, FSite);
+    if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, IconX, IconY, FSize, FProcessWindowsCount);
     GdipResetWorldTransform(dst);
 
-    // hint (caption) //
+    // caption //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
     begin
       if AHintAlign = HA_HORIZONTAL_LEFT then
@@ -412,12 +421,10 @@ begin
         IconX := -FCaptionWidth div 2;
         IconY := FSize div 2 + 3;
       end;
-      // hint background
+      // caption background //
       if not FBackground then
       begin
-	      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
 	      GdipSetSmoothingMode(dst, SmoothingModeAntiAlias);
-	      GdipCreatePath(FillModeWinding, path);
 	      ptsBackground[0].x := IconX - FCaptionHeight div 10;
 	      ptsBackground[0].y := IconY - 1;
 	      ptsBackground[1].x := ptsBackground[0].x + FCaptionWidth - 1 + FCaptionHeight div 5;
@@ -426,10 +433,12 @@ begin
 	      ptsBackground[2].y := ptsBackground[0].y + FCaptionHeight + 1;
 	      ptsBackground[3].x := ptsBackground[0].x;
 	      ptsBackground[3].y := ptsBackground[2].y;
+	      GdipCreatePath(FillModeWinding, path);
         GdipAddPathClosedCurve2I(path, ptsBackground, 4, 15 / FCaptionWidth);
+	      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.backcolor and $ffffff, brush);
 	      GdipFillPath(dst, brush, path);
-	      GdipDeletePath(path);
 	      GdipDeleteBrush(brush);
+	      GdipDeletePath(path);
       end;
       //
       CaptionRect.X := IconX;
@@ -438,8 +447,8 @@ begin
       CaptionRect.Height := FCaptionHeight;
       GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, family);
       GdipCreateFont(family, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font);
-      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.color and $ffffff, brush);
       GdipSetTextRenderingHint(dst, TextRenderingHintAntiAlias);
+      GdipCreateSolidFill(AHintAlpha shl 24 + FFont.color and $ffffff, brush);
       GdipDrawString(dst, PWideChar(FCaption), -1, font, @CaptionRect, nil, brush);
       GdipDeleteBrush(brush);
       GdipDeleteFont(font);
@@ -454,7 +463,6 @@ begin
     // cleanup //
     DeleteGraphics(dst);
     DeleteBitmap(bmp);
-
   except
     on e: Exception do raise Exception.Create('StackSubitem.Draw(' + caption + ') ' + LineEnding + e.message);
   end;
@@ -494,54 +502,6 @@ begin
   GdipDeleteBrush(brush);
   GdipDeleteFont(hfont);
   GdipDeleteFontFamily(family);
-end;
-//------------------------------------------------------------------------------
-// returns position of the item window in relative coordinates //
-function TShortcutSubitem.Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
-const MARGIN = 3;
-begin
-  try
-    if FFreed or FUpdating or FQueryDelete then exit;
-
-    result.Left := -MARGIN;
-    result.Right := ASize + MARGIN;
-    result.Top := -MARGIN;
-    result.Bottom := ASize + MARGIN;
-
-    // correct item box using caption size //
-    if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) then
-    begin
-      if AHintAlign = HA_HORIZONTAL_LEFT then
-      begin
-        result.Left := -MARGIN - FCaptionHeight div 3 - FCaptionWidth - 5;
-			end else
-      if AHintAlign = HA_VERTICAL_TOP then
-      begin
-        result.Top := -MARGIN - FCaptionHeight div 3 - FCaptionWidth - 5;
-      end else
-      if AHintAlign = HA_HORIZONTAL_RIGHT then
-      begin
-        result.Right := ASize + FCaptionHeight div 3 + FCaptionWidth + 5;
-      end else
-      if AHintAlign = HA_VERTICAL_BOTTOM then
-      begin
-        result.Bottom := ASize + FCaptionHeight div 3 + FCaptionWidth + 5;
-      end else
-      if AHintAlign = HA_HORIZONTAL_BOTTOM then
-      begin
-        if FCaptionWidth > ASize then
-        begin
-          result.Left := -FCaptionWidth div 2;
-          result.Right := FCaptionWidth div 2;
-        end;
-        result.Bottom += 3 + FCaptionHeight;
-      end;
-      if AAngle > 0 then RotateRect(ASize div 2, ASize div 2, (360 - AAngle) / 3.14159286, result);
-    end;
-
-  except
-    on e: Exception do raise Exception.Create('StackSubitem.Measure(' + caption + ') ' + LineEnding + e.message);
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer);

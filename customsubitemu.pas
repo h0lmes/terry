@@ -3,13 +3,13 @@ unit customsubitemu;
 {$t+}
 
 interface
-uses Windows, Messages, SysUtils, Controls, Classes, Math, ComObj, ShlObj,
-  GDIPAPI, gfx, PIDL, declu, dockh, toolu, customitemu, loggeru;
+uses Windows, Messages, SysUtils, Controls, Classes, Math, ComObj,
+  GDIPAPI, gfx, PIDL, declu, dockh, customitemu, loggeru;
 
 const
   MIN_BORDER = 8;
   BGMARGIN = 3;
-  MAX_CAPTION_WIDTH = 150;
+  MAX_CAPTION_WIDTH = 200;
   TDSUBITEM_WCLASS = 'TDockSubItemWClass';
 
 type
@@ -88,10 +88,10 @@ type
     constructor Create(wndParent: HWND; AParams: TDItemCreateParams); virtual;
     destructor Destroy; override;
     procedure FromString(data: string); virtual; abstract;
+    procedure HideItem; virtual;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean); virtual; abstract;
-    function Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect; virtual;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
-    function ToString: string; virtual;
+    function ToString: string; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
     function MouseUp(button: TMouseButton; shift: TShiftState; x, y: integer): boolean; virtual;
     procedure MouseHeld(button: TMouseButton); virtual;
@@ -127,7 +127,7 @@ begin
 
   FHWndParent := wndParent;
   RegisterWindowItemClass;
-  FHWnd := CreateWindowEx(ws_ex_layered + ws_ex_toolwindow + ws_ex_acceptfiles, TDSUBITEM_WCLASS, nil, ws_popup, -1000, -1000, 32, 32, FHWndParent, 0, hInstance, nil);
+  FHWnd := CreateWindowEx(WS_EX_LAYERED + WS_EX_TOOLWINDOW + WS_EX_ACCEPTFILES, TDSUBITEM_WCLASS, nil, WS_POPUP, Fx, Fy, FSize, FSize, FHWndParent, 0, hInstance, nil);
   if not IsWindow(FHWnd) then
   begin
     FFreed := true;
@@ -135,12 +135,12 @@ begin
   end;
   SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self));
 
-  FItemSize := AParams.ItemSize;
-  FLaunchInterval := AParams.LaunchInterval;
+  FItemSize        := AParams.ItemSize;
+  FLaunchInterval  := AParams.LaunchInterval;
   FActivateRunning := AParams.ActivateRunning;
-  FSite := AParams.Site;
-  FShowHint := AParams.ShowHint;
-  FLockDragging := AParams.LockDragging;
+  FSite            := AParams.Site;
+  FShowHint        := AParams.ShowHint;
+  FLockDragging    := AParams.LockDragging;
   CopyFontData(AParams.Font, FFont);
 end;
 //------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ begin
     wndClass.cbWndExtra     := 0;
     wndClass.hInstance      := hInstance;
     wndClass.hIcon          := 0;
-    wndClass.hCursor        := LoadCursor(0, idc_Arrow);
+    wndClass.hCursor        := LoadCursor(0, IDC_ARROW);
     wndClass.hbrBackground  := 0;
     wndClass.lpszMenuName   := nil;
     wndClass.lpszClassName  := TDSUBITEM_WCLASS;
@@ -175,25 +175,29 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.Init;
 begin
-  FFreed:= false;
+  FFreed := false;
   FQueryDelete := false;
-  FEnabled:= true;
-  FHWnd:= 0;
-  FCaption:= '';
-  Fx:= -1000;
-  Fy:= -1000;
-  FSize:= 32;
+  FEnabled := true;
+  FHWnd := 0;
   FCaption := '';
-  FUpdating:= false;
-  FSelected:= false;
-  FRunning:= false;
+  Fx := -3000;
+  Fy := -3000;
+  FSize := 32;
+  FCaption := '';
+  FUpdating := false;
+  FSelected := false;
+  FRunning := false;
   FProcessWindowsCount := 0;
-  FShowHint:= true;
-  FSite:= 3;
+  FShowHint := true;
+  FSite := 3;
   FItemSize := 32;
   FImage := nil;
   FIW := 32;
   FIH := 32;
+end;
+//------------------------------------------------------------------------------
+procedure TCustomSubitem.HideItem;
+begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.Redraw;
@@ -226,21 +230,6 @@ begin
 
   except
     on e: Exception do raise Exception.Create('TCustomSubitem.Cmd ' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-// returns position of the item window in relative coordinates //
-function TCustomSubitem.Measure(ASize: integer; AAngle: single; AHintAlign: integer): windows.TRect;
-begin
-  try
-    if FFreed or FUpdating or FQueryDelete then exit;
-
-    result.Left := -MIN_BORDER;
-    result.Right := ASize + MIN_BORDER;
-    result.Top := -MIN_BORDER;
-    result.Bottom := ASize + MIN_BORDER;
-  except
-    on e: Exception do raise Exception.Create('TCustomSubitem.Measure(' + caption + ') ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -338,7 +327,7 @@ begin
     begin
       GetCursorPos(pt);
       Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
-      SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
+      SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_SHOWWINDOW);
       Inst.Dock;
       Inst.Delete;
     end;
@@ -359,7 +348,7 @@ begin
   begin
     GetCursorPos(pt);
     Inst.Draw(pt.x - Inst.Size div 2, pt.y - Inst.Size div 2, FSize, true, 0, SWP_SHOWWINDOW);
-    SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + SWP_SHOWWINDOW);
+    SetWindowPos(wnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE + SWP_NOACTIVATE + SWP_NOREPOSITION + SWP_SHOWWINDOW);
     Inst.Undock;
   end;
   Delete(false);
@@ -374,7 +363,7 @@ end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.UpdateCaptionExtent;
 var
-  hgdip, hfont, hfontfamily: Pointer;
+  hgdip, font, ff: Pointer;
   rect: TRectF;
   dc: HDC;
 begin
@@ -387,22 +376,22 @@ begin
     try
       GdipCreateFromHDC(dc, hgdip);
       try
-        if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, hfontfamily) then
+        if Ok <> GdipCreateFontFamilyFromName(PWideChar(WideString(PChar(@FFont.Name))), nil, ff) then
           raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateFontFamily failed');
         try
-          if Ok <> GdipCreateFont(hfontfamily, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, hfont) then
+          if Ok <> GdipCreateFont(ff, FFont.size2, integer(FFont.bold) + integer(FFont.italic) * 2, 2, font) then
             raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateFont failed');
           try
             rect.x := 0;
             rect.y := 0;
             rect.Width := 0;
             rect.Height := 0;
-            GdipMeasureString(hgdip, PWideChar(FCaption), -1, hfont, @rect, nil, @rect, nil, nil);
+            GdipMeasureString(hgdip, PWideChar(FCaption), -1, font, @rect, nil, @rect, nil, nil);
           finally
-            GdipDeleteFont(hfont);
+            GdipDeleteFont(font);
           end;
         finally
-          GdipDeleteFontFamily(hfontfamily);
+          GdipDeleteFontFamily(ff);
         end;
       finally
         GdipDeleteGraphics(hgdip);
@@ -428,44 +417,44 @@ begin
       if wParam and MK_SHIFT <> 0 then Include(ShiftState, ssShift);
       if wParam and MK_CONTROL <> 0 then Include(ShiftState, ssCtrl);
 
-      if message = wm_lbuttondown then
+      if message = WM_LBUTTONDOWN then
       begin
             SetActiveWindow(FHWndParent);
             MouseDownPoint.x:= pos.x;
             MouseDownPoint.y:= pos.y;
             if HitTest(pos.x, pos.y) then MouseDown(mbLeft, ShiftState, pos.x, pos.y);
       end
-      else if message = wm_rbuttondown then
+      else if message = WM_RBUTTONDOWN then
       begin
             SetActiveWindow(FHWndParent);
             MouseDownPoint.x:= pos.x;
             MouseDownPoint.y:= pos.y;
             if HitTest(pos.x, pos.y) then MouseDown(mbRight, ShiftState, pos.x, pos.y);
       end
-      else if message = wm_mbuttondown then
+      else if message = WM_MBUTTONDOWN then
       begin
             SetActiveWindow(FHWndParent);
       end
-      else if message = wm_lbuttonup then
+      else if message = WM_LBUTTONUP then
       begin
             if HitTest(pos.x, pos.y) then MouseUp(mbLeft, ShiftState, pos.x, pos.y);
       end
-      else if message = wm_rbuttonup then
+      else if message = WM_RBUTTONUP then
       begin
             if HitTest(pos.x, pos.y) then MouseUp(mbRight, ShiftState, pos.x, pos.y);
       end
-      else if message = wm_mousemove then
+      else if message = WM_MOUSEMOVE then
       begin
             if not FLockDragging and (wParam and MK_LBUTTON <> 0) then
             begin
               if (abs(pos.x - MouseDownPoint.x) >= 4) or (abs(pos.y - MouseDownPoint.y) >= 4) then BeginDrag;
             end;
       end
-      else if message = wm_command then
+      else if message = WM_COMMAND then
       begin
             WMCommand(wParam, lParam, result);
       end
-      else if message = wm_timer then
+      else if message = WM_TIMER then
       begin
             if wParam = ID_TIMER_MOUSEHELD then
             begin
@@ -474,7 +463,7 @@ begin
               if WindowFromPoint(wpt) = FHWnd then MouseHeld(FMouseDownButton);
             end;
       end
-      else if (message = wm_close) or (message = wm_quit) then exit;
+      else if (message = WM_CLOSE) or (message = WM_QUIT) then exit;
 
   except
     on e: Exception do err('CustomSubitem.WindowProc[ Msg=0x' + inttohex(message, 8) + ' ]', e);
