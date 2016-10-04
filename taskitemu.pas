@@ -15,6 +15,7 @@ type
     FIsExecutable: boolean;
     FExecutable: string;
     FAppList: TFPList;
+    FFlashedWindow: THandle;
     FIsNew: boolean;
     FTaskLivePreviews: boolean;
     FTaskThumbSize: integer;
@@ -237,6 +238,7 @@ begin
       icFlashTaskWindow:
         if FAppList.IndexOf(pointer(param)) >= 0 then
         begin
+          FFlashedWindow := param;
           Animate;
           Attention(true);
           SetTimer(Handle, ID_TIMER_WINDOWACTIVATED, 500, nil);
@@ -473,7 +475,7 @@ begin
     end;
     FHideHint := true;
     UpdateHint;
-    TAeroPeekWindow.Open(FHWnd, FAppList, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews, FAeroPeekEnabled);
+    TAeroPeekWindow.Open(FHWnd, FAppList, FFlashedWindow, pt.x, pt.y, FSite, FTaskThumbSize, FTaskLivePreviews, FAeroPeekEnabled);
     FAeroPeekWindowActive := true;
   except
     on e: Exception do raise Exception.Create('TaskItem.Cmd ' + LineEnding + e.message);
@@ -519,6 +521,7 @@ begin
   begin
     if FAppList.IndexOf(pointer(GetForegroundWindow)) >= 0 then
     begin
+      FFlashedWindow := 0;
       Attention(false);
       KillTimer(Handle, ID_TIMER_WINDOWACTIVATED);
     end;

@@ -197,7 +197,19 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.HideItem;
+var
+  bmp: _SimpleBitmap;
+  ClientRect: windows.TRect;
 begin
+  FSelected := false;
+  ClientRect := GetClientRect;
+  bmp.topleft.x := Fx - FSize div 2 - ClientRect.Left;
+  bmp.topleft.y := Fy - FSize div 2 - ClientRect.Top;
+  bmp.width := 1;
+  bmp.height := 1;
+  if not CreateBitmap(bmp, FHWnd) then exit;
+  UpdateLWindow(FHWnd, bmp, FAlpha);
+  DeleteBitmap(bmp);
 end;
 //------------------------------------------------------------------------------
 procedure TCustomSubitem.Redraw;

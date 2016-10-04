@@ -43,7 +43,6 @@ type
     destructor Destroy; override;
     procedure FromString(data: string); override;
     procedure Update;
-    procedure HideItem; override;
     procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean); override;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); override;
     function ToString: string; override;
@@ -241,21 +240,6 @@ begin
     FRunning := FProcessWindowsCount > 0;
     Redraw;
   end;
-end;
-//------------------------------------------------------------------------------
-procedure TShortcutSubitem.HideItem;
-var
-  bmp: _SimpleBitmap;
-  ClientRect: windows.TRect;
-begin
-  ClientRect := GetClientRect;
-  bmp.topleft.x := Fx - FSize div 2 - ClientRect.Left;
-  bmp.topleft.y := Fy - FSize div 2 - ClientRect.Top;
-  bmp.width := 1;
-  bmp.height := 1;
-  if not CreateBitmap(bmp, FHWnd) then exit;
-  UpdateLWindow(FHWnd, bmp, FAlpha);
-  DeleteBitmap(bmp);
 end;
 //------------------------------------------------------------------------------
 // set position, size, repaint window //

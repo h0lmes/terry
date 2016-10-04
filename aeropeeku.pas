@@ -83,6 +83,7 @@ type
     FSeparatorCount: integer;
     FHover: boolean;
     FHoverIndex: integer;
+    FFlashWnd: THandle;
     FAeroPeekIndex: integer;
     FAeroPeekAllowedInt: boolean;
     FAeroPeekEnabled: boolean;
@@ -114,7 +115,7 @@ type
     property HostHandle: THandle read FHostWnd;
     property Active: boolean read FActive;
 
-    class function Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
+    class function Open(HostWnd: THandle; AppList: TFPList; FlashWnd: THandle; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
     class procedure SetPosition(AX, AY: integer);
     class procedure Close(Timeout: cardinal = 0);
     class function IsActive: boolean;
@@ -125,7 +126,7 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure RegisterWindowClass;
-    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
+    function OpenAPWindow(HostWnd: THandle; AppList: TFPList; FlashWnd: THandle; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
     procedure SetAPWindowPosition(AX, AY: integer);
     procedure MouseLeave;
     procedure CloseAPWindowInt;
@@ -142,12 +143,12 @@ var AeroPeekWindow: TAeroPeekWindow;
 implementation
 //------------------------------------------------------------------------------
 // open (show) AeroPeekWindow
-class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
+class function TAeroPeekWindow.Open(HostWnd: THandle; AppList: TFPList; FlashWnd: THandle; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
 begin
   result := false;
   if not assigned(AeroPeekWindow) then AeroPeekWindow := TAeroPeekWindow.Create;
   if assigned(AeroPeekWindow) then
-    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, AX, AY, Site, TaskThumbSize, LivePreviews, AeroPeekEnabled);
+    result := AeroPeekWindow.OpenAPWindow(HostWnd, AppList, FlashWnd, AX, AY, Site, TaskThumbSize, LivePreviews, AeroPeekEnabled);
 end;
 //------------------------------------------------------------------------------
 // set new position
@@ -352,7 +353,7 @@ begin
   if needRepaint or needRearrange then Paint;
 end;
 //------------------------------------------------------------------------------
-function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
+function TAeroPeekWindow.OpenAPWindow(HostWnd: THandle; AppList: TFPList; FlashWnd: THandle; AX, AY, Site, TaskThumbSize: integer; LivePreviews, AeroPeekEnabled: boolean): boolean;
 var
   opaque: bool;
   mon: THandle;
@@ -369,6 +370,7 @@ begin
       FSite := Site;
       FTaskThumbSize := TaskThumbSize;
       FAeroPeekEnabled := AeroPeekEnabled;
+      FFlashWnd := FlashWnd;
       FState := apwsOpen;
       KillTimer(FHWnd, ID_TIMER_CLOSE);
       KillTimer(FHWnd, ID_TIMER_TRACKMOUSE);
@@ -1227,13 +1229,23 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TAeroPeekWindow.Paint;
+  function getFlashedIndex: integer;
+  begin
+    result := 0;
+    while result < FItemCount do
+    begin
+      if items[result].hwnd = FFlashWnd then exit;
+      inc(result);
+    end;
+    result := -1;
+  end;
 var
   bmp: _SimpleBitmap;
   hgdip, brush, pen, path, family, font, format: Pointer;
   titleRect: GDIPAPI.TRectF;
   rect: GDIPAPI.TRect;
   rgn: HRGN;
-  index, tmp: integer;
+  index, tmp, flashedIndex: integer;
   title: array [0..255] of WideChar;
 begin
   try
@@ -1269,8 +1281,23 @@ begin
 
     if FItemCount > 0 then
     begin
+      if FFlashWnd <> 0 then
+      begin
+        flashedIndex := getFlashedIndex;
+        if flashedIndex > -1 then
+        begin
+          GdipCreatePath(FillModeWinding, path);
+          rect := WinRectToGDIPRect(items[flashedIndex].rectSel);
+          AddPathRoundRect(path, rect, FSelectionRadius);
+          GdipCreateSolidFill($a0ff7000, brush);
+          GdipFillPath(hgdip, brush, path);
+          GdipDeleteBrush(brush);
+          GdipDeletePath(path);
+        end;
+      end;
+
       // foreground item
-      if FForegroundWindowIndex > -1 then
+      if (FForegroundWindowIndex > -1) and (flashedIndex < 0) then
       begin
         GdipCreatePath(FillModeWinding, path);
         rect := WinRectToGDIPRect(items[FForegroundWindowIndex].rectSel);

@@ -1067,7 +1067,6 @@ begin
         LME(false);
         FHideHint := false;
         CheckDeleteSubitems;
-        AllSubitemsCmd(icSelect, 0);
         Redraw;
       end;
 
