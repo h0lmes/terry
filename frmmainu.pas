@@ -36,6 +36,8 @@ type
     FBlurActive: boolean;
     FHiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
     FEdgeReservedByDock: boolean;
+    FReservedEdge: TBaseSite;
+    FReservedMonitor: integer;
     LockList: TList; // list of window handles that have requested a lock (disable zoom and related) //
     crsection: TCriticalSection;
     FWndOffset: integer;
@@ -100,7 +102,7 @@ type
     procedure HideTaskbar(Hide: boolean);
     procedure SetWorkarea(rect: windows.TRect);
     procedure ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
-    procedure UnreserveScreenEdge(Edge: TBaseSite);
+    procedure UnreserveScreenEdge;
   public
     ItemMgr: TItemManager;
     DropMgr: TDropManager;
@@ -407,7 +409,7 @@ begin
 
       BaseCmd(tcSaveSets, 0);
 
-      if FEdgeReservedByDock then UnreserveScreenEdge(sets.container.Site);
+      UnreserveScreenEdge;
       HideTaskbar(false);
 
       if assigned(DropMgr) then DropMgr.Destroy;
@@ -591,7 +593,7 @@ procedure Tfrmmain.SetParam(id: TDParam; value: integer);
 begin
   // take some actions prior to changing anything //
   case id of
-    gpMonitor, gpSite: UnreserveScreenEdge(sets.container.Site);
+    gpMonitor, gpSite: UnreserveScreenEdge;
   end;
 
   // here is the only place to "store" parameter
@@ -610,7 +612,7 @@ begin
     gpHideSystemTaskbar:      HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
-        if value = 0 then UnreserveScreenEdge(sets.container.Site)
+        if value = 0 then UnreserveScreenEdge
         else ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
@@ -1661,6 +1663,8 @@ begin
   if assigned(ItemMgr) then
   try
     FEdgeReservedByDock := true;
+    FReservedEdge := Edge;
+    FReservedMonitor := FMonitor;
     Changed := false;
     WorkArea := GetMonitorWorkareaRect;
     Bounds := GetMonitorBoundsRect;
@@ -1715,54 +1719,87 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.UnreserveScreenEdge(Edge: TBaseSite);
+procedure Tfrmmain.UnreserveScreenEdge;
 var
-  Changed: boolean;
-  WorkArea, Bounds: Windows.TRect;
+  Changed, MustRestoreShellWorkArea: boolean;
+  Position: integer;
+  WorkArea, Bounds, Shell_TrayRect: Windows.TRect;
+  Shell_TrayWnd: THandle;
+  Shell_TrayCenter, MonitorCenter: Windows.TPoint;
+  Shell_TrayEdge: TBaseSite;
 begin
   if FEdgeReservedByDock then
   try
     Changed := false;
-    WorkArea := GetMonitorWorkareaRect;
-    Bounds := GetMonitorBoundsRect;
+    WorkArea := GetMonitorWorkareaRect(@FReservedMonitor);
+    Bounds := GetMonitorBoundsRect(@FReservedMonitor);
 
-    if Edge = bsLeft then
+    Position := Bounds.Bottom;
+    if FReservedEdge = bsTop then Position := Bounds.Top
+    else if FReservedEdge = bsLeft then Position := Bounds.Left
+    else if FReservedEdge = bsRight then Position := Bounds.Right;
+
+    // restore workarea for Shell_TrayWnd ? //
+    Shell_TrayWnd := FindWindow('Shell_TrayWnd', nil);
+    if IsWindow(Shell_TrayWnd) then
     begin
-      if WorkArea.Left <> 0 then
+      GetWindowRect(Shell_TrayWnd, Shell_TrayRect);
+      Shell_TrayCenter.x := Shell_TrayRect.Left + (Shell_TrayRect.Right -  Shell_TrayRect.Left) div 2;
+      Shell_TrayCenter.y := Shell_TrayRect.Top +  (Shell_TrayRect.Bottom - Shell_TrayRect.Top)  div 2;
+      MonitorCenter.x := Bounds.Left + (Bounds.Right -  Bounds.Left) div 2;
+      MonitorCenter.y := Bounds.Top +  (Bounds.Bottom - Bounds.Top)  div 2;
+      Shell_TrayEdge := bsBottom;
+      if Shell_TrayCenter.y < MonitorCenter.y - 10 then Shell_TrayEdge := bsTop
+      else if Shell_TrayCenter.x < MonitorCenter.x - 10 then Shell_TrayEdge := bsLeft
+      else if Shell_TrayCenter.x > MonitorCenter.x + 10 then Shell_TrayEdge := bsRight;
+      MustRestoreShellWorkArea := ptinrect(Bounds, Shell_TrayCenter) and (Shell_TrayEdge = FReservedEdge);
+      if MustRestoreShellWorkArea then
       begin
-        WorkArea.Left := 0;
+        Position := Shell_TrayRect.Top;
+        if Shell_TrayEdge = bsTop then Position := Shell_TrayRect.Bottom;
+        if Shell_TrayEdge = bsLeft then Position := Shell_TrayRect.Right;
+        if Shell_TrayEdge = bsRight then Position := Shell_TrayRect.Left;
+      end;
+    end;
+
+    if FReservedEdge = bsLeft then
+    begin
+      if WorkArea.Left <> Position then
+      begin
+        WorkArea.Left := Position;
         Changed := true;
       end;
     end
     else
-    if Edge = bsTop then
+    if FReservedEdge = bsTop then
     begin
-      if WorkArea.Top <> 0 then
+      if WorkArea.Top <> Position then
       begin
-        WorkArea.Top := 0;
+        WorkArea.Top := Position;
         Changed := true;
       end;
     end
     else
-    if Edge = bsRight then
+    if FReservedEdge = bsRight then
     begin
-      if WorkArea.Right <> Bounds.Right then
+      if WorkArea.Right <> Position then
       begin
-        WorkArea.Right := Bounds.Right;
+        WorkArea.Right := Position;
         Changed := true;
       end;
     end
     else
-    if Edge = bsBottom then
+    if FReservedEdge = bsBottom then
     begin
-      if WorkArea.Bottom <> Bounds.Bottom then
+      if WorkArea.Bottom <> Position then
       begin
-        WorkArea.Bottom := Bounds.Bottom;
+        WorkArea.Bottom := Position;
         Changed := true;
       end;
     end;
 
     if Changed then SetWorkarea(WorkArea);
+    FEdgeReservedByDock := false;
   except
     on e: Exception do raise Exception.Create('Base.UnreserveScreenEdge' + LineEnding + e.message);
   end;

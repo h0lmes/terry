@@ -831,12 +831,10 @@ begin
   if FEnabled then
   try
     index := ItemIndex(HWnd);
-    _itemsDeleted.Add(Pointer(HWnd)); // add to "deleted" list
-
-    // erase it from "FItemArray" list //
     if index <> NOT_AN_ITEM then
     begin
-      while index < FItemCount - 1 do
+      _itemsDeleted.Add(Pointer(HWnd)); // add to list of deleted items //
+      while index < FItemCount - 1 do // remove from FItemArray //
       begin
         FItemArray[index].h := FItemArray[index + 1].h;
         FItemArray[index].x := FItemArray[index + 1].x;
@@ -845,10 +843,8 @@ begin
         inc(index);
       end;
       dec(FItemCount);
+      ItemsChanged; // update dock //
     end;
-
-    // update dock //
-    ItemsChanged;
   except
     on e: Exception do raise Exception.Create('ItemManager.DeleteItem ' + LineEnding + e.message);
   end;

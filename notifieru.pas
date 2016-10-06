@@ -71,7 +71,7 @@ begin
   FHWnd := 0;
   try
     RegisterWindowItemClass;
-    FHWnd := CreateWindowEx(ws_ex_layered or ws_ex_toolwindow, NOTIFIER_WCLASS, nil, ws_popup, -100, -100, 10, 10, 0, 0, hInstance, nil);
+    FHWnd := CreateWindowEx(WS_EX_LAYERED or WS_EX_TOOLWINDOW, NOTIFIER_WCLASS, nil, WS_POPUP, -100, -100, 10, 10, 0, 0, hInstance, nil);
     DWM.ExcludeFromPeek(FHWnd);
     if IsWindow(FHWnd) then SetWindowLongPtr(FHWnd, GWL_USERDATA, PtrUInt(self))
     else err('Notifier.Create.CreateWindowEx failed', nil);
@@ -297,8 +297,8 @@ begin
       if acoeff > 255 then acoeff := 255;
     end;
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
-    ShowWindow(FHWnd, SW_SHOWNORMAL);
-    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, swp_noactivate + swp_nomove + swp_nosize);
+    ShowWindow(FHWnd, SW_SHOWNOACTIVATE);
+    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_NOMOVE + SWP_NOSIZE);
     if DWM.IsCompositionEnabled then
       DWM.EnableBlurBehindWindow(FHWnd, 0)
     else
