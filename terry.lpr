@@ -31,7 +31,8 @@ uses
   customitemu, scitemu, sepitemu, plgitemu, stackitemu, customsubitemu, scsubitemu,
   hintu, droptgtu, shcontextu, notifieru,
   PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu, processhlp,
-  taskitemu, frmhellou, frmtipu, multidocku, aeropeeku, startmenu, MMDevApi_tlb,
+  taskitemu, frmhellou, frmtipu, multidocku, aeropeeku,
+shelltraywndu, MMDevApi_tlb,
   mixeru, networksu, customdrawitemu, frmrestoreu, iniproc, loggeru;
 
 {$R *.res}
@@ -591,6 +592,8 @@ begin
   // ProcessHelper (must be created before tray controller). Depends on DWM //
   ProcessHelper := TProcessHelper.Create;
   {$ifdef EXT_DEBUG} AddLog('TProcessHelper.Create'); {$endif}
+  ShellTrayWndController := TShellTrayWndController.Create;
+  {$ifdef EXT_DEBUG} AddLog('TShellTrayWndController.Create'); {$endif}
 
   frmmain.Init(SetsFilename);
   {$ifdef EXT_DEBUG} AddLog('frmmain.Init'); {$endif}
@@ -600,6 +603,7 @@ begin
   Application.Run;
 
   CloseHandle(hMutex);
+  TShellTrayWndController.Cleanup;
   TProcessHelper.Cleanup;
   TMixer.Cleanup;
   TNotifier.Cleanup;

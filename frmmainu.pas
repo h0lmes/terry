@@ -7,7 +7,7 @@ uses
   jwaWindows, Windows, Messages, SysUtils, Classes, Controls, LCLType, Forms,
   Menus, Dialogs, ExtCtrls, ShellAPI, ComObj, Math, Syncobjs, MMSystem, LMessages,
   declu, GDIPAPI, gfx, dwm_unit, hintu, notifieru, itemmgru,
-  DropTgtU, setsu, trayu, startmenu, aeropeeku, loggeru;
+  DropTgtU, setsu, trayu, shelltraywndu, aeropeeku, loggeru;
 
 type
   PRunData = ^TRunData;
@@ -35,9 +35,6 @@ type
     FAllowCloseProgram: boolean;
     FBlurActive: boolean;
     FHiddenByFSA: boolean; // true if panel was hidden by HideOnFullScreenApp parameter //
-    FEdgeReservedByDock: boolean;
-    FReservedEdge: TBaseSite;
-    FReservedMonitor: integer;
     LockList: TList; // list of window handles that have requested a lock (disable zoom and related) //
     crsection: TCriticalSection;
     FWndOffset: integer;
@@ -99,16 +96,11 @@ type
     procedure SetNotForeground;
     procedure MaintainNotForeground;
     procedure BasePaint(flags: integer);
-    procedure HideTaskbar(Hide: boolean);
-    procedure SetWorkarea(rect: windows.TRect);
-    procedure ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
-    procedure UnreserveScreenEdge;
   public
     ItemMgr: TItemManager;
     DropMgr: TDropManager;
     AHint: THint;
     Tray: TTrayController;
-    StartMenu: TStartMenuController;
     procedure Init(SetsFilename: string);
     procedure ExecAutorun;
     procedure CloseProgram;
@@ -187,7 +179,6 @@ begin
     FAllowCloseProgram := false;
     FBlurActive := false;
     FInitDone := false;
-    FEdgeReservedByDock := false;
     Application.OnException := AppException;
     Application.OnDeactivate := AppDeactivate;
     trayicon.Icon := application.Icon;
@@ -289,8 +280,7 @@ begin
 
     // Tray and StartMenu controllers //
     Tray := TTrayController.Create;
-    StartMenu := TStartMenuController.Create;
-    {$ifdef EXT_DEBUG} AddLog('Tray and StartMenu'); {$endif}
+    {$ifdef EXT_DEBUG} AddLog('Tray'); {$endif}
 
     // show the dock //
     BaseCmd(tcSetVisible, 1);
@@ -409,8 +399,8 @@ begin
 
       BaseCmd(tcSaveSets, 0);
 
-      UnreserveScreenEdge;
-      HideTaskbar(false);
+      ShellTrayWndController.UnreserveScreenEdge;
+      ShellTrayWndController.HideTaskbar(false);
 
       if assigned(DropMgr) then DropMgr.Destroy;
       DropMgr := nil;
@@ -424,8 +414,6 @@ begin
       sets := nil;
       if assigned(Tray) then Tray.Free;
       Tray := nil;
-      if assigned(StartMenu) then StartMenu.Free;
-      StartMenu := nil;
 
       TAeroPeekWindow.Cleanup;
       LockList.free;
@@ -593,7 +581,8 @@ procedure Tfrmmain.SetParam(id: TDParam; value: integer);
 begin
   // take some actions prior to changing anything //
   case id of
-    gpMonitor, gpSite: UnreserveScreenEdge;
+    gpMonitor: if value <> sets.GetParam(id) then ShellTrayWndController.UnreserveScreenEdge;
+    gpSite: if value <> sets.GetParam(id) then ShellTrayWndController.UnreserveScreenEdge;
   end;
 
   // here is the only place to "store" parameter
@@ -609,11 +598,12 @@ begin
         BaseCmd(tcThemeChanged, 0);
       end;
     gpAutoHide:               if value = 0 then DoRollUp;
-    gpHideSystemTaskbar:      HideTaskbar(value <> 0);
+    gpHideSystemTaskbar:      ShellTrayWndController.HideTaskbar(value <> 0);
     gpReserveScreenEdge:
       begin
-        if value = 0 then UnreserveScreenEdge
-        else ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
+        if value = 0 then ShellTrayWndController.UnreserveScreenEdge
+        else ShellTrayWndController.ReserveScreenEdge(
+          sets.container.Monitor, sets.container.Site, sets.container.ReserveScreenEdgePercent, ItemMgr.FBaseWindowRect, sets.container.AutoHide);
       end;
     gpStayOnTop:              if value <> 0 then SetForeground else SetNotForeground;
     gpBaseAlpha:              BasePaint(1);
@@ -841,8 +831,7 @@ begin
         dec(sets.container.Monitor);
         SetParam(gpSite, 2);
         SetParam(gpMonitor, sets.container.Monitor);
-      end
-      else
+      end else
         SetParam(gpSite, 0);
   end;
 
@@ -855,8 +844,7 @@ begin
         inc(sets.container.Monitor);
         SetParam(gpSite, 0);
         SetParam(gpMonitor, sets.container.Monitor);
-      end
-      else
+      end else
         SetParam(gpSite, 2);
   end;
 
@@ -898,7 +886,7 @@ begin
   begin
     if assigned(ItemMgr) then ItemMgr.Timer;
     if assigned(Tray) then Tray.Timer;
-    if assigned(StartMenu) then StartMenu.Timer;
+    if assigned(ShellTrayWndController) then ShellTrayWndController.Timer;
   end;
 
   OnTimerDoRollUpDown;
@@ -920,7 +908,7 @@ begin
     // maintain visibility
     if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
     // maintain taskbar visibility
-    if sets.container.HideSystemTaskbar then HideTaskbar(true);
+    if sets.container.HideSystemTaskbar then ShellTrayWndController.HideTaskbar(true);
   except
     on e: Exception do raise Exception.Create('Base.OnTimerSlow' + LineEnding + e.message);
   end;
@@ -932,7 +920,9 @@ var
 begin
   try
     // keep the edge of the screen reserved if set so
-    if sets.container.ReserveScreenEdge then ReserveScreenEdge(sets.container.ReserveScreenEdgePercent, sets.container.Site);
+    if sets.container.ReserveScreenEdge then
+      ShellTrayWndController.ReserveScreenEdge(
+        sets.container.Monitor, sets.container.Site, sets.container.ReserveScreenEdgePercent, ItemMgr.FBaseWindowRect, sets.container.AutoHide);
 
     // hide/show the dock if fullscreen apps active
     if FHiddenByFSA and Visible then FHiddenByFSA := false;
@@ -1529,282 +1519,6 @@ begin
   if monitor >= 0 then Result := screen.Monitors[monitor].BoundsRect;
 end;
 //------------------------------------------------------------------------------
-// hide/show taskbar and start button
-procedure Tfrmmain.HideTaskbar(hide: boolean);
-var
-  hwndTaskbar, hwndButton: THandle;
-  buttonVisible, taskbarVisible, updateWorkarea: boolean;
-  taskbarRect, taskbarMonitorWorkarea, taskbarMonitorBounds: Windows.TRect;
-  ptMon, ptTaskbar: windows.TPoint;
-  taskbarMonitorIndex: integer; // a monitor on which the taskbar is
-  taskbarSite: TBaseSite;
-begin
-  try
-    hwndTaskbar := FindWindow('Shell_TrayWnd', nil);
-    hwndButton := FindWindowW('Button', pwchar(UTF8Decode(XStartButtonText)));
-    taskbarVisible := IsWindowVisible(hwndTaskbar);
-    buttonVisible := IsWindowVisible(hwndButton);
-    updateWorkarea := false;
-
-    // if workarea meant to be changed
-    if hide = taskbarVisible then
-    begin
-      // get taskbar monitor and site
-      taskbarMonitorIndex := 0;
-      if GetWindowRect(hwndTaskbar, taskbarRect) then
-      begin
-        // monitor index
-        ptTaskbar.x := (taskbarRect.Left + taskbarRect.Right) div 2;
-        ptTaskbar.y := (taskbarRect.Top + taskbarRect.Bottom) div 2;
-        taskbarMonitorIndex := screen.MonitorFromPoint(ptTaskbar).MonitorNum;
-        // monitor center point
-        taskbarMonitorBounds := GetMonitorBoundsRect(@taskbarMonitorIndex);
-        taskbarMonitorWorkarea := GetMonitorWorkareaRect(@taskbarMonitorIndex);
-        ptMon.x := (taskbarMonitorBounds.Right + taskbarMonitorBounds.Left) div 2;
-        ptMon.y := (taskbarMonitorBounds.Bottom + taskbarMonitorBounds.Top) div 2;
-        // taskbar site
-        if taskbarRect.Bottom - taskbarRect.Top < taskbarRect.Right - taskbarRect.Left then
-        begin
-          if ptTaskbar.y > ptMon.y then taskbarSite := bsBottom else taskbarSite := bsTop;
-        end else begin
-          if ptTaskbar.x > ptMon.x then taskbarSite := bsRight else taskbarSite := bsLeft;
-        end;
-      end;
-
-      // do not allow to change WA if the taskbar and the dock occupy the same site
-      updateWorkarea := (taskbarMonitorIndex <> sets.container.Monitor) or (taskbarSite <> sets.container.Site);
-
-      // calculate new WA
-      if updateWorkarea and hide then
-      begin
-        case taskbarSite of
-          bsBottom: taskbarMonitorWorkarea.Bottom := taskbarMonitorBounds.Bottom;
-          bsTop: taskbarMonitorWorkarea.Top := taskbarMonitorBounds.Top;
-          bsLeft: taskbarMonitorWorkarea.Left := taskbarMonitorBounds.Left;
-          bsRight: taskbarMonitorWorkarea.Right := taskbarMonitorBounds.Right;
-        end;
-      end;
-      if updateWorkarea and not hide then
-      begin
-        case taskbarSite of
-          bsBottom: taskbarMonitorWorkarea.Bottom := taskbarMonitorBounds.Bottom - taskbarRect.Bottom + taskbarRect.Top;
-          bsTop: taskbarMonitorWorkarea.Top := taskbarMonitorBounds.Top + taskbarRect.Bottom - taskbarRect.Top;
-          bsLeft: taskbarMonitorWorkarea.Left := taskbarMonitorBounds.Left + taskbarRect.Right - taskbarRect.Left;
-          bsRight: taskbarMonitorWorkarea.Right := taskbarMonitorBounds.Right - taskbarRect.Right + taskbarRect.Left;
-        end;
-      end;
-    end;
-
-    // hide or show Start Button
-    if hide and buttonVisible then         showwindow(hwndButton, SW_HIDE);
-    if not hide and not buttonVisible then showwindow(hwndButton, SW_SHOWNORMAL);
-
-    // hide or show Taskbar
-    if hide and taskbarVisible then         showwindow(hwndTaskbar, SW_HIDE);
-    if not hide and not taskbarVisible then showwindow(hwndTaskbar, SW_SHOWNORMAL);
-
-    // update workarea
-    if updateWorkarea then SetWorkarea(taskbarMonitorWorkarea);
-  except
-    on e: Exception do raise Exception.Create('Base.HideTaskbar' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.SetWorkarea(rect: windows.TRect);
-  procedure GetMaximizedWindows(monitorBounds: windows.TRect; list: TFPList);
-  var
-    h: THandle;
-    wp: WINDOWPLACEMENT;
-  begin
-    wp.length := sizeof(wp);
-    h := FindWindow('Progman', nil);
-    h := GetWindow(h, GW_HWNDPREV);
-	  while h <> 0 do
-	  begin
-      // exclude hidden and tool windows
-      if IsWindowVisible(h) and (GetWindowLongPtr(h, GWL_EXSTYLE) and WS_EX_TOOLWINDOW = 0) then
-      begin
-          // only maximized windows
-          GetWindowPlacement(h, wp);
-          if wp.showCmd = SW_SHOWMAXIMIZED then
-            if PtInRect(monitorBounds, wp.ptMaxPosition) then list.Add(pointer(h));
-      end;
-      h := GetWindow(h, GW_HWNDPREV);
-	  end;
-  end;
-var
-  monitor: integer; // a monitor of given workarea
-  bounds: windows.TRect;
-  maxList: TFPList;
-  i: integer;
-begin
-  SystemParametersInfo(SPI_SETWORKAREA, 0, @rect, SPIF_UPDATEINIFILE);
-  monitor := screen.MonitorFromPoint(rect.TopLeft).MonitorNum;
-  bounds := GetMonitorBoundsRect(@monitor);
-  maxList := TFPList.Create;
-  GetMaximizedWindows(bounds, maxList);
-  // re-maximize maximized windows to make them match new workarea
-  i := 0;
-  while i < maxList.Count do
-  begin
-    ShowWindow(THandle(maxList.Items[i]), SW_SHOWNORMAL);
-    ShowWindow(THandle(maxList.Items[i]), SW_SHOWMAXIMIZED);
-    inc(i);
-  end;
-  maxList.free;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.ReserveScreenEdge(Percent: integer; Edge: TBaseSite);
-var
-  Changed: boolean;
-  Position: integer;
-  WorkArea, Bounds: Windows.TRect;
-begin
-  if assigned(ItemMgr) then
-  try
-    FEdgeReservedByDock := true;
-    FReservedEdge := Edge;
-    FReservedMonitor := FMonitor;
-    Changed := false;
-    WorkArea := GetMonitorWorkareaRect;
-    Bounds := GetMonitorBoundsRect;
-
-    if Edge = bsLeft then
-    begin
-      if sets.container.AutoHide then Position := 0
-      else Position := ItemMgr.FBaseWindowRect.Width * Percent div 100;
-      if WorkArea.Left <> Position then
-      begin
-        WorkArea.Left := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if Edge = bsTop then
-    begin
-      if sets.container.AutoHide then Position := 0
-      else Position := ItemMgr.FBaseWindowRect.Height * Percent div 100;
-      if WorkArea.Top <> Position then
-      begin
-        WorkArea.Top := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if Edge = bsRight then
-    begin
-      if sets.container.AutoHide then Position := Bounds.Right
-      else Position := Bounds.Right - ItemMgr.FBaseWindowRect.Width * Percent div 100;
-      if WorkArea.Right <> Position then
-      begin
-        WorkArea.Right := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if Edge = bsBottom then
-    begin
-      if sets.container.AutoHide then Position := Bounds.Bottom
-      else Position := Bounds.Bottom - ItemMgr.FBaseWindowRect.Height * Percent div 100;
-      if WorkArea.Bottom <> Position then
-      begin
-        WorkArea.Bottom := Position;
-        Changed := true;
-      end;
-    end;
-
-    if Changed then SetWorkarea(WorkArea);
-  except
-    on e: Exception do raise Exception.Create('Base.ReserveScreenEdge' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.UnreserveScreenEdge;
-var
-  Changed, MustRestoreShellWorkArea: boolean;
-  Position: integer;
-  WorkArea, Bounds, Shell_TrayRect: Windows.TRect;
-  Shell_TrayWnd: THandle;
-  Shell_TrayCenter, MonitorCenter: Windows.TPoint;
-  Shell_TrayEdge: TBaseSite;
-begin
-  if FEdgeReservedByDock then
-  try
-    Changed := false;
-    WorkArea := GetMonitorWorkareaRect(@FReservedMonitor);
-    Bounds := GetMonitorBoundsRect(@FReservedMonitor);
-
-    Position := Bounds.Bottom;
-    if FReservedEdge = bsTop then Position := Bounds.Top
-    else if FReservedEdge = bsLeft then Position := Bounds.Left
-    else if FReservedEdge = bsRight then Position := Bounds.Right;
-
-    // restore workarea for Shell_TrayWnd ? //
-    Shell_TrayWnd := FindWindow('Shell_TrayWnd', nil);
-    if IsWindow(Shell_TrayWnd) then
-    begin
-      GetWindowRect(Shell_TrayWnd, Shell_TrayRect);
-      Shell_TrayCenter.x := Shell_TrayRect.Left + (Shell_TrayRect.Right -  Shell_TrayRect.Left) div 2;
-      Shell_TrayCenter.y := Shell_TrayRect.Top +  (Shell_TrayRect.Bottom - Shell_TrayRect.Top)  div 2;
-      MonitorCenter.x := Bounds.Left + (Bounds.Right -  Bounds.Left) div 2;
-      MonitorCenter.y := Bounds.Top +  (Bounds.Bottom - Bounds.Top)  div 2;
-      Shell_TrayEdge := bsBottom;
-      if Shell_TrayCenter.y < MonitorCenter.y - 10 then Shell_TrayEdge := bsTop
-      else if Shell_TrayCenter.x < MonitorCenter.x - 10 then Shell_TrayEdge := bsLeft
-      else if Shell_TrayCenter.x > MonitorCenter.x + 10 then Shell_TrayEdge := bsRight;
-      MustRestoreShellWorkArea := ptinrect(Bounds, Shell_TrayCenter) and (Shell_TrayEdge = FReservedEdge);
-      if MustRestoreShellWorkArea then
-      begin
-        Position := Shell_TrayRect.Top;
-        if Shell_TrayEdge = bsTop then Position := Shell_TrayRect.Bottom;
-        if Shell_TrayEdge = bsLeft then Position := Shell_TrayRect.Right;
-        if Shell_TrayEdge = bsRight then Position := Shell_TrayRect.Left;
-      end;
-    end;
-
-    if FReservedEdge = bsLeft then
-    begin
-      if WorkArea.Left <> Position then
-      begin
-        WorkArea.Left := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if FReservedEdge = bsTop then
-    begin
-      if WorkArea.Top <> Position then
-      begin
-        WorkArea.Top := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if FReservedEdge = bsRight then
-    begin
-      if WorkArea.Right <> Position then
-      begin
-        WorkArea.Right := Position;
-        Changed := true;
-      end;
-    end
-    else
-    if FReservedEdge = bsBottom then
-    begin
-      if WorkArea.Bottom <> Position then
-      begin
-        WorkArea.Bottom := Position;
-        Changed := true;
-      end;
-    end;
-
-    if Changed then SetWorkarea(WorkArea);
-    FEdgeReservedByDock := false;
-  except
-    on e: Exception do raise Exception.Create('Base.UnreserveScreenEdge' + LineEnding + e.message);
-  end;
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmmain.OnDragEnter(list: TStrings; hWnd: THandle);
 begin
   KillTimer(Handle, ID_TIMER_DRAGLEAVE); // stop tracing mouse pointer
@@ -2188,7 +1902,7 @@ begin
   else if cmd = 'networks' then     Tray.ShowNetworks(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'battery' then      Tray.ShowBattery(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'actioncenter' then Tray.ShowActionCenter(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
-  else if cmd = 'startmenu' then    StartMenu.Show(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
+  else if cmd = 'startmenu' then    ShellTrayWndController.ShowStartMenu(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'theme' then        ThemesMenu
   else if cmd = 'taskspot' then     SetTaskSpot(hwndCaller)
   else if cmd = 'themeeditor' then  TfrmThemeEditor.Open

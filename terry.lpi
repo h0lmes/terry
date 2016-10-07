@@ -22,7 +22,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <MinorVersionNr Value="84"/>
-      <RevisionNr Value="11"/>
+      <RevisionNr Value="12"/>
       <StringTable ProductVersion=""/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -231,7 +231,7 @@
         <IsPartOfProject Value="True"/>
       </Unit36>
       <Unit37>
-        <Filename Value="startmenu.pas"/>
+        <Filename Value="shelltraywndu.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit37>
       <Unit38>

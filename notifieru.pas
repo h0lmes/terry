@@ -298,7 +298,7 @@ begin
     end;
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
     ShowWindow(FHWnd, SW_SHOWNOACTIVATE);
-    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, SWP_NOACTIVATE + SWP_NOMOVE + SWP_NOSIZE);
+    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE);
     if DWM.IsCompositionEnabled then
       DWM.EnableBlurBehindWindow(FHWnd, 0)
     else
