@@ -601,8 +601,9 @@ begin
     dwProcess := 0;
     GetWindowThreadProcessId(wnd, @dwProcess);
     AllowSetForegroundWindow(dwProcess);
-    windows.SetForegroundWindow(wnd);
   end;
+  windows.SetForegroundWindow(wnd);
+  windows.SetActiveWindow(wnd);
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IsForegroundWindow(wnd: THandle): boolean;
@@ -654,6 +655,7 @@ procedure TProcessHelper.ActivateWindow(h: THandle; Force: boolean = false);
 begin
   if Force then
   begin
+    if IsIconic(h) then PostMessage(h, WM_SYSCOMMAND, SC_RESTORE, 0);
     SetForegroundWindow(h);
     exit;
   end;
