@@ -647,6 +647,22 @@ var
 begin
   message.result := 0;
 
+  if message.msg = WM_INPUT then
+  begin
+     if assigned(ItemMgr) then
+       if not FProgramIsClosing and ItemMgr.Visible then
+       begin
+         dwSize := 0;
+         GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
+         if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) = dwSize then
+         begin
+           if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse);
+           //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
+         end;
+       end;
+     exit;
+  end;
+
   if message.msg = WM_SHELLHOOK then
   begin
     if      message.wParam = HSHELL_FLASH           then FlashTaskWindow(message.lParam)
@@ -658,18 +674,6 @@ begin
   end;
 
   case message.msg of
-    WM_INPUT :
-      if assigned(ItemMgr) then
-        if not FProgramIsClosing and ItemMgr.Visible then
-        begin
-          dwSize := 0;
-          GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
-          if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) <> dwSize then
-            raise Exception.Create('Base.NativeWndProc. Invalid RawInputData size');
-          if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse)
-          else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
-        end;
-
     WM_TIMER :                 WMTimer(message);
     WM_USER :                  WMUser(message);
     WM_COMMAND :               WMCommand(message);
@@ -887,10 +891,8 @@ begin
     if assigned(ItemMgr) then ItemMgr.Timer;
     if assigned(Tray) then Tray.Timer;
     if assigned(ShellTrayWndController) then ShellTrayWndController.Timer;
+    OnTimerDoRollUpDown;
   end;
-
-  OnTimerDoRollUpDown;
-
   if not Tfrmsets.IsVisible then DoGlobalHotkeys;
 end;
 //------------------------------------------------------------------------------
