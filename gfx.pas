@@ -128,8 +128,8 @@ procedure UpdateLWindow(hWnd: THandle; bmp: _SimpleBitmap; SrcAlpha: integer = 2
 procedure UpdateLWindowPosAlpha(hWnd: THandle; x, y: integer; SrcAlpha: integer = 255);
 procedure LoadImageFromPIDL(pidl: PItemIDList; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure LoadImageFromShellItem(name: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
-function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
-function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
+function LoadAppImage(appFile: string; appWindow: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
+function LoadImageFromHWnd(appWindow: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 function GetIconFromFileSH(aFile: WideString): HICON;
 procedure LoadImage(imagefile: WideString; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint);
 procedure CreateDefaultImage(var image: pointer);
@@ -147,7 +147,7 @@ function WinRectToGDIPRectF(rect: windows.TRect): GDIPAPI.TRectF;
 var
   StartupInput: GdiplusStartupInput;
   gdiplusToken: ULONG;
-  bIsWindowsVista: boolean; // must be externally set to "true" if running Vista or greater
+  bIsWindowsVistaOrHigher: boolean; // must be externally set to "true" if running Vista or greater
 
 implementation
 //--------------------------------------------------------------------------------------------------
@@ -1043,15 +1043,15 @@ begin
 
   try
     shil := SHIL_EXTRALARGE;
-    if bIsWindowsVista then shil := SHIL_JUMBO;
+    if bIsWindowsVistaOrHigher then shil := SHIL_JUMBO;
 
     SHGetFileInfoW(pwchar(pidl), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_ICON or SHGFI_SYSICONINDEX or SHGFI_SHELLICONSIZE);
     if S_OK = SHGetImageList(shil, IID_IImageList, @hil) then
         ico := ImageList_GetIcon(hil, sfi.iIcon, ILD_TRANSPARENT);
 
     jumbo := false;
-    if bIsWindowsVista then jumbo := IsJumboIcon(ico);
-    if jumbo or not bIsWindowsVista then image := IconToGdipBitmap(ico)
+    if bIsWindowsVistaOrHigher then jumbo := IsJumboIcon(ico);
+    if jumbo or not bIsWindowsVistaOrHigher then image := IconToGdipBitmap(ico)
     else image := IconToGdipBitmap(sfi.hIcon);
     DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
 
@@ -1088,52 +1088,58 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-// returns a code to indicate an icon acquision method
-function LoadAppImage(appFile: string; h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
+// loads application image from window handle or executable file
+// returns a code to indicate icon acquision method
+function LoadAppImage(appFile: string; appWindow: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 var
-  icon: HICON;
-  appImage: Pointer;
-  imageWidth: cardinal;
+  icon: HICON = 0;
+  imageFile: Pointer = nil;
+  imageWindow: Pointer = nil;
+  imageFileWidth: cardinal = 0;
+  imageFileHeight: cardinal = 0;
+  imageWindowWidth: cardinal = 0;
+  imageWindowHeight: cardinal = 0;
 begin
   result := 0; // no icon
+  image := nil;
   try
-    image := nil;
-    appImage := nil;
+    // "file" method
     if fileexists(appFile) then
     begin
       icon := GetIconFromFileSH(appFile);
       if icon <> 0 then
       begin
-        image := IconToGdipBitmap(icon);
-        GdipGetImageWidth(image, imageWidth);
-        if imageWidth > 32 then
-        begin
-          DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
-          result := 1; // from executable file
-          exit;
-        end;
+        imageFile := IconToGdipBitmap(icon);
+        GdipGetImageWidth(imageFile, imageFileWidth);
+        GdipGetImageHeight(imageFile, imageFileHeight);
       end;
     end;
 
-    appImage := image;
-    image := nil;
-    result := LoadImageFromHWnd(h, MaxSize, exact, default, image, srcwidth, srcheight, timeout);  // from window handle
+    // "window" method
+    if imageFileWidth <= 32 then
+      result := LoadImageFromHWnd(appWindow, MaxSize, exact, default, imageWindow, imageWindowWidth, imageWindowHeight, timeout);
 
-    if (srcwidth < imageWidth) and assigned(appImage) then
+    // select valid and/or biggest image
+    if assigned(imageWindow) and (imageWindowWidth > imageFileWidth) then
     begin
-      if assigned(image) then GdipDisposeImage(image);
-      image := appImage;
+      GdipDisposeImage(imageFile);
+      image := imageWindow;
+      srcwidth := imageWindowWidth;
+      srcheight := imageWindowHeight;
+    end else begin
+      GdipDisposeImage(imageWindow);
+      image := imageFile;
+      srcwidth := imageFileWidth;
+      srcheight := imageFileHeight;
       DownscaleImage(image, MaxSize, exact, srcwidth, srcheight, true);
       result := 1; // from executable file
-    end else begin
-      if assigned(appImage) then GdipDisposeImage(appImage);
     end;
   except
     on e: Exception do raise Exception.Create('LoadAppImage ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
-function LoadImageFromHWnd(h: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
+function LoadImageFromHWnd(appWindow: THandle; MaxSize: integer; exact: boolean; default: boolean; var image: pointer; var srcwidth, srcheight: uint; timeout: uint): integer;
 const
   ICON_SMALL2 = PtrUInt(2);
   SMTO_NOTIMEOUTIFNOTHUNG = 8;
@@ -1146,27 +1152,27 @@ begin
   result := 0; // no icon
 
   try
-    if not IsWindow(h) then exit;
+    if not IsWindow(appWindow) then exit;
     icon := 0;
     if MaxSize > 16 then
     begin
-      SendMessageTimeout(h, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      SendMessageTimeout(appWindow, WM_GETICON, ICON_BIG, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
       result := 2; // ICON_BIG
     end;
     if icon = 0 then
     begin
-      SendMessageTimeout(h, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      SendMessageTimeout(appWindow, WM_GETICON, ICON_SMALL2, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
       result := 3; // ICON_SMALL2
     end;
     if icon = 0 then
     begin
-      SendMessageTimeout(h, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
+      SendMessageTimeout(appWindow, WM_GETICON, ICON_SMALL, 0, SMTO_ABORTIFHUNG + SMTO_BLOCK + SMTO_NOTIMEOUTIFNOTHUNG, timeout, icon);
       result := 4; // ICON_SMALL
     end;
     if icon = THandle(0) then
     begin
-      icon := GetClassLongPtr(h, GCL_HICON);
-      result := 5; // from window class
+      icon := GetClassLongPtr(appWindow, GCL_HICON);
+      result := 5; // window class
     end;
     if (icon = THandle(0)) and default then
     begin
@@ -1194,13 +1200,13 @@ begin
   try
     result := 0;
     shil := SHIL_EXTRALARGE;
-    if bIsWindowsVista then shil := SHIL_JUMBO;
+    if bIsWindowsVistaOrHigher then shil := SHIL_JUMBO;
 
     SHGetFileInfoW(PWChar(aFile), 0, sfi, SizeOf(TSHFileInfoW), SHGFI_SYSICONINDEX);
     if S_OK = SHGetImageList(shil, IID_IImageList, @imageList) then
        result := ImageList_GetIcon(imageList, sfi.iIcon, ILD_TRANSPARENT);
 
-    if bIsWindowsVista then
+    if bIsWindowsVistaOrHigher then
       if not IsJumboIcon(result) then result := 0;
   except
     on e: Exception do raise Exception.Create('GetIconFromFileSH ' + LineEnding + e.message);

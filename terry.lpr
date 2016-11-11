@@ -504,8 +504,8 @@ begin
   // os version
   VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   GetVersionEx(@VerInfo);
-  toolu.bIsWindowsVista := VerInfo.dwMajorVersion >= 6;
-  gfx.bIsWindowsVista := toolu.bIsWindowsVista;
+  toolu.bIsWindowsVistaOrHigher := VerInfo.dwMajorVersion >= 6;
+  gfx.bIsWindowsVistaOrHigher := toolu.bIsWindowsVistaOrHigher;
 
   toolu.ScalingFactor := 100;
   // running on win64

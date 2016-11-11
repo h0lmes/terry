@@ -183,7 +183,7 @@ procedure SendKey(hwnd: HWnd; Key: char; noChar: boolean);
 
 var
   ShGetKnownFolderPath: TShGetKnownFolderPath;
-  bIsWindowsVista: boolean;
+  bIsWindowsVistaOrHigher: boolean;
   bIsWow64: boolean;
   ScalingFactor: integer;
 
@@ -193,7 +193,7 @@ function GetFont: string;
 begin
   Result := 'tahoma';
   try
-    if bIsWindowsVista then Result := 'segoe ui';
+    if bIsWindowsVistaOrHigher then Result := 'segoe ui';
   except
   end;
 end;
@@ -202,7 +202,7 @@ function GetFontSize: integer;
 begin
   Result := 8;
   try
-    if bIsWindowsVista then Result := 9;
+    if bIsWindowsVistaOrHigher then Result := 9;
   except
   end;
   if ScalingFactor > 100 then Result := Result * ScalingFactor div 100;
@@ -784,7 +784,7 @@ begin
   Result := ReplaceEx(Result, '%windir%', windir);
   Result := ReplaceEx(Result, '%systemroot%', windir);
   if pos('%sysdir%', Result) > 0 then Result := ReplaceEx(Result, '%sysdir%', getsystemdir);
-  if bIsWindowsVista then
+  if bIsWindowsVistaOrHigher then
   begin
     if pos('%doc%', Result) > 0 then Result := ReplaceEx(Result, '%doc%', getKnownPath(FOLDERID_Documents));
     if pos('%appdata%', Result) > 0 then Result := ReplaceEx(Result, '%appdata%', getKnownPath(FOLDERID_RoamingAppData));
@@ -813,7 +813,7 @@ begin
   path := ReplaceEx(path, IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))), '');
   path := ReplaceEx(path, getsystemdir, '%sysdir%');
   path := ReplaceEx(path, windir, '%windir%');
-  if bIsWindowsVista then
+  if bIsWindowsVistaOrHigher then
   begin
     path := ReplaceEx(path, getKnownPath(FOLDERID_Documents), '%doc%');
     path := ReplaceEx(path, getKnownPath(FOLDERID_Desktop), '%desktop%');
