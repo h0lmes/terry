@@ -58,6 +58,7 @@ type
     function GetProcessWindowsCount(Name: string): integer;
     procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
+    function GetModernAppProcessPathByHWND(hwnd: THandle): string;
     // windows //
     class function GetWindowText(wnd: THandle): WideString;
     procedure SetForegroundWindow(wnd: THandle);
@@ -80,6 +81,14 @@ var
   ProcessHelper: TProcessHelper;
 
 implementation
+//------------------------------------------------------------------------------
+function windowEnumProc(h: THandle; lp: LPARAM): WINBOOL; stdcall;
+var
+  list: TFPList absolute lp;
+begin
+  list.Add(pointer(h));
+  result := true;
+end;
 //------------------------------------------------------------------------------
 class procedure TProcessHelper.Cleanup;
 begin
@@ -255,7 +264,7 @@ begin
     listProcess.Clear;
 
     if not EnumProcesses(aProcesses, sizeof(aProcesses), cbNeeded) then
-      raise Exception.Create('ProcessHelper.EnumProc2.EnumProcesses() failed');
+      raise Exception.Create('ProcessHelper.EnumProc64.EnumProcesses() failed');
     cProcesses := cbNeeded div sizeof(DWORD);
     i := 0;
     while i < cProcesses do
@@ -495,7 +504,7 @@ begin
   begin
       index := 0;
       while index < listProcess.Count do
-      begin
+      begin      TProcessHelper
           if listProcess.Strings[index] = Name then
           begin
               pids.Add(Pointer(listProcess.Objects[index]));
@@ -504,6 +513,45 @@ begin
           inc(index);
       end;
   end;
+end;
+//------------------------------------------------------------------------------
+function TProcessHelper.IsModernAppHWND(hwnd: THandle): boolean;
+var
+  className: array [0..20] of wchar;
+begin
+  result := false;
+  if GetClassNameW(hwnd, @className, 20) > 0 then
+  begin
+    result := strpas(pwchar(@className)) = 'ApplicationFrameHost';
+  end;
+end;
+//------------------------------------------------------------------------------
+function TProcessHelper.GetModernAppProcessPathByHWND(hwnd: THandle): string;
+var
+  i: integer;
+  pid: UINT = 0;
+  childPid: UINT = 0;
+  list: TFPList;
+  hProcess: THandle;
+begin
+  result := '';
+  GetWindowThreadProcessId(hwnd, out pid);
+  list := TFPList.Create;
+  windows.EnumChildWindows(hwnd, @windowEnumProc, LPARAM(list));
+  i := 0;
+  while i < list.Count do
+  begin
+    GetWindowThreadProcessId(THandle(list.Items[i]), out childPid);
+    if childPid <> pid then
+    begin
+      hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, childPid);
+      result := GetFullNameByHProcess(hProcess);
+      CloseHandle(hProcess);
+      break;
+    end;
+    inc(i);
+  end;
+  list.free;
 end;
 //------------------------------------------------------------------------------
 //
@@ -818,7 +866,7 @@ end;
 //
 //
 //
-//----------------------------------------------------------------------
+//------------------------------------------------------------------------------
 procedure TProcessHelper.Shutdown(mode: integer);
 begin
   if SetPrivilege('SeShutdownPrivilege') then ExitWindowsEx(mode, 0);
