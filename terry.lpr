@@ -501,19 +501,12 @@ begin
   //if FileExists('heap.trc') then DeleteFile('heap.trc');
   //SetHeapTraceOutput('heap.trc');
 
+  toolu.ScalingFactor := 100;
   // os version
   VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   GetVersionEx(@VerInfo);
   toolu.bIsWindowsVistaOrHigher := VerInfo.dwMajorVersion >= 6;
   gfx.bIsWindowsVistaOrHigher := toolu.bIsWindowsVistaOrHigher;
-
-  toolu.ScalingFactor := 100;
-  // running on win64
-  toolu.bIsWow64 := false;
-  {$ifndef CPU64}
-  IsWow64Process := GetProcAddress(GetModuleHandle(Kernel32), 'IsWow64Process');
-  if assigned(IsWow64Process) then IsWow64Process(GetCurrentProcess, toolu.bIsWow64);
-  {$endif}
   {$ifdef EXT_DEBUG} AddLog('version'); {$endif}
 
   // multi-dock support //

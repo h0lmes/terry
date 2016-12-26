@@ -184,7 +184,6 @@ procedure SendKey(hwnd: HWnd; Key: char; noChar: boolean);
 var
   ShGetKnownFolderPath: TShGetKnownFolderPath;
   bIsWindowsVistaOrHigher: boolean;
-  bIsWow64: boolean;
   ScalingFactor: integer;
 
 implementation
