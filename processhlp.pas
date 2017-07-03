@@ -518,20 +518,18 @@ end;
 //------------------------------------------------------------------------------
 function TProcessHelper.IsModernAppHWND(hwnd: THandle): boolean;
 var
-  className: array [0..20] of wchar;
+  className: array [0..50] of wchar;
 begin
   result := false;
-  if GetClassNameW(hwnd, @className, 20) > 0 then
-  begin
-    result := strpas(pwchar(@className)) = 'ApplicationFrameHost';
-  end;
+  if GetClassNameW(hwnd, @className, 50) > 0 then
+    result := strpas(pwchar(@className)) = 'ApplicationFrameWindow';
 end;
 //------------------------------------------------------------------------------
 function TProcessHelper.GetModernAppProcessPathByHWND(hwnd: THandle): string;
 var
   i: integer;
-  pid: UINT = 0;
-  childPid: UINT = 0;
+  pid: dword = 0;
+  childPid: dword = 0;
   list: TFPList;
   hProcess: THandle;
 begin

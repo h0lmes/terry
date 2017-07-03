@@ -1178,7 +1178,7 @@ object frmsets: Tfrmsets
     TabOrder = 2
   end
   object tv: TTreeView
-    Left = 5
+    Left = 8
     Height = 497
     Top = 15
     Width = 141
