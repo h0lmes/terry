@@ -653,8 +653,8 @@ begin
        if not FProgramIsClosing and ItemMgr.Visible then
        begin
          dwSize := 0;
-         GetRawInputData(message.lParam, RID_INPUT, nil, dwSize, sizeof(RAWINPUTHEADER));
-         if GetRawInputData(message.lParam, RID_INPUT, @ri, dwSize, sizeof(RAWINPUTHEADER)) = dwSize then
+         GetRawInputData(message.lParam, RID_INPUT, nil, @dwSize, sizeof(RAWINPUTHEADER));
+         if GetRawInputData(message.lParam, RID_INPUT, @ri, @dwSize, sizeof(RAWINPUTHEADER)) = dwSize then
          begin
            if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse);
            //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);

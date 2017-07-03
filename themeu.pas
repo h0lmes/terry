@@ -472,6 +472,7 @@ begin
         GdipLoadImageFromFile(PWideChar(WideString(Path + 'button.png')), Button.Image);
       if assigned(Button.Image) then
       begin
+        ImageAdjustRotate(Button.Image);
         GdipGetImageWidth(Button.Image, Button.W);
         GdipGetImageHeight(Button.Image, Button.H);
         img := Button.Image;
@@ -488,6 +489,7 @@ begin
         GdipLoadImageFromFile(PWideChar(WideString(Path + 'attentionbutton.png')), Button.AttentionImage);
       if assigned(Button.AttentionImage) then
       begin
+        ImageAdjustRotate(Button.AttentionImage);
         img := Button.AttentionImage;
         GdipCloneBitmapAreaI(0, 0, Button.W, Button.H, PixelFormat32bppPARGB, img, Button.AttentionImage);
         GdipDisposeImage(img);
@@ -622,15 +624,18 @@ end;
 function TDTheme.DrawButton(dst: Pointer; Left, Top, Size: integer; Attention: boolean): boolean;
 var
   img: pointer;
+  marg, area: Windows.TRect;
 begin
   result := false;
   img := Button.Image;
+  marg := CorrectMargins(Button.Margins);
+  area := CorrectMargins(Button.Area);
   if Attention and assigned(Button.AttentionImage) then img := Button.AttentionImage;
   if assigned(img) then
   begin
     gfx.DrawEx(dst, img, Button.W, Button.H,
-      rect(Left + Button.Area.Left, Top + Button.Area.Top, Size - Button.Area.Left - Button.Area.Right, Size - Button.Area.Top - Button.Area.Bottom),
-      Button.Margins, ssStretch, 255);
+      rect(Left + area.Left, Top + area.Top, Size - area.Left - area.Right, Size - area.Top - area.Bottom),
+      marg, ssStretch, 255);
     result := true;
   end;
 end;
@@ -732,7 +737,7 @@ var
   fs: TFileStream;
   irs: IStream;
   ifs: IStream;
-  Read, written: int64;
+  Read, written: QWord;
 begin
   rs := TResourceStream.Create(hInstance, ResourceName, RT_RCDATA);
   fs := TFileStream.Create(filename, fmCreate);

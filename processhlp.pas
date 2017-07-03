@@ -58,6 +58,7 @@ type
     function GetProcessWindowsCount(Name: string): integer;
     procedure GetProcessWindows(Name: string; var AppList: TFPList); overload;
     procedure GetProcessWindows(pid: dword; var AppList: TFPList); overload;
+    function IsModernAppHWND(hwnd: THandle): boolean;
     function GetModernAppProcessPathByHWND(hwnd: THandle): string;
     // windows //
     class function GetWindowText(wnd: THandle): WideString;
@@ -504,7 +505,7 @@ begin
   begin
       index := 0;
       while index < listProcess.Count do
-      begin      TProcessHelper
+      begin
           if listProcess.Strings[index] = Name then
           begin
               pids.Add(Pointer(listProcess.Objects[index]));
@@ -535,13 +536,13 @@ var
   hProcess: THandle;
 begin
   result := '';
-  GetWindowThreadProcessId(hwnd, out pid);
+  GetWindowThreadProcessId(hwnd, @pid);
   list := TFPList.Create;
   windows.EnumChildWindows(hwnd, @windowEnumProc, LPARAM(list));
   i := 0;
   while i < list.Count do
   begin
-    GetWindowThreadProcessId(THandle(list.Items[i]), out childPid);
+    GetWindowThreadProcessId(THandle(list.Items[i]), @childPid);
     if childPid <> pid then
     begin
       hProcess := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, false, childPid);

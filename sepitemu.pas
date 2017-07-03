@@ -283,7 +283,7 @@ end;
 //------------------------------------------------------------------------------
 class function TSeparatorItem.Make: string;
 begin
-  result := 'class="separator"';
+  result := 'class="separator";';
 end;
 //------------------------------------------------------------------------------
 end.
