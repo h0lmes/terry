@@ -24,7 +24,7 @@ function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
 function PIDL_GetFileFolder(pidl: PItemIDList; var folder: IShellFolder): boolean;
 procedure PIDL_Free(var pidl: PItemIDList);
 function IsGUID(str: string): boolean;
-function IsUniApp(str: string): boolean;
+function IsImmersiveApp(str: string): boolean;
 function IsPIDLString(str: string): boolean;
 function CSIDL_ToInt(csidl: string): integer;
 
@@ -199,7 +199,12 @@ var
 begin
   result := '';
   if PIDL_GetDisplayName(nil, pidl, SHGDN_FORPARSING, pszName, MAX_PATH) then result := strpas(pszName);
-  if not FileExists(result) then //if IsGUID(result) or IsUniApp(result) then
+  if IsImmersiveApp(result) then
+  begin
+    exit;
+  end
+  else
+  if not FileExists(result) then
   begin
     apidl := PIDL_GetFromPath(pchar(result));
     if assigned(apidl) then
@@ -211,11 +216,10 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-//  takes a fully qualified pidl and returns the the relative pidl
-//  and the root part of that pidl
-//  pidlFQ   - Pointer to the fully qualified ITEMIDLIST that needs to be parsed.
-//  pidlRoot - Points to the pidl that will contain the root after parsing.
-//  pidlItem - Points to the item relative to pidlRoot after parsing.
+//  takes a fully qualified pidl and returns the relative pidl and the root part
+//  pidlFQ   - PITEMIDLIST that needs to be parsed
+//  pidlRoot - pidl that will contain the root after parsing
+//  pidlItem - pidl that will contain the relative part
 procedure PIDL_GetRelative(var pidlFQ, ppidlRoot, ppidlItem: PItemIDList);
 var
   pidlTemp, pidlNext: PItemIDList;
@@ -291,7 +295,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // universal app ends with "!app"
-function IsUniApp(str: string): boolean;
+function IsImmersiveApp(str: string): boolean;
 begin
   result := strlicomp(pchar(RightStr(str, 4)), '!app', 4) = 0;
 end;

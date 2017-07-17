@@ -6,7 +6,7 @@ unit processhlp;
 interface
 
 uses Windows, jwaWindows, SysUtils, Classes, Forms, Syncobjs,
-  declu, dwm_unit, loggeru;
+  declu, dwm_unit, loggeru, UWP_TLB;
 
 type
   {TProcessHelper}
@@ -29,6 +29,8 @@ type
     hPowrprofDll: HMODULE;
     AllowSetForegroundWindow: function(dwProcess: dword): bool; stdcall;
     QueryFullProcessImageName: function(hProcess: THandle; dwFlags: dword; lpExeName: PWChar; var lpdwSize: dword): boolean; stdcall;
+    // immersive app //
+    appMgr: ApplicationActivationManager;
     // processes //
     procedure EnumProc32;
     procedure EnumProc64;
@@ -50,6 +52,8 @@ type
     destructor Destroy; override;
     procedure EnterCRS;
     procedure LeaveCRS;
+    // immersive app //
+    procedure RunImmersiveApp(id: LPCWSTR);
     // processes //
     procedure EnumProc;
     procedure Kill(Name: string);
@@ -82,6 +86,7 @@ var
   ProcessHelper: TProcessHelper;
 
 implementation
+uses frmmainu;
 //------------------------------------------------------------------------------
 function windowEnumProc(h: THandle; lp: LPARAM): WINBOOL; stdcall;
 var
@@ -140,6 +145,12 @@ begin
   if hUser32 = 0 then hUser32 := LoadLibrary('USER32.DLL');
   if hUser32 <> 0 then @AllowSetForegroundWindow := GetProcAddress(hUser32, 'AllowSetForegroundWindow');
 
+  appMgr := nil;
+  if FWin7OrHigher then
+  begin
+    appMgr := ApplicationActivationManager.Create;
+  end;
+
   FReady := assigned(crsection) and assigned(listProcess) and assigned(listAppWindows);
 end;
 //------------------------------------------------------------------------------
@@ -168,7 +179,35 @@ end;
 //
 //
 //
-// functions to work with processes
+//     Immersive App management
+//
+//
+//
+//------------------------------------------------------------------------------
+procedure TProcessHelper.RunImmersiveApp(id: LPCWSTR);
+var
+  processId: UInt32 = 0;
+  list: TFPList;
+  i: integer = 0;
+begin
+  if assigned(appMgr) then
+    if SUCCEEDED(appMgr.ActivateApplication(id, processId)) then
+    begin
+      //list := TFPList.Create;
+      //GetProcessWindows(processId, list);
+      //while i < list.Count do
+      //begin
+      //  SetForegroundWindow(THandle(list.Items[i]));
+      //  inc(i);
+      //end;
+      //list.Free;
+    end;
+end;
+//------------------------------------------------------------------------------
+//
+//
+//
+//     Process' management
 //
 //
 //
@@ -556,7 +595,7 @@ end;
 //
 //
 //
-// functions to work with process windows
+//    Application windows management
 //
 //
 //
@@ -861,7 +900,7 @@ end;
 //
 //
 //
-//
+//     System power state management
 //
 //
 //

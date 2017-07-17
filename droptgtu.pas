@@ -2,7 +2,7 @@ unit DropTgtU;
 
 interface
 
-uses Windows, Classes, SysUtils, ActiveX, ShlObj, ShellAPI, PIDL, declu, notifieru;
+uses Windows, Classes, SysUtils, ActiveX, ShlObj, ShellAPI, PIDL, declu, loggeru;
 
 type
   TDropTarget = class;
@@ -126,7 +126,7 @@ var
   filenameW: array [0..MAX_PATH - 1] of wchar;
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHDrop'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListHDrop'); {$endif}
 
     size := DragQueryFileW(h, $ffffffff, nil, 0);
     i := 0;
@@ -134,7 +134,7 @@ begin
     begin
       DragQueryFileW(h, i, @filenameW, MAX_PATH);
       List.Add(strpas(pwchar(@filenameW)));
-      {$ifdef DEBUG_DROPTGT} notifier.message(filename); {$endif}
+      {$ifdef DEBUG_DROPTGT} AddLog(filenameW); {$endif}
       inc(i);
     end;
     DragFinish(h);
@@ -152,7 +152,7 @@ var
   cbRead: dword;
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListIStreamFileName'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListIStreamFileName'); {$endif}
 
     FillChar(data, MAX_PATH, 0);
     ist := IStream(h);
@@ -161,7 +161,7 @@ begin
     if size > MAX_PATH then size := MAX_PATH;
     ist.Read(@data, size, @cbRead);
     List.Add(strpas(pchar(@data)));
-    {$ifdef DEBUG_DROPTGT} notifier.message(strpas(pchar(@data))); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog(strpas(pchar(@data))); {$endif}
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamFileName ' + LineEnding + e.message);
   end;
@@ -176,25 +176,25 @@ var
   idpath: string;
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHGlobalPIDL'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListHGlobalPIDL'); {$endif}
 
     FillChar(data, 4096, 0);
     p := GlobalLock(h);
     gsize := GlobalSize(h);
 
     {$ifdef DEBUG_DROPTGT}
-    notifier.message('Raw data size = ' + inttostr(gsize));
+    AddLog('Raw data size = ' + inttostr(gsize));
     i:= 0;
     while i < gsize do
     begin
       idpath := idpath + inttohex(pbyte(PtrUInt(p) + i)^, 2);
       inc(i);
     end;
-    notifier.message('Raw data = ' + idpath);
+    AddLog('Raw data = ' + idpath);
     {$endif}
 
     qty := PIDL_CountFromCIDA(p);
-    {$ifdef DEBUG_DROPTGT} notifier.message('PIDL count = ' + inttostr(qty)); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('PIDL count = ' + inttostr(qty)); {$endif}
 
     for i := 0 to qty - 1 do
     begin
@@ -205,7 +205,7 @@ begin
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         List.Add(idpath);
-        {$ifdef DEBUG_DROPTGT} notifier.message('PIDL ToString = ' + idpath); {$endif}
+        {$ifdef DEBUG_DROPTGT} AddLog('PIDL ToString = ' + idpath); {$endif}
       end;
     end;
     GlobalUnlock(h);
@@ -226,7 +226,7 @@ var
   idpath: string;
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListIStreamPIDL'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListIStreamPIDL'); {$endif}
 
     FillChar(data, 4096, 0);
     ist := IStream(h);
@@ -235,18 +235,18 @@ begin
     ist.Read(@data, size, @cbRead);
 
     {$ifdef DEBUG_DROPTGT}
-    notifier.message('Raw data size = ' + inttostr(cbRead));
+    AddLog('Raw data size = ' + inttostr(cbRead));
     i:= 0;
     while i < cbRead do
     begin
       idpath := idpath + inttohex(byte(data[i]), 2);
       inc(i);
     end;
-    notifier.message('Raw data = ' + idpath);
+    AddLog('Raw data = ' + idpath);
     {$endif}
 
     qty := PIDL_CountFromCIDA(@data);
-    {$ifdef DEBUG_DROPTGT} notifier.message('PIDL count = ' + inttostr(qty)); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('PIDL count = ' + inttostr(qty)); {$endif}
 
     for i := 0 to qty - 1 do
     begin
@@ -257,7 +257,7 @@ begin
         idpath := PIDL_GetDisplayName2(pidl);
         PIDL_Free(pidl);
         List.Add(idpath);
-        {$ifdef DEBUG_DROPTGT} notifier.message('PIDL ToString = ' + idpath); {$endif}
+        {$ifdef DEBUG_DROPTGT} AddLog('PIDL ToString = ' + idpath); {$endif}
       end;
     end;
   except
@@ -268,9 +268,9 @@ end;
 procedure TDropManager.AddToListFileFile(lpsz: POLESTR; var List: TStrings);
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListFileFile'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListFileFile'); {$endif}
     List.Add(strpas(pwchar(lpsz)));
-    {$ifdef DEBUG_DROPTGT} notifier.message(pchar(lpsz)); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog(pchar(lpsz)); {$endif}
   except
     on e: Exception do raise Exception.Create('DropManager.AddToListIStreamPIDL ' + LineEnding + e.message);
   end;
@@ -283,7 +283,7 @@ var
   pfgd: PFILEDESCRIPTORW;
 begin
   try
-    {$ifdef DEBUG_DROPTGT} notifier.message('DropManager.AddToListHGlobalFileGroupDescriptorW'); {$endif}
+    {$ifdef DEBUG_DROPTGT} AddLog('DropManager.AddToListHGlobalFileGroupDescriptorW'); {$endif}
 
     pgroup := GlobalLock(h);
     i := 0;
@@ -291,7 +291,7 @@ begin
     begin
       pfgd := PFILEDESCRIPTORW(PtrUInt(@pgroup.fgd) + i * sizeof(PFILEDESCRIPTORW));
       List.Add(pfgd.cFileName);
-      {$ifdef DEBUG_DROPTGT} notifier.message(pfgd.cFileName); {$endif}
+      {$ifdef DEBUG_DROPTGT} AddLog(pfgd.cFileName); {$endif}
       inc(i);
     end;
     GlobalUnlock(h);
@@ -322,7 +322,7 @@ var
   ch: array [0..50] of char;
 begin
   {$ifdef DEBUG_DROPTGT}
-  notifier.message('DropManager.MakeList');
+  AddLog('DropManager.MakeList');
   {$endif}
 
   if S_OK <> dataObj.EnumFormatEtc(DATADIR_GET, EnumFormatEtc) then exit;
@@ -333,7 +333,7 @@ begin
   while Rslt = S_OK do
   begin
     GetClipboardFormatName(FormatEtc.cfFormat, @ch, 50);
-    notifier.message('cfFormat = ' + strpas(pchar(@ch)) + '. tymed = ' + tymedToString(FormatEtc.tymed));
+    AddLog('cfFormat = ' + strpas(pchar(@ch)) + '. tymed = ' + tymedToString(FormatEtc.tymed));
     Rslt := EnumFormatEtc.Next(1, FormatEtc, @FetchedCount);
   end;
   {$endif}
@@ -439,7 +439,7 @@ begin
   dwEffect := DROPEFFECT_COPY;
   result := S_OK;
   {$ifdef DEBUG_DROPTGT}
-  notifier.message('DropManager.Drop');
+  AddLog('DropManager.Drop');
   {$endif}
   if assigned(OnDrop) then
   begin

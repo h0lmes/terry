@@ -298,7 +298,7 @@ begin
     end;
     gfx.UpdateLWindow(FHWnd, bmp, acoeff);
     ShowWindow(FHWnd, SW_SHOWNOACTIVATE);
-    SetWindowPos(FHWnd, $ffffffff, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE);
+    SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE);
     if DWM.IsCompositionEnabled then
       DWM.EnableBlurBehindWindow(FHWnd, 0)
     else
@@ -358,6 +358,7 @@ begin
       if FY > FYTarget then Dec(FY, delta);
       if FY < FYTarget then Inc(FY, delta);
       UpdateLWindowPosAlpha(FHWnd, FX, FY, acoeff);
+      SetWindowPos(FHWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE + SWP_NOSIZE);
     end;
 
     if (FX <> FXTarget) or (FY <> FYTarget) then FShowTime := gettickcount64

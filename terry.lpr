@@ -33,7 +33,7 @@ uses
   PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu, processhlp,
   taskitemu, frmhellou, frmtipu, multidocku, aeropeeku,
 shelltraywndu, MMDevApi_tlb,
-  mixeru, networksu, customdrawitemu, frmrestoreu, iniproc, loggeru;
+  mixeru, networksu, customdrawitemu, frmrestoreu, iniproc, loggeru, UWP_TLB;
 
 {$R *.res}
 
@@ -340,7 +340,7 @@ end;
 procedure DockExecute(id: HWND; exename, params, dir: pchar; showcmd: integer); stdcall;
 begin
   try
-    if assigned(frmmain) then frmmain.mexecute(exename, params, dir, showcmd, id);
+    if assigned(frmmain) then frmmain.execute_multi(exename, params, dir, showcmd, id);
   except
     on e: Exception do if assigned(frmmain) then frmmain.err('DockExecute', e);
   end;
@@ -506,6 +506,7 @@ begin
   VerInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   GetVersionEx(@VerInfo);
   toolu.bIsWindowsVistaOrHigher := VerInfo.dwMajorVersion >= 6;
+  toolu.bIsWindows10 := VerInfo.dwMajorVersion >= 10;
   gfx.bIsWindowsVistaOrHigher := toolu.bIsWindowsVistaOrHigher;
   {$ifdef EXT_DEBUG} AddLog('version'); {$endif}
 

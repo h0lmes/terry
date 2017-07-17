@@ -17,16 +17,16 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '1.6.4.0'
   object pages: TPageControl
     Left = 155
     Height = 505
     Top = 10
     Width = 615
-    ActivePage = tsTaskbar
+    ActivePage = tsStyle
     Anchors = [akTop, akLeft, akRight, akBottom]
     ShowTabs = False
-    TabIndex = 1
+    TabIndex = 3
     TabOrder = 0
     object tsGeneral: TTabSheet
       Caption = 'General'
@@ -435,9 +435,9 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       object chbBlur: TCheckBox
         Left = 230
-        Height = 29
+        Height = 19
         Top = 15
-        Width = 116
+        Width = 106
         Caption = 'Enable Aero Glass'
         OnChange = chbBlurChange
         TabOrder = 0
@@ -606,9 +606,9 @@ object frmsets: Tfrmsets
       end
       object chbReflection: TCheckBox
         Left = 230
-        Height = 29
+        Height = 19
         Top = 175
-        Width = 131
+        Width = 121
         Caption = 'Show icon reflections'
         OnChange = chbReflectionChange
         TabOrder = 11
@@ -636,7 +636,7 @@ object frmsets: Tfrmsets
       end
       object DividerBevel7: TDividerBevel
         Left = 15
-        Height = 25
+        Height = 15
         Top = 290
         Width = 575
         Caption = 'Font'

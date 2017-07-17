@@ -876,7 +876,10 @@ begin
       SelectObject(canvas.handle, oldfont);
       DeleteObject(newfont);
     except end;
-    if not isTTF then exit;
+    if not isTTF then
+    begin
+      if not toolu.bIsWindows10 then exit;
+    end;
 
     // create graphics object
     if Ok = GdipCreateFromHDC(pbox.Canvas.Handle, dst) then

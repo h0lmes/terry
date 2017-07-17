@@ -30,6 +30,7 @@ type
     FAeroPeekEnabled: boolean; // allow to use AeroPeek or not
     FIsExecutable: boolean;
     FExecutable: WideString;
+    FIsImmersiveApp: boolean;
     FIsPIDL: boolean;
     FPIDL: PItemIDList;
     FLastMouseUp: PtrUInt;
@@ -200,41 +201,63 @@ begin
     try
       FUpdating := true;
 
-      // if FCommand is a CSIDL convert it to GUID or path //
-      csidl := CSIDL_ToInt(FCommand);
-      if csidl > -1 then
-      begin
-        OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
-        if PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255) then FCommand := strpas(pszName);
-        PIDL_Free(pidFolder);
-        if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
-        else FCaption := '::::'; // assuming this is a PIDL
-      end;
-
-      // create PIDL from GUID //
-      PIDL_Free(FPIDL);
-      if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
-      if not assigned(FPIDL) then
-        if not FileExists(toolu.UnzipPath(FCommand)) then
-          if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
-      FIsPIDL := assigned(FPIDL);
-      if FIsPIDL and (FCaption = '::::') then
-      begin
-        OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
-        FCaption := strpas(pwchar(sfi.szDisplayName));
-      end;
-
-      // check if this is the shortcut to an executable file
       FIsExecutable := false;
-      if not FIsPIDL then
+      FExecutable := '';
+      FIsPIDL := false;
+      PIDL_Free(FPIDL);
+
+      FIsImmersiveApp := IsImmersiveApp(FCommand);
+      // if command is an Immersive App
+      if FIsImmersiveApp then
       begin
-        FExecutable := toolu.UnzipPath(FCommand);
-        ext := ExtractFileExt(FExecutable);
-        if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
-        if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
-        ext := ExtractFileExt(FExecutable);
-        FIsExecutable := SameText(ext, '.exe');
-        if not FileExists(FExecutable) and not FIsExecutable then FExecutable := '';
+          if FCaption = '?' then
+          begin
+            FPIDL := PIDL_GetFromPath(pchar(FCommand));
+            if assigned(FPIDL) then
+            begin
+              OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
+              FCaption := strpas(pwchar(sfi.szDisplayName));
+              PIDL_Free(FPIDL);
+            end;
+            FPIDL := nil;
+          end;
+      end
+      else
+      begin
+          // if FCommand is a CSIDL convert it to GUID or path //
+          csidl := CSIDL_ToInt(FCommand);
+          if csidl > -1 then
+          begin
+            OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
+            if PIDL_GetDisplayName(nil, pidFolder, SHGDN_FORPARSING, pszName, 255) then FCommand := strpas(pszName);
+            PIDL_Free(pidFolder);
+            if FileExists(FCommand) or DirectoryExists(FCommand) then FCommand := ZipPath(FCommand)
+            else FCaption := '::::'; // assuming this is a PIDL
+          end;
+
+          // create PIDL from GUID //
+          if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
+          if not assigned(FPIDL) then
+            if not FileExists(toolu.UnzipPath(FCommand)) then
+              if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
+          FIsPIDL := assigned(FPIDL);
+          if FIsPIDL and (FCaption = '::::') then
+          begin
+            OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
+            FCaption := strpas(pwchar(sfi.szDisplayName));
+          end;
+
+          // check if this is the shortcut to an executable file
+          if not FIsPIDL then
+          begin
+            FExecutable := toolu.UnzipPath(FCommand);
+            ext := ExtractFileExt(FExecutable);
+            if SameText(ext, '.appref-ms') then ResolveAppref(FHWnd, FExecutable);
+            if SameText(ext, '.lnk') then ResolveLNK(FHWnd, FExecutable, params, dir, icon);
+            ext := ExtractFileExt(FExecutable);
+            FIsExecutable := SameText(ext, '.exe');
+            if not FileExists(FExecutable) and not FIsExecutable then FExecutable := '';
+          end;
       end;
 
       // check if this is a dynamic state object //
@@ -253,6 +276,8 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.LoadImageI;
+var
+  imgPIDL: PItemIDList;
 begin
   try if FImage <> nil then GdipDisposeImage(FImage);
   except end;
@@ -273,8 +298,18 @@ begin
   begin
     LoadImage(UnzipPath(FImageFile), FBigItemSize, false, true, FImage, FIW, FIH);
   end
-  else // if no custom image set - load from object itself (PIDL or File)
+  else // if no custom image set - load from object itself (Immersive App, PIDL or File)
   begin
+    if IsImmersiveApp(FCommand) then
+    begin
+      imgPIDL := PIDL_GetFromPath(pchar(FCommand));
+      if assigned(imgPIDL) then
+      begin
+        LoadImageFromPIDL(imgPIDL, FBigItemSize, false, true, FImage, FIW, FIH);
+        PIDL_Free(imgPIDL);
+      end;
+    end
+    else
     if FIsPIDL then LoadImageFromPIDL(FPIDL, FBigItemSize, false, true, FImage, FIW, FIH)
     else LoadImage(UnzipPath(FCommand), FBigItemSize, false, true, FImage, FIW, FIH);
   end;
@@ -871,6 +906,11 @@ begin
   if IsGUID(value) or IsPIDLString(value) then
   begin
     result := Make('::::', value, '', '', '', 1);
+  end
+  else
+  if IsImmersiveApp(value) then
+  begin
+    result := Make('?', value, '', '', '', 1);
   end
   else
   begin

@@ -138,7 +138,7 @@ type
     procedure SetTaskSpot(wnd: THandle);
     procedure ListTasksAndModules;
     procedure WinampCmd(params: string; showcmd: integer = sw_shownormal);
-    procedure mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
+    procedure execute_multi(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
     procedure execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
     procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
     procedure Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
@@ -908,7 +908,7 @@ begin
     end;
 
     // maintain visibility
-    if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
+    //if ItemMgr.visible and not IsWindowVisible(handle) then BaseCmd(tcSetVisible, 1);
     // maintain taskbar visibility
     if sets.container.HideSystemTaskbar then ShellTrayWndController.HideTaskbar(true);
   except
@@ -1164,7 +1164,7 @@ var
   h: THandle;
   blurFound: boolean = false;
 begin
-  // scan all windows up from Progman
+  // enum windows starting with Progman and up in the Z-order
   h := FindWindow('Progman', nil);
   h := GetWindow(h, GW_HWNDPREV);
 	while h <> 0 do
@@ -1174,9 +1174,8 @@ begin
     else
     if h = Handle then
     begin
-      // if BlurWindow above the dock - put blur exactly behind the dock
+      // if BlurWindow above the dock - put BlurWindow exactly under the dock, done
       if not blurFound and IsWindow(FBlurWindow) then SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
-      // main dock window found - exit
       exit;
     end
     else
@@ -1188,7 +1187,7 @@ begin
       exit;
     end
     else
-    if blurFound then // if blur found, but then found some other window before - put blur exactly behind the dock
+    if blurFound then // if BlurWindow found, and then found some other window before - put blur exactly behind the dock
       SetWindowPos(FBlurWindow, Handle, 0, 0, 0, 0, SWP_NO_FLAGS);
 
     h := GetWindow(h, GW_HWNDPREV);
@@ -1825,7 +1824,7 @@ begin
   else if SameText(params, 'end_of_playlist') then    wacmd(40158);
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.mexecute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = SW_SHOWNORMAL; hwnd: cardinal = 0);
+procedure Tfrmmain.execute_multi(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = SW_SHOWNORMAL; hwnd: cardinal = 0);
 var
   acmd, aparams, adir: string;
 begin
@@ -1920,9 +1919,15 @@ begin
   else if cmd = 'emptybin' then     SHEmptyRecycleBin(Handle, nil, 0)
   else if cmd = 'winamp' then       WinampCmd(params, showcmd)
   else if cmd = 'play' then         sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
+  else if cmd = 'setclipboard' then SetClipboard(params)
   else if cmd = 'guid' then         SetClipboard(CreateClassId)
   else if cmd = 'debug' then        frmmain.BaseCmd(tcDebugInfo, 0)
   else if cmd = 'tasks' then        ListTasksAndModules
+  else if cmd = 'logwindow' then
+  begin
+    if trystrtoint(Trim(params), i1) then
+      LogWindow(THandle(i1));
+  end
   else if cmd = 'setdisplaymode' then
   begin
     if not trystrtoint(Trim(fetch(params, ',', true)), i1) then i1 := 1024;
@@ -1996,6 +2001,14 @@ var
   aPIDL: PItemIDList;
 begin
   try
+    // Immersive App
+    if IsImmersiveApp(exename) then
+    begin
+      wexename := exename;
+      ProcessHelper.RunImmersiveApp(pwchar(wexename));
+      exit;
+    end;
+
     exename := toolu.UnzipPath(exename);
     if params <> '' then params := toolu.UnzipPath(params);
     if dir <> '' then dir := toolu.UnzipPath(dir);

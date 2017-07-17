@@ -790,8 +790,11 @@ begin
     begin
       icp.IniFile := IniFile;
       icp.IniSection := IniSection;
+      icp.Parameter := '';
       ClassName := LowerCase(ReadIniStringW(IniFile, IniSection, 'class', 'shortcut'));
     end else begin
+      icp.IniFile := '';
+      icp.IniSection := '';
       icp.Parameter := Parameter;
       ClassName := LowerCase(FetchValue(Parameter, 'class="', '";'));
     end;
