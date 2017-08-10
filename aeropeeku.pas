@@ -401,14 +401,16 @@ begin
       if not FCompositionEnabled or (FSite = 0) or (FSite = 2) then FLayout := apwlVertical;
 
       // assign colors
-      dwm.GetColorizationColor(FColor1, opaque);
-      FColor1 := FColor1 and $ffffff or $a0000000;
+      //dwm.GetColorizationColor(FColor1, opaque);
+      //FColor1 := FColor1 and $ffffff or $a0000000;
+      opaque := false;
+      FColor1 := $a0505050;
       FColor2 := FColor1;
       //FColor2 := $40ffffff;
       if not FCompositionEnabled then
       begin
-        FColor1 := $ff6083a7;
-        FColor2 := $ff6083a7;
+        FColor1 := $ffa0a0a0;
+        FColor2 := $ffa0a0a0;
       end;
       if opaque then
       begin
@@ -1001,11 +1003,11 @@ begin
     // set primary params
     if FCompositionEnabled then
     begin
-      FBorderX := 16;
-      FBorderY := 16;
+      FBorderX := 8;
+      FBorderY := 8;
       FIconSize := 16;
       FTitleHeight := 19;
-      FTitleSplit := 14;
+      FTitleSplit := 8;
       ItemSplit := FBorderX * 2 - 1;
       FCloseButtonSize := FTitleHeight - 2;
       FRadius := 0;
