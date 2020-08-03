@@ -78,6 +78,7 @@ type
     procedure OpenStack;
     procedure CloseStack(immediate: boolean = false);
     procedure DoStateProgress;
+    procedure ShowAllItems(flag: boolean);
     procedure ShowStackState;
   public
     property ItemCount: integer read FItemCount;
@@ -1047,12 +1048,7 @@ begin
       end;
       ShowStackState;
 
-      if showItems then
-      begin
-        wpi := BeginDeferWindowPos(FItemCount);
-        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].wnd, FHWnd, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_noreposition + swp_showwindow);
-        EndDeferWindowPos(wpi);
-      end;
+      if showItems then ShowAllItems(true);
   end
   else
   if FState = stsClosing then
@@ -1072,13 +1068,30 @@ begin
 
       if FState = stsClosed then
       begin
-        wpi := BeginDeferWindowPos(FItemCount);
-        for idx := 0 to FItemCount - 1 do DeferWindowPos(wpi, items[idx].wnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + swp_hidewindow);
-        EndDeferWindowPos(wpi);
-        for idx := 0 to FItemCount - 1 do items[idx].item.HideItem;
+        ShowAllItems(false);
       end else begin
         ShowStackState;
       end;
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.ShowAllItems(flag: boolean);
+var
+  idx: integer;
+  wpi, swp: uint;
+begin
+  swp := SWP_SHOWWINDOW;
+  if not flag then swp := SWP_HIDEWINDOW;
+
+  wpi := BeginDeferWindowPos(FItemCount);
+  for idx := 0 to FItemCount - 1 do
+    DeferWindowPos(wpi, items[idx].wnd, FHWnd, 0, 0, 0, 0, swp_nomove +
+      swp_nosize + swp_noactivate + swp_noreposition + swp);
+  EndDeferWindowPos(wpi);
+
+  if not flag then
+  begin
+    for idx := 0 to FItemCount - 1 do items[idx].item.HideItem;
   end;
 end;
 //------------------------------------------------------------------------------

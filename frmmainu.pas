@@ -219,9 +219,9 @@ begin
     end;
     {$ifdef EXT_DEBUG} AddLog('Theme.Load'); {$endif}
 
-    // create ItemManager (disabled, invisible, ...) //
+    // create ItemManager //
     try
-      ItemMgr := TItemManager.Create(false, false, Handle, BaseCmd,
+      ItemMgr := TItemManager.Create(Handle, BaseCmd,
           sets.container.ItemSize, sets.container.BigItemSize, sets.container.ZoomWidth,
           sets.container.ZoomTime, sets.container.ItemSpacing, sets.container.ZoomEnabled,
           sets.container.ReflectionEnabled, sets.container.ReflectionSize, sets.container.LaunchInterval,

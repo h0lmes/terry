@@ -107,6 +107,9 @@ begin
     if ItemCount > 15 then Mode := DEFMODE_BIG else Mode := DEFMODE_SMALL;
   end;
 
+  if Progress < 0 then Progress := 0;
+  if Progress > 1 then Progress := 1;
+
   case Mode of
     1: result := GetFan         (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
     2: result := GetFanAlt      (Opening, ShowHint, Index, Progress, ItemCount, Site, ItemSize, Offset, Distort);
@@ -438,38 +441,46 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-function TStackModeController.GetSun(Opening, ShowHint: boolean; Index: integer; Progress: extended;
+function TStackModeController.GetSun(
+    Opening, ShowHint: boolean; Index: integer; Progress: extended;
     ItemCount, Site, ItemSize, Offset, Distort: integer): TStackItemData;
 var
-  x, y, d, r, degPerStep: extended;
+  x, y, ItemProgress, r, degreesPerStep, radiusMultiplier: extended;
+  SimultItemCount: integer;
 begin
   result.x := 0;
   result.y := 0;
   result.alpha := 0;
   result.angle := 0;
+  radiusMultiplier := 9;
+  SimultItemCount := ItemCount * 2;
 
-  // simultaneous item count = 4 //
-  if Opening then d := (progress * (ItemCount+4-1) / ItemCount - index / ItemCount) * ItemCount / 4
-  else            d := (progress * (ItemCount+4-1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / 4;
-  if d < 0 then d := 0;
-  if d > 1 then d := 1;
-  d := sin(d * PI / 2);
-  result.alpha := round(255 * d);
-  result.hint_alpha := round(max(d - 0.5, 0) * 510);
-  degPerStep := 6;
-  r := (ItemSize + 3) * 20 * 3 / 2 / PI * (1 + Distort / 10); // radius
+  if Opening then
+    ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - index / ItemCount) * ItemCount / SimultItemCount
+  else
+    ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / SimultItemCount;
+
+  if ItemProgress < 0 then ItemProgress := 0;
+  if ItemProgress > 1 then ItemProgress := 1;
+  ItemProgress := sin(ItemProgress * PI / 2);
+
+  result.alpha := round(max(ItemProgress - 0.75, 0) * 1020);
+  result.hint_alpha := round(max(ItemProgress - 0.75, 0) * 1020);
+
+  r := (ItemSize + 3) * 20 * radiusMultiplier / 2 / PI * (1 + Distort / 10);
+  degreesPerStep := 18 / radiusMultiplier;
   if Opening then
   begin
-    x := r * cos((index - (ItemCount - 1) / 2) * PI * degPerStep / 180) * (0.5 + d / 2) * sin(d * 1.3 * PI / 2) / sin(1.3 * PI / 2);
-    y := r * sin((index - (ItemCount - 1) / 2) * PI * degPerStep / 180) * (0.5 + d / 2) * sin(d * 1.3 * PI / 2) / sin(1.3 * PI / 2);
-    result.s := round(ItemSize * d * sin(d * 1.3 * PI / 2) / sin(1.3 * PI / 2));
+    x := r * cos((index - (ItemCount - 1) / 2) * PI * degreesPerStep / 180) * (0.5 + ItemProgress / 2) * sin(ItemProgress * 1.3 * PI / 2) / sin(1.3 * PI / 2);
+    y := r * sin((index - (ItemCount - 1) / 2) * PI * degreesPerStep / 180) * (0.5 + ItemProgress / 2) * sin(ItemProgress * 1.3 * PI / 2) / sin(1.3 * PI / 2);
+    result.s := round(ItemSize * ItemProgress * sin(ItemProgress * 1.3 * PI / 2) / sin(1.3 * PI / 2));
   end else begin
-    x := r * cos((index - (ItemCount - 1) / 2) * PI * degPerStep / 180) * (0.5 + d / 2);
-    y := r * sin((index - (ItemCount - 1) / 2) * PI * degPerStep / 180) * (0.5 + d / 2);
-    result.s := round(ItemSize * d);
+    x := r * cos((index - (ItemCount - 1) / 2) * PI * degreesPerStep / 180) * (0.5 + ItemProgress / 2);
+    y := r * sin((index - (ItemCount - 1) / 2) * PI * degreesPerStep / 180) * (0.5 + ItemProgress / 2);
+    result.s := round(ItemSize * ItemProgress);
   end;
-  x := x + Offset + ItemSize * 1.5 - r * cos(((ItemCount + 1) / 2) * PI * degPerStep / 180);
-  result.angle := (index - (ItemCount - 1) / 2) * degPerStep;
+  x := x + Offset + ItemSize * 1.5 - r * cos(((ItemCount + 1) / 2) * PI * degreesPerStep / 180);
+  result.angle := (index - (ItemCount - 1) / 2) * degreesPerStep;
   case Site of
     0: begin
         result.hint_align := HA_HORIZONTAL_RIGHT;

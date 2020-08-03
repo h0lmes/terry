@@ -146,7 +146,7 @@ type
     property WndOffset: integer read FWndOffset write SetWndOffset;
     property ItemCount: integer read FItemCount;
 
-    constructor Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TDBaseCmd;
+    constructor Create(Handle: THandle; ABaseCmd: TDBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
@@ -214,7 +214,7 @@ end;
 
 implementation
 //------------------------------------------------------------------------------
-constructor TItemManager.Create(AEnabled, AVisible: boolean; Handle: THandle; ABaseCmd: TDBaseCmd;
+constructor TItemManager.Create(Handle: THandle; ABaseCmd: TDBaseCmd;
       ItemSize, BigItemSize, ZoomWidth, ZoomTime, ItemSpacing: integer;
       ZoomItems, Reflection: boolean;
       ReflectionSize, LaunchInterval, ItemAnimation, SeparatorAlpha: integer;
@@ -226,8 +226,8 @@ begin
   inherited Create;
 
   // creation parameters
-  FEnabled := AEnabled;
-  FVisible := AVisible;
+  FEnabled := false;
+  FVisible := false;
   FParentHWnd := Handle;
   FBaseCmd := ABaseCmd;
   FItemSize := ItemSize;
