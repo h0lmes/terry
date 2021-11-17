@@ -458,7 +458,12 @@ begin
   if Opening then
     ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - index / ItemCount) * ItemCount / SimultItemCount
   else
-    ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / SimultItemCount;
+    ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - index / ItemCount) * ItemCount / SimultItemCount;
+    //ItemProgress := (Progress * (ItemCount + SimultItemCount - 1) / ItemCount - (ItemCount - index - 1) / ItemCount) * ItemCount / SimultItemCount;
+  ItemProgress := 0.5 + ItemProgress * 0.5;
+
+  // (0 * (14 + 28 - 1) / 14 - 0 / 14) * 14 / 28
+  // (0 * (14 + 28 - 1) / 14 - (14 - 0 - 1) / 14) * 14 / 28
 
   if ItemProgress < 0 then ItemProgress := 0;
   if ItemProgress > 1 then ItemProgress := 1;

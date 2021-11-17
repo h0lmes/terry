@@ -22,18 +22,12 @@ uses
   frmthemeeditoru {frmLayersEditor},
   frmColorU {frmColor},
   frmDebugU {frmDebug},
-  themeu,
-  setsu,
-  GDIPAPI,
-  gfx,
-  toolu,
-  itemmgru,
-  customitemu, scitemu, sepitemu, plgitemu, stackitemu, customsubitemu, scsubitemu,
-  hintu, droptgtu, shcontextu, notifieru,
-  PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu, processhlp,
-  taskitemu, frmhellou, frmtipu, multidocku, aeropeeku,
-shelltraywndu, MMDevApi_tlb,
-  mixeru, networksu, customdrawitemu, frmrestoreu, iniproc, loggeru, UWP_TLB;
+  themeu, setsu, GDIPAPI, gfx, toolu, itemmgru, customitemu, scitemu, sepitemu,
+  plgitemu, stackitemu, customsubitemu, scsubitemu, hintu, droptgtu, shcontextu,
+  notifieru, PIDL, dwm_unit, trayu, frmAddCommandU, frmstackpropu, stackmodeu,
+  processhlp, taskitemu, frmhellou, frmtipu, multidocku, aeropeeku,
+  shelltraywndu, MMDevApi_tlb, mixeru, networksu, customdrawitemu, frmrestoreu,
+  iniproc, loggeru, UWP_TLB;
 
 {$R *.res}
 
