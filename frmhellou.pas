@@ -57,12 +57,9 @@ procedure TfrmHello.FormShow(Sender: TObject);
 begin
   font.name := GetFont;
   font.size := GetFontSize;
-
   Label1.Font.Bold := true;
   Label2.Font.Bold := true;
   Label4.Font.Bold := true;
-  //dwm.ExtendFrameIntoClientArea(frmHello.Handle, classes.rect(-1,-1,-1,-1));
-  //SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) or WS_EX_LAYERED);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmHello.btnCloseClick(Sender: TObject);

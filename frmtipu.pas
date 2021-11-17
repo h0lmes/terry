@@ -54,7 +54,6 @@ begin
   font.size := GetFontSize;
   memo.font.name := GetFont;
   memo.font.size := GetFontSize * 4 div 3;
-
   Load;
 end;
 //------------------------------------------------------------------------------

@@ -97,9 +97,8 @@ begin
   try
     font.name := GetFont;
     font.size := GetFontSize;
-
-    constraints.MinHeight := ClientHeight;
-    constraints.MinWidth := ClientWidth;
+    constraints.MinHeight := Height;
+    constraints.MinWidth := Width;
 
     tree.BeginUpdate;
     tree.Items.Clear;

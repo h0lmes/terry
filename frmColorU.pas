@@ -88,10 +88,10 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmColor.FormShow(Sender: TObject);
 begin
-  font.name:= GetFont;
-  font.size:= GetFontSize;
-  clientheight:= 247;
-  clientwidth:= 380;
+  font.name := GetFont;
+  font.size := GetFontSize;
+  clientheight := Height;
+  clientwidth := Width;
 end;
 //------------------------------------------------------------------------------
 procedure TfrmColor.FormClose(Sender: TObject; var Action: TCloseAction);
