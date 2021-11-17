@@ -16,12 +16,12 @@ object frmmain: Tfrmmain
   OnKeyDown = FormKeyDown
   OnMouseDown = FormMouseDown
   OnMouseUp = FormMouseUp
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.12.0'
   object trayicon: TTrayIcon
     Hint = 'TDock'
     Visible = True
     OnMouseUp = trayiconMouseUp
-    left = 10
-    top = 10
+    Left = 10
+    Top = 10
   end
 end

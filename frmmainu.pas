@@ -1984,8 +1984,8 @@ var
   hostHandle: THandle;
 begin
   result := 0;
+  shellexecute(0, nil, pwchar(@Data.exename), pwchar(@Data.params), pwchar(@Data.dir), Data.showcmd);
   hostHandle := Data.handle;
-  shellexecute(hostHandle, nil, pwchar(@Data.exename), pwchar(@Data.params), pwchar(@Data.dir), Data.showcmd);
   Dispose(Data);
   // request main form to close thread handle
   postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
@@ -2031,15 +2031,15 @@ begin
     begin
       ZeroMemory(@sei, sizeof(sei));
       sei.cbSize := sizeof(sei);
-	    sei.lpIDList := aPIDL;
-	    sei.fMask := SEE_MASK_IDLIST;
-	    sei.Wnd := Handle;
-	    sei.nShow := 1;
-	    sei.lpVerb := 'open';
-	    ShellExecuteExW(@sei);
+      sei.lpIDList := aPIDL;
+      sei.fMask := SEE_MASK_IDLIST;
+      sei.Wnd := 0;
+      sei.nShow := 1;
+      sei.lpVerb := 'open';
+      ShellExecuteExW(@sei);
       PIDL_Free(aPIDL);
       exit;
-		end;
+    end;
 
     wexename := exename;
     wparams := params;
@@ -2047,19 +2047,18 @@ begin
 
     if sets.container.RunInThread then
     begin
-	    New(Data);
-	    Data.handle := Handle;
-	    strcopy(pwchar(@Data.exename), pwchar(wexename));
-	    strcopy(pwchar(@Data.params), pwchar(wparams));
-	    strcopy(pwchar(@Data.dir), pwchar(wdir));
-	    Data.showcmd := showcmd;
-	    if BeginThread(RunThread, Data) = 0 then
-        notify(WideString('Run.BeginThread failed' + LineEnding +
+      New(Data);
+      Data.handle := 0;
+      strcopy(pwchar(@Data.exename), pwchar(wexename));
+      strcopy(pwchar(@Data.params), pwchar(wparams));
+      strcopy(pwchar(@Data.dir), pwchar(wdir));
+      Data.showcmd := showcmd;
+      if BeginThread(RunThread, Data) = 0 then
+      notify(WideString('Run.BeginThread failed' + LineEnding +
           'cmd=' + exename + LineEnding +
           'params=' + params + LineEnding + 'dir=' + dir));
-    end else
-    begin
-      shellexecutew(Handle, nil, PWChar(wexename), PWChar(wparams), PWChar(wdir), showcmd);
+    end else begin
+      shellexecutew(0, nil, PWChar(wexename), PWChar(wparams), PWChar(wdir), showcmd);
     end;
   except
     on e: Exception do err('Base.Run', e);

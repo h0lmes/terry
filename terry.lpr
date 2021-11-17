@@ -557,6 +557,7 @@ begin
 
   // application //
 
+  Application.Scaled:=True;
   Application.Initialize;
   {$ifdef EXT_DEBUG} AddLog('Application.Initialize'); {$endif}
   Application.Title := PROGRAM_TITLE;
