@@ -1,0 +1,5 @@
+{"version":1,"strings":[
+{"hash":23296,"name":"tfrmtip.caption","sourcebytes":[84,105,112],"value":"Tip"},
+{"hash":29816488,"name":"tfrmtip.btnclose.caption","sourcebytes":[84,104,97,110,107,115,44,32,73,32,104,97,118,101,32,108,101,97,114,110,101,100,32,101,110,111,117,103,104],"value":"Thanks, I have learned enough"},
+{"hash":347380,"name":"tfrmtip.btnnext.caption","sourcebytes":[78,101,120,116],"value":"Next"}
+]}

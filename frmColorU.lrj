@@ -1,0 +1,12 @@
+{"version":1,"strings":[
+{"hash":66489026,"name":"tfrmcolor.caption","sourcebytes":[83,101,108,101,99,116,32,99,111,108,111,114],"value":"Select color"},
+{"hash":82,"name":"tfrmcolor.label1.caption","sourcebytes":[82],"value":"R"},
+{"hash":71,"name":"tfrmcolor.label2.caption","sourcebytes":[71],"value":"G"},
+{"hash":66,"name":"tfrmcolor.label3.caption","sourcebytes":[66],"value":"B"},
+{"hash":72,"name":"tfrmcolor.label4.caption","sourcebytes":[72],"value":"H"},
+{"hash":76,"name":"tfrmcolor.label5.caption","sourcebytes":[76],"value":"L"},
+{"hash":83,"name":"tfrmcolor.label6.caption","sourcebytes":[83],"value":"S"},
+{"hash":1339,"name":"tfrmcolor.btnok.caption","sourcebytes":[79,75],"value":"OK"},
+{"hash":77089212,"name":"tfrmcolor.btncancel.caption","sourcebytes":[67,97,110,99,101,108],"value":"Cancel"},
+{"hash":30586780,"name":"tfrmcolor.lblbackgroundalpha.caption","sourcebytes":[65,108,112,104,97,32,99,104,97,110,110,101,108],"value":"Alpha channel"}
+]}

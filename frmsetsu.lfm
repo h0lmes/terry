@@ -1,7 +1,7 @@
 object frmsets: Tfrmsets
-  Left = 519
+  Left = 414
   Height = 565
-  Top = 183
+  Top = 275
   Width = 780
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
@@ -17,7 +17,7 @@ object frmsets: Tfrmsets
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.12.0'
   object pages: TPageControl
     Left = 155
     Height = 505
@@ -491,7 +491,6 @@ object frmsets: Tfrmsets
         Position = 11
         TabOrder = 4
         Thousands = False
-        Wrap = False
       end
       object btnFontBold: TSpeedButton
         Left = 320
@@ -547,7 +546,6 @@ object frmsets: Tfrmsets
         Position = 11
         TabOrder = 7
         Thousands = False
-        Wrap = False
       end
       object Label1: TLabel
         Left = 230

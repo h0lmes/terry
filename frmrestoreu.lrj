@@ -1,0 +1,4 @@
+{"version":1,"strings":[
+{"hash":71125216,"name":"tfrmrestore.caption","sourcebytes":[82,101,115,116,111,114,101,32,115,101,116,116,105,110,103,115,32,102,114,111,109,32,98,97,99,107,117,112],"value":"Restore settings from backup"},
+{"hash":48405168,"name":"tfrmrestore.btnrestore.caption","sourcebytes":[82,101,115,116,111,114,101,32,115,101,108,101,99,116,101,100,32,98,97,99,107,117,112],"value":"Restore selected backup"}
+]}

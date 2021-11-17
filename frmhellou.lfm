@@ -1,7 +1,7 @@
 object frmHello: TfrmHello
-  Left = 463
+  Left = 442
   Height = 434
-  Top = 234
+  Top = 261
   Width = 538
   Caption = 'Hello'
   ClientHeight = 434
@@ -9,7 +9,7 @@ object frmHello: TfrmHello
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.2.0'
+  LCLVersion = '2.0.12.0'
   object Label3: TLabel
     Left = 45
     Height = 15
@@ -93,7 +93,7 @@ object frmHello: TfrmHello
     Left = 45
     Height = 15
     Top = 25
-    Width = 271
+    Width = 270
     Caption = 'Hello!  Probably this is the first time you run TDock.'
     ParentColor = False
   end

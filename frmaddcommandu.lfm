@@ -1,7 +1,7 @@
 object frmAddCommand: TfrmAddCommand
-  Left = 495
+  Left = 499
   Height = 474
-  Top = 246
+  Top = 296
   Width = 471
   ClientHeight = 474
   ClientWidth = 471
@@ -10,7 +10,7 @@ object frmAddCommand: TfrmAddCommand
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.12.0'
   object tree: TTreeView
     Left = 15
     Height = 384
@@ -21,7 +21,6 @@ object frmAddCommand: TfrmAddCommand
     BorderSpacing.Top = 15
     BorderSpacing.Right = 15
     BorderSpacing.Bottom = 10
-    DefaultItemHeight = 18
     ReadOnly = True
     RightClickSelect = True
     ScrollBars = ssAutoBoth
@@ -57,7 +56,7 @@ object frmAddCommand: TfrmAddCommand
   object images: TImageList
     Height = 32
     Width = 32
-    left = 223
-    top = 187
+    Left = 223
+    Top = 187
   end
 end

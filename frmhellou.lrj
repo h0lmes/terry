@@ -1,0 +1,15 @@
+{"version":1,"strings":[
+{"hash":5161775,"name":"tfrmhello.caption","sourcebytes":[72,101,108,108,111],"value":"Hello"},
+{"hash":138620426,"name":"tfrmhello.label3.caption","sourcebytes":[67,104,111,111,115,101,32,119,104,97,116,32,121,111,117,32,119,97,110,116,32,116,111,32,100,111,58],"value":"Choose what you want to do:"},
+{"hash":263726099,"name":"tfrmhello.btnautorun.caption","sourcebytes":[83,101,116,32,116,104,101,32,100,111,99,107,32,116,111,32,115,116,97,114,116,32,119,105,116,104,32,87,105,110,100,111,119,115],"value":"Set the dock to start with Windows"},
+{"hash":167349190,"name":"tfrmhello.btnclose.caption","sourcebytes":[84,104,97,110,107,115,33,32,32,73,32,119,105,108,108,32,109,97,110,97,103,101,32,101,118,101,114,121,116,104,105,110,103,32,109,121,115,101,108,102],"value":"Thanks!  I will manage everything myself"},
+{"hash":202841194,"name":"tfrmhello.label5.caption","sourcebytes":[77,111,118,101,32,116,104,101,32,100,111,99,107,32,116,111,32,97,110,111,104,101,114,32,115,105,100,101,32,111,102,32,116,104,101,32,115,99,114,101,101,110,58],"value":"Move the dock to anoher side of the screen:"},
+{"hash":23392,"name":"tfrmhello.btntop.caption","sourcebytes":[84,111,112],"value":"Top"},
+{"hash":338900,"name":"tfrmhello.btnleft.caption","sourcebytes":[76,101,102,116],"value":"Left"},
+{"hash":5832180,"name":"tfrmhello.btnright.caption","sourcebytes":[82,105,103,104,116],"value":"Right"},
+{"hash":76987229,"name":"tfrmhello.btnbottom.caption","sourcebytes":[66,111,116,116,111,109],"value":"Bottom"},
+{"hash":87055535,"name":"tfrmhello.btncloseshowtips.caption","sourcebytes":[73,115,32,116,104,101,114,101,32,97,110,121,116,104,105,110,103,32,117,115,101,102,117,108,32,116,111,32,107,110,111,119,63],"value":"Is there anything useful to know?"},
+{"hash":68208958,"name":"tfrmhello.label1.caption","sourcebytes":[72,101,108,108,111,33,32,32,80,114,111,98,97,98,108,121,32,116,104,105,115,32,105,115,32,116,104,101,32,102,105,114,115,116,32,116,105,109,101,32,121,111,117,32,114,117,110,32,84,68,111,99,107,46],"value":"Hello!  Probably this is the first time you run TDock."},
+{"hash":93761358,"name":"tfrmhello.label4.caption","sourcebytes":[89,111,117,32,99,97,110,32,118,105,101,119,32,117,115,101,102,117,108,32,116,105,112,115,32,97,116,32,97,110,121,32,116,105,109,101,32,98,121,32,112,114,101,115,115,105,110,103,32,70,49,46],"value":"You can view useful tips at any time by pressing F1."},
+{"hash":252232078,"name":"tfrmhello.label2.caption","sourcebytes":[72,101,114,101,32,121,111,117,32,99,97,110,32,100,111,32,98,97,115,105,99,32,115,101,116,117,112,46],"value":"Here you can do basic setup."}
+]}

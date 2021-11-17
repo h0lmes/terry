@@ -9,19 +9,19 @@ uses
 
 type
 
-		{ TfrmRestore }
+  { TfrmRestore }
 
-    TfrmRestore = class(TForm)
-				btnRestore: TButton;
-				list: TListBox;
-				procedure btnRestoreClick(Sender: TObject);
-        procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
-				procedure FormShow(Sender: TObject);
-				procedure listDblClick(Sender: TObject);
-    private
-    public
-      class procedure Open;
-    end;
+  TfrmRestore = class(TForm)
+    btnRestore: TButton;
+    list: TListBox;
+    procedure btnRestoreClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormShow(Sender: TObject);
+    procedure listDblClick(Sender: TObject);
+  private
+  public
+    class procedure Open;
+  end;
 
 var
   frmRestore: TfrmRestore;

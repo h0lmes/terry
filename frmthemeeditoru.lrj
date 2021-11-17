@@ -1,0 +1,9 @@
+{"version":1,"strings":[
+{"hash":89025235,"name":"tfrmthemeeditor.caption","sourcebytes":[84,104,101,109,101,32,112,97,114,97,109,101,116,101,114,115],"value":"Theme parameters"},
+{"hash":63876530,"name":"tfrmthemeeditor.label1.caption","sourcebytes":[73,116,101,109,115,32,97,114,101,97,32,98,111,114,100,101,114],"value":"Items area border"},
+{"hash":190611107,"name":"tfrmthemeeditor.label15.caption","sourcebytes":[83,101,112,97,114,97,116,111,114,32,109,97,114,103,105,110,115],"value":"Separator margins"},
+{"hash":241514947,"name":"tfrmthemeeditor.label9.caption","sourcebytes":[66,97,99,107,103,114,111,117,110,100,32,109,97,114,103,105,110,115],"value":"Background margins"},
+{"hash":130212894,"name":"tfrmthemeeditor.label14.caption","sourcebytes":[66,108,117,114,32,114,101,103,105,111,110],"value":"Blur region"},
+{"hash":366789,"name":"tfrmthemeeditor.btnsave.caption","sourcebytes":[83,97,118,101],"value":"Save"},
+{"hash":124190665,"name":"tfrmthemeeditor.btnclose.caption","sourcebytes":[67,108,111,115,101,32,40,69,115,99,41],"value":"Close (Esc)"}
+]}

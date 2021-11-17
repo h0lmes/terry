@@ -456,43 +456,6 @@ msgctxt "tfrmdebug.caption"
 msgid "Debug info"
 msgstr ""
 
-#: tfrmfont.btncancel.caption
-msgctxt "TFRMFONT.BTNCANCEL.CAPTION"
-msgid "Cancel"
-msgstr ""
-
-#: tfrmfont.btnexchange.caption
-msgid "< - >"
-msgstr ""
-
-#: tfrmfont.btnfontbold.caption
-msgctxt "TFRMFONT.BTNFONTBOLD.CAPTION"
-msgid "Bold"
-msgstr ""
-
-#: tfrmfont.btnfontitalic.caption
-msgctxt "TFRMFONT.BTNFONTITALIC.CAPTION"
-msgid "Italic"
-msgstr ""
-
-#: tfrmfont.btnok.caption
-msgctxt "TFRMFONT.BTNOK.CAPTION"
-msgid "OK"
-msgstr ""
-
-#: tfrmfont.caption
-msgctxt "TFRMFONT.CAPTION"
-msgid "Font"
-msgstr ""
-
-#: tfrmfont.rb_outline.caption
-msgid "Background color"
-msgstr ""
-
-#: tfrmfont.rb_text.caption
-msgid "Text color"
-msgstr ""
-
 #: tfrmhello.btnautorun.caption
 msgid "Set the dock to start with Windows"
 msgstr ""

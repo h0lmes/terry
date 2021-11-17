@@ -1,7 +1,7 @@
 object frmTip: TfrmTip
-  Left = 470
+  Left = 441
   Height = 323
-  Top = 407
+  Top = 357
   Width = 470
   Caption = 'Tip'
   ClientHeight = 323
@@ -12,7 +12,7 @@ object frmTip: TfrmTip
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.12.0'
   object memo: TMemo
     Left = 15
     Height = 253

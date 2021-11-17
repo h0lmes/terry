@@ -1,7 +1,7 @@
 object frmcmd: Tfrmcmd
-  Left = 334
+  Left = 401
   Height = 42
-  Top = 287
+  Top = 311
   Width = 536
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -21,7 +21,7 @@ object frmcmd: Tfrmcmd
   OnShortCut = FormShortCut
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.2.4.0'
+  LCLVersion = '2.0.12.0'
   object btn_browse: TButton
     Left = 500
     Height = 21

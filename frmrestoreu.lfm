@@ -1,7 +1,7 @@
 object frmRestore: TfrmRestore
-  Left = 465
+  Left = 395
   Height = 344
-  Top = 248
+  Top = 244
   Width = 692
   BorderIcons = [biSystemMenu]
   Caption = 'Restore settings from backup'
@@ -13,7 +13,7 @@ object frmRestore: TfrmRestore
   OnClose = FormClose
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '2.0.12.0'
   object list: TListBox
     Left = 15
     Height = 277

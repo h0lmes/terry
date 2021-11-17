@@ -21,7 +21,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-		procedure FormShow(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FIndex: integer;
     list: TStrings;

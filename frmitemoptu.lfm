@@ -1,7 +1,7 @@
 object frmItemProp: TfrmItemProp
-  Left = 398
+  Left = 400
   Height = 365
-  Top = 245
+  Top = 295
   Width = 730
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
@@ -19,7 +19,7 @@ object frmItemProp: TfrmItemProp
   OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
-  LCLVersion = '1.6.0.4'
+  LCLVersion = '2.0.12.0'
   object btnOK: TButton
     Left = 10
     Height = 31

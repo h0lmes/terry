@@ -493,43 +493,6 @@ msgctxt "tfrmdebug.caption"
 msgid "Debug info"
 msgstr "Отладочная информация"
 
-#: tfrmfont.btncancel.caption
-msgctxt "TFRMFONT.BTNCANCEL.CAPTION"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: tfrmfont.btnexchange.caption
-msgid "< - >"
-msgstr "< - >"
-
-#: tfrmfont.btnfontbold.caption
-msgctxt "tfrmfont.btnfontbold.caption"
-msgid "Bold"
-msgstr "Жирный"
-
-#: tfrmfont.btnfontitalic.caption
-msgctxt "tfrmfont.btnfontitalic.caption"
-msgid "Italic"
-msgstr "Курсив"
-
-#: tfrmfont.btnok.caption
-msgctxt "TFRMFONT.BTNOK.CAPTION"
-msgid "OK"
-msgstr "OK"
-
-#: tfrmfont.caption
-msgctxt "tfrmfont.caption"
-msgid "Font"
-msgstr "Шрифт"
-
-#: tfrmfont.rb_outline.caption
-msgid "Background color"
-msgstr "Цвет фона"
-
-#: tfrmfont.rb_text.caption
-msgid "Text color"
-msgstr "Цвет текста"
-
 #: tfrmhello.btnautorun.caption
 #| msgid "Set the program to start with Windows"
 msgid "Set the dock to start with Windows"
