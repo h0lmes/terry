@@ -75,7 +75,7 @@ type
     procedure WMCompositionChanged(var Message: TMessage);
     procedure WMDPIChanged(var Message: TMessage);
     procedure WHRawMouse(mouse: RAWMOUSE);
-    procedure WHRawKB(kb: RAWKEYBOARD);
+    //procedure WHRawKB(kb: RAWKEYBOARD);
     procedure WHButtonDown(button: integer);
     procedure WHMouseMove(LParam: LParam);
     procedure OnMouseEnter;
@@ -630,14 +630,11 @@ var
   rid: array [0..0] of RAWINPUTDEVICE;
 begin
   rid[0].usUsagePage := 1;
-  rid[0].usUsage := 2; // mouse
+  rid[0].usUsage := 2; // 2 = mouse, 6 = keyboard
   rid[0].dwFlags := RIDEV_INPUTSINK;
   rid[0].hwndTarget := Handle;
-  //rid[1].usUsagePage := 1;
-  //rid[1].usUsage := 6; // kb
-  //rid[1].dwFlags := RIDEV_INPUTSINK;
-  //rid[1].hwndTarget := Handle;
-  if not RegisterRawInputDevices(@rid, 1, sizeof(RAWINPUTDEVICE)) then notify('RegisterRawInput failed!');
+  if not RegisterRawInputDevices(@rid, 1, sizeof(RAWINPUTDEVICE)) then
+    notify('RegisterRawInput failed!');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NativeWndProc(var message: TMessage);
@@ -690,32 +687,6 @@ begin
     WM_APP_RUN_THREAD_END :    CloseHandle(message.lParam);
     else
       message.result := CallWindowProc(FPrevWndProc, Handle, message.Msg, message.wParam, message.lParam);
-  end;
-end;
-//------------------------------------------------------------------------------
-procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
-var
-  key: char;
-  fw: THandle;
-begin
-  if assigned(frmcmd) then
-  begin
-    fw := GetForegroundWindow;
-    if (fw <> handle) and (fw <> frmcmd.handle) and IsWindowVisible(frmcmd.Handle) then
-      if kb.Message = WM_KEYDOWN then
-      begin
-        //notify('VKey = ' + inttostr(kb.VKey) + LineEnding + 'Message = ' + inttostr(kb.Message) + LineEnding +
-          //'Flags = ' + inttostr(kb.Flags) + LineEnding + 'Ext = ' + inttostr(kb.ExtraInformation) + LineEnding + 'MakeCode = ' + inttostr(kb.MakeCode));
-        if kb.vkey = vk_return then frmcmd.exec
-        else
-        if kb.vkey = vk_escape then frmcmd.close
-        else
-        begin
-          key := chr(kb.vkey);
-          if GetKeyState(VK_SHIFT) and $80 = 0 then key := LowerCase(key);
-          //SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
-        end;
-      end;
   end;
 end;
 //------------------------------------------------------------------------------
@@ -774,9 +745,11 @@ begin
   // set foreground if 'activate' option selected //
   if IsWindowVisible(handle) and sets.container.ActivateOnMouse then
   begin
-    if sets.container.ActivateOnMouseInterval = 0 then SetForeground
-    else SetTimer(Handle, ID_TIMER_FOREGROUND, sets.container.ActivateOnMouseInterval, nil);
-	end;
+    if sets.container.ActivateOnMouseInterval = 0 then
+      SetForeground
+    else
+      SetTimer(Handle, ID_TIMER_FOREGROUND, sets.container.ActivateOnMouseInterval, nil);
+  end;
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.OnMouseLeave;
@@ -786,6 +759,32 @@ begin
   // just to be sure
   ItemMgr.DragLeave;
 end;
+//------------------------------------------------------------------------------
+//procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
+//var
+//  key: char;
+//  fw: THandle;
+//begin
+//  if assigned(frmcmd) then
+//  begin
+//    fw := GetForegroundWindow;
+//    if (fw <> handle) and (fw <> frmcmd.handle) and IsWindowVisible(frmcmd.Handle) then
+//      if kb.Message = WM_KEYDOWN then
+//      begin
+//        //notify('VKey = ' + inttostr(kb.VKey) + LineEnding + 'Message = ' + inttostr(kb.Message) + LineEnding +
+//          //'Flags = ' + inttostr(kb.Flags) + LineEnding + 'Ext = ' + inttostr(kb.ExtraInformation) + LineEnding + 'MakeCode = ' + inttostr(kb.MakeCode));
+//        if kb.vkey = vk_return then frmcmd.exec
+//        else
+//        if kb.vkey = vk_escape then frmcmd.close
+//        else
+//        begin
+//          key := chr(kb.vkey);
+//          if GetKeyState(VK_SHIFT) and $80 = 0 then key := LowerCase(key);
+//          //SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
+//        end;
+//      end;
+//  end;
+//end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
 begin
@@ -924,7 +923,11 @@ begin
     // keep the edge of the screen reserved if set so
     if sets.container.ReserveScreenEdge then
       ShellTrayWndController.ReserveScreenEdge(
-        sets.container.Monitor, sets.container.Site, sets.container.ReserveScreenEdgePercent, ItemMgr.FBaseWindowRect, sets.container.AutoHide);
+        sets.container.Monitor,
+        sets.container.Site,
+        sets.container.ReserveScreenEdgePercent,
+        ItemMgr.FBaseWindowRect,
+        sets.container.AutoHide);
 
     // hide/show the dock if fullscreen apps active
     if FHiddenByFSA and Visible then FHiddenByFSA := false;
@@ -1991,7 +1994,7 @@ begin
   postmessage(hostHandle, WM_APP_RUN_THREAD_END, 0, LPARAM(GetCurrentThread));
 end;
 //------------------------------------------------------------------------------
-// create new thread, if needed, and run a program
+// create new thread if needed and run a program
 procedure Tfrmmain.Run(exename: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal);
 var
   Data: PRunData;

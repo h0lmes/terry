@@ -931,8 +931,9 @@ msgid "Stack font size:"
 msgstr "Размер шрифта стека:"
 
 #: tfrmsets.label2.caption
-#| msgid "Do not occupy at the start - end, pixel"
-msgid "Margin at the start / end, px"
+#, fuzzy
+#| msgid "Margin at the start / end, px"
+msgid "Margin at the start/end, px"
 msgstr "Отступ в начале - конце, пиксел"
 
 #: tfrmsets.label3.caption
@@ -963,7 +964,9 @@ msgid "Reflection size:"
 msgstr "Размер отражений:"
 
 #: tfrmsets.lblcenteroffsetpercent.caption
-msgid "Offset from center"
+#, fuzzy
+#| msgid "Offset from center"
+msgid "Offset along the edge"
 msgstr "Смещение от центра"
 
 #: tfrmsets.lblcredits.caption
@@ -1006,7 +1009,9 @@ msgid "Edge of screen"
 msgstr "Сторона экрана:"
 
 #: tfrmsets.lbledgeoffset.caption
-msgid "Offset from edge"
+#, fuzzy
+#| msgid "Offset from edge"
+msgid "Offset from the edge"
 msgstr "Смещение от края"
 
 #: tfrmsets.lblhidedelay.caption

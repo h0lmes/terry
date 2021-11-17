@@ -869,7 +869,7 @@ msgid "Stack font size:"
 msgstr ""
 
 #: tfrmsets.label2.caption
-msgid "Margin at the start / end, px"
+msgid "Margin at the start/end, px"
 msgstr ""
 
 #: tfrmsets.label3.caption
@@ -897,7 +897,7 @@ msgid "Reflection size:"
 msgstr ""
 
 #: tfrmsets.lblcenteroffsetpercent.caption
-msgid "Offset from center"
+msgid "Offset along the edge"
 msgstr ""
 
 #: tfrmsets.lblcredits.caption
@@ -937,7 +937,7 @@ msgid "Edge of screen"
 msgstr ""
 
 #: tfrmsets.lbledgeoffset.caption
-msgid "Offset from edge"
+msgid "Offset from the edge"
 msgstr ""
 
 #: tfrmsets.lblhidedelay.caption

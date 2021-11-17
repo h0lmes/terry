@@ -200,9 +200,9 @@ end;
 //------------------------------------------------------------------------------
 function GetFontSize: integer;
 begin
-  Result := 8;
+  Result := 9;
   try
-    if bIsWindowsVistaOrHigher then Result := 9;
+    if bIsWindowsVistaOrHigher then Result := 11;
   except
   end;
   if ScalingFactor > 100 then Result := Result * ScalingFactor div 100;
