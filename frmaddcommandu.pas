@@ -95,11 +95,6 @@ var
   group, groupName, classname, name, command, params, icon, description: string;
 begin
   try
-    font.name := GetFont;
-    font.size := GetFontSize;
-    constraints.MinHeight := Height;
-    constraints.MinWidth := Width;
-
     tree.BeginUpdate;
     tree.Items.Clear;
 
@@ -128,7 +123,6 @@ begin
       node.Expand(true);
       inc(groupIdx);
     until (groupName = '');
-
 
     ini.free;
 

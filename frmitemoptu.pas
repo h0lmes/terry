@@ -73,7 +73,6 @@ type
     procedure btnApplyClick(Sender: TObject);
     procedure edCmdChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure tbHueChange(Sender: TObject);
   private
@@ -99,7 +98,7 @@ type
     procedure Draw;
     procedure DrawFit;
   public
-    class procedure Open(itemWnd: HWND);
+    class procedure Open(wnd: HWND);
   end;
 
 var
@@ -110,11 +109,11 @@ implementation
 uses declu, scitemu, scsubitemu, PIDL, toolu, frmmainu;
 {$R *.lfm}
 //------------------------------------------------------------------------------
-class procedure TfrmItemProp.Open(itemWnd: HWND);
+class procedure TfrmItemProp.Open(wnd: HWND);
 begin
   try
     if not assigned(frmItemProp) then Application.CreateForm(self, frmItemProp);
-    if frmItemProp.SetData(itemWnd) then
+    if frmItemProp.SetData(wnd) then
     begin
       frmItemProp.Show;
       frmItemProp.edCaption.SetFocus;
@@ -135,8 +134,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.FormShow(Sender: TObject);
 begin
-  font.Name := GetFont;
-  font.size := GetFontSize;
   constraints.minheight := Height;
   constraints.maxheight := Height;
   constraints.minwidth := Width;
@@ -340,12 +337,6 @@ begin
   ItemHWnd := 0;
   action := caFree;
   frmItemProp := nil;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmItemProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  ReleaseCapture;
-  postmessage(handle, $a1, 2, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmItemProp.btnPropertiesClick(Sender: TObject);

@@ -2,7 +2,7 @@ unit PIDL;
 
 interface
 
-uses Windows, ShellAPI, ShlObj, SysUtils, Forms, ActiveX;
+uses Windows, ShellApi, ShlObj, ComObj, SysUtils, Forms, ActiveX;
 
 type
   PPItemIDList = ^PItemIDList;
@@ -18,6 +18,8 @@ function PIDL_Copy(pidl: PItemIDList): PItemIDList;
 function PIDL_Next(pidl: PItemIDList): PItemIDList;
 function PIDL_GetDisplayName(folder: IShellFolder; pidl: PItemIDList; dwFlags: DWORD; pszName: PChar; cchMax: uint): boolean;
 function PIDL_GetDisplayName2(pidl: PItemIDList): string;
+function PIDL_GetDisplayName3(pidl: string): string; overload;
+function PIDL_GetDisplayName3(pidl: PItemIDList): string; overload;
 procedure PIDL_GetRelative(var pidlFQ, ppidlRoot, ppidlItem: PItemIDList);
 function PIDL_GetAbsolute(var pidlRoot, pidlItem: PItemIDList): PItemIDList;
 function PIDL_GetFromPath(pszFile: PChar): PItemIDList;
@@ -123,7 +125,7 @@ begin
 end;
 //------------------------------------------------------------------------------
 // returns the total number of bytes in an ITEMIDLIST
-function PIDL_GetSize(pidl: PITEMIDLIST): integer;
+function PIDL_GetSize(pidl: PItemIDList): integer;
 var
   p: PChar;
 begin
@@ -199,11 +201,9 @@ var
 begin
   result := '';
   if PIDL_GetDisplayName(nil, pidl, SHGDN_FORPARSING, pszName, MAX_PATH) then result := strpas(pszName);
-  if IsImmersiveApp(result) then
-  begin
-    exit;
-  end
-  else
+
+  if IsImmersiveApp(result) then exit;
+
   if not FileExists(result) then
   begin
     apidl := PIDL_GetFromPath(pchar(result));
@@ -213,6 +213,30 @@ begin
     end else begin
       result := PIDL_ToString(pidl);
     end;
+  end;
+end;
+//------------------------------------------------------------------------------
+function PIDL_GetDisplayName3(pidl: string): string; overload;
+var
+  apidl: PItemIDList;
+  sfi: TSHFileInfoW;
+begin
+  apidl := PIDL_FromString(pidl);
+  if assigned(apidl) then
+  begin
+    OleCheck(SHGetFileInfoW(pwchar(apidl), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
+    result := strpas(pwchar(sfi.szDisplayName));
+  end;
+end;
+//------------------------------------------------------------------------------
+function PIDL_GetDisplayName3(pidl: PItemIDList): string; overload;
+var
+  sfi: TSHFileInfoW;
+begin
+  if assigned(pidl) then
+  begin
+    OleCheck(SHGetFileInfoW(pwchar(pidl), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
+    result := strpas(pwchar(sfi.szDisplayName));
   end;
 end;
 //------------------------------------------------------------------------------

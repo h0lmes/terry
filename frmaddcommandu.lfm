@@ -1,10 +1,10 @@
 object frmAddCommand: TfrmAddCommand
-  Left = 499
-  Height = 474
-  Top = 296
-  Width = 471
-  ClientHeight = 474
-  ClientWidth = 471
+  Left = 536
+  Height = 677
+  Top = 243
+  Width = 410
+  ClientHeight = 677
+  ClientWidth = 410
   FormStyle = fsStayOnTop
   OnClose = FormClose
   OnCreate = FormCreate
@@ -13,9 +13,9 @@ object frmAddCommand: TfrmAddCommand
   LCLVersion = '2.0.12.0'
   object tree: TTreeView
     Left = 15
-    Height = 384
+    Height = 587
     Top = 15
-    Width = 441
+    Width = 380
     Align = alClient
     BorderSpacing.Left = 15
     BorderSpacing.Top = 15
@@ -30,7 +30,7 @@ object frmAddCommand: TfrmAddCommand
     Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoRightClickSelect, tvoShowButtons, tvoShowLines, tvoShowRoot, tvoToolTips, tvoThemedDraw]
   end
   object btnAdd: TButton
-    Left = 290
+    Left = 229
     Height = 30
     Top = 30
     Width = 153
@@ -43,8 +43,8 @@ object frmAddCommand: TfrmAddCommand
   object memo: TMemo
     Left = 15
     Height = 50
-    Top = 409
-    Width = 441
+    Top = 612
+    Width = 380
     Align = alBottom
     BorderSpacing.Left = 15
     BorderSpacing.Right = 15

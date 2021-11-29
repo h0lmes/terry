@@ -29,9 +29,10 @@ type
     cboMode: TComboBox;
     cboPreview: TComboBox;
     chbBackground: TCheckBox;
-    DividerBevel1: TDividerBevel;
+    chbSorted: TCheckBox;
     edImage: TEdit;
     edCaption: TEdit;
+    edSpecialFolder: TEdit;
     iPic: TPaintBox;
     Label1: TLabel;
     Label2: TLabel;
@@ -42,6 +43,7 @@ type
     lblDistort: TLabel;
     lblCaption: TLabel;
     lblAnimationSpeed: TLabel;
+    lblSpecialFolder: TLabel;
     lblStyle: TLabel;
     lblDir: TLabel;
     lblOffset: TLabel;
@@ -67,8 +69,10 @@ type
     procedure cboModeChange(Sender: TObject);
     procedure cboPreviewChange(Sender: TObject);
     procedure chbBackgroundChange(Sender: TObject);
+    procedure chbSortedChange(Sender: TObject);
     procedure edCaptionChange(Sender: TObject);
     procedure edImageChange(Sender: TObject);
+    procedure edSpecialFolderChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnClearImageClick(Sender: TObject);
     procedure btnSelectColorClick(Sender: TObject);
@@ -77,7 +81,6 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: word; Shift: TShiftState);
     procedure btnApplyClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 		procedure FormShow(Sender: TObject);
     procedure listDblClick(Sender: TObject);
     procedure tbAnimationSpeedChange(Sender: TObject);
@@ -95,6 +98,7 @@ type
     savedDistort: integer;
     savedPreview: integer;
     savedShowBackground: boolean;
+    savedSorted: boolean;
     //
     color_data: uint;
     background_color: uint;
@@ -151,11 +155,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.FormShow(Sender: TObject);
 begin
-  font.Name := GetFont;
-  font.size := GetFontSize;
-  constraints.minheight := Height;
-  constraints.maxheight := Height;
-  constraints.minwidth := Width;
 end;
 //------------------------------------------------------------------------------
 function TfrmStackProp.SetData(wnd: HWND): boolean;
@@ -164,7 +163,9 @@ begin
   result := false;
 
   if FChanged then
+  begin
     if not confirm(Handle, UTF8Decode(XMsgUnsavedIconParams)) then exit;
+  end;
 
   Item := TStackItem(GetWindowLongPtr(wnd, GWL_USERDATA));
   if not (Item is TStackItem) then exit;
@@ -183,12 +184,13 @@ begin
   savedDistort               := Item.Distort;
   savedPreview               := Item.Preview;
   savedShowBackground        := Item.ShowBackground;
+  savedSorted                := Item.Sorted;
 
   // show parameters //
 
   edCaption.Text             := UTF8Encode(savedCaption);
   edImage.Text               := AnsiToUTF8(savedImageFile);
-  SpecialFolder              := savedSpecialFolder;
+  edSpecialFolder.Text       := AnsiToUTF8(savedSpecialFolder);
 
   color_data                 := savedColorData;
   tbHue.OnChange             := nil;
@@ -216,6 +218,7 @@ begin
   tbDistort.Position         := savedDistort;
   cboPreview.ItemIndex       := savedPreview;
   chbBackground.checked      := savedShowBackground;
+  chbSorted.checked          := savedSorted;
 
   Draw;
   iPic.OnPaint := iPicPaint;
@@ -233,8 +236,12 @@ begin
   list.Items.BeginUpdate;
   list.Clear;
   if item.ItemCount > 0 then
+  begin
     for idx := 0 to item.ItemCount - 1 do
+    begin
       list.Items.Add(UTF8Encode(Item.GetSubitemCaption(idx)));
+    end;
+  end;
   list.Items.EndUpdate;
 end;
 //------------------------------------------------------------------------------
@@ -257,7 +264,7 @@ begin
   try
     Item.Caption               := UTF8Decode(edCaption.Text);
     Item.ImageFile             := UTF8ToAnsi(edImage.Text);
-    Item.SpecialFolder         := SpecialFolder;
+    Item.SpecialFolder         := UTF8ToAnsi(edSpecialFolder.Text);
     Item.ColorData             := color_data;
     Item.Mode                  := cboMode.ItemIndex;
     Item.Offset                := tbOffset.Position;
@@ -265,6 +272,7 @@ begin
     Item.Distort               := tbDistort.Position;
     Item.Preview               := cboPreview.ItemIndex;
     Item.ShowBackground        := chbBackground.Checked;
+    Item.Sorted                := chbSorted.Checked;
     Item.Update;
     FChanged := false;
   except
@@ -286,6 +294,7 @@ begin
     Item.Distort               := savedDistort;
     Item.Preview               := savedPreview;
     Item.ShowBackground        := savedShowBackground;
+    Item.Sorted                := savedSorted;
     Item.Update;
   end;
   FChanged := false;
@@ -299,12 +308,6 @@ begin
   FImage := nil;
   action := caFree;
   frmStackProp := nil;
-end;
-//------------------------------------------------------------------------------
-procedure TfrmStackProp.FormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
-  ReleaseCapture;
-  postmessage(handle, $a1, 2, 0);
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.btnClearImageClick(Sender: TObject);
@@ -345,6 +348,11 @@ begin
   Draw;
 end;
 //------------------------------------------------------------------------------
+procedure TfrmStackProp.edSpecialFolderChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
 procedure TfrmStackProp.tbOffsetChange(Sender: TObject);
 begin
   FChanged := true;
@@ -374,6 +382,11 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.chbBackgroundChange(Sender: TObject);
+begin
+  FChanged := true;
+end;
+//------------------------------------------------------------------------------
+procedure TfrmStackProp.chbSortedChange(Sender: TObject);
 begin
   FChanged := true;
 end;
@@ -453,14 +466,14 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmStackProp.Draw;
 var
-  str: string;
+  str: WideString;
 begin
   try
     try if assigned(FImage) then GdipDisposeImage(FImage);
     except end;
     FImage := nil;
 
-    str := UnzipPath(UTF8ToAnsi(edImage.Text));
+    str := WideString(UnzipPath(UTF8ToAnsi(edImage.Text)));
     LoadImage(str, 128, true, false, FImage, FIW, FIH);
 
     // default stack image //

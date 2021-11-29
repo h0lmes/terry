@@ -150,11 +150,9 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutSubitem.Update;
 var
-  sfi: TSHFileInfoW;
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
-  //
   ext, params, dir, icon: string;
 begin
   if FFreed or FUpdating then exit;
@@ -176,16 +174,15 @@ begin
 
       // create PIDL from GUID //
       PIDL_Free(FPIDL);
-      if IsPIDLString(FCommand) then FPIDL := PIDL_FromString(FCommand);
+      if IsPIDLString(FCommand) then
+        FPIDL := PIDL_FromString(FCommand);
+
       if not assigned(FPIDL) then
         if not FileExists(toolu.UnzipPath(FCommand)) then
           if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
+
       FIsPIDL := assigned(FPIDL);
-      if FIsPIDL and (FCaption = '::::') then
-      begin
-        OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
-        FCaption := strpas(pwchar(sfi.szDisplayName));
-      end;
+      if FIsPIDL and (FCaption = '::::') then FCaption := PIDL_GetDisplayName3(FPIDL);
 
       // check if this is the shortcut to an executable file
       FIsExecutable := false;
@@ -258,7 +255,10 @@ var
 begin
   try
     if FFreed or FUpdating or FQueryDelete then exit;
-    if not AForce and (Fx = Ax) and (Fy = Ay) and (FSize = ASize) and (FAlpha = AAlpha) and (FAngle = AAngle) and (FHintAlign =  AHintAlign) and (FHintAlpha = AHintAlpha) then exit;
+    if not AForce and
+      (Fx = Ax) and (Fy = Ay) and (FSize = ASize) and
+      (FAlpha = AAlpha) and (FAngle = AAngle) and
+      (FHintAlign =  AHintAlign) and (FHintAlpha = AHintAlpha) then exit;
 
     // ensure that item is not "selected" before making it visible
     if not IsWindowVisible(FHWnd) then FSelected := false;
@@ -299,15 +299,15 @@ begin
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       GdipFillRectangleI(dst, brush, ClientRect.Left - 1, ClientRect.Top - 1, ClientRect.Right - ClientRect.Left + 2, ClientRect.Bottom - ClientRect.Top + 2);
       GdipDeleteBrush(brush);
-      GdipSetInterpolationMode(dst, InterpolationModeBilinear);
+      GdipSetInterpolationMode(dst, InterpolationModeHighQualityBicubic);
       IconX := ClientRect.Left;
       IconY := ClientRect.Top;
-      if AAngle > 0 then
+      if FAngle > 0 then
       begin
         IconX := -FSize div 2;
         IconY := -FSize div 2;
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle, MatrixOrderPrepend);
       end;
     except
       on e: Exception do raise Exception.Create('InitDraw ' + LineEnding + e.message);
@@ -360,48 +360,51 @@ begin
     end;
 
     // icon and number //
-    CreateColorAttributes(FColorData, FSelected, attr);
-    if assigned(FImage) then GdipDrawImageRectRectI(dst, FImage, IconX, IconY, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, attr, nil, nil);
-    if attr <> nil then GdipDisposeImageAttributes(attr);
+    if assigned(FImage) then
+    begin
+      CreateColorAttributes(FColorData, FSelected, attr);
+      GdipDrawImageRectRectI(dst, FImage, IconX, IconY, FSize, FSize, 0, 0, FIW, FIH, UnitPixel, attr, nil, nil);
+      if attr <> nil then GdipDisposeImageAttributes(attr);
+    end;
     GdipSetCompositingMode(dst, CompositingModeSourceOver);
     if FProcessWindowsCount > 0 then DrawNumberOverlay(dst, IconX, IconY, FSize, FProcessWindowsCount);
-    GdipResetWorldTransform(dst);
 
     // caption //
     if FShowHint and (length(FCaption) > 0) and ((AHintAlign >= 0) and (AHintAlign <= 7)) and (AHintAlpha > 25) then
     begin
+      GdipResetWorldTransform(dst);
       if AHintAlign = HA_HORIZONTAL_LEFT then
       begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle, MatrixOrderPrepend);
         IconX := -FSize div 2 - FCaptionHeight div 3 - FCaptionWidth - 5;
         IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_RIGHT then
       begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle, MatrixOrderPrepend);
         IconX := FSize div 2 + FCaptionHeight div 3 + 5;
         IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_TOP then
       begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle - 90, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle - 90, MatrixOrderPrepend);
         IconX := FSize div 2 + FCaptionHeight div 3 + 5;
         IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_VERTICAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle + 90, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle + 90, MatrixOrderPrepend);
         IconX := FSize div 2 + FCaptionHeight div 3 + 5;
         IconY := -FCaptionHeight div 2;
       end else
       if AHintAlign = HA_HORIZONTAL_BOTTOM then
       begin
         GdipTranslateWorldTransform(dst, ClientRect.Left + FSize div 2, ClientRect.Top + FSize div 2, MatrixOrderPrepend);
-        GdipRotateWorldTransform(dst, AAngle, MatrixOrderPrepend);
+        GdipRotateWorldTransform(dst, FAngle, MatrixOrderPrepend);
         IconX := -FCaptionWidth div 2;
         IconY := FSize div 2 + 3;
       end;
@@ -723,7 +726,8 @@ begin
       Caption  := value
     else
       Caption  := ChangeFileExt(ExtractFilename(value), '');
-    if LowerCase(ExtractFileExt(value)) = '.exe' then Dir := ZipPath(ExcludeTrailingPathDelimiter(ExtractFilePath(value)));
+    if LowerCase(ExtractFileExt(value)) = '.exe' then
+      Dir := ZipPath(ExcludeTrailingPathDelimiter(ExtractFilePath(value)));
     result := Make(Caption, ZipPath(value), '', Dir, '', 1);
   end;
 end;

@@ -8,7 +8,8 @@ msgstr ""
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.7\n"
+"X-Generator: Poedit 3.0\n"
+"Language: ru\n"
 
 #: declu.xaddicon
 msgctxt "declu.xaddicon"
@@ -48,8 +49,8 @@ msgid "Rotate"
 msgstr "Вращение"
 
 #: declu.xanimationspeed
-msgid "Anim. speed: %d"
-msgstr "Скорость аним.: %d"
+msgid "Animation speed: %d"
+msgstr "Скорость анимации: %d"
 
 #: declu.xanimationswing
 msgid "Swing"
@@ -131,13 +132,12 @@ msgid "Error in"
 msgstr "Ошибка в"
 
 #: declu.xerrorinvalidprogramdatastructuresize
-msgid "Invalid program data structure size"
-msgstr "Неверный размер структуры данных о программе"
+msgid "Invalid program data structure size."
+msgstr "Неверный размер структуры данных о программе."
 
 #: declu.xerrorloadtheme
-#| msgid "Theme load error. Try to run program again."
-msgid "Theme load error. Try to run the program again."
-msgstr "Ошибка загрузки темы. Попробуйте запустить программу снова."
+msgid "Error loading theme. Try to run the program again."
+msgstr "Ошибка при загрузке темы. Попробуйте запустить программу снова."
 
 #: declu.xerrorsetsbackupfailed
 #| msgid "Failed to backup settings file."
@@ -182,13 +182,12 @@ msgstr "Завершить процесс"
 
 #: declu.xlabelcenteroffset
 msgctxt "declu.xlabelcenteroffset"
-msgid "Offset from center: %d %%"
-msgstr "Смещение от центра: %d %%"
+msgid "Offset along the edge: %d %%"
+msgstr "Смещение вдоль края: %d %%"
 
 #: declu.xlabeledgeoffset
-#| msgid "Offset from edge: %d px"
 msgctxt "declu.xlabeledgeoffset"
-msgid "Offset from edge: %d pt"
+msgid "Offset from the edge: %d pt"
 msgstr "Смещение от края: %d pt"
 
 #: declu.xlabeliconsize
@@ -213,7 +212,7 @@ msgid "Icon size max: %d pt"
 msgstr "Размер значков макс.: %d pt"
 
 #: declu.xlabelzoomtime
-msgid "Zoom time: %d ms"
+msgid "Zoom-in time: %d ms"
 msgstr "Время увеличения: %d мс"
 
 #: declu.xlabelzoomwidth
@@ -241,10 +240,10 @@ msgstr "Подтвердите операцию восстановления."
 
 #: declu.xmsgnotificationareaicons
 msgid "After you close this message you will see \"Notification area icons\" window. To use this function uncheck \"Always show all icons\" at the bottom of the window and set all behaviors to \"Only show notifications\"."
-msgstr "После закрытия данного сообщения вы увидете окно \"Значки области уведомлений\". Для использования данной функции снимите отметку \"Всегда отображать все значки\" внизу окна и установите для всех значков поведение \"Показать только уведомления\"."
+msgstr "После закрытия этого сообщения вы увидите окно \"Значки области уведомлений\". Чтобы использовать эту функцию, снимите флажок «Всегда показывать все значки» в нижней части окна и установите для всех вариантов поведения значение «Показывать только уведомления»."
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
-msgid "Place target file onto dock instead of shortcut?"
+msgid "Put target file onto the dock instead of a shortcut?"
 msgstr "Добавить на панель целевой файл вместо ярлыка?"
 
 #: declu.xmsgremovedockwarning
@@ -261,13 +260,12 @@ msgid "Run restore operation."
 msgstr "Запустите операцию восстановления."
 
 #: declu.xmsgsetsrestored
-#| msgid "The settings are restored from backup. Run the program again"
-msgid "The settings are restored from backup."
+msgid "Settings were restored from backup."
 msgstr "Настройки восстановлены из резервной копии."
 
 #: declu.xmsgthemesaved
-msgid "Theme saved"
-msgstr "Тема сохранена"
+msgid "Theme saved."
+msgstr "Тема сохранена."
 
 #: declu.xmsgunsavediconparams
 #| msgid "Icon parameters changed. If you will proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?"
@@ -674,7 +672,7 @@ msgstr "Параметры"
 #: tfrmitemprop.lbltip.caption
 msgctxt "tfrmitemprop.lbltip.caption"
 msgid "Use semicolon to separate multiple commands and parameters"
-msgstr "Разделяйте несколько команд или параметров точкой с запятой "
+msgstr "Разделяйте несколько команд или параметров точкой с запятой"
 
 #: tfrmitemprop.lblwindowsize.caption
 msgctxt "tfrmitemprop.lblwindowsize.caption"
@@ -931,10 +929,8 @@ msgid "Stack font size:"
 msgstr "Размер шрифта стека:"
 
 #: tfrmsets.label2.caption
-#, fuzzy
-#| msgid "Margin at the start / end, px"
 msgid "Margin at the start/end, px"
-msgstr "Отступ в начале - конце, пиксел"
+msgstr "Отступ в начале/конце, пиксел"
 
 #: tfrmsets.label3.caption
 msgid "Activation delay"
@@ -964,10 +960,8 @@ msgid "Reflection size:"
 msgstr "Размер отражений:"
 
 #: tfrmsets.lblcenteroffsetpercent.caption
-#, fuzzy
-#| msgid "Offset from center"
 msgid "Offset along the edge"
-msgstr "Смещение от центра"
+msgstr "Смещение вдоль края"
 
 #: tfrmsets.lblcredits.caption
 msgid "A desktop launch panel"
@@ -1006,11 +1000,9 @@ msgstr "http://openiconlibrary.sourceforge.net/"
 #: tfrmsets.lbledge.caption
 msgctxt "TFRMSETS.LBLEDGE.CAPTION"
 msgid "Edge of screen"
-msgstr "Сторона экрана:"
+msgstr "Сторона экрана"
 
 #: tfrmsets.lbledgeoffset.caption
-#, fuzzy
-#| msgid "Offset from edge"
 msgid "Offset from the edge"
 msgstr "Смещение от края"
 
@@ -1043,7 +1035,7 @@ msgstr "(Позволяет избежать случайного запуска
 #: tfrmsets.lblmonitor.caption
 msgctxt "TFRMSETS.LBLMONITOR.CAPTION"
 msgid "Monitor"
-msgstr "Монитор:"
+msgstr "Монитор"
 
 #: tfrmsets.lblremovedock.caption
 msgid "Caution! This action can not be undone!"
@@ -1195,18 +1187,16 @@ msgid "Properties"
 msgstr "Свойства"
 
 #: tfrmstackprop.chbbackground.caption
-msgid "Show background"
-msgstr "Показывать фон"
+msgid "Show background for items"
+msgstr "Показывать фон для элементов"
 
-#: tfrmstackprop.dividerbevel1.caption
-#| msgid "Stack contents"
-msgctxt "tfrmstackprop.dividerbevel1.caption"
-msgid "Items in this stack"
-msgstr "Значки в стеке"
+#: tfrmstackprop.chbsorted.caption
+msgid "Sorted"
+msgstr "Сортировка"
 
 #: tfrmstackprop.label1.caption
-msgid "Preview:"
-msgstr "Предпросмотр:"
+msgid "Items in stack preview"
+msgstr "Предпросмотр элементов в стеке"
 
 #: tfrmstackprop.label2.caption
 msgctxt "TFRMSTACKPROP.LABEL2.CAPTION"
@@ -1251,11 +1241,14 @@ msgstr "Иконка"
 msgid "Offset of icons"
 msgstr "Смещение иконок"
 
+#: tfrmstackprop.lblspecialfolder.caption
+msgid "Special folder"
+msgstr "Специальная папка"
+
 #: tfrmstackprop.lblstyle.caption
-#| msgid "Style"
 msgctxt "tfrmstackprop.lblstyle.caption"
-msgid "Mode"
-msgstr "Вид"
+msgid "Animation"
+msgstr "Анимация"
 
 #: tfrmstackprop.tscolor.caption
 msgctxt "TFRMSTACKPROP.TSCOLOR.CAPTION"
@@ -1313,4 +1306,3 @@ msgstr "Дальше"
 #: tfrmtip.caption
 msgid "Tip"
 msgstr "Подсказка"
-

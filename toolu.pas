@@ -172,9 +172,6 @@ function GetClipboard: string;
 function ColorToString(Color: uint): string;
 function StringToColor(const str: string): uint;
 function confirm(handle: HWND; Text: WideString = ''): boolean;
-function FindWinamp: HWND;
-function LaunchWinamp(sw: integer = sw_shownormal): boolean;
-function wacmd(cmd: HANDLE): boolean;
 procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);
 function IsIdenticalStreams(Source, Destination: TStream): boolean;
 procedure SendShift(hwnd: HWnd; Down: Boolean);
@@ -1143,60 +1140,6 @@ function confirm(handle: HWND; Text: WideString = ''): boolean;
 begin
   if Text = '' then Text := 'Confirm action';
   Result := messageboxw(handle, PWChar(Text), 'Confirm', mb_yesno or mb_iconexclamation or mb_defbutton2) = idYes;
-end;
-//------------------------------------------------------------------------------
-function FindWinamp: HWND;
-begin
-  Result := findwindow('BaseWindow', nil);
-  if not IsWindow(Result) then
-  begin
-    Result := findwindow('Winamp v1.x', nil);
-    if not IsWindow(Result) then Result := 0;
-  end;
-end;
-//------------------------------------------------------------------------------
-function LaunchWinamp(sw: integer = sw_shownormal): boolean;
-var
-  reg: TRegistry;
-  wdir: string;
-begin
-  Result := False;
-
-  try
-    wdir := IncludeTrailingPathDelimiter(ExtractFileDrive(GetWinDir)) + 'program files\winamp\';
-
-    if fileexists(wdir + 'winamp.exe') then
-    begin
-      shellexecute(0, nil, PChar(wdir + 'winamp.exe'), nil, PChar(wdir), sw);
-      Result := True;
-      exit;
-    end;
-
-    reg := TRegistry.Create;
-    reg.RootKey := hkey_current_user;
-    wdir := IncludeTrailingPathDelimiter(reg.ReadString('Software\Winamp'));
-    if fileexists(wdir + 'winamp.exe') then
-    begin
-      shellexecute(0, nil, PChar(wdir + 'winamp.exe'), nil, PChar(wdir), sw);
-      Result := True;
-    end;
-    reg.Free;
-    reg := nil;
-  except
-  end;
-end;
-//------------------------------------------------------------------------------
-function wacmd(cmd: HANDLE): boolean;
-var
-  wahwnd: THandle;
-begin
-  Result := False;
-  wahwnd := FindWinamp;
-  if wahwnd > 0 then
-  begin
-    sendmessage(wahwnd, wm_command, cmd, 0);
-    Result := True;
-  end;
 end;
 //------------------------------------------------------------------------------
 procedure bsm(msg: UINT; wparam: WPARAM; lparam: LPARAM);

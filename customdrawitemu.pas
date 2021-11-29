@@ -83,14 +83,19 @@ begin
 
       if (FSize = ASize) and not AForce then
       begin
-        if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, screenX, screenY, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
-        else SetWindowPos(FHWnd, 0, screenX, screenY, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        if wpi > 0 then
+        begin
+          DeferWindowPos(wpi, FHWnd, 0, screenX, screenY, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem)
+        end else begin
+          SetWindowPos(FHWnd, 0, screenX, screenY, 0, 0, swp_nosize + swp_noactivate + swp_noreposition + swp_nozorder + FShowItem);
+        end;
         UpdateHint(screenX, screenY);
         // OnAfterDraw
         if assigned(OnAfterDraw) then OnAfterDraw;
         exit;
-      end else
+      end else begin
         if wpi > 0 then DeferWindowPos(wpi, FHWnd, 0, 0, 0, 0, 0, swp_nomove + swp_nosize + swp_noactivate + swp_nozorder + swp_noreposition + FShowItem);
+      end;
 
       FSize := ASize;
       if FShowItem and SWP_HIDEWINDOW <> 0 then exit;
@@ -110,7 +115,6 @@ begin
       if not assigned(dst) then
       begin
         DeleteBitmap(bmp);
-        exit; //raise Exception.Create('CreateGraphics failed');
       end;
       GdipCreateSolidFill(ITEM_BACKGROUND, brush);
       if (FSite = 1) or (FSite = 3) then

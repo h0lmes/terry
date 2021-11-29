@@ -8,9 +8,6 @@ object frmColor: TfrmColor
   Caption = 'Select color'
   ClientHeight = 294
   ClientWidth = 380
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   FormStyle = fsStayOnTop
   KeyPreview = True
   OnClose = FormClose

@@ -27,6 +27,7 @@ type
     class function CUpdate: integer;
     class procedure Cleanup;
     class function CInc(value: integer): integer;
+    class procedure SetVolumePercent(percent: integer);
     constructor Create;
     procedure Update;
   end;
@@ -34,6 +35,7 @@ type
 var Mixer: TMixer;
 
 implementation
+uses toolu;
 //------------------------------------------------------------------------------
 class function TMixer.CUpdate: integer;
 begin
@@ -64,12 +66,58 @@ begin
          FmmEndpoint.SetMasterVolumeLevelScalar(vol + value / 100, nil);
   end;
 end;
+//------------------------------------------------------------------------------    
+class procedure TMixer.SetVolumePercent(percent: integer);
+var
+  normalizedVolume: single;
+begin
+  CUpdate;
+  with Mixer do
+  begin
+    if IsReady then
+    begin
+      normalizedVolume := toolu.SetRange(percent, 0, 100) / 100;
+      FmmEndpoint.SetMasterVolumeLevelScalar(normalizedVolume, PGUID(@MMDevApi_tlb.GUID_NULL));
+    end;
+  end;
+end;
 //------------------------------------------------------------------------------
 constructor TMixer.Create;
 begin
   FReady := false;
   FMute := false;
   FVolume := -1;
+end;
+//------------------------------------------------------------------------------
+procedure TMixer.Update;
+const
+  PKEY_Device_DeviceDesc: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 2);
+var
+  oldvol: integer;
+  oldmute: boolean;
+  vol: Single;
+  props: IPropertyStore;
+  prop: PROPVARIANT;
+begin
+  oldvol := FVolume;
+  oldmute := FMute;
+  FMute := false;
+  FVolume := -1;
+
+  if IsReady() then
+  begin
+    if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then FVolume := round(vol * 100);
+    if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
+  end;
+
+  if (oldvol <> FVolume) or (oldmute <> FMute) then
+  begin
+    FDescription := '--';
+    if FVolume >= 0 then FDescription := inttostr(FVolume) + '%';
+    if SUCCEEDED(FmmDev.OpenPropertyStore(STGM_READ, props)) then
+      if SUCCEEDED(props.GetValue(@PKEY_Device_DeviceDesc, prop)) then
+        FDescription := strpas(PWideChar(prop.pwszVal)) + ': ' + FDescription;
+  end;
 end;
 //------------------------------------------------------------------------------
 function TMixer.IsReady: boolean;
@@ -89,7 +137,10 @@ begin
   begin
     if SUCCEEDED(CoCreateInstance(CLSID_MMDeviceEnumerator, nil, CLSCTX_ALL, IID_IMMDeviceEnumerator, FmmDevEnum)) then
       if SUCCEEDED(FmmDevEnum.GetDefaultAudioEndpoint(eRender, eMultimedia, FmmDev)) then
-        if SUCCEEDED(FmmDev.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, FmmEndpoint)) then FReady := true;
+        if SUCCEEDED(FmmDev.Activate(IID_IAudioEndpointVolume, CLSCTX_ALL, nil, FmmEndpoint)) then
+        begin
+           FReady := true;
+        end;
   end;
 
   if not FReady then
@@ -102,37 +153,6 @@ begin
     end;
   end;
   result := FReady;
-end;
-//------------------------------------------------------------------------------
-procedure TMixer.Update;
-const
-  PKEY_Device_DeviceDesc: PROPERTYKEY = (fmtid: '{a45c254e-df1c-4efd-8020-67d146a850e0}'; pid: 2);
-var
-  oldvol: integer;
-  oldmute: boolean;
-  vol: Single;
-  props: IPropertyStore;
-  prop: PROPVARIANT;
-begin
-  oldvol := FVolume;
-  oldmute := FMute;
-  FMute := false;
-  FVolume := -1;
-
-  if IsReady then
-  begin
-    if SUCCEEDED(FmmEndpoint.GetMasterVolumeLevelScalar(vol)) then FVolume := round(vol * 100);
-    if not SUCCEEDED(FmmEndpoint.GetMute(FMute)) then FMute := false;
-  end;
-
-  if (oldvol <> FVolume) or (oldmute <> FMute) then
-  begin
-    FDescription := '--';
-    if FVolume >= 0 then FDescription := inttostr(FVolume) + '%';
-    if SUCCEEDED(FmmDev.OpenPropertyStore(STGM_READ, props)) then
-      if SUCCEEDED(props.GetValue(@PKEY_Device_DeviceDesc, prop)) then
-        FDescription := strpas(PWideChar(prop.pwszVal)) + ': ' + FDescription;
-  end;
 end;
 //------------------------------------------------------------------------------
 function TMixer.getState: integer;

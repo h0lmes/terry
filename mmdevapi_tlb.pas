@@ -47,7 +47,7 @@ type
     Function UnregisterControlChangeNotify( AudioEndPtVol: IAudioEndpointVolumeCallback): Integer; stdcall;
     Function GetChannelCount(out PInteger): Integer; stdcall;
     Function SetMasterVolumeLevel(fLevelDB: single; pguidEventContext: PGUID):Integer; stdcall;
-    Function SetMasterVolumeLevelScalar(fLevelDB: single; pguidEventContext: PGUID):Integer; stdcall;
+    Function SetMasterVolumeLevelScalar(fLevel: single; pguidEventContext: PGUID):Integer; stdcall;
     Function GetMasterVolumeLevel(out fLevelDB: single):Integer; stdcall;
     Function GetMasterVolumeLevelScalar(out fLevel: single):Integer; stdcall;
     Function SetChannelVolumeLevel(nChannel: Integer; fLevelDB: double; pguidEventContext: TGUID):Integer; stdcall;

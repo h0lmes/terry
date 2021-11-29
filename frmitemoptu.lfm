@@ -1,78 +1,72 @@
 object frmItemProp: TfrmItemProp
-  Left = 613
-  Height = 970
-  Top = 408
-  Width = 1500
+  Left = 616
+  Height = 486
+  Top = 410
+  Width = 750
   BorderIcons = [biSystemMenu]
   BorderStyle = bsSizeToolWin
   Caption = 'Properties'
-  ClientHeight = 970
-  ClientWidth = 1500
-  DesignTimePPI = 192
-  Font.CharSet = RUSSIAN_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -22
-  Font.Name = 'Tahoma'
+  ClientHeight = 486
+  ClientWidth = 750
   KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
-  OnMouseDown = FormMouseDown
   OnShow = FormShow
   Position = poScreenCenter
   LCLVersion = '2.0.12.0'
   object btnOK: TButton
-    Left = 30
-    Height = 62
-    Top = 880
-    Width = 230
+    Left = 15
+    Height = 31
+    Top = 440
+    Width = 115
     Caption = 'OK'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnOKClick
     ParentFont = False
     TabOrder = 1
   end
   object btnApply: TButton
-    Left = 270
-    Height = 62
-    Top = 880
-    Width = 230
+    Left = 135
+    Height = 31
+    Top = 440
+    Width = 115
     Caption = 'Apply'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnApplyClick
     ParentFont = False
     TabOrder = 2
   end
   object btnCancel: TButton
-    Left = 510
-    Height = 62
-    Top = 880
-    Width = 230
+    Left = 255
+    Height = 31
+    Top = 440
+    Width = 115
     Caption = 'Cancel'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnCancelClick
     ParentFont = False
     TabOrder = 3
   end
   object pages: TPageControl
-    Left = 20
-    Height = 840
-    Top = 20
-    Width = 1118
+    Left = 10
+    Height = 420
+    Top = 10
+    Width = 559
     ActivePage = tsProperties
     Anchors = [akTop, akLeft, akRight]
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     ParentFont = False
     ShowTabs = False
@@ -80,23 +74,23 @@ object frmItemProp: TfrmItemProp
     TabOrder = 0
     object tsProperties: TTabSheet
       Caption = 'Properties'
-      ClientHeight = 824
-      ClientWidth = 1102
+      ClientHeight = 412
+      ClientWidth = 551
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object edCaption: TEdit
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 80
-        Width = 720
+        Left = 10
+        Height = 21
+        Top = 40
+        Width = 360
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edCaptionChange
         ParentFont = False
@@ -104,14 +98,14 @@ object frmItemProp: TfrmItemProp
       end
       object edCmd: TEdit
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 190
-        Width = 990
+        Left = 10
+        Height = 21
+        Top = 95
+        Width = 495
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edCmdChange
         ParentFont = False
@@ -119,14 +113,14 @@ object frmItemProp: TfrmItemProp
       end
       object edParams: TEdit
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 304
-        Width = 990
+        Left = 10
+        Height = 21
+        Top = 150
+        Width = 495
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edParamsChange
         ParentFont = False
@@ -134,14 +128,14 @@ object frmItemProp: TfrmItemProp
       end
       object edDir: TEdit
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 410
-        Width = 990
+        Left = 10
+        Height = 21
+        Top = 205
+        Width = 495
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edDirChange
         ParentFont = False
@@ -149,15 +143,15 @@ object frmItemProp: TfrmItemProp
       end
       object btnDir: TButton
         Tag = 10
-        Left = 1030
-        Height = 42
-        Top = 410
-        Width = 52
+        Left = 515
+        Height = 21
+        Top = 205
+        Width = 26
         Anchors = [akTop, akRight]
         Caption = '...'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnDirClick
         ParentFont = False
@@ -165,15 +159,15 @@ object frmItemProp: TfrmItemProp
       end
       object btnParams: TButton
         Tag = 10
-        Left = 1030
-        Height = 42
-        Top = 304
-        Width = 52
+        Left = 515
+        Height = 21
+        Top = 152
+        Width = 26
         Anchors = [akTop, akRight]
         Caption = '...'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnParamsClick
         ParentFont = False
@@ -181,15 +175,15 @@ object frmItemProp: TfrmItemProp
       end
       object btnFile: TButton
         Tag = 10
-        Left = 1030
-        Height = 42
-        Top = 190
-        Width = 52
+        Left = 515
+        Height = 21
+        Top = 95
+        Width = 26
         Anchors = [akTop, akRight]
         Caption = '...'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnFileClick
         ParentFont = False
@@ -197,142 +191,142 @@ object frmItemProp: TfrmItemProp
       end
       object cboWindow: TComboBox
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 630
-        Width = 720
+        Left = 10
+        Height = 21
+        Top = 315
+        Width = 360
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
-        ItemHeight = 27
+        ItemHeight = 13
         OnChange = cboWindowChange
         ParentFont = False
         Style = csDropDownList
         TabOrder = 8
       end
       object chbHide: TCheckBox
-        Left = 20
-        Height = 35
-        Top = 710
-        Width = 351
+        Left = 10
+        Height = 19
+        Top = 355
+        Width = 173
         Caption = 'Hide dock when application runs'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbHideChange
         ParentFont = False
         TabOrder = 9
       end
       object lblTip: TLabel
-        Left = 20
-        Height = 27
-        Top = 780
-        Width = 612
+        Left = 10
+        Height = 13
+        Top = 390
+        Width = 297
         Caption = 'Use semicolon to separate multiple commands and parameters'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblWindowSize: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 588
-        Width = 121
+        Left = 10
+        Height = 13
+        Top = 294
+        Width = 59
         Caption = 'Window size'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblWorkingDirectory: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 370
-        Width = 172
+        Left = 10
+        Height = 13
+        Top = 185
+        Width = 85
         Caption = 'Working directory'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblParams: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 260
-        Width = 111
+        Left = 10
+        Height = 13
+        Top = 130
+        Width = 55
         Caption = 'Parameters'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCommand: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 150
-        Width = 97
+        Left = 10
+        Height = 13
+        Top = 75
+        Width = 47
         Caption = 'Command'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCaption: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 36
-        Width = 57
+        Left = 10
+        Height = 13
+        Top = 18
+        Width = 27
         Caption = 'Name'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblImage: TLabel
         Tag = 10
-        Left = 20
-        Height = 27
-        Top = 480
-        Width = 62
+        Left = 10
+        Height = 13
+        Top = 240
+        Width = 30
         Caption = 'Image'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object edImage: TEdit
         Tag = 10
-        Left = 20
-        Height = 35
-        Top = 520
-        Width = 990
+        Left = 10
+        Height = 21
+        Top = 260
+        Width = 495
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edImageChange
         ParentFont = False
@@ -340,15 +334,15 @@ object frmItemProp: TfrmItemProp
       end
       object btnImage: TButton
         Tag = 10
-        Left = 1030
-        Height = 42
-        Top = 520
-        Width = 52
+        Left = 515
+        Height = 21
+        Top = 260
+        Width = 26
         Anchors = [akTop, akRight]
         Caption = '...'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnBrowseImage1Click
         ParentFont = False
@@ -361,66 +355,66 @@ object frmItemProp: TfrmItemProp
       ClientWidth = 681
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object Label2: TLabel
-        Left = 20
+        Left = 10
         Height = 13
-        Top = 50
+        Top = 25
         Width = 19
         Caption = 'Hue'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object Label5: TLabel
-        Left = 20
+        Left = 10
         Height = 13
-        Top = 470
+        Top = 235
         Width = 42
         Caption = 'Contrast'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object Label4: TLabel
-        Left = 20
+        Left = 10
         Height = 13
-        Top = 330
+        Top = 165
         Width = 50
         Caption = 'Brightness'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object Label3: TLabel
-        Left = 20
+        Left = 10
         Height = 13
-        Top = 190
+        Top = 95
         Width = 50
         Caption = 'Saturation'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbHue: TTrackBar
-        Left = 20
-        Height = 72
-        Top = 90
-        Width = 637
+        Left = 10
+        Height = 36
+        Top = 45
+        Width = 659
         Frequency = 16
         Max = 255
         OnChange = tbHueChange
@@ -431,16 +425,16 @@ object frmItemProp: TfrmItemProp
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 0
       end
       object tbSat: TTrackBar
-        Left = 20
-        Height = 72
-        Top = 230
-        Width = 637
+        Left = 10
+        Height = 36
+        Top = 115
+        Width = 659
         Frequency = 16
         Max = 255
         PageSize = 10
@@ -450,16 +444,16 @@ object frmItemProp: TfrmItemProp
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 1
       end
       object tbBr: TTrackBar
-        Left = 20
-        Height = 72
-        Top = 370
-        Width = 637
+        Left = 10
+        Height = 36
+        Top = 185
+        Width = 659
         Frequency = 16
         Max = 255
         PageSize = 10
@@ -469,16 +463,16 @@ object frmItemProp: TfrmItemProp
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 2
       end
       object tbCont: TTrackBar
-        Left = 20
-        Height = 72
-        Top = 510
-        Width = 637
+        Left = 10
+        Height = 36
+        Top = 255
+        Width = 659
         Frequency = 16
         Max = 255
         PageSize = 10
@@ -488,34 +482,34 @@ object frmItemProp: TfrmItemProp
         Anchors = [akTop, akLeft, akRight]
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 3
       end
       object btnDefaultColor: TButton
-        Left = 20
-        Height = 52
-        Top = 620
-        Width = 340
+        Left = 10
+        Height = 26
+        Top = 310
+        Width = 170
         Caption = 'Reset color'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnDefaultColorClick
         ParentFont = False
         TabOrder = 4
       end
       object btnProperties: TButton
-        Left = 390
-        Height = 52
-        Top = 620
-        Width = 410
+        Left = 195
+        Height = 26
+        Top = 310
+        Width = 205
         Caption = 'Back to properties'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnPropertiesClick
         ParentFont = False
@@ -525,72 +519,71 @@ object frmItemProp: TfrmItemProp
   end
   object iPic: TPaintBox
     Tag = 10
-    Left = 1190
-    Height = 256
-    Top = 62
-    Width = 256
+    Left = 595
+    Height = 128
+    Top = 31
+    Width = 128
     Anchors = [akTop, akRight]
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     ParentFont = False
-    OnMouseDown = FormMouseDown
   end
   object btnBrowseImage1: TButton
-    Left = 1168
-    Height = 62
-    Top = 350
-    Width = 300
+    Left = 584
+    Height = 31
+    Top = 175
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Browse image'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnBrowseImage1Click
     ParentFont = False
     TabOrder = 5
   end
   object btnClearImage: TButton
-    Left = 1168
-    Height = 62
-    Top = 430
-    Width = 300
+    Left = 584
+    Height = 31
+    Top = 215
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Clear image'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnClearImageClick
     ParentFont = False
     TabOrder = 6
   end
   object btnSelectColor: TButton
-    Left = 1168
-    Height = 62
-    Top = 510
-    Width = 300
+    Left = 584
+    Height = 31
+    Top = 255
+    Width = 150
     Anchors = [akTop, akRight]
     Caption = 'Select color'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnSelectColorClick
     ParentFont = False
     TabOrder = 7
   end
   object btnConvertLink: TButton
-    Left = 750
-    Height = 62
-    Top = 880
-    Width = 310
+    Left = 375
+    Height = 31
+    Top = 440
+    Width = 155
     Caption = 'Convert .LNK'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btnConvertLinkClick
     ParentFont = False

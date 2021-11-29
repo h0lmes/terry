@@ -9,7 +9,7 @@ uses Windows, Messages, SysUtils, Controls, Classes, Math, ComObj,
 const
   MIN_BORDER = 8;
   BGMARGIN = 3;
-  MAX_CAPTION_WIDTH = 200;
+  MAX_CAPTION_LENGTH = 32;
   TDSUBITEM_WCLASS = 'TDockSubItemWClass';
 
 type
@@ -89,7 +89,8 @@ type
     destructor Destroy; override;
     procedure FromString(data: string); virtual; abstract;
     procedure HideItem; virtual;
-    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single; AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean); virtual; abstract;
+    procedure Draw(Ax, Ay, ASize: integer; AAlpha: integer; AAngle: single;
+      AHintAlign: integer; AHintAlpha: integer; ABackground, AForce: boolean); virtual; abstract;
     procedure DrawPreview(graphics: Pointer; Ax, Ay, ASize: integer); virtual; abstract;
     function ToString: string; override;
     procedure MouseDown(button: TMouseButton; shift: TShiftState; x, y: integer); virtual;
@@ -180,8 +181,8 @@ begin
   FEnabled := true;
   FHWnd := 0;
   FCaption := '';
-  Fx := -3000;
-  Fy := -3000;
+  Fx := -9999;
+  Fy := -9999;
   FSize := 32;
   FCaption := '';
   FUpdating := false;
@@ -378,11 +379,14 @@ var
   hgdip, font, ff: Pointer;
   rect: TRectF;
   dc: HDC;
+  DisplayableCaption: WideString;
 begin
   FCaptionWidth := 0;
   FCaptionHeight := 0;
   if FShowHint and (length(FCaption) > 0) then
   begin
+    DisplayableCaption := copy(FCaption, 1, min(length(FCaption), MAX_CAPTION_LENGTH));
+
     dc := CreateCompatibleDC(0);
     if dc = 0 then raise Exception.Create('CustomSubitem.UpdateCaptionExtent.CreateCompatibleDC failed');
     try
@@ -398,7 +402,7 @@ begin
             rect.y := 0;
             rect.Width := 0;
             rect.Height := 0;
-            GdipMeasureString(hgdip, PWideChar(FCaption), -1, font, @rect, nil, @rect, nil, nil);
+            GdipMeasureString(hgdip, PWideChar(DisplayableCaption), -1, font, @rect, nil, @rect, nil, nil);
           finally
             GdipDeleteFont(font);
           end;
@@ -411,7 +415,7 @@ begin
     finally
       DeleteDC(dc);
     end;
-    FCaptionWidth := min(ceil(rect.Width), MAX_CAPTION_WIDTH);
+    FCaptionWidth := ceil(rect.Width);
     FCaptionHeight := ceil(rect.Height);
   end;
 end;
@@ -489,10 +493,8 @@ begin
   if assigned(e) then
   begin
     AddLog(where + LineEnding + e.message);
-    //notify(where + LineEnding + e.message);
   end else begin
     AddLog(where);
-    //notify(where);
   end;
 end;
 //------------------------------------------------------------------------------

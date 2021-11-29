@@ -78,9 +78,6 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmcmd.FormShow(Sender: TObject);
 begin
-  font.Name := GetFont;
-  font.size := GetFontSize;
-
   clientheight := edcmd.top * 2 + edcmd.Height;
   edcmd.SetFocus;
 end;

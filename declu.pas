@@ -252,11 +252,11 @@ resourcestring
   // common //
   XErrorContactDeveloper = 'Contact developer if error is permanent.';
   XErrorCritical = 'Critical error occured. Try to run the program again.';
-  XErrorLoadTheme = 'Theme load error. Try to run the program again.';
-  XMsgThemeSaved = 'Theme saved';
+  XErrorLoadTheme = 'Error loading theme. Try to run the program again.';
+  XMsgThemeSaved = 'Theme saved.';
   XErrorSetsCorrupted = 'Settings file corrupted.';
   XErrorSetsRestoreFailed = 'Restore operation failed.';
-  XMsgSetsRestored = 'The settings are restored from backup.';
+  XMsgSetsRestored = 'Settings were restored from backup.';
   XMsgRunAgain = 'Run the program again.';
   XMsgRunRestore = 'Run restore operation.';
   XMsgConfirmRestore = 'Confirm restore operation.';
@@ -282,10 +282,10 @@ resourcestring
   XEmptyBin = 'Empty bin';
   XOpenThemesFolder = 'Open themes folder';
   XUndeleteIcon = 'Undelete icon  (Ctrl+Z)';
-  XMsgPlaceTargetFileInsteadOfShortcut = 'Place target file onto dock instead of shortcut?';
+  XMsgPlaceTargetFileInsteadOfShortcut = 'Put target file onto the dock instead of a shortcut?';
   XShortcut = 'Shortcut';
   XFile = 'File';
-  XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size';
+  XErrorInvalidProgramDataStructureSize = 'Invalid program data structure size.';
   // items //
   XRun = 'Run  (Ctrl + Click)';
   XConfigureIcon = 'Configure icon';
@@ -299,13 +299,13 @@ resourcestring
   XPlaceTasksHere = 'Place tasks here';
   // frmsetsu //
   XMsgRemoveDockWarning = 'Are you sure you pressed the correct button?';
-  XLabelCenterOffset = 'Offset from center: %d %%';
-  XLabelEdgeOffset = 'Offset from edge: %d pt';
+  XLabelCenterOffset = 'Offset along the edge: %d %%';
+  XLabelEdgeOffset = 'Offset from the edge: %d pt';
   XLabelIconSize = 'Icon size: %d pt';
   XLabelZoomedIconSize = 'Icon size max: %d pt';
   XLabelIconSpacing = 'Icon spacing: %d pt';
   XLabelZoomWidth = 'Zoom width: %d';
-  XLabelZoomTime = 'Zoom time: %d ms';
+  XLabelZoomTime = 'Zoom-in time: %d ms';
   XLabelReserveScreenEdgePercent = 'Reserve screen edge: %d%%';
   XPageGeneral = 'General';
   XPageTaskbar = 'Taskbar';
@@ -338,7 +338,7 @@ resourcestring
   XMsgUnsavedIconParams = 'Icon parameters changed. If you choose to proceed all changes will be lost. Proceed?';
   XOffsetOfIcons = 'Offset of icons: %d pt';
   XDistort = 'Spacing/Distortion: %d';
-  XAnimationSpeed = 'Anim. speed: %d';
+  XAnimationSpeed = 'Animation speed: %d';
   XAlphaChannel = 'Alpha channel: %d';
   // frmstackpropu //
   XStackPreviewNone = 'none';

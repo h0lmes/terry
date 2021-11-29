@@ -1,17 +1,13 @@
 object frmcmd: Tfrmcmd
-  Left = 401
+  Left = 446
   Height = 42
-  Top = 311
+  Top = 390
   Width = 536
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
   Caption = 'Command'
   ClientHeight = 42
   ClientWidth = 536
-  Font.CharSet = RUSSIAN_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
   FormStyle = fsStayOnTop
   KeyPreview = True
   OnClose = FormClose

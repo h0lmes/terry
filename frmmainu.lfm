@@ -8,9 +8,6 @@ object frmmain: Tfrmmain
   BorderStyle = bsNone
   Caption = 'TDockForm'
   Color = clBtnFace
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'MS Sans Serif'
   KeyPreview = True
   OnClose = FormClose
   OnKeyDown = FormKeyDown

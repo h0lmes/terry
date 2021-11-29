@@ -33,6 +33,12 @@ type
     item: TCustomSubitem;
   end;
 
+  PSISubitemData = ^TSISubitemData;
+  TSISubitemData = record
+    Data: string;
+    Name: string;
+  end;
+
   { TStackItem }
 
   TStackItem = class(TCustomDrawItem)
@@ -45,6 +51,7 @@ type
     FDistort: integer;
     FPreview: integer; // 0 - none, 1 - four, 2 - nine
     FShowBackground: boolean;
+    FSorted: boolean;
     //
     FUseShellContextMenus: boolean;
     items: array of TCSIBucket; // using a dynamic array. static causes obscure error while deleting stackitem
@@ -68,10 +75,12 @@ type
     // items handling //
     procedure UpdateSpecialFolder;
     procedure AddSpecialFolder(csidl: integer);
+    procedure SortItems;
     procedure UpdatePreview;
     function MakeICP: TDItemCreateParams;
     procedure CheckDeleteSubitems;
     procedure DeleteSubitems;
+    procedure SubitemSwap(index1, index2: integer);
     procedure CopyCSIBucket(pFrom, pTo: PCSIBucket);
     function ItemIndex(wnd: HWND): integer;
     procedure AllSubitemsCmd(id: TDParam; param: PtrInt);
@@ -90,6 +99,7 @@ type
     property Distort: integer read FDistort write FDistort;
     property Preview: integer read FPreview write FPreview;
     property ShowBackground: boolean read FShowBackground write FShowBackground;
+    property Sorted: boolean read FSorted write FSorted;
     //
     function ToStringFullCopy: string;
     //
@@ -124,7 +134,8 @@ type
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
       ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
-      AShowBackground: boolean = false): string;
+      AShowBackground: boolean = false;
+      ASorted: boolean = false): string;
   end;
 
 implementation
@@ -189,13 +200,14 @@ begin
         Caption          := ReadIniStringW(IniFile, IniSection, 'caption', '');
         FImageFile       := ReadIniStringW(IniFile, IniSection, 'image', '');
         FColorData       := toolu.StringToColor(ReadIniStringW(IniFile, IniSection, 'color_data', toolu.ColorToString(DEF_COLOR_DATA)));
-        FMode            := ReadIniIntW(IniFile, IniSection, 'mode', 0, 0, 1000);
+        FMode            := ReadIniIntW(IniFile, IniSection, 'mode', 0, 0, 99);
         FOffset          := ReadIniIntW(IniFile, IniSection, 'offset', 0, -100, 100);
-        FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEF_ANIM_SPEED, 1, 10);
+        FAnimationSpeed  := ReadIniIntW(IniFile, IniSection, 'animation_speed', DEF_ANIM_SPEED, 1, 20);
         FDistort         := ReadIniIntW(IniFile, IniSection, 'distort', DEF_DISTORT, -10, 10);
         FPreview         := ReadIniIntW(IniFile, IniSection, 'preview', DEF_STACK_PREVIEW, 0, 2);
         FSpecialFolder   := ReadIniStringW(IniFile, IniSection, 'special_folder', '');
         FShowBackground  := ReadIniBoolW(IniFile, IniSection, 'background', false);
+        FSorted          := ReadIniBoolW(IniFile, IniSection, 'sorted', false);
 
         idx := 1;
         repeat
@@ -203,6 +215,8 @@ begin
           if data <> '' then AddSubitem(data);
           inc(idx);
         until (data = '') or (idx > MAX_SUBITEMS);
+
+        UpdateSpecialFolder;
 
         FUpdating:= false;
         Update;
@@ -255,6 +269,8 @@ begin
       FSpecialFolder       := FetchValue(value, 'special_folder="', '";');
       try FShowBackground  := boolean(strtoint(FetchValue(value, 'background="', '";')));
       except end;
+      try FSorted          := boolean(strtoint(FetchValue(value, 'sorted="', '";')));
+      except end;
 
       if list.count > 1 then
       begin
@@ -266,6 +282,8 @@ begin
         end;
       end;
       list.free;
+
+      UpdateSpecialFolder;
 
     finally
       FUpdating:= false;
@@ -296,7 +314,7 @@ begin
       FUpdating:= false;
     end;
 
-    UpdateSpecialFolder;
+    if FSorted then SortItems;
     UpdatePreview;
   except
     on e: Exception do raise Exception.Create('StackItem.UpdateItemInternal ' + LineEnding + e.message);
@@ -648,6 +666,7 @@ begin
   if FSpecialFolder <> '' then                  WriteIniStringW(ini, section, 'special_folder', FSpecialFolder);
   if FPreview <> DEF_STACK_PREVIEW then         WriteIniStringW(ini, section, 'preview', inttostr(FPreview));
   if FShowBackground then                       WriteIniStringW(ini, section, 'background', '1');
+  if FSorted then                               WriteIniStringW(ini, section, 'sorted', '1');
   if (FItemCount > 0) and (FSpecialFolder = '') then
   begin
     for idx := 0 to FItemCount - 1 do   WriteIniStringW(ini, section, 'subitem' + inttostr(idx + 1), items[idx].item.ToString);
@@ -693,6 +712,7 @@ var
   pidAbsolute: PItemIdList;
   pEnumList: IEnumIDList;
   celtFetched: ULONG;
+  strItemData: string;
 begin
   if FFreed then exit;
 
@@ -701,6 +721,7 @@ begin
     OleCheck(SHGetSpecialFolderLocation(0, csidl or CSIDL_FLAG_NO_ALIAS, pidFolder));
     OleCheck(psfDesktop.BindToObject(pidFolder, nil, IID_IShellFolder, psfFolder));
     OleCheck(psfFolder.EnumObjects(0, SHCONTF_NONFOLDERS or SHCONTF_FOLDERS, pEnumList));
+
     if FCaption = '::::' then
     begin
       FillChar(sfi, sizeof(sfi), 0);
@@ -711,7 +732,8 @@ begin
     while pEnumList.Next(1, pidChild, celtFetched) = NOERROR do
     begin
       pidAbsolute := PIDL_GetAbsolute(pidFolder, pidChild);
-      AddSubitem(TShortcutSubitem.MakeFromFilename(PIDL_GetDisplayName2(pidAbsolute)));
+      strItemData := TShortcutSubitem.MakeFromFilename(PIDL_GetDisplayName2(pidAbsolute));
+      AddSubitem(strItemData);
       PIDL_Free(pidChild);
     end;
 
@@ -719,6 +741,33 @@ begin
   except
     on e: Exception do raise Exception.Create('StackItem.AddSpecialFolder ' + LineEnding + e.message);
   end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.SortItems;
+  procedure sort(low, high: integer);
+  var
+    l, r: integer;
+    median, temp: string;
+  begin
+    l := low;
+    r := high;
+    median := AnsiUpperCase(GetSubitemCaption((l + r) div 2));
+    repeat
+      while AnsiUpperCase(GetSubitemCaption(l)) < median do inc(l);
+      while AnsiUpperCase(GetSubitemCaption(r)) > median do dec(r);
+      if l <= r then
+      begin
+        SubitemSwap(l, r);
+        inc(l);
+        dec(r);
+      end;
+    until l > r;
+
+    if low < r then sort(low, r);
+    if l < high then sort(l, high);
+  end;
+begin
+  if FItemCount > 0 then sort(0, FItemCount - 1);
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.UpdatePreview;
@@ -806,8 +855,7 @@ begin
       begin
         DeleteSubitem(FItemCount - 1);
         dec(FItemCount);
-      end
-      else begin
+      end else begin
         items[FItemCount - 1].wnd := items[FItemCount - 1].item.Handle;
         items[FItemCount - 1].item.FromString(data);
       end;
@@ -907,30 +955,34 @@ begin
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.SubitemMoveUp(index: integer);
-var
-  csib: TCSIBucket;
 begin
-  if (index > 0) and (index < FItemCount) then
   try
-    CopyCSIBucket(@items[index - 1], @csib);
-    CopyCSIBucket(@items[index], @items[index - 1]);
-    CopyCSIBucket(@csib, @items[index]);
+    SubitemSwap(index - 1, index);
   except
     on e: Exception do raise Exception.Create('StackItem.SubitemMoveUp ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
 procedure TStackItem.SubitemMoveDown(index: integer);
+begin
+  try
+    SubitemSwap(index + 1, index);
+  except
+    on e: Exception do raise Exception.Create('StackItem.SubitemMoveDown ' + LineEnding + e.message);
+  end;
+end;
+//------------------------------------------------------------------------------
+procedure TStackItem.SubitemSwap(index1, index2: integer);
 var
   csib: TCSIBucket;
 begin
-  if (index >= 0) and (index < FItemCount - 1) then
+  if (index1 >= 0) and (index1 < FItemCount) and (index2 >= 0) and (index2 < FItemCount) and (index1 <> index2) then
   try
-    CopyCSIBucket(@items[index + 1], @csib);
-    CopyCSIBucket(@items[index], @items[index + 1]);
-    CopyCSIBucket(@csib, @items[index]);
+    CopyCSIBucket(@items[index1], @csib);
+    CopyCSIBucket(@items[index2], @items[index1]);
+    CopyCSIBucket(@csib, @items[index2]);
   except
-    on e: Exception do raise Exception.Create('StackItem.SubitemMoveDown ' + LineEnding + e.message);
+    on e: Exception do raise Exception.Create('StackItem.SubitemSwap ' + LineEnding + e.message);
   end;
 end;
 //------------------------------------------------------------------------------
@@ -989,12 +1041,6 @@ procedure TStackItem.OpenStack;
 begin
   if not FFreed and (FItemCount > 0) and ((FState = stsClosed) or (FState = stsClosing)) then
   begin
-    {try
-      FUpdating := true;
-      UpdateSpecialFolder;
-    finally
-      FUpdating := false;
-    end;}
     FStateProgress := 0;
     FState := stsOpening; // further progress is being done by timer //
     FHideHint := true;
@@ -1147,7 +1193,8 @@ class function TStackItem.Make(ACaption: WideString = ''; AImage: string = ''; A
       color_data: integer = DEF_COLOR_DATA; AMode: integer = 0;
       AOffset: integer = 0; AAnimationSpeed: integer = DEF_ANIM_SPEED;
       ADistort: integer = DEF_DISTORT; APreview: integer = DEF_STACK_PREVIEW;
-      AShowBackground: boolean = false): string;
+      AShowBackground: boolean = false;
+      ASorted: boolean = false): string;
 begin
   result := 'class="stack";';
   if ACaption <> '' then result := result + 'caption="' + ACaption + '";';
@@ -1159,7 +1206,8 @@ begin
   result := result + 'animation_speed="' + inttostr(AAnimationSpeed) + '";';
   result := result + 'distort="' + inttostr(ADistort) + '";';
   if APreview <> DEF_STACK_PREVIEW then result := result + 'preview="' + inttostr(APreview) + '";';
-  if AShowBackground then result := result + 'background="0";';
+  if AShowBackground then result := result + 'background="1";';
+  if ASorted then result := result + 'sorted="1";';
 end;
 //------------------------------------------------------------------------------
 end.

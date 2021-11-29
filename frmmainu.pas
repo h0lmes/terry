@@ -75,7 +75,6 @@ type
     procedure WMCompositionChanged(var Message: TMessage);
     procedure WMDPIChanged(var Message: TMessage);
     procedure WHRawMouse(mouse: RAWMOUSE);
-    //procedure WHRawKB(kb: RAWKEYBOARD);
     procedure WHButtonDown(button: integer);
     procedure WHMouseMove(LParam: LParam);
     procedure OnMouseEnter;
@@ -137,7 +136,6 @@ type
     procedure ThemesMenu;
     procedure SetTaskSpot(wnd: THandle);
     procedure ListTasksAndModules;
-    procedure WinampCmd(params: string; showcmd: integer = sw_shownormal);
     procedure execute_multi(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwnd: cardinal = 0);
     procedure execute_cmdline(cmd: string; showcmd: integer = sw_shownormal);
     procedure execute(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = sw_shownormal; hwndCaller: cardinal = 0);
@@ -149,7 +147,7 @@ var frmmain: Tfrmmain;
 implementation
 uses themeu, toolu, scitemu, PIDL, frmsetsu, frmcmdu, frmitemoptu,
   frmStackPropu, frmAddCommandU, frmthemeeditoru, processhlp, frmhellou,
-  frmtipu, multidocku, frmrestoreu;
+  frmtipu, multidocku, frmrestoreu, mixeru;
 {$R *.lfm}
 {$R Resource\res.res}
 //------------------------------------------------------------------------------
@@ -197,11 +195,6 @@ begin
 
     WM_SHELLHOOK := RegisterWindowMessage('SHELLHOOK');
     RegisterShellHookWindow(Handle);
-
-    // hook //
-    //theFile := UnzipPath('%pp%\hook.dll');
-    //FHook := 0;
-    //if FileExists(theFile) then FHook := LoadLibrary(pchar(theFile));
 
     sets := TDSets.Create(SetsFilename, UnzipPath('%pp%'), Handle);
     sets.Load;
@@ -630,11 +623,10 @@ var
   rid: array [0..0] of RAWINPUTDEVICE;
 begin
   rid[0].usUsagePage := 1;
-  rid[0].usUsage := 2; // 2 = mouse, 6 = keyboard
+  rid[0].usUsage := 2;
   rid[0].dwFlags := RIDEV_INPUTSINK;
   rid[0].hwndTarget := Handle;
-  if not RegisterRawInputDevices(@rid, 1, sizeof(RAWINPUTDEVICE)) then
-    notify('RegisterRawInput failed!');
+  if not RegisterRawInputDevices(@rid, 1, sizeof(RAWINPUTDEVICE)) then notify('RegisterRawInput failed!');
 end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.NativeWndProc(var message: TMessage);
@@ -654,7 +646,6 @@ begin
          if GetRawInputData(message.lParam, RID_INPUT, @ri, @dwSize, sizeof(RAWINPUTHEADER)) = dwSize then
          begin
            if ri.header.dwType = RIM_TYPEMOUSE then WHRawMouse(ri.mouse);
-           //else if ri.header.dwType = RIM_TYPEKEYBOARD then WHRawKB(ri.keyboard);
          end;
        end;
      exit;
@@ -759,32 +750,6 @@ begin
   // just to be sure
   ItemMgr.DragLeave;
 end;
-//------------------------------------------------------------------------------
-//procedure Tfrmmain.WHRawKB(kb: RAWKEYBOARD);
-//var
-//  key: char;
-//  fw: THandle;
-//begin
-//  if assigned(frmcmd) then
-//  begin
-//    fw := GetForegroundWindow;
-//    if (fw <> handle) and (fw <> frmcmd.handle) and IsWindowVisible(frmcmd.Handle) then
-//      if kb.Message = WM_KEYDOWN then
-//      begin
-//        //notify('VKey = ' + inttostr(kb.VKey) + LineEnding + 'Message = ' + inttostr(kb.Message) + LineEnding +
-//          //'Flags = ' + inttostr(kb.Flags) + LineEnding + 'Ext = ' + inttostr(kb.ExtraInformation) + LineEnding + 'MakeCode = ' + inttostr(kb.MakeCode));
-//        if kb.vkey = vk_return then frmcmd.exec
-//        else
-//        if kb.vkey = vk_escape then frmcmd.close
-//        else
-//        begin
-//          key := chr(kb.vkey);
-//          if GetKeyState(VK_SHIFT) and $80 = 0 then key := LowerCase(key);
-//          //SendKey(frmcmd.edcmd.handle, char(key), kb.Flags <> 0);
-//        end;
-//      end;
-//  end;
-//end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.FlashTaskWindow(hwnd: HWND);
 begin
@@ -1660,7 +1625,6 @@ end;
 //------------------------------------------------------------------------------
 procedure Tfrmmain.WMDPIChanged(var Message: TMessage);
 begin
-  //GetDpiForMonitor
   BaseCmd(tcThemeChanged, 0);
   message.Result := 0;
 end;
@@ -1808,25 +1772,6 @@ begin
   notify(WideString(ProcessHelper.ProcessesFullName));
 end;
 //------------------------------------------------------------------------------
-procedure Tfrmmain.WinampCmd(params: string; showcmd: integer = sw_shownormal);
-begin
-  if SameText(params, 'play') then
-  begin
-    if not boolean(FindWinamp) then LaunchWinamp(showcmd) else wacmd(40045);
-  end
-  else if SameText(params, 'pause') then              wacmd(40046)
-  else if SameText(params, 'stop') then               wacmd(40047)
-  else if SameText(params, 'previous') then           wacmd(40044)
-  else if SameText(params, 'next') then               wacmd(40048)
-  else if SameText(params, 'close') then              wacmd(40001)
-  else if SameText(params, 'preferences') then        wacmd(40012)
-  else if SameText(params, 'open_file') then          wacmd(40029)
-  else if SameText(params, 'stop_after_current') then wacmd(40157)
-  else if SameText(params, 'visualization') then      wacmd(40192)
-  else if SameText(params, 'start_of_playlist') then  wacmd(40154)
-  else if SameText(params, 'end_of_playlist') then    wacmd(40158);
-end;
-//------------------------------------------------------------------------------
 procedure Tfrmmain.execute_multi(cmd: string; params: string = ''; dir: string = ''; showcmd: integer = SW_SHOWNORMAL; hwnd: cardinal = 0);
 var
   acmd, aparams, adir: string;
@@ -1900,6 +1845,11 @@ begin
   else if cmd = 'backup' then       sets.Backup
   else if cmd = 'restore' then      TfrmRestore.Open
   else if cmd = 'paste' then        ItemMgr.InsertItem(GetClipboard)
+  else if cmd = 'setvolume' then
+  begin
+    if trystrtoint(Trim(params), i1) then
+      TMixer.SetVolumePercent(i1);
+  end
   else if cmd = 'autotray' then     Tray.SwitchAutoTray
   else if cmd = 'tray' then         Tray.ShowTrayOverflow(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
   else if cmd = 'volume' then       Tray.ShowVolumeControl(sets.container.Site, hwndCaller, ItemMgr.Rect, GetMonitorWorkareaRect)
@@ -1920,7 +1870,6 @@ begin
   else if cmd = 'kill' then         ProcessHelper.Kill(params)
   else if cmd = 'displayoff' then   sendmessage(handle, WM_SYSCOMMAND, SC_MONITORPOWER, 2)
   else if cmd = 'emptybin' then     SHEmptyRecycleBin(Handle, nil, 0)
-  else if cmd = 'winamp' then       WinampCmd(params, showcmd)
   else if cmd = 'play' then         sndPlaySound(pchar(UnzipPath(params)), SND_ASYNC or SND_FILENAME)
   else if cmd = 'setclipboard' then SetClipboard(params)
   else if cmd = 'guid' then         SetClipboard(CreateClassId)
@@ -2036,9 +1985,7 @@ begin
       sei.cbSize := sizeof(sei);
       sei.lpIDList := aPIDL;
       sei.fMask := SEE_MASK_IDLIST;
-      sei.Wnd := 0;
-      sei.nShow := 1;
-      sei.lpVerb := 'open';
+      sei.nShow := showcmd;
       ShellExecuteExW(@sei);
       PIDL_Free(aPIDL);
       exit;

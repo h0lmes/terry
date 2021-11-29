@@ -47,7 +47,7 @@ msgid "Rotate"
 msgstr ""
 
 #: declu.xanimationspeed
-msgid "Anim. speed: %d"
+msgid "Animation speed: %d"
 msgstr ""
 
 #: declu.xanimationswing
@@ -125,11 +125,11 @@ msgid "Error in"
 msgstr ""
 
 #: declu.xerrorinvalidprogramdatastructuresize
-msgid "Invalid program data structure size"
+msgid "Invalid program data structure size."
 msgstr ""
 
 #: declu.xerrorloadtheme
-msgid "Theme load error. Try to run the program again."
+msgid "Error loading theme. Try to run the program again."
 msgstr ""
 
 #: declu.xerrorsetsbackupfailed
@@ -169,11 +169,11 @@ msgid "Kill process"
 msgstr ""
 
 #: declu.xlabelcenteroffset
-msgid "Offset from center: %d %%"
+msgid "Offset along the edge: %d %%"
 msgstr ""
 
 #: declu.xlabeledgeoffset
-msgid "Offset from edge: %d pt"
+msgid "Offset from the edge: %d pt"
 msgstr ""
 
 #: declu.xlabeliconsize
@@ -193,7 +193,7 @@ msgid "Icon size max: %d pt"
 msgstr ""
 
 #: declu.xlabelzoomtime
-msgid "Zoom time: %d ms"
+msgid "Zoom-in time: %d ms"
 msgstr ""
 
 #: declu.xlabelzoomwidth
@@ -222,7 +222,7 @@ msgid "After you close this message you will see \"Notification area icons\" win
 msgstr ""
 
 #: declu.xmsgplacetargetfileinsteadofshortcut
-msgid "Place target file onto dock instead of shortcut?"
+msgid "Put target file onto the dock instead of a shortcut?"
 msgstr ""
 
 #: declu.xmsgremovedockwarning
@@ -238,11 +238,11 @@ msgid "Run restore operation."
 msgstr ""
 
 #: declu.xmsgsetsrestored
-msgid "The settings are restored from backup."
+msgid "Settings were restored from backup."
 msgstr ""
 
 #: declu.xmsgthemesaved
-msgid "Theme saved"
+msgid "Theme saved."
 msgstr ""
 
 #: declu.xmsgunsavediconparams
@@ -1105,15 +1105,15 @@ msgid "Properties"
 msgstr ""
 
 #: tfrmstackprop.chbbackground.caption
-msgid "Show background"
+msgid "Show background for items"
 msgstr ""
 
-#: tfrmstackprop.dividerbevel1.caption
-msgid "Items in this stack"
+#: tfrmstackprop.chbsorted.caption
+msgid "Sorted"
 msgstr ""
 
 #: tfrmstackprop.label1.caption
-msgid "Preview:"
+msgid "Items in stack preview"
 msgstr ""
 
 #: tfrmstackprop.label2.caption
@@ -1158,8 +1158,12 @@ msgstr ""
 msgid "Offset of icons"
 msgstr ""
 
+#: tfrmstackprop.lblspecialfolder.caption
+msgid "Special folder"
+msgstr ""
+
 #: tfrmstackprop.lblstyle.caption
-msgid "Mode"
+msgid "Animation"
 msgstr ""
 
 #: tfrmstackprop.tscolor.caption

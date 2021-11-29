@@ -43,9 +43,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmRestore.FormShow(Sender: TObject);
 begin
-  font.name := GetFont;
-  font.size := GetFontSize;
-
   list.clear;
   SearchFilesRecursive(UnzipPath('%pp%\Backup'), 'sets*.ini', list.Items);
   list.SetFocus;

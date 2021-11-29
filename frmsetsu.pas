@@ -372,12 +372,8 @@ var
   selChange: TSelectionChangeEvent;
 begin
   try
-    font.name := GetFont;
-    font.size := GetFontSize;
     constraints.MinHeight := Height;
-    constraints.MaxHeight := Height;
     constraints.MinWidth := Width;
-    constraints.MaxWidth := Width;
     tv.Selected := tv.Items.Item[PageIndex];
     toolu.GetFileVersion(paramstr(0), maj, min, rel, build);
     lblTitle.Caption := PROGRAM_NAME + ' ' + inttostr(maj) + '.' + inttostr(min) + '.' + inttostr(rel);

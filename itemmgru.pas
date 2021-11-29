@@ -75,7 +75,7 @@ type
     procedure ClearDeleted;
     procedure err(where: string; e: Exception; Critical: boolean = false);
     procedure notify(message: string);
-    procedure DoBaseDraw(forceDraw: boolean);
+    procedure UpdateDock(forceDraw: boolean);
     procedure SetVisible(value: boolean);
     procedure ItemsChanged(FullUpdate: boolean = false);
     function  GetRect: windows.TRect;
@@ -86,9 +86,9 @@ type
     procedure SaveItems;
     procedure SaveItem(wnd: HWND);
 
-    procedure SetItems1;
+    procedure RecalcItems;
     procedure RecalcDock;
-    procedure SetItems2(forceDraw: boolean);
+    procedure UpdateItems(forceDraw: boolean);
     function  IASize: integer;
     function  ItemFromPoint(Ax, Ay, distance: integer): extended;
     function  ItemRectFromPoint(Ax, Ay: integer): integer;
@@ -410,20 +410,24 @@ begin
     if cmd = 'clear' then Clear;
     if cmd = 'load' then
       if params <> '' then Load(params);
-    if cmd = 'shortcut' then AddItem(CreateItemFromString(TShortcutItem.Make), true);
-    if cmd = 'separator' then AddItem(CreateItemFromString(TSeparatorItem.Make), true);
+    if cmd = 'shortcut' then AddItem(CreateItemFromString(TShortcutItem.Make()), true);
+    if cmd = 'separator' then AddItem(CreateItemFromString(TSeparatorItem.Make()), true);
     if cmd = 'plugin' then AddItem(CreateItemFromString(TPluginItem.Make(params)), true);
     if cmd = 'stack' then
     begin
-      if params = '' then AddItem(CreateItemFromString(TStackItem.Make), true)
-      else AddItem(CreateItemFromString(TStackItem.Make('::::', '', params)), true);
+      if params = '' then
+      begin
+        AddItem(CreateItemFromString(TStackItem.Make()), true);
+      end else begin
+        AddItem(CreateItemFromString(TStackItem.Make('::::', '', params)), true);
+      end;
     end;
   except
     on e: Exception do err('ItemManager.Command::' + cmd + '(' + params + ')', e);
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.DoBaseDraw(forceDraw: boolean);
+procedure TItemManager.UpdateDock(forceDraw: boolean);
 begin
   if assigned(FBaseCmd) then FBaseCmd(tcRepaintBase, ifthen(forceDraw, 1, 0));
 end;
@@ -931,10 +935,10 @@ procedure TItemManager.ItemsChanged(FullUpdate: boolean = false);
 begin
   if FEnabled then
   try
-    SetItems1;
+    RecalcItems;
     RecalcDock;
-    SetItems2(FullUpdate);
-    DoBaseDraw(FullUpdate);
+    UpdateItems(FullUpdate);
+    UpdateDock(FullUpdate);
   except
     on e: Exception do err('ItemManager.ItemsChanged', e);
   end;
@@ -955,7 +959,7 @@ begin
   ItemsChanged;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetItems1;
+procedure TItemManager.RecalcItems;
   function getHalfBubble: extended;
   var
     i: extended;
@@ -1246,7 +1250,7 @@ begin
   end;
 end;
 //------------------------------------------------------------------------------
-procedure TItemManager.SetItems2(forceDraw: boolean);
+procedure TItemManager.UpdateItems(forceDraw: boolean);
 var
   idx: integer;
   wpi: HDWP;

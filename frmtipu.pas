@@ -50,10 +50,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TfrmTip.FormShow(Sender: TObject);
 begin
-  font.name := GetFont;
-  font.size := GetFontSize;
-  memo.font.name := GetFont;
-  memo.font.size := GetFontSize * 4 div 3;
   Load;
 end;
 //------------------------------------------------------------------------------

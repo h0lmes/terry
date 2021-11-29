@@ -1,17 +1,12 @@
 object frmsets: Tfrmsets
-  Left = 545
-  Height = 1130
-  Top = 359
-  Width = 1560
+  Left = 548
+  Height = 566
+  Top = 362
+  Width = 780
   BorderIcons = [biSystemMenu]
   Caption = 'Settings'
-  ClientHeight = 1130
-  ClientWidth = 1560
-  DesignTimePPI = 192
-  Font.CharSet = RUSSIAN_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -22
-  Font.Name = 'Tahoma'
+  ClientHeight = 566
+  ClientWidth = 780
   KeyPreview = True
   OnClose = FormClose
   OnCreate = FormCreate
@@ -20,15 +15,15 @@ object frmsets: Tfrmsets
   Position = poScreenCenter
   LCLVersion = '2.0.12.0'
   object pages: TPageControl
-    Left = 310
-    Height = 1010
-    Top = 20
-    Width = 1230
+    Left = 155
+    Height = 506
+    Top = 10
+    Width = 615
     ActivePage = tsPosition
     Anchors = [akTop, akLeft, akRight, akBottom]
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     ParentFont = False
     ShowTabs = False
@@ -40,70 +35,70 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object cbActivateOnMouse: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 390
+        Top = 195
         Width = 156
         Caption = 'Activate dock on mouseover'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbActivateOnMouseChange
         ParentFont = False
         TabOrder = 4
       end
       object cbAutorun: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 30
+        Top = 15
         Width = 116
         Caption = 'Start with Windows '
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbAutorunChange
         ParentFont = False
         TabOrder = 0
       end
       object cbHideTaskBar: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 90
+        Top = 45
         Width = 126
         Caption = 'Hide Windows taskbar'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbHideTaskBarChange
         ParentFont = False
         TabOrder = 1
       end
       object chbReserveScreenEdge: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 210
+        Top = 105
         Width = 122
         Caption = 'Reserve screen edge'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbReserveScreenEdgeChange
         ParentFont = False
         TabOrder = 2
       end
       object tbReserveScreenEdgePercent: TTrackBar
-        Left = 30
-        Height = 62
-        Top = 280
-        Width = 1150
+        Left = 15
+        Height = 31
+        Top = 140
+        Width = 575
         Frequency = 20
         Max = 200
         OnChange = tbReserveScreenEdgePercentChange
@@ -112,19 +107,19 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 3
       end
       object edActivateOnMouseInterval: TEdit
-        Left = 930
+        Left = 465
         Height = 21
-        Top = 450
-        Width = 250
+        Top = 225
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edActivateOnMouseIntervalChange
         ParentFont = False
@@ -132,78 +127,78 @@ object frmsets: Tfrmsets
         Text = '400'
       end
       object chbAutoHideOnFullScreenApp: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 150
+        Top = 75
         Width = 344
         Caption = 'Hide dock completely while fullscreen application active (game, etc) '
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbAutoHideOnFullScreenAppChange
         ParentFont = False
         TabOrder = 6
       end
       object chbGlobalConsole: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 794
+        Top = 397
         Width = 85
         Caption = 'Open console'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbGlobalConsoleChange
         ParentFont = False
         TabOrder = 7
       end
       object chbGlobalHide: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 724
+        Top = 362
         Width = 120
         Caption = 'Hide dock completely'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbGlobalHideChange
         ParentFont = False
         TabOrder = 8
       end
       object hkHide: TEdit
-        Left = 930
+        Left = 465
         Height = 21
-        Top = 720
-        Width = 250
+        Top = 360
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnKeyDown = hkHideKeyDown
         ParentFont = False
         TabOrder = 9
       end
       object hkConsole: TEdit
-        Left = 930
+        Left = 465
         Height = 21
-        Top = 790
-        Width = 250
+        Top = 395
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnKeyDown = hkConsoleKeyDown
         ParentFont = False
         TabOrder = 10
       end
       object DividerBevel4: TDividerBevel
-        Left = 30
+        Left = 15
         Height = 15
-        Top = 650
-        Width = 543
+        Top = 325
+        Width = 575
         Caption = 'Global hotkeys'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
@@ -211,27 +206,27 @@ object frmsets: Tfrmsets
         ParentFont = False
       end
       object Label3: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 460
+        Top = 230
         Width = 77
         Caption = 'Activation delay'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object stMouseOverTip: TStaticText
-        Left = 30
-        Height = 100
-        Top = 520
-        Width = 1150
+        Left = 15
+        Height = 50
+        Top = 260
+        Width = 575
         Caption = '(Move mouse pointer to the edge of the screen to put the dock to foreground)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 11
@@ -243,70 +238,70 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object chbTaskbar: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 30
+        Top = 15
         Width = 204
         Caption = 'Show icons for running tasks (taskbar)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbTaskbarChange
         ParentFont = False
         TabOrder = 0
       end
       object chbTaskbarGrouping: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 150
+        Top = 75
         Width = 109
         Caption = 'Group similar tasks'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbTaskbarGroupingChange
         ParentFont = False
         TabOrder = 1
       end
       object chbTaskbarSameMonitor: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 210
+        Top = 105
         Width = 208
         Caption = 'Show only tasks from the same monitor'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbTaskbarSameMonitorChange
         ParentFont = False
         TabOrder = 2
       end
       object chbTaskbarLivePreviews: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 330
+        Top = 165
         Width = 193
         Caption = 'Show live previews (when available)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbTaskbarLivePreviewsChange
         ParentFont = False
         TabOrder = 3
       end
       object tbAeroPeekThumbSize: TTrackBar
-        Left = 30
-        Height = 62
-        Top = 460
-        Width = 1150
+        Left = 15
+        Height = 31
+        Top = 230
+        Width = 575
         Frequency = 25
         Max = 400
         Min = 100
@@ -316,47 +311,47 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 4
       end
       object Label4: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 400
+        Top = 200
         Width = 81
         Caption = 'Live preview size'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object chbAeroPeekEnabled: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 90
+        Top = 45
         Width = 101
         Caption = 'Enable AeroPeek'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbAeroPeekEnabledChange
         ParentFont = False
         TabOrder = 5
       end
       object chbTaskbarSystemMenus: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 270
+        Top = 135
         Width = 136
         Caption = 'Use system-style menus'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbTaskbarSystemMenusChange
         ParentFont = False
@@ -365,87 +360,87 @@ object frmsets: Tfrmsets
     end
     object tsPosition: TTabSheet
       Caption = 'Position'
-      ClientHeight = 994
-      ClientWidth = 1214
+      ClientHeight = 498
+      ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object lblCenterOffsetPercent: TLabel
-        Left = 30
-        Height = 27
-        Top = 290
-        Width = 212
+        Left = 15
+        Height = 13
+        Top = 145
+        Width = 106
         Alignment = taCenter
         Caption = 'Offset along the edge'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblEdge: TLabel
-        Left = 620
-        Height = 27
-        Top = 30
-        Width = 145
+        Left = 310
+        Height = 13
+        Top = 15
+        Width = 72
         Caption = 'Edge of screen'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblMonitor: TLabel
-        Left = 30
-        Height = 27
-        Top = 30
-        Width = 73
+        Left = 15
+        Height = 13
+        Top = 15
+        Width = 36
         Caption = 'Monitor'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblEdgeOffset: TLabel
-        Left = 620
-        Height = 27
-        Top = 290
-        Width = 204
+        Left = 310
+        Height = 13
+        Top = 145
+        Width = 102
         Alignment = taCenter
         Caption = 'Offset from the edge'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object cboBaseSite: TComboBox
-        Left = 620
-        Height = 35
-        Top = 90
-        Width = 500
+        Left = 310
+        Height = 21
+        Top = 45
+        Width = 250
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
-        ItemHeight = 27
+        ItemHeight = 13
         OnChange = cboBaseSiteChange
         ParentFont = False
         Style = csDropDownList
         TabOrder = 1
       end
       object tbCenterOffsetPercent: TTrackBar
-        Left = 30
-        Height = 62
-        Top = 350
-        Width = 560
+        Left = 15
+        Height = 31
+        Top = 175
+        Width = 280
         Frequency = 5
         Max = 100
         OnChange = tbCenterOffsetPercentChange
@@ -454,31 +449,31 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 2
       end
       object cboMonitor: TComboBox
-        Left = 30
-        Height = 35
-        Top = 90
-        Width = 500
+        Left = 15
+        Height = 21
+        Top = 45
+        Width = 250
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
-        ItemHeight = 27
+        ItemHeight = 13
         OnChange = cboMonitorChange
         ParentFont = False
         Style = csDropDownList
         TabOrder = 0
       end
       object tbEdgeOffset: TTrackBar
-        Left = 620
-        Height = 62
-        Top = 350
-        Width = 560
+        Left = 310
+        Height = 31
+        Top = 175
+        Width = 280
         Frequency = 10
         Max = 50
         Min = -50
@@ -488,161 +483,161 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 3
       end
       object chbOccupyFullMonitor: TCheckBox
-        Left = 30
-        Height = 35
-        Top = 160
-        Width = 400
+        Left = 15
+        Height = 19
+        Top = 80
+        Width = 199
         Caption = 'Stretch to full monitor width or height'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbOccupyFullMonitorChange
         ParentFont = False
         TabOrder = 4
       end
       object Label2: TLabel
-        Left = 30
-        Height = 27
-        Top = 230
-        Width = 262
+        Left = 15
+        Height = 13
+        Top = 115
+        Width = 131
         Caption = 'Margin at the start/end, px'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object edStartOffset: TEdit
-        Left = 620
-        Height = 35
-        Top = 220
-        Width = 80
+        Left = 310
+        Height = 21
+        Top = 110
+        Width = 40
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edStartOffsetChange
         ParentFont = False
         TabOrder = 5
       end
       object edEndOffset: TEdit
-        Left = 720
-        Height = 35
-        Top = 220
-        Width = 80
+        Left = 360
+        Height = 21
+        Top = 110
+        Width = 40
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edEndOffsetChange
         ParentFont = False
         TabOrder = 6
       end
       object cbAutoHide: TCheckBox
-        Left = 30
-        Height = 35
-        Top = 530
-        Width = 581
+        Left = 15
+        Height = 19
+        Top = 265
+        Width = 286
         Caption = 'Slide into screen edge when mouse is not over the dock'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbAutoHideChange
         ParentFont = False
         TabOrder = 7
       end
       object lblVisiblePart: TLabel
-        Left = 30
-        Height = 27
-        Top = 600
-        Width = 194
+        Left = 15
+        Height = 13
+        Top = 300
+        Width = 93
         Caption = 'Visible part in pixels'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblShowDelay: TLabel
-        Left = 30
-        Height = 27
-        Top = 660
-        Width = 264
+        Left = 15
+        Height = 13
+        Top = 330
+        Width = 129
         Caption = 'Delay before show up (ms)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblHideDelay: TLabel
-        Left = 30
-        Height = 27
-        Top = 720
-        Width = 283
+        Left = 15
+        Height = 13
+        Top = 360
+        Width = 138
         Caption = 'Delay before hide down (ms)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object edRolledVisiblePixels: TEdit
-        Left = 930
-        Height = 35
-        Top = 590
-        Width = 250
+        Left = 465
+        Height = 21
+        Top = 295
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edRolledVisiblePixelsChange
         ParentFont = False
         TabOrder = 8
       end
       object edAutoShowTime: TEdit
-        Left = 930
-        Height = 35
-        Top = 650
-        Width = 250
+        Left = 465
+        Height = 21
+        Top = 325
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edAutoShowTimeChange
         ParentFont = False
         TabOrder = 9
       end
       object edAutoHideTime: TEdit
-        Left = 930
-        Height = 35
-        Top = 710
-        Width = 250
+        Left = 465
+        Height = 21
+        Top = 355
+        Width = 125
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edAutoHideTimeChange
         ParentFont = False
         TabOrder = 10
       end
       object DividerBevel5: TDividerBevel
-        Left = 30
-        Height = 32
-        Top = 470
-        Width = 1150
+        Left = 15
+        Height = 15
+        Top = 235
+        Width = 575
         Caption = 'Autoslide'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
@@ -656,41 +651,41 @@ object frmsets: Tfrmsets
       ClientWidth = 1214
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object chbBlur: TCheckBox
-        Left = 460
+        Left = 230
         Height = 35
-        Top = 30
+        Top = 15
         Width = 212
         Caption = 'Enable Aero Glass'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbBlurChange
         ParentFont = False
         TabOrder = 0
       end
       object lblBackgroundTransparency: TLabel
-        Left = 460
+        Left = 230
         Height = 27
-        Top = 100
+        Top = 50
         Width = 198
         Caption = 'Background opacity:'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbBaseAlpha: TTrackBar
-        Left = 470
-        Height = 60
-        Top = 150
-        Width = 710
+        Left = 235
+        Height = 30
+        Top = 75
+        Width = 355
         Frequency = 20
         Max = 255
         OnChange = tbBaseAlphaChange
@@ -700,19 +695,19 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 1
       end
       object lbTheme: TListBox
-        Left = 30
-        Height = 520
-        Top = 30
-        Width = 402
+        Left = 15
+        Height = 260
+        Top = 15
+        Width = 201
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ItemHeight = 0
         OnDblClick = lbThemeDblClick
@@ -721,22 +716,22 @@ object frmsets: Tfrmsets
         TabOrder = 2
       end
       object edFontSize: TEdit
-        Left = 460
+        Left = 230
         Height = 35
-        Top = 650
-        Width = 110
+        Top = 325
+        Width = 55
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 3
       end
       object udFontSize: TUpDown
-        Left = 570
+        Left = 285
         Height = 35
-        Top = 650
-        Width = 32
+        Top = 325
+        Width = 16
         Associate = edFontSize
         Min = 3
         Position = 11
@@ -744,64 +739,64 @@ object frmsets: Tfrmsets
         Thousands = False
       end
       object btnFontBold: TSpeedButton
-        Left = 640
-        Height = 44
-        Top = 650
-        Width = 162
+        Left = 320
+        Height = 22
+        Top = 325
+        Width = 81
         AllowAllUp = True
         Caption = 'Bold'
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'MS Sans Serif'
         Font.Style = [fsBold]
         GroupIndex = 1
         ParentFont = False
       end
       object btnFontItalic: TSpeedButton
-        Left = 818
-        Height = 44
-        Top = 650
-        Width = 162
+        Left = 409
+        Height = 22
+        Top = 325
+        Width = 81
         AllowAllUp = True
         Caption = 'Italic'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         Font.Style = [fsItalic]
         GroupIndex = 2
         ParentFont = False
       end
       object listFont: TListBox
-        Left = 30
-        Height = 310
-        Top = 650
-        Width = 402
+        Left = 15
+        Height = 155
+        Top = 325
+        Width = 201
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ItemHeight = 0
         ParentFont = False
         TabOrder = 5
       end
       object edFontSize2: TEdit
-        Left = 848
+        Left = 424
         Height = 35
-        Top = 724
-        Width = 100
+        Top = 362
+        Width = 50
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 6
       end
       object udFontSize2: TUpDown
-        Left = 948
+        Left = 474
         Height = 35
-        Top = 724
-        Width = 32
+        Top = 362
+        Width = 16
         Associate = edFontSize2
         Min = 3
         Position = 11
@@ -809,76 +804,76 @@ object frmsets: Tfrmsets
         Thousands = False
       end
       object Label1: TLabel
-        Left = 460
+        Left = 230
         Height = 27
-        Top = 740
+        Top = 370
         Width = 149
         Caption = 'Stack font size:'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object btnColor: TButton
-        Left = 460
-        Height = 50
-        Top = 810
-        Width = 250
+        Left = 230
+        Height = 25
+        Top = 405
+        Width = 125
         Caption = 'Color'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnColorClick
         ParentFont = False
         TabOrder = 8
       end
       object btnBackColor: TButton
-        Left = 720
-        Height = 50
-        Top = 810
-        Width = 262
+        Left = 360
+        Height = 25
+        Top = 405
+        Width = 131
         Caption = 'Background'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnBackColorClick
         ParentFont = False
         TabOrder = 9
       end
       object pbox: TPaintBox
-        Left = 460
-        Height = 70
-        Top = 890
-        Width = 520
+        Left = 230
+        Height = 35
+        Top = 445
+        Width = 260
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         OnPaint = pboxPaint
       end
       object lblBackgroundTransparency1: TLabel
-        Left = 460
+        Left = 230
         Height = 27
-        Top = 220
+        Top = 110
         Width = 189
         Caption = 'Separators opacity:'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbSeparatorAlpha: TTrackBar
-        Left = 470
-        Height = 60
-        Top = 270
-        Width = 710
+        Left = 235
+        Height = 30
+        Top = 135
+        Width = 355
         Frequency = 20
         Max = 255
         OnChange = tbSeparatorAlphaChange
@@ -888,43 +883,43 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 10
       end
       object chbReflection: TCheckBox
-        Left = 460
+        Left = 230
         Height = 35
-        Top = 350
+        Top = 175
         Width = 241
         Caption = 'Show icon reflections'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbReflectionChange
         ParentFont = False
         TabOrder = 11
       end
       object lblBackgroundTransparency2: TLabel
-        Left = 460
+        Left = 230
         Height = 27
-        Top = 430
+        Top = 215
         Width = 148
         Caption = 'Reflection size:'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbReflectionSize: TTrackBar
-        Left = 470
-        Height = 60
-        Top = 480
-        Width = 710
+        Left = 235
+        Height = 30
+        Top = 240
+        Width = 355
         Max = 20
         OnChange = tbReflectionSizeChange
         PageSize = 1
@@ -933,16 +928,16 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 12
       end
       object DividerBevel7: TDividerBevel
-        Left = 30
+        Left = 15
         Height = 32
-        Top = 580
-        Width = 1150
+        Top = 290
+        Width = 1182
         Caption = 'Font'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
@@ -956,138 +951,138 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object lblZoomWideness: TLabel
-        Left = 630
+        Left = 315
         Height = 13
-        Top = 730
+        Top = 365
         Width = 55
         Caption = 'Zoom width'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblIconSize: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 480
+        Top = 240
         Width = 42
         Caption = 'Icon size'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblZoomedIconSize: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 600
+        Top = 300
         Width = 65
         Caption = 'Icon size max'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object cbZoomItems: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 410
+        Top = 205
         Width = 181
         Caption = 'Zoom icons when mouse is over'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbZoomItemsChange
         ParentFont = False
         TabOrder = 0
       end
       object chbShowRunningIndicator: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 130
+        Top = 65
         Width = 204
         Caption = 'Show indicator for running programs'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbShowRunningIndicatorChange
         ParentFont = False
         TabOrder = 1
       end
       object chbActivateRunning: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 180
+        Top = 90
         Width = 200
         Caption = 'Activate program if already running'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbActivateRunningChange
         ParentFont = False
         TabOrder = 2
       end
       object chbUseShellContextMenus: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 310
+        Top = 155
         Width = 284
         Caption = 'Show Windows Explorer context menus for programs'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbUseShellContextMenusChange
         ParentFont = False
         TabOrder = 3
       end
       object cboItemAnimationType: TComboBox
-        Left = 660
-        Height = 35
-        Top = 240
-        Width = 520
+        Left = 330
+        Height = 21
+        Top = 120
+        Width = 260
         DropDownCount = 10
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
-        ItemHeight = 27
+        ItemHeight = 13
         OnChange = cboItemAnimationTypeChange
         ParentFont = False
         Style = csDropDownList
         TabOrder = 7
       end
       object lblAnimateIcons: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 250
+        Top = 125
         Width = 70
         Caption = 'Animate icons:'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbIconSize: TTrackBar
-        Left = 60
-        Height = 60
-        Top = 530
-        Width = 1120
+        Left = 30
+        Height = 30
+        Top = 265
+        Width = 560
         Frequency = 8
         Max = 128
         Min = 16
@@ -1097,16 +1092,16 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 4
       end
       object tbBigIconSize: TTrackBar
-        Left = 60
-        Height = 60
-        Top = 650
-        Width = 1120
+        Left = 30
+        Height = 30
+        Top = 325
+        Width = 560
         Frequency = 16
         Max = 256
         Min = 16
@@ -1116,16 +1111,16 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 5
       end
       object tbZoomWidth: TTrackBar
-        Left = 660
-        Height = 60
-        Top = 780
-        Width = 290
+        Left = 330
+        Height = 30
+        Top = 390
+        Width = 145
         Max = 5
         Min = 2
         OnChange = tbZoomWidthChange
@@ -1134,29 +1129,29 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 6
       end
       object lblIconSpacing: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 730
+        Top = 365
         Width = 60
         Caption = 'Icon spacing'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbIconSpacing: TTrackBar
-        Left = 60
-        Height = 60
-        Top = 780
-        Width = 540
+        Left = 30
+        Height = 30
+        Top = 390
+        Width = 270
         Frequency = 2
         Max = 30
         OnChange = tbIconSpacingChange
@@ -1164,43 +1159,43 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 8
       end
       object chbStackOpenAnimation: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 360
+        Top = 180
         Width = 160
         Caption = 'Stack open/close animation'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbStackOpenAnimationChange
         ParentFont = False
         TabOrder = 9
       end
       object lblZoomTime: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 860
+        Top = 430
         Width = 49
         Caption = 'Zoom time'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object tbZoomTime: TTrackBar
-        Left = 60
-        Height = 60
-        Top = 910
-        Width = 1120
+        Left = 30
+        Height = 30
+        Top = 455
+        Width = 560
         Frequency = 40
         Max = 400
         Min = 1
@@ -1210,34 +1205,34 @@ object frmsets: Tfrmsets
         ShowSelRange = False
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentFont = False
         TabOrder = 10
       end
       object chbHintEffects: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 80
+        Top = 40
         Width = 120
         Caption = 'Enable hint effects'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbHintEffectsChange
         ParentFont = False
         TabOrder = 11
       end
       object cbShowHint: TCheckBox
-        Left = 30
+        Left = 15
         Height = 29
-        Top = 30
+        Top = 15
         Width = 136
         Caption = 'Show hint (icon name)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbShowHintChange
         ParentFont = False
@@ -1250,114 +1245,114 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object lblLaunchInterval: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 120
+        Top = 60
         Width = 260
         Caption = 'Minimum time before the next run of the program (ms)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblLaunchIntervalTip: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 180
+        Top = 90
         Width = 262
         Caption = '(Prevents accidental run of multiple copies of program)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
         WordWrap = True
       end
       object edLaunchInterval: TEdit
-        Left = 1090
+        Left = 545
         Height = 21
-        Top = 110
-        Width = 90
+        Top = 55
+        Width = 45
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edLaunchIntervalChange
         ParentFont = False
         TabOrder = 0
       end
       object cbUseShell: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 270
+        Top = 135
         Width = 245
         Caption = 'Use this shell to open local and network folders'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = cbUseShellChange
         ParentFont = False
         TabOrder = 1
       end
       object edShell: TEdit
-        Left = 30
+        Left = 15
         Height = 21
-        Top = 340
-        Width = 1080
+        Top = 170
+        Width = 540
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = edShellChange
         ParentFont = False
         TabOrder = 2
       end
       object btnBrowseShell: TButton
-        Left = 1128
-        Height = 42
-        Top = 340
-        Width = 52
+        Left = 564
+        Height = 21
+        Top = 170
+        Width = 26
         Caption = '...'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnBrowseShellClick
         ParentFont = False
         TabOrder = 3
       end
       object chbRunInThread: TCheckBox
-        Left = 30
+        Left = 15
         Height = 19
-        Top = 30
+        Top = 15
         Width = 195
         Caption = 'Run applications in separate threads'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = chbRunInThreadChange
         ParentFont = False
         TabOrder = 4
       end
       object btnAutoRunAdd: TSpeedButton
-        Left = 30
-        Height = 60
+        Left = 15
+        Height = 30
         Hint = 'Add'
-        Top = 500
-        Width = 620
+        Top = 250
+        Width = 310
         Caption = 'Add program'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         Glyph.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
@@ -1399,15 +1394,15 @@ object frmsets: Tfrmsets
         ParentFont = False
       end
       object btnAutoRunAddMinimized: TSpeedButton
-        Left = 30
-        Height = 60
+        Left = 15
+        Height = 30
         Hint = 'Add'
-        Top = 570
-        Width = 620
+        Top = 285
+        Width = 310
         Caption = 'Add (run minimized)'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         Glyph.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
@@ -1449,23 +1444,23 @@ object frmsets: Tfrmsets
         ParentFont = False
       end
       object memAutorun: TMemo
-        Left = 30
-        Height = 310
-        Top = 650
-        Width = 1150
+        Left = 15
+        Height = 155
+        Top = 325
+        Width = 575
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnChange = memAutorunChange
         ParentFont = False
         TabOrder = 5
       end
       object DividerBevel6: TDividerBevel
-        Left = 30
+        Left = 15
         Height = 15
-        Top = 430
-        Width = 543
+        Top = 215
+        Width = 575
         Caption = 'Autorun'
         Anchors = [akTop, akLeft, akRight]
         BevelWidth = 1
@@ -1479,60 +1474,60 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object btnRestore: TButton
-        Left = 30
-        Height = 60
-        Top = 40
-        Width = 570
+        Left = 15
+        Height = 30
+        Top = 20
+        Width = 285
         Caption = 'Restore settings'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnRestoreClick
         ParentFont = False
         TabOrder = 0
       end
       object btnDebug: TButton
-        Left = 30
-        Height = 60
-        Top = 370
-        Width = 570
+        Left = 15
+        Height = 30
+        Top = 185
+        Width = 285
         Caption = 'Debug info'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnDebugClick
         ParentFont = False
         TabOrder = 1
       end
       object btnRemoveDock: TButton
-        Left = 30
-        Height = 60
-        Top = 180
-        Width = 570
+        Left = 15
+        Height = 30
+        Top = 90
+        Width = 285
         Caption = 'Remove this dock'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         OnClick = btnRemoveDockClick
         ParentFont = False
         TabOrder = 2
       end
       object lblRemoveDock: TLabel
-        Left = 30
+        Left = 15
         Height = 13
-        Top = 260
+        Top = 130
         Width = 192
         Caption = 'Caution! This action can not be undone!'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
@@ -1544,149 +1539,149 @@ object frmsets: Tfrmsets
       ClientWidth = 607
       Font.CharSet = RUSSIAN_CHARSET
       Font.Color = clWindowText
-      Font.Height = -22
+      Font.Height = -11
       Font.Name = 'Tahoma'
       ParentFont = False
       object lblTitle: TLabel
-        Left = 10
-        Height = 72
-        Top = 180
-        Width = 593
+        Left = 5
+        Height = 36
+        Top = 90
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'TDock'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits: TLabel
-        Left = 10
-        Height = 50
-        Top = 290
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 145
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'A desktop launch panel'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits1: TLabel
-        Left = 10
-        Height = 50
-        Top = 350
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 175
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Author and developer: Roman Dubinin'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits2: TLabel
-        Left = 10
-        Height = 50
-        Top = 410
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 205
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Testing and ideas: Andrey Levchenko, Alex Dubinin'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits3: TLabel
-        Left = 10
-        Height = 50
-        Top = 470
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 235
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Built with Lazarus/FPC'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits4: TLabel
-        Left = 10
-        Height = 50
-        Top = 530
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 265
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Licensed under LGPL 2.1'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits5: TLabel
-        Left = 10
-        Height = 50
-        Top = 710
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 355
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Press F1 for Help'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits6: TLabel
-        Left = 10
-        Height = 50
-        Top = 590
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 295
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'Uses Open Icon Library'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
       end
       object lblCredits7: TLabel
-        Left = 10
-        Height = 50
-        Top = 650
-        Width = 593
+        Left = 5
+        Height = 25
+        Top = 325
+        Width = 600
         Alignment = taCenter
         Anchors = [akTop, akLeft, akRight]
         AutoSize = False
         Caption = 'http://openiconlibrary.sourceforge.net/'
         Font.CharSet = RUSSIAN_CHARSET
         Font.Color = clWindowText
-        Font.Height = -22
+        Font.Height = -11
         Font.Name = 'Tahoma'
         ParentColor = False
         ParentFont = False
@@ -1694,44 +1689,44 @@ object frmsets: Tfrmsets
     end
   end
   object btn_ok: TBitBtn
-    Left = 310
-    Height = 60
-    Top = 1050
-    Width = 270
+    Left = 155
+    Height = 30
+    Top = 525
+    Width = 135
     Caption = 'OK'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btn_okClick
     ParentFont = False
     TabOrder = 1
   end
   object btn_cancel: TBitBtn
-    Left = 600
-    Height = 60
-    Top = 1050
-    Width = 270
+    Left = 300
+    Height = 30
+    Top = 525
+    Width = 135
     Caption = 'Cancel'
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     OnClick = btn_cancelClick
     ParentFont = False
     TabOrder = 2
   end
   object tv: TTreeView
-    Left = 16
-    Height = 994
-    Top = 30
-    Width = 282
+    Left = 8
+    Height = 497
+    Top = 15
+    Width = 141
     BackgroundColor = clDefault
     BorderStyle = bsNone
-    DefaultItemHeight = 80
+    DefaultItemHeight = 40
     Font.CharSet = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -22
+    Font.Height = -11
     Font.Name = 'Tahoma'
     HideSelection = False
     Images = images

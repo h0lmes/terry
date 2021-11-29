@@ -188,7 +188,6 @@ end;
 //------------------------------------------------------------------------------
 procedure TShortcutItem.Update;
 var
-  sfi: TSHFileInfoW;
   pidFolder: PItemIDList;
   csidl: integer;
   pszName: array [0..255] of char;
@@ -215,8 +214,7 @@ begin
             FPIDL := PIDL_GetFromPath(pchar(FCommand));
             if assigned(FPIDL) then
             begin
-              OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
-              FCaption := strpas(pwchar(sfi.szDisplayName));
+              FCaption := PIDL_GetDisplayName3(FPIDL);
               PIDL_Free(FPIDL);
             end;
             FPIDL := nil;
@@ -240,12 +238,9 @@ begin
           if not assigned(FPIDL) then
             if not FileExists(toolu.UnzipPath(FCommand)) then
               if IsGUID(FCommand) then FPIDL := PIDL_GetFromPath(pchar(FCommand));
+
           FIsPIDL := assigned(FPIDL);
-          if FIsPIDL and (FCaption = '::::') then
-          begin
-            OleCheck(SHGetFileInfoW(pwchar(FPIDL), 0, sfi, sizeof(sfi), SHGFI_PIDL or SHGFI_DISPLAYNAME));
-            FCaption := strpas(pwchar(sfi.szDisplayName));
-          end;
+          if FIsPIDL and (FCaption = '::::') then FCaption := PIDL_GetDisplayName3(FPIDL);
 
           // check if this is the shortcut to an executable file
           if not FIsPIDL then
